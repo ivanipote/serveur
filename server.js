@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const fs = require('fs');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const pg = require('pg');
+const PgSession = require('connect-pg-simple')(session);
 const db = require('./database');
 
 const app = express();
@@ -18,13 +19,18 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========================================================
-// SESSIONS
+// SESSIONS (PostgreSQL)
 // ========================================================
 
+const pgPool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
 app.use(session({
-    store: new SQLiteStore({
-        db: 'sessions.db',
-        dir: __dirname
+    store: new PgSession({
+        pool: pgPool,
+        tableName: 'session'
     }),
     secret: process.env.SESSION_SECRET || 'natureplus-super-secret-key-2026',
     resave: false,
@@ -67,7 +73,43 @@ async function createNotification(userId, commandeId, type, title, content) {
 }
 
 // ========================================================
-// 🆕 ROUTE HEALTH (pour Render)
+// UPLOAD (multer)
+// ========================================================
+
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const unique = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+        cb(null, unique);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Seules les images sont autorisées'), false);
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: fileFilter
+});
+
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
+// ========================================================
+// ROUTE HEALTH (pour Render)
 // ========================================================
 
 app.get('/health', (req, res) => {
@@ -160,6 +202,48 @@ app.post('/api/admin/login', async (req, res) => {
     } catch (error) {
         console.error('❌ Erreur connexion admin:', error);
         res.status(500).json({ error: 'Erreur lors de la connexion.' });
+    }
+});
+
+// POST /api/admin/products (avec upload)
+app.post('/api/admin/products', upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 }
+]), async (req, res) => {
+    console.log('📥 Ajout produit reçu');
+    console.log('📦 Body:', req.body);
+    console.log('📎 Fichiers:', req.files);
+
+    const { name, price, quantity, description } = req.body;
+
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Nom du produit requis.' });
+    }
+
+    const parsedPrice = parseInt(price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+        return res.status(400).json({ error: 'Prix valide requis.' });
+    }
+
+    const image1 = req.files && req.files['image1'] ? `/uploads/${req.files['image1'][0].filename}` : '';
+    const image2 = req.files && req.files['image2'] ? `/uploads/${req.files['image2'][0].filename}` : '';
+
+    if (!image1) {
+        return res.status(400).json({ error: 'Image 1 requise.' });
+    }
+
+    const adminId = 1;
+
+    try {
+        const result = await db.query(
+            `INSERT INTO products (admin_id, name, price, quantity, image1, image2, description)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [adminId, name.trim(), parsedPrice, parseInt(quantity) || 0, image1, image2, description || '']
+        );
+        res.json({ success: true, id: result.rows[0].id, message: 'Produit ajouté' });
+    } catch (err) {
+        console.error('❌ Erreur DB:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -706,7 +790,6 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
     const reference = generateReference();
 
     try {
-        // Vérifier si la référence existe déjà
         const existing = await db.get('SELECT id FROM commandes WHERE reference = $1', [reference]);
         let finalRef = reference;
         if (existing) {
