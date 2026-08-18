@@ -1,12 +1,12 @@
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const multer = require('multer');
 const fs = require('fs');
 const session = require('express-session');
 const pg = require('pg');
 const PgSession = require('connect-pg-simple')(session);
 const db = require('./database');
+const { upload } = require('./config/cloudinary');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========================================================
-// SESSIONS (PostgreSQL) - CORRIGÉ
+// SESSIONS (PostgreSQL)
 // ========================================================
 
 const pgPool = new pg.Pool({
@@ -33,12 +33,12 @@ app.use(session({
         tableName: 'session'
     }),
     secret: process.env.SESSION_SECRET || 'natureplus-super-secret-key-2026',
-    resave: true,                    // ← FORCER LA SAUVEGARDE
-    saveUninitialized: true,         // ← FORCER LA CRÉATION DU COOKIE
+    resave: true,
+    saveUninitialized: true,
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: false,               // ← false pour tester (Render utilise HTTPS)
+        secure: false,
         sameSite: 'lax'
     }
 }));
@@ -71,42 +71,6 @@ async function createNotification(userId, commandeId, type, title, content) {
         console.error('❌ Erreur création notification:', err);
     }
 }
-
-// ========================================================
-// UPLOAD (multer)
-// ========================================================
-
-const uploadDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const unique = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-        cb(null, unique);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowed.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Seules les images sont autorisées'), false);
-    }
-};
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: fileFilter
-});
-
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // ========================================================
 // ROUTE HEALTH (pour Render)
@@ -205,7 +169,7 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-// POST /api/admin/products (avec upload)
+// POST /api/admin/products (avec Cloudinary)
 app.post('/api/admin/products', upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 }
@@ -225,8 +189,9 @@ app.post('/api/admin/products', upload.fields([
         return res.status(400).json({ error: 'Prix valide requis.' });
     }
 
-    const image1 = req.files && req.files['image1'] ? `/uploads/${req.files['image1'][0].filename}` : '';
-    const image2 = req.files && req.files['image2'] ? `/uploads/${req.files['image2'][0].filename}` : '';
+    // Récupérer les URLs Cloudinary
+    const image1 = req.files && req.files['image1'] ? req.files['image1'][0].path : '';
+    const image2 = req.files && req.files['image2'] ? req.files['image2'][0].path : '';
 
     if (!image1) {
         return res.status(400).json({ error: 'Image 1 requise.' });
@@ -240,7 +205,7 @@ app.post('/api/admin/products', upload.fields([
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
             [adminId, name.trim(), parsedPrice, parseInt(quantity) || 0, image1, image2, description || '']
         );
-        res.json({ success: true, id: result.rows[0].id, message: 'Produit ajouté' });
+        res.json({ success: true, id: result.rows[0].id, message: 'Produit ajouté avec succès' });
     } catch (err) {
         console.error('❌ Erreur DB:', err);
         res.status(500).json({ error: err.message });
@@ -492,7 +457,7 @@ app.post('/api/client/register', async (req, res) => {
     }
 });
 
-// POST /api/client/login - CORRIGÉ AVEC SESSION SAVE
+// POST /api/client/login
 app.post('/api/client/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -517,7 +482,6 @@ app.post('/api/client/login', async (req, res) => {
         req.session.userEmail = user.email;
         req.session.userPhone = user.phone;
 
-        // ✅ FORCER LA SAUVEGARDE DE LA SESSION
         req.session.save((err) => {
             if (err) {
                 console.error('❌ Erreur sauvegarde session:', err);

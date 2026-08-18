@@ -1,0 +1,84 @@
+## 📋 TOUS LES LIENS DE VOTRE SITE NATURE+
+
+---
+
+### 🏠 ACCÈS GÉNÉRAL
+
+| Page | URL |
+|------|-----|
+| **Accueil** | https://nature-plus-client.onrender.com/ |
+| **Health Check** | https://nature-plus-client.onrender.com/health |
+
+---
+
+### 👤 CLIENT (Partie Utilisateur)
+
+| Page | URL |
+|------|-----|
+| **Connexion client** | https://nature-plus-client.onrender.com/login |
+| **Inscription client** | https://nature-plus-client.onrender.com/register |
+| **Dashboard client** | https://nature-plus-client.onrender.com/dashboard |
+| **Recherche produits** | https://nature-plus-client.onrender.com/searchproduct |
+| **Résultats recherche** | https://nature-plus-client.onrender.com/results |
+| **Détail produit** | https://nature-plus-client.onrender.com/infoproduit |
+| **Mon panier** | https://nature-plus-client.onrender.com/panier |
+| **Passer commande** | https://nature-plus-client.onrender.com/passcommande |
+| **Mes commandes** | https://nature-plus-client.onrender.com/mescommandes |
+| **Détail commande** | https://nature-plus-client.onrender.com/detailcom |
+| **Mes notifications** | https://nature-plus-client.onrender.com/notification |
+| **Mon profil** | https://nature-plus-client.onrender.com/profil |
+
+---
+
+### 🔐 ADMIN (Partie Administration)
+
+| Page | URL |
+|------|-----|
+| **Connexion admin** | https://nature-plus-client.onrender.com/admin/login |
+| **Inscription admin** | https://nature-plus-client.onrender.com/admin/register |
+| **Dashboard admin** | https://nature-plus-client.onrender.com/admin/dashboard |
+| **Accueil admin** | https://nature-plus-client.onrender.com/admin |
+
+---
+
+### 🔌 API (Endpoints)
+
+| Endpoint | URL | Description |
+|----------|-----|-------------|
+| **Health** | https://nature-plus-client.onrender.com/health | Vérification serveur |
+| **Produits** | https://nature-plus-client.onrender.com/api/products | Liste des produits |
+| **Communes** | https://nature-plus-client.onrender.com/api/livraison/communes | Frais de livraison |
+| **Stats admin** | https://nature-plus-client.onrender.com/api/admin/stats | Statistiques |
+| **Commandes admin** | https://nature-plus-client.onrender.com/api/admin/commandes | Liste commandes |
+| **Paiements admin** | https://nature-plus-client.onrender.com/api/admin/payments | Liste paiements |
+| **Clients admin** | https://nature-plus-client.onrender.com/api/admin/clients | Liste clients |
+
+---
+
+### 💳 PAIEMENT (Service Pay - bientôt en ligne)
+
+| Page | URL (quand déployé) |
+|------|---------------------|
+| **Service paiement** | https://nature-plus-pay.onrender.com (à venir) |
+| **Health pay** | https://nature-plus-pay.onrender.com/health (à venir) |
+| **Webhook** | https://nature-plus-pay.onrender.com/api/payment/webhook (à venir) |
+
+---
+
+### 📦 AUTRES
+
+| Fichier | URL |
+|---------|-----|
+| **Payment Success** | https://nature-plus-client.onrender.com/payment-success |
+| **Payment Failed** | https://nature-plus-client.onrender.com/payment-failed |
+| **Uploads** | https://nature-plus-client.onrender.com/uploads/ |
+
+---
+
+## 📌 RAPPEL À GARDER
+
+**Votre serveur est en ligne sur :**  
+🔗 **https://nature-plus-client.onrender.com**
+
+---
+
