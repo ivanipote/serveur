@@ -12,44 +12,43 @@ body {
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    padding-top: 70px;
 }
 
 /* ==========================================
-   HEADER 1 LIGNE (fixe)
+   HEADER 70px
    ========================================== */
 
 .dashboard-header {
     background: white;
-    padding: 10px 20px;
+    padding: 8px 24px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     flex-shrink: 0;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 100;
+    height: 70px;
+    min-height: 70px;
+    max-height: 70px;
 }
 
-/* Logo */
+/* Logo (sans texte) */
 .header-logo {
     display: flex;
     align-items: center;
-    gap: 6px;
     text-decoration: none;
     flex-shrink: 0;
 }
 
 .header-logo .logo {
-    font-size: 22px;
-}
-
-.header-logo .app-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2d7d46;
+    font-size: 32px;
 }
 
 /* Recherche */
@@ -67,18 +66,18 @@ body {
 
 .search-icon {
     position: absolute;
-    left: 12px;
+    left: 14px;
     color: #aaa;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .search-bar {
     width: 100%;
-    height: 40px;
-    padding: 0 14px 0 38px;
+    height: 44px;
+    padding: 0 16px 0 44px;
     border: 2px solid #e8e8f0;
-    border-radius: 25px;
-    font-size: 14px;
+    border-radius: 30px;
+    font-size: 16px;
     background: #f8f9fc;
     outline: none;
     transition: all 0.3s;
@@ -93,24 +92,24 @@ body {
 
 .search-bar::placeholder {
     color: #aaa;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* Boutons header */
 .header-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-shrink: 0;
 }
 
 .header-btn {
     background: #e8e8f0;
     border: none;
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    font-size: 16px;
+    font-size: 18px;
     color: #1a1a2e;
     cursor: pointer;
     display: flex;
@@ -126,7 +125,7 @@ body {
 }
 
 .header-btn i {
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .header-btn:disabled {
@@ -145,15 +144,15 @@ body {
     top: -3px;
     right: -3px;
     color: white;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
-    min-width: 18px;
-    height: 18px;
+    min-width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 3px;
+    padding: 0 4px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
@@ -204,17 +203,17 @@ body {
 .main-content {
     flex: 1;
     overflow-y: auto;
-    padding: 16px 20px 20px 20px;
+    padding: 16px 20px 12px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     -webkit-overflow-scrolling: touch;
 }
 
 .main-content::after {
     content: '';
     display: block;
-    height: 10px;
+    height: 8px;
     flex-shrink: 0;
 }
 
@@ -225,7 +224,7 @@ body {
 .guest-message {
     background: linear-gradient(135deg, #1a5a33, #2d7d46);
     border-radius: 14px;
-    padding: 16px 20px;
+    padding: 14px 18px;
     box-shadow: 0 4px 16px rgba(45, 125, 70, 0.2);
     display: none;
     flex-shrink: 0;
@@ -241,13 +240,13 @@ body {
 
 .guest-message .guest-icon {
     background: rgba(255, 255, 255, 0.15);
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     color: #4ade80;
     flex-shrink: 0;
 }
@@ -258,14 +257,14 @@ body {
 }
 
 .guest-message .guest-text h3 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: white;
     margin-bottom: 2px;
 }
 
 .guest-message .guest-text p {
-    font-size: 13px;
+    font-size: 12px;
     color: rgba(255, 255, 255, 0.8);
     line-height: 1.4;
 }
@@ -273,11 +272,11 @@ body {
 .guest-login-btn {
     background: white;
     color: #2d7d46;
-    padding: 8px 20px;
+    padding: 6px 18px;
     border-radius: 25px;
     text-decoration: none;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12px;
     transition: all 0.3s;
     display: inline-flex;
     align-items: center;
@@ -291,17 +290,17 @@ body {
 }
 
 /* ==========================================
-   CARTE 1 : CARROUSEL
+   CARTE 1 : CARROUSEL (52%)
    ========================================== */
 
 .card-rectangle {
-    flex: 0 0 48%;
+    flex: 0 0 52%;
     background: white;
     border-radius: 18px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.04);
     padding: 12px;
     border: 1px solid #f0f0f5;
-    max-height: 48vh;
+    max-height: 52vh;
     overflow: hidden;
     position: relative;
 }
@@ -377,7 +376,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 14px 20px;
+    padding: 12px 18px;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -389,7 +388,7 @@ body {
 
 .carousel-item .product-footer .product-name {
     color: #ffffff;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     letter-spacing: 0.3px;
@@ -429,17 +428,17 @@ body {
 
 .carousel-nav {
     position: absolute;
-    bottom: 70px;
+    bottom: 65px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 4px;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(6px);
-    padding: 4px 14px;
+    padding: 3px 12px;
     border-radius: 16px;
     color: white;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     z-index: 5;
 }
@@ -449,15 +448,16 @@ body {
 }
 
 /* ==========================================
-   CARTE 2 : DÉTAIL PRODUIT
+   CARTE 2 : DÉTAIL PRODUIT (footer) 38%
    ========================================== */
 
 .card-detail {
-    flex: 1;
+    flex: 0 0 38%;
     border-radius: 18px;
     overflow: hidden;
     position: relative;
-    min-height: 140px;
+    min-height: 100px;
+    max-height: 38vh;
     border: 1px solid #f0f0f5;
     box-shadow: 0 4px 16px rgba(0,0,0,0.04);
 }
@@ -486,7 +486,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
 }
 
 .detail-content {
@@ -497,25 +497,25 @@ body {
 }
 
 .detail-name {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 900;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     text-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
 .detail-price {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 900;
     color: #4ade80;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     text-shadow: 0 2px 12px rgba(0,0,0,0.4);
 }
 
 .detail-desc {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
     color: rgba(255,255,255,0.9);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     line-height: 1.4;
     text-shadow: 0 1px 8px rgba(0,0,0,0.3);
 }
@@ -526,9 +526,9 @@ body {
     -webkit-backdrop-filter: blur(8px);
     border: 2px solid rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 12px 30px;
+    padding: 10px 24px;
     border-radius: 25px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
@@ -556,37 +556,37 @@ body {
 
 @media (max-width: 768px) {
     .dashboard-header {
-        padding: 8px 14px;
-        gap: 8px;
-    }
-
-    .header-logo .app-name {
-        font-size: 14px;
+        height: 60px;
+        min-height: 60px;
+        max-height: 60px;
+        padding: 6px 16px;
+        gap: 10px;
     }
 
     .header-logo .logo {
-        font-size: 18px;
+        font-size: 24px;
     }
 
     .search-bar {
-        height: 34px;
-        font-size: 13px;
-        padding: 0 10px 0 32px;
+        height: 36px;
+        font-size: 14px;
+        padding: 0 12px 0 36px;
+        border-radius: 25px;
     }
 
     .search-icon {
-        font-size: 12px;
+        font-size: 14px;
         left: 10px;
     }
 
     .header-btn {
-        width: 34px;
-        height: 34px;
-        font-size: 14px;
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
     }
 
     .header-btn i {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .header-btn .badge {
@@ -597,15 +597,20 @@ body {
         right: -2px;
     }
 
-    .main-content {
-        padding: 12px 14px 14px 14px;
-        gap: 14px;
+    body {
+        padding-top: 60px;
     }
 
     .card-rectangle {
-        flex: 0 0 44%;
+        flex: 0 0 50%;
+        max-height: 50vh;
         padding: 10px;
-        max-height: 44vh;
+    }
+
+    .card-detail {
+        flex: 0 0 40%;
+        max-height: 40vh;
+        min-height: 90px;
     }
 
     .carousel-item .product-footer .product-name {
@@ -614,9 +619,9 @@ body {
     }
 
     .carousel-nav {
-        bottom: 60px;
+        bottom: 55px;
         font-size: 11px;
-        padding: 3px 10px;
+        padding: 2px 10px;
     }
 
     .carousel-btn {
@@ -628,29 +633,25 @@ body {
     .carousel-btn.prev { left: 6px; }
     .carousel-btn.next { right: 6px; }
 
-    .card-detail {
-        min-height: 110px;
-    }
-
     .detail-name {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .detail-price {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .detail-desc {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .detail-add-btn {
-        padding: 8px 20px;
-        font-size: 14px;
+        padding: 8px 18px;
+        font-size: 13px;
     }
 
     .guest-message {
-        padding: 14px 16px;
+        padding: 10px 14px;
     }
 
     .guest-message .guest-content {
@@ -659,43 +660,43 @@ body {
     }
 
     .guest-message .guest-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
 
     .guest-message .guest-text h3 {
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .guest-message .guest-text p {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .guest-login-btn {
-        font-size: 12px;
-        padding: 6px 16px;
+        font-size: 11px;
+        padding: 4px 14px;
     }
 }
 
 @media (max-width: 480px) {
     .dashboard-header {
-        padding: 6px 10px;
+        height: 54px;
+        min-height: 54px;
+        max-height: 54px;
+        padding: 4px 10px;
         gap: 6px;
-    }
-
-    .header-logo .app-name {
-        font-size: 12px;
+        border-bottom-left-radius: 14px;
+        border-bottom-right-radius: 14px;
     }
 
     .header-logo .logo {
-        font-size: 16px;
+        font-size: 20px;
     }
 
     .header-center {
-        flex: 1;
-        min-width: 60px;
-        max-width: 160px;
+        min-width: 50px;
+        max-width: 140px;
     }
 
     .search-bar {
@@ -728,15 +729,27 @@ body {
         right: -2px;
     }
 
+    body {
+        padding-top: 54px;
+    }
+
     .main-content {
-        padding: 8px 10px 10px 10px;
+        padding: 8px 10px 8px 10px;
         gap: 10px;
     }
 
     .card-rectangle {
-        flex: 0 0 40%;
+        flex: 0 0 48%;
         padding: 8px;
-        max-height: 40vh;
+        max-height: 48vh;
+        border-radius: 14px;
+    }
+
+    .card-detail {
+        flex: 0 0 42%;
+        max-height: 42vh;
+        min-height: 70px;
+        border-radius: 14px;
     }
 
     .carousel-item .product-footer .product-name {
@@ -745,9 +758,10 @@ body {
     }
 
     .carousel-nav {
-        bottom: 50px;
+        bottom: 45px;
         font-size: 10px;
         padding: 2px 8px;
+        border-radius: 12px;
     }
 
     .carousel-btn {
@@ -759,186 +773,51 @@ body {
     .carousel-btn.prev { left: 4px; }
     .carousel-btn.next { right: 4px; }
 
-    .card-detail {
-        min-height: 90px;
+    .detail-content {
+        padding: 4px;
     }
 
     .detail-name {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .detail-price {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .detail-desc {
-        font-size: 11px;
+        font-size: 10px;
         margin-bottom: 6px;
     }
 
     .detail-add-btn {
         padding: 6px 14px;
-        font-size: 12px;
+        font-size: 11px;
         gap: 4px;
+        border-radius: 20px;
     }
 
     .guest-message {
-        padding: 10px 12px;
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+
+    .guest-message .guest-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
 
     .guest-message .guest-text h3 {
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .guest-message .guest-text p {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .guest-login-btn {
-        font-size: 11px;
-        padding: 4px 12px;
+        font-size: 10px;
+        padding: 4px 10px;
     }
-}
-.dashboard-header {
-    background: white;
-    padding: 10px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    height: 60px;                 /* ← AJOUTER */
-    min-height: 60px;             /* ← AJOUTER */
-    max-height: 60px;             /* ← AJOUTER */
-}
-body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: #f0f2f5;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-    padding-top: 60px;            /* ← AJOUTER (hauteur du header) */
-}
-.dashboard-header {
-    background: white;
-    padding: 8px 24px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-shrink: 0;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    height: 70px;
-    min-height: 70px;
-    max-height: 70px;
-}
-
-.header-logo .logo {
-    font-size: 28px;
-}
-
-.header-logo .app-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: #2d7d46;
-}
-
-.search-bar {
-    width: 100%;
-    height: 44px;
-    padding: 0 16px 0 44px;
-    border: 2px solid #e8e8f0;
-    border-radius: 30px;
-    font-size: 16px;
-    background: #f8f9fc;
-    outline: none;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.search-icon {
-    position: absolute;
-    left: 14px;
-    color: #aaa;
-    font-size: 16px;
-}
-
-.header-btn {
-    background: #e8e8f0;
-    border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    font-size: 18px;
-    color: #1a1a2e;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    position: relative;
-}
-
-.header-btn i {
-    font-size: 18px;
-}
-
-.header-btn .badge {
-    position: absolute;
-    top: -3px;
-    right: -3px;
-    color: white;
-    font-size: 10px;
-    font-weight: 700;
-    min-width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.card-rectangle {
-    flex: 0 0 52%;
-    background: white;
-    border-radius: 18px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-    padding: 12px;
-    border: 1px solid #f0f0f5;
-    max-height: 52vh;
-    overflow: hidden;
-    position: relative;
-}
-
-.card-detail {
-    flex: 0 0 38%;
-    border-radius: 18px;
-    overflow: hidden;
-    position: relative;
-    min-height: 100px;
-    max-height: 38vh;
-    border: 1px solid #f0f0f5;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-}
-body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: #f0f2f5;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-    padding-top: 70px;            /* ← Hauteur du header */
 }
