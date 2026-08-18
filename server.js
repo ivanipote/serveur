@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========================================================
-// SESSIONS (PostgreSQL)
+// SESSIONS (PostgreSQL) - CORRIGÉ
 // ========================================================
 
 const pgPool = new pg.Pool({
@@ -33,12 +33,12 @@ app.use(session({
         tableName: 'session'
     }),
     secret: process.env.SESSION_SECRET || 'natureplus-super-secret-key-2026',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,                    // ← FORCER LA SAUVEGARDE
+    saveUninitialized: true,         // ← FORCER LA CRÉATION DU COOKIE
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,               // ← false pour tester (Render utilise HTTPS)
         sameSite: 'lax'
     }
 }));
@@ -492,7 +492,7 @@ app.post('/api/client/register', async (req, res) => {
     }
 });
 
-// POST /api/client/login
+// POST /api/client/login - CORRIGÉ AVEC SESSION SAVE
 app.post('/api/client/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -517,16 +517,28 @@ app.post('/api/client/login', async (req, res) => {
         req.session.userEmail = user.email;
         req.session.userPhone = user.phone;
 
-        res.json({
-            success: true,
-            message: 'Connexion réussie',
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                phone: user.phone
+        // ✅ FORCER LA SAUVEGARDE DE LA SESSION
+        req.session.save((err) => {
+            if (err) {
+                console.error('❌ Erreur sauvegarde session:', err);
+                return res.status(500).json({ error: 'Erreur lors de la sauvegarde de la session.' });
             }
+
+            console.log('✅ Session sauvegardée pour userId:', user.id);
+            console.log('🆔 Session ID:', req.session.id);
+
+            res.json({
+                success: true,
+                message: 'Connexion réussie',
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone
+                }
+            });
         });
+
     } catch (error) {
         console.error('❌ Erreur connexion client:', error);
         res.status(500).json({ error: 'Erreur lors de la connexion.' });
