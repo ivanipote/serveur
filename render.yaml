@@ -1,0 +1,51 @@
+services:
+  # ============================================================
+  # SERVICE 1 : CLIENT (Pages + API)
+  # ============================================================
+  - type: web
+    name: nature-plus-client
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nature-plus-db
+          property: connectionString
+
+  # ============================================================
+  # SERVICE 2 : PAIEMENT
+  # ============================================================
+  - type: web
+    name: nature-plus-pay
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server-pay.js
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3002
+      - key: NODE_ENV
+        value: production
+      - key: GENIUS_PUBLIC_KEY
+        value: sk_sandbox_XpcqcXI54Gj537UMCqPpqPq5NTyxQ6oV
+      - key: GENIUS_SECRET_KEY
+        value: ss_sandbox_B2RCD03octNvZPUD4zjcmGUGKbxqzTRzKHH1qf6e8TnlEQzP
+      - key: WEBHOOK_SECRET
+        value: whsec_LV1XzCsDS7ZXSJIODpqEkeIFTg3sSCSu7tMZm8cqbP6G9Jxj
+
+  # ============================================================
+  # BASE DE DONNÉES : PostgreSQL
+  # ============================================================
+  - type: postgresql
+    name: nature-plus-db
+    plan: free
+    databaseName: natureplus
+    user: natureplus_user
