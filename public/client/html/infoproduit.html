@@ -22,7 +22,6 @@
             overflow: hidden;
         }
 
-        /* ===== HEADER ===== */
         .info-header {
             background: white;
             padding: 12px 20px;
@@ -109,7 +108,6 @@
             padding: 0 4px;
         }
 
-        /* ===== MESSAGE NATURE+ ===== */
         .nature-message {
             flex-shrink: 0;
             padding: 10px 20px 6px 20px;
@@ -136,7 +134,6 @@
             color: #2d7d46;
         }
 
-        /* ===== CADRE 1 : IMAGE ===== */
         .info-main {
             flex: 1;
             padding: 8px 16px 12px 16px;
@@ -191,17 +188,9 @@
             transform: translateY(-50%) scale(1.05);
         }
 
-        .image-nav.prev {
-            left: 10px;
-        }
-
-        .image-nav.next {
-            right: 10px;
-        }
-
-        .image-nav.hidden {
-            display: none;
-        }
+        .image-nav.prev { left: 10px; }
+        .image-nav.next { right: 10px; }
+        .image-nav.hidden { display: none; }
 
         .image-counter {
             position: absolute;
@@ -218,11 +207,8 @@
             z-index: 5;
         }
 
-        .image-counter span:first-child {
-            color: #4ade80;
-        }
+        .image-counter span:first-child { color: #4ade80; }
 
-        /* ===== CADRE 2 : INFO PRODUIT ===== */
         .info-footer {
             background: white;
             border-top-left-radius: 30px;
@@ -294,7 +280,6 @@
             margin: 4px 0;
         }
 
-        /* ===== SÉLECTEUR QUANTITÉ ===== */
         .quantity-selector {
             display: flex;
             align-items: center;
@@ -381,7 +366,6 @@
             background: #6c757d;
         }
 
-        /* ===== TOAST ===== */
         .toast-container {
             position: fixed;
             bottom: 100px;
@@ -409,26 +393,14 @@
             text-align: center;
         }
 
-        .toast.error {
-            background: #dc3545;
-        }
-
-        .toast.warning {
-            background: #e67e22;
-        }
+        .toast.error { background: #dc3545; }
+        .toast.warning { background: #e67e22; }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             body { padding-top: 68px; }
             .info-header { padding: 10px 14px; gap: 10px; }
@@ -443,11 +415,7 @@
             .image-nav.prev { left: 6px; }
             .image-nav.next { right: 6px; }
             .image-counter { font-size: 11px; padding: 3px 10px; bottom: 10px; }
-            .info-footer { 
-                border-top-left-radius: 24px;
-                border-top-right-radius: 24px;
-                padding: 18px 16px 28px 16px; 
-            }
+            .info-footer { border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 18px 16px 28px 16px; }
             .footer-content .product-name { font-size: 22px; }
             .footer-content .product-price { font-size: 28px; }
             .footer-content .product-desc { font-size: 16px; }
@@ -463,11 +431,7 @@
             .product-image-container { min-height: 100px; }
             .nature-message p { font-size: 12px; }
             .nature-message .merci { font-size: 13px; }
-            .info-footer { 
-                border-top-left-radius: 20px;
-                border-top-right-radius: 20px;
-                padding: 14px 12px 24px 12px; 
-            }
+            .info-footer { border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 14px 12px 24px 12px; }
             .footer-content .product-name { font-size: 19px; }
             .footer-content .product-price { font-size: 24px; }
             .footer-content .product-desc { font-size: 14px; }
@@ -479,7 +443,6 @@
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
     <header class="info-header">
         <button class="back-btn" onclick="window.history.back()">
             <i class="fas fa-arrow-left"></i>
@@ -491,14 +454,12 @@
         </button>
     </header>
 
-    <!-- ===== MESSAGE NATURE+ ===== -->
     <div class="nature-message">
         <p>🌿 Les produits sont réalisés en conditions réelles, sans ajout chimique ni autre.</p>
         <p>Tout cela est pensé pour votre hydratation saine.</p>
         <p class="merci">Merci d'utiliser <strong>Nature+</strong></p>
     </div>
 
-    <!-- ===== CADRE 1 : IMAGE ===== -->
     <main class="info-main" id="infoMain">
         <div class="product-image-container" id="imageContainer">
             <img id="productImage" src="https://via.placeholder.com/800x600" alt="Produit">
@@ -514,7 +475,6 @@
         </div>
     </main>
 
-    <!-- ===== CADRE 2 : INFO PRODUIT ===== -->
     <footer class="info-footer" id="infoFooter">
         <div class="footer-content">
             <div class="product-name" id="productName">Nom du produit</div>
@@ -522,7 +482,6 @@
             <div class="product-stock in-stock" id="productStock">📦 0 en stock</div>
             <div class="product-desc" id="productDesc">Description du produit</div>
 
-            <!-- Sélecteur de quantité -->
             <div class="quantity-selector">
                 <span class="qty-label">Quantité :</span>
                 <button class="qty-btn" id="qtyMinus">−</button>
@@ -536,17 +495,15 @@
         </div>
     </footer>
 
-    <!-- ===== TOAST CONTAINER ===== -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ infoproduit.js chargé');
+            console.log('✅ infoproduit.js chargé (pas de vérification session)');
 
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
-            const searchQuery = urlParams.get('q') || '';
 
             const imgElement = document.getElementById('productImage');
             const prevBtn = document.getElementById('prevBtn');
@@ -571,10 +528,6 @@
             let quantity = 1;
             let currentProduct = null;
 
-            // ==========================================
-            // TOAST
-            // ==========================================
-
             function showToast(message, type = 'success') {
                 const toast = document.createElement('div');
                 toast.className = 'toast' + (type === 'error' ? ' error' : type === 'warning' ? ' warning' : '');
@@ -589,10 +542,6 @@
                 }, 2500);
             }
 
-            // ==========================================
-            // CHARGER LE BADGE PANIER
-            // ==========================================
-
             async function loadPanierCount() {
                 try {
                     const res = await fetch('/api/panier/count');
@@ -605,10 +554,6 @@
                 }
             }
 
-            // ==========================================
-            // NAVIGATION IMAGES
-            // ==========================================
-
             function goToSlide(index) {
                 const total = images.length;
                 if (total === 0) return;
@@ -617,22 +562,12 @@
                 currentIndex = index;
                 imgElement.src = images[currentIndex];
                 navCurrent.textContent = currentIndex + 1;
-
                 prevBtn.classList.toggle('hidden', total <= 1);
                 nextBtn.classList.toggle('hidden', total <= 1);
             }
 
-            prevBtn.addEventListener('click', function() {
-                goToSlide(currentIndex - 1);
-            });
-
-            nextBtn.addEventListener('click', function() {
-                goToSlide(currentIndex + 1);
-            });
-
-            // ==========================================
-            // QUANTITÉ
-            // ==========================================
+            prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
+            nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
 
             function updateQuantityButtons() {
                 if (!currentProduct) return;
@@ -659,10 +594,6 @@
                 }
             });
 
-            // ==========================================
-            // CHARGER LE PRODUIT
-            // ==========================================
-
             async function loadProduct() {
                 if (!productId) {
                     productName.textContent = 'Produit non trouvé';
@@ -684,7 +615,6 @@
 
                     currentProduct = product;
 
-                    // Images
                     images = [];
                     if (product.image1) images.push(product.image1);
                     if (product.image2) images.push(product.image2);
@@ -693,12 +623,10 @@
                     navTotal.textContent = images.length;
                     goToSlide(0);
 
-                    // Infos
                     productName.textContent = product.name;
                     productPrice.textContent = product.price.toLocaleString() + ' FCFA';
                     productDesc.textContent = product.description || 'Aucune description disponible.';
 
-                    // Gestion du stock
                     const stock = product.quantity || 0;
                     if (stock === 0) {
                         productStock.textContent = '❌ Rupture de stock';
@@ -726,11 +654,9 @@
                         qtyMinus.disabled = false;
                     }
 
-                    // Réinitialiser la quantité
                     quantity = 1;
                     qtyValue.textContent = quantity;
                     updateQuantityButtons();
-
                     addBtn.dataset.id = product.id;
 
                 } catch (error) {
@@ -739,16 +665,11 @@
                 }
             }
 
-            // ==========================================
-            // AJOUTER AU PANIER
-            // ==========================================
-
             addBtn.addEventListener('click', async function() {
                 const id = this.dataset.id;
                 const qty = parseInt(qtyValue.textContent) || 1;
 
-                if (!id) return;
-                if (this.disabled) return;
+                if (!id || this.disabled) return;
 
                 try {
                     const res = await fetch('/api/panier/add', {
@@ -778,10 +699,6 @@
                     showToast('❌ Erreur de connexion', 'error');
                 }
             });
-
-            // ==========================================
-            // INIT
-            // ==========================================
 
             loadProduct();
             loadPanierCount();
