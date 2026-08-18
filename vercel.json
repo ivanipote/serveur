@@ -1,0 +1,12 @@
+{
+    "routes": [
+        {
+            "src": "/payment-success",
+            "dest": "/payment-success.html"
+        },
+        {
+            "src": "/payment-failed",
+            "dest": "/payment-failed.html"
+        }
+    ]
+}

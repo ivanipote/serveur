@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmer ma commande | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/client/css/passcommande.css">
+</head>
+<body>
+
+    <!-- HEADER FIXE -->
+    <header class="commande-header">
+        <button class="back-btn" onclick="window.location.href='/panier'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="commande-title">📦 Confirmer ma commande</span>
+    </header>
+
+    <!-- MAIN SCROLLABLE -->
+    <main class="commande-main" id="commandeMain">
+        <div class="commande-container">
+
+            <!-- RÉCAPITULATIF -->
+            <div class="recap-card">
+                <div class="recap-title"><i class="fas fa-receipt" style="color:#2d7d46;"></i> Récapitulatif</div>
+                <div id="recapItems">
+                    <div class="recap-item">
+                        <span class="label">Chargement...</span>
+                    </div>
+                </div>
+                <div class="recap-total">
+                    <span class="label">Sous-total</span>
+                    <span class="value" id="subtotal">0 FCFA</span>
+                </div>
+            </div>
+
+            <!-- ADRESSE DE LIVRAISON -->
+            <div class="adresse-card">
+                <div class="adresse-title">
+                    <i class="fas fa-map-pin" style="color:#2d7d46;"></i> Adresse de livraison
+                    <span class="gps-status" id="gpsStatus"></span>
+                </div>
+
+                <!-- Options -->
+                <div class="options-livraison" id="optionsLivraison">
+                    <button class="active" data-option="chezmoi" id="chezMoiBtn">📍 Chez moi</button>
+                    <button data-option="adresse" id="adresseBtn">✏️ Entrer une adresse</button>
+                </div>
+
+                <!-- Formulaire Chez moi -->
+                <div class="form-section active" id="formChezMoi">
+                    <div class="form-group">
+                        <label>📍 Adresse détectée</label>
+                        <input type="text" id="gpsAdresse" placeholder="Détection en cours..." disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Commune détectée</label>
+                        <input type="text" id="gpsCommune" placeholder="Détection en cours..." disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Distance estimée</label>
+                        <input type="text" id="distanceEstimee" value="Calcul en cours..." disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom complet</label>
+                        <input type="text" id="nomComplet" placeholder="Jean Dupont">
+                    </div>
+                    <div class="form-group">
+                        <label>Téléphone / WhatsApp</label>
+                        <input type="tel" id="telephone" class="phone-input" placeholder="05 03 58 83 36" maxlength="10" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label>Code secret</label>
+                        <div class="code-boxes-container" id="codeBoxesChezMoi">
+                            <div class="code-boxes">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                            </div>
+                        </div>
+                        <div class="code-hint">Entrez votre code à 4 chiffres</div>
+                    </div>
+                </div>
+
+                <!-- Formulaire Adresse -->
+                <div class="form-section" id="formAdresse">
+                    <div class="form-group">
+                        <label>Commune</label>
+                        <button class="btn-commune" id="communeBtn">
+                            <span>Sélectionner une commune</span>
+                            <span class="selected" id="communeSelected">-</span>
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="quartier">Quartier</label>
+                        <input type="text" id="quartier" placeholder="Ex: 2 Plateaux, Angré...">
+                    </div>
+                    <div class="form-group">
+                        <label for="precision">Précision / Point de repère</label>
+                        <textarea id="precision" placeholder="Indications pour le livreur..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom complet</label>
+                        <input type="text" id="nomCompletAdresse" placeholder="Jean Dupont">
+                    </div>
+                    <div class="form-group">
+                        <label>Téléphone / WhatsApp</label>
+                        <input type="tel" id="telephoneAdresse" class="phone-input" placeholder="05 03 58 83 36" maxlength="10" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label>Code secret</label>
+                        <div class="code-boxes-container" id="codeBoxesAdresse">
+                            <div class="code-boxes">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                                <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                            </div>
+                        </div>
+                        <div class="code-hint">Entrez votre code à 4 chiffres</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER FIXE -->
+    <footer class="commande-footer">
+        <div class="footer-content">
+            <div class="footer-summary">
+                <div class="row">
+                    <span>Sous-total</span>
+                    <span id="footerSubtotal">0 FCFA</span>
+                </div>
+                <div class="row">
+                    <span>Frais de livraison</span>
+                    <span id="footerLivraison">0 FCFA</span>
+                </div>
+                <div class="row total">
+                    <span>TOTAL</span>
+                    <span class="value" id="footerTotal">0 FCFA</span>
+                </div>
+            </div>
+            <button class="btn-confirmer" id="confirmerBtn">
+                <i class="fas fa-check-circle"></i> Confirmer la commande
+            </button>
+        </div>
+    </footer>
+
+    <!-- OVERLAY COMMUNES -->
+    <div class="commune-overlay" id="communeOverlay">
+        <div class="commune-box">
+            <div class="box-header">
+                <h3>📍 Choisissez votre commune</h3>
+                <button class="close-btn" id="closeCommuneOverlay">✕</button>
+            </div>
+            <div class="commune-list" id="communeList">
+                <!-- Les communes seront injectées ici -->
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY CONFIRMATION -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="spinner"></div>
+        <p>🔄 Création de votre commande...</p>
+    </div>
+
+    <!-- OVERLAY MESSAGE -->
+    <div class="message-overlay" id="messageOverlay">
+        <div class="message-box">
+            <div class="message-icon" id="messageIcon">⚠️</div>
+            <h3 id="messageTitle">Titre</h3>
+            <p id="messageText">Message</p>
+            <button class="message-btn" id="messageBtn">OK</button>
+        </div>
+    </div>
+
+    <script src="/client/js/passcommande.js"></script>
+</body>
+</html>

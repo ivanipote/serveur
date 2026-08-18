@@ -1,0 +1,4 @@
+✓ Created         megane-dev/nature
+  Inspect         https://vercel.com/megane-dev/nature/7MEJMNu9azDjzYTtwSaRDieXBF6U
+  Production      https://nature-km8bhri4y-megane-dev.vercel.app
+▲ Aliased         https://nature-gold-five.vercel.app

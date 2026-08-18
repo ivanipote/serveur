@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Lancer émulateur Nature+",
+            "type": "shell",
+            "command": "C:\\Users\\PC\\android-sdk-tools\\emulator\\emulator.exe",
+            "args": [
+                "-avd",
+                "NaturePlus_Device"
+            ],
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

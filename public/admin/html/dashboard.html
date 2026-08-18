@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>🌿 Nature+</h2>
+                <p>Espace Admin</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="active" data-page="overview">
+                    <i class="fas fa-chart-pie"></i> Vue d'ensemble
+                </a>
+                <a href="#" data-page="products">
+                    <i class="fas fa-box"></i> Produits
+                </a>
+                <a href="#" data-page="add-product">
+                    <i class="fas fa-plus-circle"></i> Ajouter un produit
+                </a>
+                <a href="#" data-page="commandes">
+                    <i class="fas fa-truck"></i> Commandes
+                </a>
+                <a href="#" data-page="livraison">
+                    <i class="fas fa-map-pin"></i> Frais de livraison
+                </a>
+                <a href="#" data-page="payments">
+                    <i class="fas fa-credit-card"></i> Paiements
+                </a>
+                <a href="#" data-page="clients">
+                    <i class="fas fa-users"></i> Clients
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <header class="main-header">
+                <h1 id="pageTitle">📊 Vue d'ensemble</h1>
+                <div class="admin-info">
+                    <span id="adminName">👤 Admin</span>
+                </div>
+            </header>
+
+            <!-- ========================================= -->
+            <!-- PAGE : VUE D'ENSEMBLE -->
+            <!-- ========================================= -->
+            <section id="page-overview" class="page-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>📦 Produits</h3>
+                        <p id="statProducts">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>💰 Ventes</h3>
+                        <p id="statSales">0 FCFA</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>📋 Commandes</h3>
+                        <p id="statCommandes">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>👤 Clients</h3>
+                        <p id="statClients">0</p>
+                    </div>
+                </div>
+                <div class="welcome-box">
+                    <p>✅ Bienvenue dans votre espace admin. Gérez vos produits, suivez vos commandes et vos clients.</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- PAGE : PRODUITS -->
+            <!-- ========================================= -->
+            <section id="page-products" class="page-section">
+                <div class="section-header">
+                    <h2>📦 Liste des produits</h2>
+                    <button class="btn-add" onclick="showPage('add-product')">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+                <div id="productList" class="product-grid">
+                    <p class="empty-msg">Chargement des produits...</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- PAGE : AJOUTER UN PRODUIT -->
+            <!-- ========================================= -->
+            <section id="page-add-product" class="page-section">
+                <h2>➕ Ajouter un produit</h2>
+                <form id="addProductForm" class="product-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Nom du produit</label>
+                        <input type="text" id="productName" name="name" placeholder="Ex: Pack Premium" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Prix (FCFA)</label>
+                        <input type="number" id="productPrice" name="price" placeholder="200" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantité</label>
+                        <input type="number" id="productQty" name="quantity" placeholder="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Image 1</label>
+                        <input type="file" id="productImage1" name="image1" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Image 2</label>
+                        <input type="file" id="productImage2" name="image2" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="productDesc" name="description" rows="4" placeholder="Description du produit..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Enregistrer</button>
+                    <div id="productMessage" class="message"></div>
+                </form>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- PAGE : COMMANDES (AMÉLIORÉE) -->
+            <!-- ========================================= -->
+            <section id="page-commandes" class="page-section">
+                <div class="section-header">
+                    <h2>📋 Commandes clients</h2>
+                    <span class="badge-commandes" id="commandesCount">0 commandes</span>
+                </div>
+
+                <!-- 🔍 FILTRES -->
+                <div class="filters-bar">
+                    <div class="filter-buttons" id="filterButtons">
+                        <button class="filter-btn active" data-filter="all">📋 Tous</button>
+                        <button class="filter-btn" data-filter="en_attente">⏳ En attente</button>
+                        <button class="filter-btn" data-filter="acceptee">✅ Acceptée</button>
+                        <button class="filter-btn" data-filter="pret_livraison">📦 Prêt</button>
+                        <button class="filter-btn" data-filter="livraison_en_cours">🚚 En cours</button>
+                        <button class="filter-btn" data-filter="votre_colis_est_la">📍 Arrivé</button>
+                        <button class="filter-btn" data-filter="payee">💳 Payée</button>
+                        <button class="filter-btn" data-filter="refusee">❌ Refusée</button>
+                        <button class="filter-btn" data-filter="annulee">❌ Annulée</button>
+                    </div>
+                    <div class="filter-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchCommande" placeholder="Rechercher (client, ID, référence...)">
+                        <span id="filterCount">0 commandes</span>
+                    </div>
+                </div>
+
+                <!-- 📋 TABLEAU -->
+                <div id="commandesList" class="table-container">
+                    <p class="empty-msg">Chargement des commandes...</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- PAGE : FRAIS DE LIVRAISON -->
+            <!-- ========================================= -->
+            <section id="page-livraison" class="page-section">
+                <div class="section-header">
+                    <h2>📍 Frais de livraison</h2>
+                    <button class="btn-add" id="addCommuneBtn">
+                        <i class="fas fa-plus"></i> Ajouter une commune
+                    </button>
+                </div>
+                <div id="communeForm" class="commune-form" style="display:none;">
+                    <div class="form-row">
+                        <input type="text" id="communeName" placeholder="Nom de la commune (ex: Cocody)" required>
+                        <input type="number" id="communeTarif" placeholder="Tarif (FCFA)" required>
+                        <button id="saveCommuneBtn" class="btn-submit">💾 Enregistrer</button>
+                        <button id="cancelCommuneBtn" class="btn-cancel">Annuler</button>
+                    </div>
+                    <input type="hidden" id="editCommuneId" value="">
+                </div>
+                <div id="communesList" class="table-container">
+                    <p class="empty-msg">Chargement des communes...</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- PAGE : PAIEMENTS -->
+            <!-- ========================================= -->
+            <section id="page-payments" class="page-section">
+                <h2>💳 Historique des paiements</h2>
+                <div id="paymentList">
+                    <p class="empty-msg">Chargement des paiements...</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- PAGE : CLIENTS -->
+            <!-- ========================================= -->
+            <section id="page-clients" class="page-section">
+                <h2>👤 Liste des clients</h2>
+                <div id="clientList">
+                    <p class="empty-msg">Chargement des clients...</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===== OVERLAY DÉTAIL COMMANDE (AMÉLIORÉ) ===== -->
+    <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-box">
+            <div class="box-header">
+                <h3>📦 Détail de la commande</h3>
+                <button class="close-btn" id="closeDetailOverlay">✕</button>
+            </div>
+            <div class="detail-content" id="detailContent">
+                <p style="color:#888;text-align:center;padding:20px;">Chargement...</p>
+            </div>
+            <!-- Actions en bas -->
+            <div class="detail-actions" id="detailActions">
+                <!-- Les boutons seront injectés par JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY STATUT (gardé) ===== -->
+    <div class="status-overlay" id="statusOverlay">
+        <div class="status-box">
+            <div class="box-header">
+                <h3>📋 Modifier le statut</h3>
+                <button class="close-btn" id="closeStatusOverlay">✕</button>
+            </div>
+            <div class="status-content">
+                <div class="form-group">
+                    <label>Commande #<span id="statusCommandeId">-</span></label>
+                    <p id="statusClientInfo" style="font-size:14px;color:#888;margin-bottom:12px;">Client: -</p>
+                </div>
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select id="statusSelect">
+                        <option value="en_attente">⏳ En attente</option>
+                        <option value="acceptee">✅ Acceptée</option>
+                        <option value="refusee">❌ Refusée</option>
+                        <option value="pret_livraison">📦 Prêt pour livraison</option>
+                        <option value="livraison_en_cours">🚚 Livraison en cours</option>
+                        <option value="votre_colis_est_la">📍 Votre colis est là</option>
+                        <option value="payee">💳 Payée</option>
+                    </select>
+                </div>
+                <div class="form-group" id="causeRefusGroup" style="display:none;">
+                    <label>Cause du refus</label>
+                    <textarea id="causeRefus" placeholder="Expliquez la raison du refus..." rows="3"></textarea>
+                </div>
+                <div class="status-actions">
+                    <button class="btn-cancel" id="cancelStatusBtn">Annuler</button>
+                    <button class="btn-save" id="saveStatusBtn">💾 Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/js/dashboard.js"></script>
+</body>
+</html>

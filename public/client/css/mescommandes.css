@@ -1,0 +1,599 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 76px;
+    padding-bottom: 20px;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+
+.page-header {
+    background: white;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: #e8e8f0;
+    border: none;
+    color: #1a1a2e;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.back-btn:hover {
+    background: #d0d0da;
+    transform: scale(1.05);
+}
+
+.page-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+}
+
+.badge-total {
+    background: #2d7d46;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   MAIN
+   ========================================== */
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.loading-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+/* ==========================================
+   CARTE DE COMMANDE
+   ========================================== */
+
+.commande-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    border: 1px solid #e8ecf4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: all 0.3s;
+}
+
+.commande-card:hover {
+    border-color: #2d7d46;
+    box-shadow: 0 4px 16px rgba(45,125,70,0.08);
+}
+
+/* ===== HEADER DE LA CARTE ===== */
+.commande-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.commande-id {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a2a6c;
+}
+
+.commande-ref {
+    font-size: 12px;
+    color: #888;
+    font-weight: 400;
+}
+
+.commande-date {
+    font-size: 12px;
+    color: #aaa;
+}
+
+/* ===== TOTAL ===== */
+.commande-total {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 2px 0;
+}
+
+/* ===== INFOS ===== */
+.commande-infos {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.commande-infos span {
+    color: #1a1a2e;
+    font-weight: 500;
+}
+
+/* ===== STATUT ===== */
+.commande-status {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.commande-status.en_attente { background: #fff3cd; color: #856404; }
+.commande-status.acceptee { background: #cce5ff; color: #004085; }
+.commande-status.refusee { background: #f8d7da; color: #721c24; }
+.commande-status.annulee { background: #f8d7da; color: #721c24; }
+.commande-status.payee { background: #c3e6cb; color: #0b5e2e; }
+.commande-status.paiement_en_cours { background: #fff3cd; color: #856404; }
+.commande-status.pret_livraison { background: #d4edda; color: #155724; }
+.commande-status.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
+.commande-status.votre_colis_est_la { background: #d4edda; color: #155724; }
+.commande-status.achat_effectue { background: #d4edda; color: #155724; }
+
+/* ===== CAUSE REFUS ===== */
+.commande-cause {
+    font-size: 13px;
+    color: #e74c3c;
+    margin: 4px 0 8px 0;
+    padding: 8px 12px;
+    background: #fef0f0;
+    border-radius: 8px;
+}
+
+/* ===== ACTIONS ===== */
+.commande-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.commande-actions .btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.commande-actions .btn:hover {
+    transform: scale(1.03);
+}
+
+.commande-actions .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-pay { background: #2d7d46; color: white; }
+.btn-pay:hover { background: #1a5a33; }
+
+.btn-cancel { background: #e67e22; color: white; }
+.btn-cancel:hover { background: #d35400; }
+
+.btn-delete { background: #e74c3c; color: white; }
+.btn-delete:hover { background: #c0392b; }
+
+.btn-restore { background: #1a2a6c; color: white; }
+.btn-restore:hover { background: #0d1b4a; }
+
+.btn-detail { background: #e8e8f0; color: #1a1a2e; }
+.btn-detail:hover { background: #d5d5e0; }
+
+.btn-cancel-payment { background: #e74c3c; color: white; }
+.btn-cancel-payment:hover { background: #c0392b; }
+
+.btn-check-payment {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.btn-check-payment:hover {
+    color: #2d7d46;
+    background: #e8f5ec;
+    transform: rotate(180deg);
+}
+
+.btn-check-payment:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-check-payment .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* ==========================================
+   TOAST NOTIFICATION
+   ========================================== */
+
+.payment-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a2e;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    z-index: 500;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    max-width: 90%;
+    text-align: center;
+}
+
+.payment-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.payment-toast.success { background: #2d7d46; }
+.payment-toast.error { background: #e74c3c; }
+.payment-toast.info { background: #1a2a6c; }
+
+/* ==========================================
+   OVERLAY CONFIRMATION
+   ========================================== */
+
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    z-index: 250;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.confirm-overlay.active { display: flex; }
+
+.confirm-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.confirm-box .confirm-icon { font-size: 48px; margin-bottom: 12px; }
+.confirm-box h3 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+.confirm-box p { font-size: 15px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.confirm-btn.cancel { background: #e8e8f0; color: #666; }
+.confirm-btn.cancel:hover { background: #d5d5e0; }
+
+.confirm-btn.ok { background: #2d7d46; color: white; }
+.confirm-btn.ok:hover { background: #1a5a33; transform: scale(1.02); }
+
+.confirm-btn.ok.danger { background: #e74c3c; }
+.confirm-btn.ok.danger:hover { background: #c0392b; }
+
+/* ==========================================
+   OVERLAY MESSAGE
+   ========================================== */
+
+.message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    z-index: 300;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.message-overlay.active { display: flex; }
+
+.message-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.message-box .message-icon { font-size: 48px; margin-bottom: 12px; }
+.message-box h3 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+.message-box p { font-size: 15px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+
+.message-btn {
+    background: #2d7d46;
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.message-btn:hover { background: #1a5a33; transform: scale(1.02); }
+
+/* ==========================================
+   OVERLAY PAIEMENT
+   ========================================== */
+
+.payment-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    z-index: 350;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.payment-overlay.active { display: flex; }
+
+.payment-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.payment-box .payment-icon { font-size: 48px; margin-bottom: 8px; }
+.payment-box h3 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 16px; }
+
+.payment-info {
+    background: #f8f9fc;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.payment-row:last-child { border-bottom: none; }
+
+.payment-row .label { font-size: 14px; color: #888; font-weight: 500; }
+.payment-row .value { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+
+.payment-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.payment-actions .btn-cancel-payment {
+    flex: 1;
+    background: #e8e8f0;
+    color: #666;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.payment-actions .btn-cancel-payment:hover { background: #d5d5e0; transform: scale(1.02); }
+
+.payment-actions .btn-confirm-payment {
+    flex: 2;
+    background: linear-gradient(135deg, #2d7d46, #1a5a33);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.payment-actions .btn-confirm-payment:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(45,125,70,0.25);
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.empty-state i { font-size: 56px; color: #ddd; display: block; margin-bottom: 16px; }
+.empty-state h3 { font-size: 20px; color: #1a1a2e; margin-bottom: 6px; }
+
+.empty-state .btn-shop {
+    display: inline-block;
+    margin-top: 16px;
+    background: #2d7d46;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.empty-state .btn-shop:hover { background: #1a5a33; }
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 600px) {
+    body { padding-top: 68px; }
+    .page-header { padding: 10px 14px; gap: 10px; }
+    .back-btn { width: 36px; height: 36px; font-size: 16px; }
+    .page-title { font-size: 16px; }
+    .badge-total { font-size: 11px; padding: 3px 10px; }
+    .main-content { padding: 12px; }
+    .commande-card { padding: 14px 16px; }
+    .commande-total { font-size: 20px; }
+    .commande-ref { font-size: 11px; }
+    .commande-date { font-size: 11px; }
+    .commande-status { font-size: 12px; padding: 3px 12px; }
+    .commande-actions .btn { font-size: 12px; padding: 5px 12px; }
+    .payment-box { padding: 24px 18px 20px 18px; }
+    .payment-box h3 { font-size: 18px; }
+    .payment-actions { flex-direction: column; }
+    .payment-actions .btn-cancel-payment,
+    .payment-actions .btn-confirm-payment { padding: 12px; font-size: 14px; }
+    .payment-toast { font-size: 13px; padding: 10px 18px; bottom: 20px; }
+}
+
+@media (max-width: 400px) {
+    .commande-header { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .commande-actions { flex-direction: column; }
+    .commande-actions .btn { width: 100%; justify-content: center; }
+    .commande-infos { flex-direction: column; gap: 4px; }
+    .payment-box { padding: 18px 14px 16px 14px; }
+}

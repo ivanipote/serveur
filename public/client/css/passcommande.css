@@ -1,0 +1,715 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    padding-top: 76px;
+    padding-bottom: 0;
+}
+
+/* ===== HEADER ===== */
+.commande-header {
+    background: white;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: #e8e8f0;
+    border: none;
+    color: #1a1a2e;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.back-btn:hover {
+    background: #d0d0da;
+    transform: scale(1.05);
+}
+
+.commande-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+}
+
+/* ===== MAIN ===== */
+.commande-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 20px 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.commande-container {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 20px;
+}
+
+/* ===== RECAP ===== */
+.recap-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 20px;
+    border: 1px solid #f0f0f5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.recap-card .recap-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recap-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f5f5fa;
+}
+
+.recap-item .label {
+    font-size: 14px;
+    color: #888;
+}
+
+.recap-item .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.recap-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0 2px 0;
+    border-top: 2px solid #2d7d46;
+    margin-top: 4px;
+}
+
+.recap-total .label {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.recap-total .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2d7d46;
+}
+
+/* ===== ADRESSE ===== */
+.adresse-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 20px;
+    border: 1px solid #f0f0f5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.adresse-card .adresse-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.adresse-card .adresse-title .gps-status {
+    font-size: 12px;
+    font-weight: 400;
+    color: #888;
+}
+
+.adresse-card .adresse-title .gps-status.success {
+    color: #2d7d46;
+}
+
+.adresse-card .adresse-title .gps-status.error {
+    color: #e74c3c;
+}
+
+/* ===== OPTIONS ===== */
+.options-livraison {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.options-livraison button {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    background: #f8f9fc;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.3s;
+}
+
+.options-livraison button.active {
+    border-color: #2d7d46;
+    background: #e8f5ec;
+    color: #2d7d46;
+}
+
+/* ===== FORMULAIRES ===== */
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #f8f9fc;
+    outline: none;
+    transition: border-color 0.3s;
+    color: #1a1a2e;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #2d7d46;
+    background: white;
+}
+
+.form-group input:disabled {
+    background: #f8f9fc;
+    color: #1a1a2e;
+    opacity: 0.85;
+    cursor: not-allowed;
+    border-color: #e0e4ec;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.form-group .code-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+}
+
+.form-section {
+    display: none;
+}
+
+.form-section.active {
+    display: block;
+}
+
+/* ===== PHONE INPUT (simple) ===== */
+.phone-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    background: white;
+    outline: none;
+    transition: border-color 0.3s;
+    letter-spacing: 4px;
+    text-align: center;
+}
+
+.phone-input:focus {
+    border-color: #2d7d46;
+    box-shadow: 0 0 0 4px rgba(45, 125, 70, 0.12);
+}
+
+.phone-input::placeholder {
+    letter-spacing: 2px;
+    color: #ccc;
+    font-weight: 400;
+}
+
+.phone-input.error {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.12);
+    animation: shake 0.4s ease;
+}
+
+/* ==========================================
+   CODE BOXES (4 cases avec tirets)
+   ========================================== */
+.code-boxes-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.code-boxes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 240px;
+}
+
+.code-box {
+    width: 48px;
+    height: 56px;
+    border: none;
+    border-bottom: 3px solid #d0d0da;
+    border-radius: 0;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    background: transparent;
+    outline: none;
+    transition: border-color 0.3s;
+    color: #1a1a2e !important;
+    flex-shrink: 1;
+    min-width: 40px;
+    -webkit-text-fill-color: #1a1a2e !important;
+    caret-color: #2d7d46;
+}
+
+.code-box:focus {
+    border-bottom-color: #2d7d46;
+}
+
+.code-box.filled {
+    border-bottom-color: #2d7d46;
+}
+
+.code-box.error {
+    border-bottom-color: #e74c3c;
+    animation: shake 0.4s ease;
+}
+
+.code-box::placeholder {
+    color: #ccc;
+    font-size: 20px;
+    font-weight: 400;
+    text-align: center;
+    -webkit-text-fill-color: #ccc;
+}
+
+/* ===== COMMUNE BTN ===== */
+.btn-commune {
+    background: #e8f5ec;
+    border: 2px solid #2d7d46;
+    color: #2d7d46;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.btn-commune:hover {
+    background: #d4edda;
+}
+
+.btn-commune .selected {
+    color: #1a1a2e;
+    font-weight: 400;
+}
+
+/* ===== OVERLAY COMMUNES ===== */
+.commune-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 150;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.commune-overlay.active {
+    display: flex;
+}
+
+.commune-overlay .commune-box {
+    background: white;
+    border-radius: 24px;
+    padding: 24px 20px 20px 20px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.commune-overlay .commune-box .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.commune-overlay .commune-box .box-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.commune-overlay .commune-box .box-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.commune-overlay .commune-box .commune-list {
+    overflow-y: auto;
+    padding-right: 4px;
+    flex: 1;
+}
+
+.commune-overlay .commune-box .commune-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.commune-overlay .commune-box .commune-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+.commune-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid #f5f5fa;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.commune-item:hover {
+    background: #f8f9fc;
+}
+
+.commune-item .commune-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a2e;
+}
+
+.commune-item .commune-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d7d46;
+}
+
+.commune-item.selected {
+    background: #e8f5ec;
+    border-left: 4px solid #2d7d46;
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ===== FOOTER ===== */
+.commande-footer {
+    background: white;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 16px 20px 24px 20px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    flex-shrink: 0;
+}
+
+.footer-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.footer-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    background: #f8f9fc;
+    border-radius: 12px;
+}
+
+.footer-summary .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #555;
+}
+
+.footer-summary .row.total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-top: 2px solid #2d7d46;
+    padding-top: 6px;
+    margin-top: 2px;
+}
+
+.footer-summary .row.total .value {
+    color: #2d7d46;
+}
+
+.btn-confirmer {
+    background: linear-gradient(135deg, #2d7d46, #1a5a33);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-confirmer:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
+}
+
+.btn-confirmer:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== OVERLAY CONFIRMATION ===== */
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.confirm-overlay.active {
+    display: flex;
+}
+
+.confirm-overlay .spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #4ade80;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.confirm-overlay p {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== OVERLAY MESSAGE ===== */
+.message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 250;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.message-overlay.active {
+    display: flex;
+}
+
+.message-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px 28px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.message-box .message-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.message-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+}
+
+.message-box p {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.message-btn {
+    background: #2d7d46;
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.message-btn:hover {
+    background: #1a5a33;
+    transform: scale(1.02);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 600px) {
+    body { padding-top: 68px; }
+    .commande-header { padding: 10px 14px; gap: 10px; }
+    .back-btn { width: 36px; height: 36px; font-size: 16px; }
+    .commande-title { font-size: 16px; }
+    .commande-main { padding: 12px 14px 12px 14px; }
+    .commande-container { gap: 12px; }
+    .recap-card { padding: 14px 16px; }
+    .adresse-card { padding: 14px 16px; }
+    .options-livraison button { font-size: 13px; padding: 8px; }
+    .btn-confirmer { font-size: 16px; padding: 14px; }
+    .commande-footer { padding: 12px 16px 20px 16px; }
+    .footer-summary .row.total { font-size: 16px; }
+    .commune-overlay .commune-box { padding: 18px 14px 14px 14px; max-height: 85vh; }
+    .commune-item { padding: 10px 12px; }
+    .phone-input { font-size: 16px; padding: 12px; }
+    .code-box { width: 38px; height: 46px; font-size: 22px; min-width: 32px; }
+    .code-boxes { gap: 6px; max-width: 180px; }
+    .message-box { padding: 24px 18px 20px 18px; }
+}
+
+@media (max-width: 400px) {
+    .phone-input { font-size: 14px; padding: 10px; letter-spacing: 2px; }
+    .code-box { width: 30px; height: 38px; font-size: 18px; min-width: 26px; }
+    .code-boxes { gap: 4px; max-width: 140px; }
+}

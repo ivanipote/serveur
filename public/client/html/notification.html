@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 76px;
+        }
+
+        /* ===== HEADER ===== */
+        .notif-header {
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: #e8e8f0;
+            border: none;
+            color: #1a1a2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .notif-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+        }
+
+        .badge-count {
+            background: #e67e22;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+
+        .badge-count.zero {
+            background: #e8e8f0;
+            color: #888;
+        }
+
+        /* ===== BOUTON TOUT LU ===== */
+        .btn-read-all {
+            background: #2d7d46;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-read-all:hover {
+            background: #1a5a33;
+            transform: scale(1.02);
+        }
+
+        .btn-read-all:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== CONTENU ===== */
+        .notif-main {
+            flex: 1;
+            padding: 20px;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .loading-state i {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== CARTE NOTIFICATION ===== */
+        .notif-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            border: 1px solid #f0f0f5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .notif-card:hover {
+            border-color: #2d7d46;
+            box-shadow: 0 4px 16px rgba(45, 125, 70, 0.08);
+        }
+
+        .notif-card.unread {
+            border-left: 4px solid #e67e22;
+            background: #fdf8f3;
+        }
+
+        .notif-card.read {
+            border-left: 4px solid #2d7d46;
+            opacity: 0.7;
+        }
+
+        .notif-card .notif-header-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+
+        .notif-card .notif-title-card {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .notif-card .notif-type {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 20px;
+            background: #e8e8f0;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .notif-card .notif-type.commande {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .notif-card .notif-type.paiement {
+            background: #c3e6cb;
+            color: #0b5e2e;
+        }
+
+        .notif-card .notif-type.systeme {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .notif-card .notif-content {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .notif-card .notif-date {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .notif-card .notif-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-mark-read {
+            background: #2d7d46;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-mark-read:hover {
+            background: #1a5a33;
+            transform: scale(1.02);
+        }
+
+        .btn-mark-read.read {
+            background: #e8e8f0;
+            color: #888;
+            cursor: default;
+        }
+
+        .btn-mark-read.read:hover {
+            transform: none;
+        }
+
+        .btn-delete-notif {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-delete-notif:hover {
+            background: #c0392b;
+            transform: scale(1.02);
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            color: #ddd;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .empty-state .btn-shop {
+            display: inline-block;
+            margin-top: 16px;
+            background: #2d7d46;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .empty-state .btn-shop:hover {
+            background: #1a5a33;
+        }
+
+        /* ========================================== */
+        /* RESPONSIVE                                 */
+        /* ========================================== */
+
+        @media (max-width: 600px) {
+            body { padding-top: 68px; }
+            .notif-header { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
+            .back-btn { width: 36px; height: 36px; font-size: 16px; }
+            .notif-title { font-size: 16px; }
+            .badge-count { font-size: 11px; padding: 3px 10px; }
+            .btn-read-all { font-size: 11px; padding: 4px 12px; }
+            .notif-main { padding: 12px; }
+            .notif-card { padding: 14px 16px; }
+            .notif-card .notif-title-card { font-size: 14px; }
+            .notif-card .notif-content { font-size: 13px; }
+            .notif-actions { flex-direction: column; }
+            .notif-actions button { width: 100%; justify-content: center; }
+        }
+
+        @media (max-width: 400px) {
+            .notif-header { flex-wrap: wrap; }
+            .notif-title { font-size: 14px; }
+            .badge-count { font-size: 10px; padding: 2px 8px; }
+            .btn-read-all { font-size: 10px; padding: 3px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="notif-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="notif-title">🔔 Notifications</span>
+        <span class="badge-count" id="notifBadge">0</span>
+        <button class="btn-read-all" id="readAllBtn">
+            <i class="fas fa-check-double"></i> Tout lu
+        </button>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <main class="notif-main" id="notifMain">
+        <div class="loading-state" id="loadingState">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Chargement de vos notifications...</p>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ notification.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const mainContent = document.getElementById('notifMain');
+            const loadingState = document.getElementById('loadingState');
+            const notifBadge = document.getElementById('notifBadge');
+            const readAllBtn = document.getElementById('readAllBtn');
+
+            let notifications = [];
+            let userId = null;
+
+            // ==========================================
+            // VÉRIFICATION CONNEXION (via session)
+            // ==========================================
+
+            async function checkAuth() {
+                try {
+                    const res = await fetch('/api/client/me');
+                    const data = await res.json();
+                    if (data.success) {
+                        userId = data.user.id;
+                        console.log('👤 Utilisateur connecté:', data.user);
+                        return true;
+                    } else {
+                        window.location.href = '/login';
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur vérification auth:', error);
+                    window.location.href = '/login';
+                    return false;
+                }
+            }
+
+            // ==========================================
+            // CHARGER LES NOTIFICATIONS
+            // ==========================================
+
+            async function loadNotifications() {
+                console.log('📥 Chargement des notifications...');
+                if (loadingState) loadingState.style.display = 'block';
+
+                try {
+                    const res = await fetch('/api/notifications');
+                    const data = await res.json();
+                    console.log('📦 Données reçues:', data);
+
+                    if (res.ok && data.notifications && data.notifications.length > 0) {
+                        notifications = data.notifications;
+                        notifBadge.textContent = data.count;
+                        notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
+                        renderNotifications();
+                    } else if (res.ok && (!data.notifications || data.notifications.length === 0)) {
+                        notifBadge.textContent = '0';
+                        notifBadge.className = 'badge-count zero';
+                        mainContent.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-bell-slash"></i>
+                                <h3>Aucune notification</h3>
+                                <p>Vous n'avez pas encore de notifications.</p>
+                                <a href="/dashboard" class="btn-shop">🏠 Retour</a>
+                            </div>
+                        `;
+                    } else {
+                        mainContent.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <h3>Erreur</h3>
+                                <p>Impossible de charger vos notifications.</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    mainContent.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Erreur de connexion</h3>
+                            <p>Impossible de charger vos notifications.</p>
+                        </div>
+                    `;
+                } finally {
+                    if (loadingState) loadingState.style.display = 'none';
+                }
+            }
+
+            // ==========================================
+            // AFFICHER LES NOTIFICATIONS
+            // ==========================================
+
+            function renderNotifications() {
+                console.log('🎨 Rendu des notifications, nombre:', notifications.length);
+
+                let html = '';
+
+                notifications.forEach(n => {
+                    const isUnread = n.is_read === 0;
+                    const typeClass = n.type || 'systeme';
+
+                    let actionHtml = '';
+                    if (isUnread) {
+                        actionHtml = `
+                            <button class="btn-mark-read" data-id="${n.id}">
+                                <i class="fas fa-check"></i> Marquer comme lu
+                            </button>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <button class="btn-mark-read read" disabled>
+                                <i class="fas fa-check"></i> Lu
+                            </button>
+                        `;
+                    }
+
+                    html += `
+                        <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
+                            <div class="notif-header-card">
+                                <span class="notif-title-card">${n.title || 'Notification'}</span>
+                                <span class="notif-type ${typeClass}">${n.type || 'Général'}</span>
+                            </div>
+                            <div class="notif-content">${n.content || 'Aucun contenu'}</div>
+                            <div class="notif-date">${new Date(n.created_at).toLocaleString()}</div>
+                            <div class="notif-actions">
+                                ${actionHtml}
+                                <button class="btn-delete-notif" data-id="${n.id}">
+                                    <i class="fas fa-trash-alt"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                mainContent.innerHTML = html;
+
+                // ===== ÉVÉNEMENTS =====
+
+                // Marquer comme lu
+                document.querySelectorAll('.btn-mark-read:not(.read)').forEach(btn => {
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const id = this.dataset.id;
+                        await markAsRead(id);
+                    });
+                });
+
+                // Supprimer
+                document.querySelectorAll('.btn-delete-notif').forEach(btn => {
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const id = this.dataset.id;
+                        if (confirm('Supprimer cette notification ?')) {
+                            await deleteNotification(id);
+                        }
+                    });
+                });
+
+                // Clic sur la carte → marquer comme lu
+                document.querySelectorAll('.notif-card.unread').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        markAsRead(id);
+                    });
+                });
+            }
+
+            // ==========================================
+            // MARQUER COMME LU
+            // ==========================================
+
+            async function markAsRead(id) {
+                try {
+                    const res = await fetch(`/api/notifications/read/${id}`, {
+                        method: 'PUT'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        // Mettre à jour la notification localement
+                        const notif = notifications.find(n => n.id == id);
+                        if (notif) notif.is_read = 1;
+                        // Recharger
+                        await loadNotifications();
+                        // Mettre à jour le badge dans le header
+                        updateBadge();
+                    } else {
+                        console.error('Erreur:', data);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            }
+
+            // ==========================================
+            // SUPPRIMER UNE NOTIFICATION
+            // ==========================================
+
+            async function deleteNotification(id) {
+                try {
+                    const res = await fetch(`/api/notifications/delete/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        notifications = notifications.filter(n => n.id != id);
+                        if (notifications.length === 0) {
+                            mainContent.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-bell-slash"></i>
+                                    <h3>Aucune notification</h3>
+                                    <p>Vous n'avez pas encore de notifications.</p>
+                                    <a href="/dashboard" class="btn-shop">🏠 Retour</a>
+                                </div>
+                            `;
+                            notifBadge.textContent = '0';
+                            notifBadge.className = 'badge-count zero';
+                        } else {
+                            renderNotifications();
+                            updateBadge();
+                        }
+                    } else {
+                        console.error('Erreur:', data);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            }
+
+            // ==========================================
+            // TOUT MARQUER COMME LU
+            // ==========================================
+
+            readAllBtn.addEventListener('click', async function() {
+                if (this.disabled) return;
+
+                // Vérifier s'il y a des notifications non lues
+                const unreadCount = notifications.filter(n => n.is_read === 0).length;
+                if (unreadCount === 0) {
+                    alert('✅ Toutes vos notifications sont déjà lues.');
+                    return;
+                }
+
+                if (confirm(`Marquer les ${unreadCount} notification(s) non lues comme lues ?`)) {
+                    try {
+                        const res = await fetch('/api/notifications/read-all', {
+                            method: 'PUT'
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            notifications.forEach(n => n.is_read = 1);
+                            await loadNotifications();
+                            updateBadge();
+                        } else {
+                            console.error('Erreur:', data);
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                    }
+                }
+            });
+
+            // ==========================================
+            // METTRE À JOUR LE BADGE
+            // ==========================================
+
+            async function updateBadge() {
+                try {
+                    const res = await fetch('/api/notifications/count');
+                    const data = await res.json();
+                    if (res.ok) {
+                        const count = data.count || 0;
+                        notifBadge.textContent = count;
+                        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
+                    }
+                } catch (error) {
+                    console.error('Erreur badge:', error);
+                }
+            }
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            (async function init() {
+                try {
+                    console.log('🚀 Initialisation de notification...');
+                    const isAuth = await checkAuth();
+                    if (!isAuth) return;
+
+                    await loadNotifications();
+                    console.log('✅ Initialisation terminée');
+                } catch (error) {
+                    console.error('❌ Erreur lors de l\'initialisation:', error);
+                }
+            })();
+
+        });
+    </script>
+
+</body>
+</html>

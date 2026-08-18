@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/client/css/dashboard.css">
+</head>
+<body>
+
+    <!-- ========================================= -->
+    <!-- HEADER -->
+    <!-- ========================================= -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <span class="logo">🌿</span>
+            <span class="app-name">Nature+</span>
+        </div>
+
+        <div class="header-center">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher un produit...">
+            </div>
+        </div>
+
+        <div class="header-right">
+            <!-- BOUTON MES COMMANDES -->
+            <button id="mesCommandesBtn" class="header-btn commandes-btn" title="Mes commandes">
+                <i class="fas fa-clipboard-list"></i>
+                <span id="commandeBadge" class="badge badge-commandes">0</span>
+            </button>
+
+            <!-- BOUTON NOTIFICATIONS -->
+            <button id="notifBtn" class="header-btn notif-btn" title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span id="notifBadge" class="badge badge-notif">0</span>
+            </button>
+
+            <!-- BOUTON PANIER -->
+            <button id="cartBtn" class="header-btn cart-btn" title="Mon panier">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartBadge" class="badge badge-cart">0</span>
+            </button>
+
+            <!-- BOUTON OPTIONS -->
+            <button id="optionsBtn" class="header-btn options-btn" title="Options">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================= -->
+    <!-- MENU OPTIONS (dropdown) -->
+    <!-- ========================================= -->
+    <div id="optionsMenu" class="options-menu">
+        <button id="accountBtn"><i class="fas fa-user-circle"></i> Mon compte</button>
+        <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- CONTENU PRINCIPAL -->
+    <!-- ========================================= -->
+    <main class="main-content">
+
+        <!-- CARTE 1 : CARROUSEL -->
+        <div class="card-rectangle" id="productCard">
+            <div class="carousel-container">
+                <div class="carousel-track" id="carouselTrack">
+                    <!-- Les produits seront injectés ici par JS -->
+                </div>
+                <button class="carousel-btn prev" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-btn next" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="carousel-nav" id="carouselNav">
+                    <span id="navCurrent">1</span>
+                    <span>/</span>
+                    <span id="navTotal">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARTE 2 : DÉTAIL PRODUIT -->
+        <div class="card-detail" id="productDetail">
+            <div class="detail-bg" id="detailBg"></div>
+            <div class="detail-overlay">
+                <div class="detail-content">
+                    <h2 class="detail-name">Nom du produit</h2>
+                    <p class="detail-price">0 FCFA</p>
+                    <p class="detail-desc">Description du produit</p>
+                    <p class="detail-stock">📦 Quantité : 0</p>
+                    <button class="detail-add-btn" id="detailAddBtn">
+                        <i class="fas fa-plus-circle"></i> Ajouter au panier
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="/client/js/dashboard.js"></script>
+</body>
+</html>

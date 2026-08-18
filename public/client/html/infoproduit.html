@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info Produit | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 76px;
+            overflow: hidden;
+        }
+
+        /* ===== HEADER ===== */
+        .info-header {
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: #e8e8f0;
+            border: none;
+            color: #1a1a2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .app-name {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d7d46;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .cart-btn {
+            background: #e8e8f0;
+            border: none;
+            color: #1a1a2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .cart-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        /* ===== MESSAGE NATURE+ ===== */
+        .nature-message {
+            flex-shrink: 0;
+            padding: 10px 20px 6px 20px;
+            text-align: center;
+            background: transparent;
+        }
+
+        .nature-message p {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d7d46;
+            line-height: 1.5;
+            margin-bottom: 2px;
+        }
+
+        .nature-message .merci {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1a5a33;
+            margin-top: 2px;
+        }
+
+        .nature-message .merci strong {
+            color: #2d7d46;
+        }
+
+        /* ===== CADRE 1 : IMAGE ===== */
+        .info-main {
+            flex: 1;
+            padding: 8px 16px 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        .product-image-container {
+            width: 100%;
+            height: 100%;
+            max-height: calc(100vh - 76px - 120px - 330px);
+            min-height: 150px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #f0f2f5;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .product-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .image-nav:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .image-nav.prev {
+            left: 10px;
+        }
+
+        .image-nav.next {
+            right: 10px;
+        }
+
+        .image-nav.hidden {
+            display: none;
+        }
+
+        .image-counter {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 4px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 5;
+        }
+
+        .image-counter span:first-child {
+            color: #4ade80;
+        }
+
+        /* ===== CADRE 2 : INFO PRODUIT ===== */
+        .info-footer {
+            background: white;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            padding: 24px 24px 32px 24px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 50;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+        }
+
+        .footer-content .product-name {
+            font-size: 26px;
+            font-weight: 800;
+            color: #1a1a2e;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-content .product-price {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2d7d46;
+            margin-top: 2px;
+        }
+
+        .footer-content .product-stock {
+            display: inline-block;
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 6px 20px;
+            border-radius: 30px;
+            border: 1px solid #fecaca;
+            margin: 2px 0;
+        }
+
+        .footer-content .product-desc {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2563eb;
+            line-height: 1.6;
+            max-width: 90%;
+            margin: 4px 0;
+        }
+
+        .footer-content .add-btn {
+            margin-top: 8px;
+            background: linear-gradient(135deg, #2d7d46, #1a5a33);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 30px;
+            font-size: 19px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .footer-content .add-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
+        }
+
+        .footer-content .add-btn.added {
+            background: #27ae60;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            body { padding-top: 68px; }
+            .info-header { padding: 10px 14px; gap: 10px; }
+            .back-btn, .cart-btn { width: 36px; height: 36px; font-size: 16px; }
+            .app-name { font-size: 15px; }
+            .nature-message { padding: 8px 16px 4px 16px; }
+            .nature-message p { font-size: 13px; }
+            .nature-message .merci { font-size: 14px; }
+            .info-main { padding: 6px 12px 10px 12px; }
+            .product-image-container { max-height: calc(100vh - 68px - 110px - 290px); min-height: 120px; border-radius: 16px; }
+            .image-nav { width: 30px; height: 30px; font-size: 13px; }
+            .image-nav.prev { left: 6px; }
+            .image-nav.next { right: 6px; }
+            .image-counter { font-size: 11px; padding: 3px 10px; bottom: 10px; }
+            .info-footer { 
+                border-top-left-radius: 24px;
+                border-top-right-radius: 24px;
+                padding: 18px 16px 28px 16px; 
+            }
+            .footer-content .product-name { font-size: 22px; }
+            .footer-content .product-price { font-size: 28px; }
+            .footer-content .product-desc { font-size: 16px; }
+            .footer-content .product-stock { font-size: 13px; padding: 4px 16px; }
+            .footer-content .add-btn { font-size: 17px; padding: 14px 20px; max-width: 100%; }
+        }
+
+        @media (max-width: 400px) {
+            .product-image-container { min-height: 100px; }
+            .nature-message p { font-size: 12px; }
+            .nature-message .merci { font-size: 13px; }
+            .info-footer { 
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                padding: 14px 12px 24px 12px; 
+            }
+            .footer-content .product-name { font-size: 19px; }
+            .footer-content .product-price { font-size: 24px; }
+            .footer-content .product-desc { font-size: 14px; }
+            .footer-content .add-btn { font-size: 15px; padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="info-header">
+        <button class="back-btn" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="app-name">🌿 Nature+</span>
+        <button class="cart-btn" onclick="window.location.href='/panier'">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+    </header>
+
+    <!-- ===== MESSAGE NATURE+ ===== -->
+    <div class="nature-message">
+        <p>🌿 Les produits sont réalisés en conditions réelles, sans ajout chimique ni autre.</p>
+        <p>Tout cela est pensé pour votre hydratation saine.</p>
+        <p class="merci">Merci d'utiliser <strong>Nature+</strong></p>
+    </div>
+
+    <!-- ===== CADRE 1 : IMAGE ===== -->
+    <main class="info-main" id="infoMain">
+        <div class="product-image-container" id="imageContainer">
+            <img id="productImage" src="https://via.placeholder.com/800x600" alt="Produit">
+            <button class="image-nav prev hidden" id="prevBtn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="image-nav next hidden" id="nextBtn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="image-counter" id="imageCounter">
+                <span id="navCurrent">1</span> / <span id="navTotal">1</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== CADRE 2 : INFO PRODUIT ===== -->
+    <footer class="info-footer" id="infoFooter">
+        <div class="footer-content">
+            <div class="product-name" id="productName">Nom du produit</div>
+            <div class="product-price" id="productPrice">0 FCFA</div>
+            <div class="product-stock" id="productStock">📦 0 en stock</div>
+            <div class="product-desc" id="productDesc">Description du produit</div>
+            <button class="add-btn" id="addToCartBtn">
+                <i class="fas fa-plus-circle"></i> Ajouter au panier
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ infoproduit.js chargé (production)');
+
+            const userId = localStorage.getItem('userId');
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            const imgElement = document.getElementById('productImage');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const navCurrent = document.getElementById('navCurrent');
+            const navTotal = document.getElementById('navTotal');
+
+            const productName = document.getElementById('productName');
+            const productPrice = document.getElementById('productPrice');
+            const productStock = document.getElementById('productStock');
+            const productDesc = document.getElementById('productDesc');
+            const addBtn = document.getElementById('addToCartBtn');
+
+            let images = [];
+            let currentIndex = 0;
+
+            // ===== CHARGER LE BADGE PANIER =====
+            async function loadPanierCount() {
+                if (!userId) return;
+                try {
+                    const res = await fetch(`/api/panier/count/${userId}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('cartBadge').textContent = data.count || 0;
+                    }
+                } catch (error) {
+                    console.error('Erreur panier:', error);
+                }
+            }
+
+            // ===== NAVIGATION IMAGES =====
+            function goToSlide(index) {
+                const total = images.length;
+                if (total === 0) return;
+                if (index < 0) index = total - 1;
+                if (index >= total) index = 0;
+                currentIndex = index;
+                imgElement.src = images[currentIndex];
+                navCurrent.textContent = currentIndex + 1;
+
+                prevBtn.classList.toggle('hidden', total <= 1);
+                nextBtn.classList.toggle('hidden', total <= 1);
+            }
+
+            prevBtn.addEventListener('click', function() {
+                goToSlide(currentIndex - 1);
+            });
+
+            nextBtn.addEventListener('click', function() {
+                goToSlide(currentIndex + 1);
+            });
+
+            // ===== CHARGER LE PRODUIT =====
+            async function loadProduct() {
+                if (!productId) {
+                    productName.textContent = 'Produit non trouvé';
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/products');
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error('Erreur chargement');
+
+                    const product = data.find(p => p.id == productId);
+
+                    if (!product) {
+                        productName.textContent = 'Produit non trouvé';
+                        return;
+                    }
+
+                    // Images
+                    images = [];
+                    if (product.image1) images.push(product.image1);
+                    if (product.image2) images.push(product.image2);
+                    if (images.length === 0) images.push('https://via.placeholder.com/800x600');
+
+                    navTotal.textContent = images.length;
+                    goToSlide(0);
+
+                    // Infos
+                    productName.textContent = product.name;
+                    productPrice.textContent = product.price.toLocaleString() + ' FCFA';
+                    productDesc.textContent = product.description || 'Aucune description disponible.';
+                    productStock.textContent = '📦 ' + (product.quantity || 0) + ' en stock';
+
+                    addBtn.dataset.id = product.id;
+
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    productName.textContent = 'Erreur de chargement';
+                }
+            }
+
+            // ===== AJOUTER AU PANIER =====
+            addBtn.addEventListener('click', async function() {
+                const id = this.dataset.id;
+
+                if (!userId) {
+                    alert('Veuillez vous connecter');
+                    return;
+                }
+
+                if (!id) return;
+
+                try {
+                    const res = await fetch('/api/panier/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, productId: id, quantity: 1 })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        this.classList.add('added');
+                        this.innerHTML = '<i class="fas fa-check"></i> Ajouté !';
+                        loadPanierCount();
+                        setTimeout(() => {
+                            this.classList.remove('added');
+                            this.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
+                        }, 1500);
+                    } else {
+                        alert('❌ ' + (data.error || 'Erreur'));
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('❌ Erreur de connexion');
+                }
+            });
+
+            // ===== INIT =====
+            loadProduct();
+            loadPanierCount();
+
+        });
+    </script>
+
+</body>
+</html>

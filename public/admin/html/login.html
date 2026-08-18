@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Admin | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/login.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-card">
+
+            <div class="auth-header">
+                <h1>🔐 <span>Connexion Admin</span></h1>
+                <p class="subtitle">Accédez à votre espace d'administration</p>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="admin@natureplus.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Se connecter</button>
+
+                <div id="message" class="message"></div>
+
+            </form>
+
+            <p class="auth-footer">
+                Pas encore inscrit ? <a href="/admin/html/register.html">Créer un compte</a>
+            </p>
+
+        </div>
+    </div>
+
+    <script src="/admin/js/login.js"></script>
+</body>
+</html>

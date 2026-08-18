@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon profil | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 76px;
+        }
+
+        /* ===== HEADER ===== */
+        .profil-header {
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: #e8e8f0;
+            border: none;
+            color: #1a1a2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .profil-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+        }
+
+        /* ===== CONTENU ===== */
+        .profil-container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ===== CARTES D'INFO ===== */
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 18px;
+            border: 1px solid #f0f0f5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+        }
+
+        .info-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-card .value-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .info-card .value-wrapper .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .info-card .value-wrapper .edit-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .info-card .value-wrapper .edit-btn:hover {
+            color: #2d7d46;
+            background: #f0f5f2;
+        }
+
+        .info-card .value-wrapper input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #2d7d46;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            background: #f8fbf9;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .info-card .value-wrapper input:focus {
+            border-color: #1a5a33;
+            box-shadow: 0 0 0 4px rgba(45, 125, 70, 0.12);
+        }
+
+        .info-card .value-wrapper .action-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-card .value-wrapper .save-btn {
+            color: #2d7d46;
+        }
+
+        .info-card .value-wrapper .save-btn:hover {
+            background: #e8f5ec;
+            transform: scale(1.1);
+        }
+
+        .info-card .value-wrapper .cancel-btn {
+            color: #e74c3c;
+        }
+
+        .info-card .value-wrapper .cancel-btn:hover {
+            background: #fde8e8;
+            transform: scale(1.1);
+        }
+
+        .info-card .value-wrapper .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== MESSAGE ===== */
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            text-align: center;
+        }
+
+        .message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* ===== ONGLETS RAPIDES ===== */
+        .quick-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .quick-tab {
+            background: white;
+            border: 1px solid #f0f0f5;
+            border-radius: 14px;
+            padding: 14px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            text-decoration: none;
+            color: #1a1a2e;
+        }
+
+        .quick-tab:hover {
+            border-color: #2d7d46;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 125, 70, 0.10);
+        }
+
+        .quick-tab i {
+            font-size: 22px;
+            color: #2d7d46;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .quick-tab span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* ===== BOUTON DÉCONNEXION ===== */
+        .btn-logout-profil {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn-logout-profil:hover {
+            background: #c0392b;
+            transform: scale(1.02);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            body { padding-top: 68px; }
+            .profil-header { padding: 10px 14px; gap: 10px; }
+            .back-btn { width: 36px; height: 36px; font-size: 16px; }
+            .profil-title { font-size: 16px; }
+            .profil-container { padding: 12px; gap: 12px; }
+            .info-card { padding: 14px; }
+            .info-card .value-wrapper .value { font-size: 15px; }
+            .info-card .value-wrapper input { font-size: 14px; padding: 6px 10px; }
+            .quick-tabs { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .quick-tab { padding: 12px 6px; }
+            .quick-tab i { font-size: 18px; }
+            .quick-tab span { font-size: 11px; }
+        }
+
+        @media (max-width: 400px) {
+            .quick-tabs { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="profil-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="profil-title">👤 Mon profil</span>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <div class="profil-container" id="profilContainer">
+
+        <!-- Message -->
+        <div id="message" class="message"></div>
+
+        <!-- Nom -->
+        <div class="info-card" id="field-name">
+            <div class="label">👤 Nom complet</div>
+            <div class="value-wrapper">
+                <span class="value" id="displayName">-</span>
+                <button class="edit-btn" data-field="name"><i class="fas fa-pen"></i></button>
+            </div>
+        </div>
+
+        <!-- Email -->
+        <div class="info-card" id="field-email">
+            <div class="label">📧 Email</div>
+            <div class="value-wrapper">
+                <span class="value" id="displayEmail">-</span>
+                <button class="edit-btn" data-field="email"><i class="fas fa-pen"></i></button>
+            </div>
+        </div>
+
+        <!-- Téléphone -->
+        <div class="info-card" id="field-phone">
+            <div class="label">📱 Téléphone</div>
+            <div class="value-wrapper">
+                <span class="value" id="displayPhone">-</span>
+                <button class="edit-btn" data-field="phone"><i class="fas fa-pen"></i></button>
+            </div>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="info-card" id="field-password">
+            <div class="label">🔒 Mot de passe</div>
+            <div class="value-wrapper">
+                <span class="value" id="displayPassword">••••</span>
+                <button class="edit-btn" data-field="password"><i class="fas fa-pen"></i></button>
+            </div>
+        </div>
+
+        <!-- ===== ONGLETS RAPIDES ===== -->
+        <div class="quick-tabs">
+            <a href="/dashboard" class="quick-tab">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </a>
+            <a href="/searchproduct" class="quick-tab">
+                <i class="fas fa-search"></i>
+                <span>Recherche</span>
+            </a>
+            <a href="/panier" class="quick-tab">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Panier</span>
+            </a>
+            <a href="/passcommande" class="quick-tab">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Commande</span>
+            </a>
+            <a href="/mescommandes" class="quick-tab">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Mes commandes</span>
+            </a>
+            <a href="/notification" class="quick-tab">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </a>
+        </div>
+
+        <!-- ===== BOUTON DÉCONNEXION ===== -->
+        <button class="btn-logout-profil" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Se déconnecter
+        </button>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ profil.js chargé');
+
+            // ==========================================
+            // VÉRIFICATION CONNEXION (via session)
+            // ==========================================
+
+            let userData = {};
+            let editingField = null;
+
+            async function checkAuth() {
+                try {
+                    const res = await fetch('/api/client/me');
+                    const data = await res.json();
+                    if (data.success) {
+                        userData = data.user;
+                        console.log('👤 Utilisateur:', userData);
+                        updateDisplay();
+                        return true;
+                    } else {
+                        window.location.href = '/login';
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    window.location.href = '/login';
+                    return false;
+                }
+            }
+
+            // ==========================================
+            // ÉLÉMENTS
+            // ==========================================
+
+            const messageEl = document.getElementById('message');
+
+            function showMessage(text, type = 'success') {
+                messageEl.textContent = text;
+                messageEl.className = 'message ' + type;
+                setTimeout(() => {
+                    messageEl.className = 'message';
+                }, 4000);
+            }
+
+            function updateDisplay() {
+                document.getElementById('displayName').textContent = userData.name || '—';
+                document.getElementById('displayEmail').textContent = userData.email || '—';
+                document.getElementById('displayPhone').textContent = userData.phone || '—';
+                document.getElementById('displayPassword').textContent = '••••';
+            }
+
+            // ==========================================
+            // ACTIVER LE MODE ÉDITION
+            // ==========================================
+
+            function startEdit(field) {
+                if (editingField) return;
+
+                const card = document.getElementById('field-' + field);
+                const valueSpan = card.querySelector('.value');
+                const editBtn = card.querySelector('.edit-btn');
+                const wrapper = card.querySelector('.value-wrapper');
+
+                const currentValue = userData[field] || '';
+
+                let inputType = 'text';
+                let placeholder = '';
+
+                if (field === 'email') {
+                    inputType = 'email';
+                    placeholder = 'exemple@email.com';
+                } else if (field === 'phone') {
+                    inputType = 'tel';
+                    placeholder = '0503588336';
+                } else if (field === 'password') {
+                    inputType = 'password';
+                    placeholder = '1234';
+                }
+
+                const input = document.createElement('input');
+                input.type = inputType;
+                input.id = 'editInput';
+                input.value = field === 'password' ? '' : currentValue;
+                input.placeholder = placeholder;
+                input.maxLength = field === 'password' ? 4 : 50;
+                input.autofocus = true;
+
+                const saveBtn = document.createElement('button');
+                saveBtn.className = 'action-btn save-btn';
+                saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'action-btn cancel-btn';
+                cancelBtn.innerHTML = '<i class="fas fa-times"></i>';
+
+                valueSpan.style.display = 'none';
+                editBtn.style.display = 'none';
+
+                wrapper.appendChild(input);
+                wrapper.appendChild(saveBtn);
+                wrapper.appendChild(cancelBtn);
+
+                editingField = field;
+                input.focus();
+                input.select();
+
+                cancelBtn.addEventListener('click', function() {
+                    cancelEdit(field);
+                });
+
+                saveBtn.addEventListener('click', function() {
+                    saveField(field);
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        saveField(field);
+                    } else if (e.key === 'Escape') {
+                        cancelEdit(field);
+                    }
+                });
+
+                const clickOutside = function(e) {
+                    if (!card.contains(e.target)) {
+                        cancelEdit(field);
+                        document.removeEventListener('click', clickOutside);
+                    }
+                };
+                setTimeout(() => {
+                    document.addEventListener('click', clickOutside);
+                }, 100);
+            }
+
+            function cancelEdit(field) {
+                const card = document.getElementById('field-' + field);
+                const wrapper = card.querySelector('.value-wrapper');
+                const valueSpan = card.querySelector('.value');
+                const editBtn = card.querySelector('.edit-btn');
+
+                const input = document.getElementById('editInput');
+                if (input) input.remove();
+
+                const saveBtn = wrapper.querySelector('.save-btn');
+                if (saveBtn) saveBtn.remove();
+
+                const cancelBtn = wrapper.querySelector('.cancel-btn');
+                if (cancelBtn) cancelBtn.remove();
+
+                valueSpan.style.display = 'inline';
+                editBtn.style.display = 'inline';
+
+                editingField = null;
+            }
+
+            // ==========================================
+            // ENREGISTRER UN CHAMP
+            // ==========================================
+
+            async function saveField(field) {
+                const input = document.getElementById('editInput');
+                if (!input) return;
+
+                const value = input.value.trim();
+
+                if (!value) {
+                    showMessage('⚠️ Ce champ ne peut pas être vide.', 'error');
+                    return;
+                }
+
+                if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    showMessage('⚠️ Email invalide.', 'error');
+                    return;
+                }
+
+                if (field === 'phone' && value.replace(/\D/g, '').length < 8) {
+                    showMessage('⚠️ Numéro invalide (8 chiffres minimum).', 'error');
+                    return;
+                }
+
+                if (field === 'password' && (value.length !== 4 || !/^\d{4}$/.test(value))) {
+                    showMessage('⚠️ Mot de passe doit être 4 chiffres.', 'error');
+                    return;
+                }
+
+                const saveBtn = document.querySelector('.save-btn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    let endpoint = '';
+                    let body = {};
+
+                    if (field === 'name') {
+                        endpoint = '/api/client/update-name';
+                        body = { name: value };
+                    } else if (field === 'email') {
+                        endpoint = '/api/client/update-email';
+                        body = { email: value };
+                    } else if (field === 'phone') {
+                        endpoint = '/api/client/update-phone';
+                        body = { phone: value };
+                    } else if (field === 'password') {
+                        endpoint = '/api/client/update-password';
+                        body = { password: value };
+                    }
+
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        userData[field] = value;
+                        updateDisplay();
+                        cancelEdit(field);
+                        showMessage('✅ ' + field.charAt(0).toUpperCase() + field.slice(1) + ' mis à jour !');
+                    } else {
+                        showMessage('❌ ' + (data.error || 'Erreur'), 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showMessage('❌ Erreur de connexion', 'error');
+                }
+
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+            }
+
+            // ==========================================
+            // ÉVÉNEMENTS
+            // ==========================================
+
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const field = this.dataset.field;
+                    startEdit(field);
+                });
+            });
+
+            // ==========================================
+            // DÉCONNEXION
+            // ==========================================
+
+            document.getElementById('logoutBtn').addEventListener('click', async function() {
+                if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                    await fetch('/api/client/logout', { method: 'POST' });
+                    localStorage.clear();
+                    window.location.href = '/login';
+                }
+            });
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            checkAuth();
+
+        });
+    </script>
+
+</body>
+</html>

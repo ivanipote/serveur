@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes commandes | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/client/css/mescommandes.css">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER FIXE                                -->
+    <!-- ========================================== -->
+    <header class="page-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="page-title">📋 Mes commandes</span>
+        <span class="badge-total" id="badgeTotal">0</span>
+    </button>
+</header>
+
+    <!-- ========================================== -->
+    <!-- CONTENU PRINCIPAL                          -->
+    <!-- ========================================== -->
+    <main class="main-content" id="mainContent">
+        <div class="loading-state" id="loadingState">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Chargement de vos commandes...</p>
+        </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY CONFIRMATION (actions)             -->
+    <!-- ========================================== -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon" id="confirmIcon">⚠️</div>
+            <h3 id="confirmTitle">Êtes-vous sûr ?</h3>
+            <p id="confirmMessage">Cette action est irréversible.</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" id="confirmCancel">Annuler</button>
+                <button class="confirm-btn ok" id="confirmOk">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY MESSAGE (information/erreur)       -->
+    <!-- ========================================== -->
+    <div class="message-overlay" id="messageOverlay">
+        <div class="message-box">
+            <div class="message-icon" id="messageIcon">⚠️</div>
+            <h3 id="messageTitle">Titre</h3>
+            <p id="messageText">Message</p>
+            <button class="message-btn" id="messageBtn">OK</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY PAIEMENT (confirmation)            -->
+    <!-- ========================================== -->
+    <div class="payment-overlay" id="paymentOverlay">
+        <div class="payment-box">
+            <div class="payment-icon">💳</div>
+            <h3>Confirmation de paiement</h3>
+
+            <div class="payment-info">
+                <div class="payment-row">
+                    <span class="label">💰 Montant</span>
+                    <span class="value" id="paymentAmount">0 FCFA</span>
+                </div>
+                <div class="payment-row">
+                    <span class="label">📱 Numéro Wave</span>
+                    <span class="value" id="paymentPhone">-</span>
+                </div>
+            </div>
+
+            <div class="payment-actions">
+                <button class="btn-cancel-payment" id="cancelPaymentBtn">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <button class="btn-confirm-payment" id="confirmPaymentBtn">
+                    <i class="fas fa-arrow-right"></i> Payer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/client/js/mescommandes.js"></script>
+</body>
+</html>

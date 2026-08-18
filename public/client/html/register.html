@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Client | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/client/css/register.css">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <button onclick="window.location.href='/client/html/login.html'"><i class="fas fa-arrow-left"></i></button>
+        <span class="app-name">🌿 Nature+</span>
+    </header>
+
+    <!-- TEXTE SOUS LE HEADER -->
+    <div class="register-title" id="stepTitle">
+        <h2 id="titleText">Entrez vos informations client</h2>
+        <p class="register-welcome" id="welcomeText">Bienvenue sur Nature+ ! Merci de renseigner vos informations pour créer votre compte client.</p>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ÉTAPE 1 : INFOS CLIENT -->
+    <!-- ========================================= -->
+    <div id="step1" class="step-content">
+
+        <!-- CADRE 1 : NOM COMPLET -->
+        <div class="register-container">
+            <div class="cadre-champ">
+                <label for="nameInput">Nom complet</label>
+                <div class="input-wrapper-register">
+                    <input type="text" id="nameInput" placeholder="Jean Dupont" autocomplete="name" />
+                    <span id="nameStatus" class="input-status"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CADRE 2 : EMAIL -->
+        <div class="register-container">
+            <div class="cadre-champ">
+                <label for="emailInput">Email</label>
+                <div class="input-wrapper-register">
+                    <input type="email" id="emailInput" placeholder="exemple@email.com" autocomplete="email" />
+                    <span id="emailStatus" class="input-status"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CADRE 3 : TÉLÉPHONE -->
+        <div class="register-container">
+            <div class="cadre-champ">
+                <label for="phoneInput">Numéro de téléphone</label>
+                <div class="phone-container" tabindex="0">
+                    <span class="phone-prefix">+225</span>
+                    <div class="phone-boxes" id="phoneBoxes"></div>
+                    <input type="tel" id="phoneHiddenInput" inputmode="numeric" pattern="[0-9]*" maxlength="10" autocomplete="off" />
+                    <span id="phoneStatus" class="input-status"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOUTON SUIVANT -->
+        <div class="register-container">
+            <button id="nextBtn" class="btn-next" disabled>Suivant</button>
+        </div>
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ÉTAPE 2 : MOT DE PASSE (réduite) -->
+    <!-- ========================================= -->
+    <div id="step2" class="step-content" style="display:none;">
+
+        <!-- CHAMP MOT DE PASSE -->
+        <div class="register-container" style="margin-bottom:4px;">
+            <div class="cadre-champ" style="padding:12px 16px;">
+                <label style="font-size:13px; margin-bottom:4px;">Mot de passe secret</label>
+                <div class="password-wrapper">
+                    <div class="password-boxes-container" style="gap:8px;">
+                        <div class="password-boxes" id="passwordBoxes" style="gap:8px;"></div>
+                        <input type="hidden" id="passwordHidden" maxlength="4" />
+                    </div>
+                    <button type="button" id="clearPwdBtn" class="clear-pwd-btn" style="display:none; right:-4px; font-size:16px;">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAMP CONFIRMATION -->
+        <div class="register-container" style="margin-bottom:4px;">
+            <div class="cadre-champ" style="padding:12px 16px;">
+                <label style="font-size:13px; margin-bottom:4px;">Confirmer le mot de passe</label>
+                <div class="password-wrapper">
+                    <div class="password-boxes-container" style="gap:8px;">
+                        <div class="password-boxes" id="confirmBoxes" style="gap:8px;"></div>
+                        <input type="hidden" id="confirmHidden" maxlength="4" />
+                    </div>
+                    <button type="button" id="clearConfirmBtn" class="clear-pwd-btn" style="display:none; right:-4px; font-size:16px;">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAVÉ NUMÉRIQUE ROND (réduit) -->
+        <div class="pave-container" style="padding:6px 0 0 0;">
+            <div class="pave pave-round" style="gap:10px; max-width:260px;">
+                <button class="num-btn-pwd" data-value="1" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">1</button>
+                <button class="num-btn-pwd" data-value="2" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">2</button>
+                <button class="num-btn-pwd" data-value="3" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">3</button>
+                <button class="num-btn-pwd" data-value="4" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">4</button>
+                <button class="num-btn-pwd" data-value="5" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">5</button>
+                <button class="num-btn-pwd" data-value="6" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">6</button>
+                <button class="num-btn-pwd" data-value="7" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">7</button>
+                <button class="num-btn-pwd" data-value="8" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">8</button>
+                <button class="num-btn-pwd" data-value="9" style="font-size:22px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">9</button>
+                <button class="num-btn-pwd btn-zero" data-value="0" style="font-size:24px; min-width:50px; min-height:50px; max-width:65px; max-height:65px;">0</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ÉTAPE 3 : RÉCAPITULATIF -->
+    <!-- ========================================= -->
+    <div id="step3" class="step-content" style="display:none;">
+
+        <div class="register-container">
+            <div class="recap-card">
+                <h3>✅ Vérifiez vos informations</h3>
+                <div class="recap-item">
+                    <span class="recap-label">👤 Nom complet</span>
+                    <span class="recap-value" id="recapName"></span>
+                </div>
+                <div class="recap-item">
+                    <span class="recap-label">📧 Email</span>
+                    <span class="recap-value" id="recapEmail"></span>
+                </div>
+                <div class="recap-item">
+                    <span class="recap-label">📱 Téléphone</span>
+                    <span class="recap-value" id="recapPhone"></span>
+                </div>
+                <div class="recap-item">
+                    <span class="recap-label">🔒 Mot de passe</span>
+                    <span class="recap-value password" id="recapPassword"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOUTONS PRÉCÉDENT + CRÉER -->
+        <div class="register-container" style="display:flex; gap:12px; justify-content:center;">
+            <button id="prevBtn3" class="btn-prev" style="width:45%;">Précédent</button>
+            <button id="createBtn" class="btn-next active" style="width:45%; background:#2d7d46; color:white; cursor:pointer;">Créer mon compte</button>
+        </div>
+
+    </div>
+
+    <script src="/client/js/register.js"></script>
+</body>
+</html>

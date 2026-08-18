@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon panier | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/client/css/panier.css">
+</head>
+<body>
+
+    <!-- ===== HEADER FIXE ===== -->
+    <header class="cart-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="cart-title">🛒 Mon panier <span class="cart-count" id="cartCount">(0)</span></span>
+    </header>
+
+    <!-- ===== CONTENU PRINCIPAL ===== -->
+    <main class="cart-main" id="cartMain">
+        <div class="cart-container" id="cartContainer">
+            <!-- Les articles seront injectés ici -->
+        </div>
+    </main>
+
+    <!-- ===== FOOTER FIXE ===== -->
+    <footer class="cart-footer" id="cartFooter">
+        <div class="footer-content">
+            <div class="footer-total">
+                <span class="total-label">Total</span>
+                <span class="total-price" id="totalPrice">0 FCFA</span>
+            </div>
+            <div class="footer-actions">
+                <button class="btn-clear" id="clearCartBtn">
+                    <i class="fas fa-trash-alt"></i> Vider
+                </button>
+                <button class="btn-checkout" id="checkoutBtn">
+                    💳 Passer la commande
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== OVERLAY CONFIRMATION ===== -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon">⚠️</div>
+            <h3 id="confirmTitle">Êtes-vous sûr ?</h3>
+            <p id="confirmMessage">Cette action est irréversible.</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" id="confirmCancel">Annuler</button>
+                <button class="confirm-btn ok" id="confirmOk">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY COMMANDE ===== -->
+    <div class="confirm-overlay" id="commandeOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon">🛒</div>
+            <h3>Passer la commande</h3>
+            <p id="commandeMessage">Voulez-vous confirmer cette commande ?</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" id="commandeCancel">Annuler</button>
+                <button class="confirm-btn ok" id="commandeOk">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/client/js/panier.js"></script>
+</body>
+</html>
