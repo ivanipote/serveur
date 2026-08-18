@@ -129,6 +129,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // ========================================
+    // ✅ STOCKER DANS localStorage APRÈS CONNEXION
+    // ========================================
+
     async function verifierCode() {
         const code = codeInput.value;
         const email = emailInput.value.trim();
@@ -158,13 +162,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok) {
-                // ✅ STOCKER DANS localStorage POUR LE FALLBACK
+                // ✅ STOCKER DANS localStorage
                 localStorage.setItem('userId', data.user.id);
                 localStorage.setItem('userName', data.user.name);
                 localStorage.setItem('userEmail', data.user.email);
                 localStorage.setItem('userPhone', data.user.phone);
 
                 console.log('✅ Connexion réussie - userId:', data.user.id);
+                console.log('📦 localStorage mis à jour');
 
                 codeInput.classList.add('success');
                 codeInput.classList.remove('error');
