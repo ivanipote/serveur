@@ -279,6 +279,49 @@
             margin: 4px 0;
         }
 
+        /* ===== SÉLECTEUR QUANTITÉ ===== */
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 6px 0 4px 0;
+        }
+
+        .quantity-selector .qty-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .quantity-selector .qty-btn {
+            background: #e8e8f0;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-selector .qty-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .quantity-selector .qty-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            min-width: 40px;
+            text-align: center;
+        }
+
         .footer-content .add-btn {
             margin-top: 8px;
             background: linear-gradient(135deg, #2d7d46, #1a5a33);
@@ -307,6 +350,49 @@
             background: #27ae60;
         }
 
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             body { padding-top: 68px; }
@@ -332,6 +418,10 @@
             .footer-content .product-desc { font-size: 16px; }
             .footer-content .product-stock { font-size: 13px; padding: 4px 16px; }
             .footer-content .add-btn { font-size: 17px; padding: 14px 20px; max-width: 100%; }
+            .quantity-selector .qty-btn { width: 34px; height: 34px; font-size: 16px; }
+            .quantity-selector .qty-value { font-size: 20px; min-width: 30px; }
+            .toast-container { bottom: 80px; }
+            .toast { font-size: 14px; padding: 10px 18px; }
         }
 
         @media (max-width: 400px) {
@@ -347,6 +437,8 @@
             .footer-content .product-price { font-size: 24px; }
             .footer-content .product-desc { font-size: 14px; }
             .footer-content .add-btn { font-size: 15px; padding: 12px 16px; }
+            .quantity-selector .qty-btn { width: 30px; height: 30px; font-size: 14px; }
+            .quantity-selector .qty-value { font-size: 18px; min-width: 26px; }
         }
     </style>
 </head>
@@ -394,20 +486,33 @@
             <div class="product-price" id="productPrice">0 FCFA</div>
             <div class="product-stock" id="productStock">📦 0 en stock</div>
             <div class="product-desc" id="productDesc">Description du produit</div>
+
+            <!-- Sélecteur de quantité -->
+            <div class="quantity-selector">
+                <span class="qty-label">Quantité :</span>
+                <button class="qty-btn" id="qtyMinus">−</button>
+                <span class="qty-value" id="qtyValue">1</span>
+                <button class="qty-btn" id="qtyPlus">+</button>
+            </div>
+
             <button class="add-btn" id="addToCartBtn">
                 <i class="fas fa-plus-circle"></i> Ajouter au panier
             </button>
         </div>
     </footer>
 
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ infoproduit.js chargé (production)');
+            console.log('✅ infoproduit.js chargé');
 
             const userId = localStorage.getItem('userId');
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
+            const searchQuery = urlParams.get('q') || '';
 
             const imgElement = document.getElementById('productImage');
             const prevBtn = document.getElementById('prevBtn');
@@ -421,14 +526,36 @@
             const productDesc = document.getElementById('productDesc');
             const addBtn = document.getElementById('addToCartBtn');
 
+            const qtyMinus = document.getElementById('qtyMinus');
+            const qtyPlus = document.getElementById('qtyPlus');
+            const qtyValue = document.getElementById('qtyValue');
+
+            const toastContainer = document.getElementById('toastContainer');
+
             let images = [];
             let currentIndex = 0;
+            let quantity = 1;
+            let currentProduct = null;
+
+            // ===== TOAST =====
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = 'toast' + (type === 'error' ? ' error' : '');
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
+            }
 
             // ===== CHARGER LE BADGE PANIER =====
             async function loadPanierCount() {
-                if (!userId) return;
                 try {
-                    const res = await fetch(`/api/panier/count/${userId}`);
+                    const res = await fetch('/api/panier/count');
                     const data = await res.json();
                     if (data.success) {
                         document.getElementById('cartBadge').textContent = data.count || 0;
@@ -460,6 +587,23 @@
                 goToSlide(currentIndex + 1);
             });
 
+            // ===== QUANTITÉ =====
+            qtyMinus.addEventListener('click', function() {
+                if (quantity > 1) {
+                    quantity--;
+                    qtyValue.textContent = quantity;
+                }
+            });
+
+            qtyPlus.addEventListener('click', function() {
+                if (currentProduct && quantity < currentProduct.quantity) {
+                    quantity++;
+                    qtyValue.textContent = quantity;
+                } else if (currentProduct) {
+                    showToast('⚠️ Stock insuffisant', 'error');
+                }
+            });
+
             // ===== CHARGER LE PRODUIT =====
             async function loadProduct() {
                 if (!productId) {
@@ -480,6 +624,8 @@
                         return;
                     }
 
+                    currentProduct = product;
+
                     // Images
                     images = [];
                     if (product.image1) images.push(product.image1);
@@ -495,7 +641,22 @@
                     productDesc.textContent = product.description || 'Aucune description disponible.';
                     productStock.textContent = '📦 ' + (product.quantity || 0) + ' en stock';
 
+                    // Réinitialiser la quantité
+                    quantity = 1;
+                    qtyValue.textContent = quantity;
+
                     addBtn.dataset.id = product.id;
+
+                    // Désactiver le bouton si stock = 0
+                    if (product.quantity <= 0) {
+                        addBtn.disabled = true;
+                        addBtn.style.opacity = '0.5';
+                        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Rupture de stock';
+                    } else {
+                        addBtn.disabled = false;
+                        addBtn.style.opacity = '1';
+                        addBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
+                    }
 
                 } catch (error) {
                     console.error('Erreur:', error);
@@ -506,36 +667,35 @@
             // ===== AJOUTER AU PANIER =====
             addBtn.addEventListener('click', async function() {
                 const id = this.dataset.id;
-
-                if (!userId) {
-                    alert('Veuillez vous connecter');
-                    return;
-                }
+                const qty = parseInt(qtyValue.textContent) || 1;
 
                 if (!id) return;
+                if (this.disabled) return;
 
                 try {
                     const res = await fetch('/api/panier/add', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, productId: id, quantity: 1 })
+                        body: JSON.stringify({ productId: id, quantity: qty })
                     });
 
                     const data = await res.json();
+
                     if (data.success) {
                         this.classList.add('added');
                         this.innerHTML = '<i class="fas fa-check"></i> Ajouté !';
+                        showToast(`✅ ${qty} × "${currentProduct?.name}" ajouté au panier`);
                         loadPanierCount();
                         setTimeout(() => {
                             this.classList.remove('added');
                             this.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
                         }, 1500);
                     } else {
-                        alert('❌ ' + (data.error || 'Erreur'));
+                        showToast('❌ ' + (data.error || 'Erreur'), 'error');
                     }
                 } catch (error) {
                     console.error('Erreur:', error);
-                    alert('❌ Erreur de connexion');
+                    showToast('❌ Erreur de connexion', 'error');
                 }
             });
 
