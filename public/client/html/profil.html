@@ -68,6 +68,43 @@
             text-align: center;
         }
 
+        /* ===== AVATAR ===== */
+        .avatar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 8px 0 12px 0;
+        }
+
+        .avatar-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2d7d46, #1a5a33);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 16px rgba(45, 125, 70, 0.2);
+            border: 3px solid white;
+        }
+
+        .avatar-circle i {
+            font-size: 32px;
+            margin-right: 4px;
+        }
+
+        .avatar-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-top: 6px;
+        }
+
         /* ===== CONTENU ===== */
         .profil-container {
             flex: 1;
@@ -287,6 +324,9 @@
             .quick-tab { padding: 12px 6px; }
             .quick-tab i { font-size: 18px; }
             .quick-tab span { font-size: 11px; }
+            .avatar-circle { width: 70px; height: 70px; font-size: 18px; }
+            .avatar-circle i { font-size: 24px; }
+            .avatar-name { font-size: 16px; }
         }
 
         @media (max-width: 400px) {
@@ -306,6 +346,14 @@
 
     <!-- ===== CONTENU ===== -->
     <div class="profil-container" id="profilContainer">
+
+        <!-- Avatar -->
+        <div class="avatar-container">
+            <div class="avatar-circle">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <div class="avatar-name" id="avatarName">Nature+</div>
+        </div>
 
         <!-- Message -->
         <div id="message" class="message"></div>
@@ -401,6 +449,8 @@
                         userData = data.user;
                         console.log('👤 Utilisateur:', userData);
                         updateDisplay();
+                        // Mettre à jour l'avatar
+                        document.getElementById('avatarName').textContent = userData.name || 'Nature+';
                         return true;
                     } else {
                         window.location.href = '/login';
@@ -432,6 +482,7 @@
                 document.getElementById('displayEmail').textContent = userData.email || '—';
                 document.getElementById('displayPhone').textContent = userData.phone || '—';
                 document.getElementById('displayPassword').textContent = '••••';
+                document.getElementById('avatarName').textContent = userData.name || 'Nature+';
             }
 
             // ==========================================
@@ -626,14 +677,19 @@
             });
 
             // ==========================================
-            // DÉCONNEXION
+            // DÉCONNEXION AVEC CONFIRMATION
             // ==========================================
 
             document.getElementById('logoutBtn').addEventListener('click', async function() {
                 if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-                    await fetch('/api/client/logout', { method: 'POST' });
-                    localStorage.clear();
-                    window.location.href = '/login';
+                    try {
+                        await fetch('/api/client/logout', { method: 'POST' });
+                        localStorage.clear();
+                        window.location.href = '/login';
+                    } catch (error) {
+                        console.error('Erreur déconnexion:', error);
+                        showMessage('❌ Erreur lors de la déconnexion', 'error');
+                    }
                 }
             });
 
