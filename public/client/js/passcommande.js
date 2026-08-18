@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const gpsStatus = document.getElementById('gpsStatus');
     const gpsAdresse = document.getElementById('gpsAdresse');
     const gpsCommune = document.getElementById('gpsCommune');
+    const gpsQuartier = document.getElementById('gpsQuartier');
+    const gpsRue = document.getElementById('gpsRue');
     const gpsAdresseAdresse = document.getElementById('gpsAdresseAdresse');
     const distanceEstimee = document.getElementById('distanceEstimee');
 
@@ -50,6 +52,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let userCoords = null;
     let currentUser = null;
     let isGpsResolved = false;
+
+    // Coordonnées de l'entreprise (point de départ)
+    const ENTREPRISE_COORDS = {
+        lat: 5.3720557,
+        lon: -3.9561231
+    };
 
     // ==========================================
     // VÉRIFICATION CONNEXION (via session)
@@ -195,18 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 800);
     }
 
-    function clearCodeBoxes(containerId) {
-        const container = document.getElementById(containerId);
-        const boxes = container.querySelectorAll('.code-box');
-        boxes.forEach(box => {
-            box.value = '';
-            box.classList.remove('filled');
-        });
-        if (boxes.length > 0) {
-            boxes[0].focus();
-        }
-    }
-
     initCodeBoxes('codeBoxesChezMoi');
     initCodeBoxes('codeBoxesAdresse');
 
@@ -270,6 +266,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // CALCUL DE LA DISTANCE (Haversine)
+    // ==========================================
+
+    function calculerDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Rayon de la Terre en km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // ==========================================
     // GÉOLOCALISATION OBLIGATOIRE
     // ==========================================
 
@@ -316,6 +327,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 retryPositionBtn.style.display = 'block';
                 gpsStatus.textContent = '❌ Position non disponible';
                 gpsStatus.className = 'gps-status error';
+            }, {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
             }
         );
     }
@@ -332,12 +347,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data && data.address) {
                 const addr = data.address;
+                const displayName = data.display_name || 'Adresse non trouvée';
                 const commune = addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
-                const displayName = data.display_name || '';
+                const quartier = addr.neighbourhood || addr.suburb || addr.quarter || '';
+                const rue = addr.road || addr.pedestrian || '';
 
+                // Remplir les champs "Chez moi"
                 gpsAdresse.value = displayName;
                 gpsCommune.value = commune;
+                gpsQuartier.value = quartier;
+                gpsRue.value = rue;
+
+                // Remplir les champs "Adresse"
                 gpsAdresseAdresse.value = displayName;
+
+                // Calculer la distance
+                const distance = calculerDistance(
+                    ENTREPRISE_COORDS.lat, ENTREPRISE_COORDS.lon,
+                    lat, lon
+                );
+                distanceEstimee.value = distance.toFixed(2) + ' km';
 
                 await getFraisByCommune(commune);
             }
@@ -365,8 +394,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     fraisActuels = 500;
                 }
-                const distance = (Math.random() * 5 + 0.5).toFixed(1);
-                distanceEstimee.value = distance + ' km';
                 updateFooter();
             }
         } catch (error) {
@@ -467,6 +494,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const total = sousTotal + fraisActuels;
         const totalItems = panier.reduce((sum, item) => sum + item.quantity, 0);
 
+        const adresseComplete = optionActive === 'chezmoi' ?
+            gpsAdresse.value :
+            gpsAdresseAdresse.value;
+
+        const commune = optionActive === 'chezmoi' ?
+            gpsCommune.value :
+            (communeSelectionnee ? communeSelectionnee.commune : 'Non précisée');
+
+        const quartier = optionActive === 'chezmoi' ?
+            gpsQuartier.value :
+            (document.getElementById('lieuLivraison').value || 'Non précisé');
+
+        const rue = optionActive === 'chezmoi' ?
+            gpsRue.value :
+            'Adresse saisie';
+
         let productsHtml = panier.map(item =>
             `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f2f5;font-size:14px;">
                 <span>${item.name} × ${item.quantity}</span>
@@ -491,6 +534,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-top:6px;padding-top:6px;border-top:2px solid #2d7d46;">
                     <span style="color:#1a1a2e;">TOTAL</span>
                     <span style="color:#2d7d46;">${total.toLocaleString()} FCFA</span>
+                </div>
+            </div>
+            <div style="margin-top:12px;padding-top:10px;border-top:2px solid #e8ecf4;">
+                <div style="font-size:14px;color:#555;">
+                    <strong>📍 Adresse de livraison</strong>
+                </div>
+                <div style="font-size:13px;color:#888;margin-top:4px;line-height:1.6;">
+                    ${adresseComplete || 'Non renseignée'}<br>
+                    <strong>Commune :</strong> ${commune}<br>
+                    <strong>Quartier / Lieu :</strong> ${quartier}<br>
+                    <strong>Rue :</strong> ${rue}<br>
+                    <strong>📏 Distance :</strong> ${distanceEstimee.value || 'Non calculée'}
                 </div>
             </div>
             <div style="margin-top:8px;font-size:13px;color:#888;text-align:center;">
@@ -609,10 +664,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (optionActive === 'chezmoi') {
             commune = communeSelectionnee ? communeSelectionnee.commune : gpsCommune.value;
+            quartier = gpsQuartier.value || null;
+            precision = 'Rue: ' + gpsRue.value + ' | Quartier: ' + gpsQuartier.value + ' | ' + gpsAdresse.value;
         } else {
             commune = communeSelectionnee ? communeSelectionnee.commune : '';
-            quartier = document.getElementById('lieuLivraison').value.trim();
-            precision = 'Lieu précis: ' + quartier;
+            quartier = document.getElementById('lieuLivraison').value.trim() || null;
+            precision = 'Lieu précis: ' + quartier + ' | Adresse: ' + gpsAdresseAdresse.value;
         }
 
         const commandeData = {
@@ -629,6 +686,8 @@ document.addEventListener('DOMContentLoaded', function() {
             latitude: userCoords ? userCoords.lat : null,
             longitude: userCoords ? userCoords.lon : null
         };
+
+        console.log('📦 Données de la commande:', commandeData);
 
         confirmOverlay.classList.add('active');
         confirmerBtn.disabled = true;

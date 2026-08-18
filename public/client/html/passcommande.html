@@ -48,18 +48,28 @@
                     <button data-option="adresse" id="adresseBtn">✏️ Adresse</button>
                 </div>
 
-                <!-- Formulaire Chez moi -->
+                <!-- ========================================= -->
+                <!-- FORMULAIRE CHEZ MOI (détails complets)      -->
+                <!-- ========================================= -->
                 <div class="form-section active" id="formChezMoi">
                     <div class="form-group">
-                        <label>📍 Adresse détectée</label>
-                        <input type="text" id="gpsAdresse" placeholder="Détection en cours..." disabled>
+                        <label>📍 Adresse complète</label>
+                        <input type="text" id="gpsAdresse" placeholder="Détection en cours..." disabled style="min-height:60px;height:auto;padding:10px 14px;white-space:normal;word-wrap:break-word;">
                     </div>
                     <div class="form-group">
-                        <label>📍 Commune détectée</label>
+                        <label>📍 Commune / Ville</label>
                         <input type="text" id="gpsCommune" placeholder="Détection en cours..." disabled>
                     </div>
                     <div class="form-group">
-                        <label>📏 Distance estimée</label>
+                        <label>📍 Quartier</label>
+                        <input type="text" id="gpsQuartier" placeholder="Détection en cours..." disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>📍 Rue</label>
+                        <input type="text" id="gpsRue" placeholder="Détection en cours..." disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>📏 Distance estimée (depuis Nature+)</label>
                         <input type="text" id="distanceEstimee" value="Calcul en cours..." disabled>
                     </div>
                     <div class="form-group">
@@ -89,11 +99,13 @@
                     </div>
                 </div>
 
-                <!-- Formulaire Adresse -->
+                <!-- ========================================= -->
+                <!-- FORMULAIRE ADRESSE                        -->
+                <!-- ========================================= -->
                 <div class="form-section" id="formAdresse">
                     <div class="form-group">
-                        <label>📍 Adresse détectée</label>
-                        <input type="text" id="gpsAdresseAdresse" placeholder="Détection en cours..." disabled>
+                        <label>📍 Adresse complète</label>
+                        <input type="text" id="gpsAdresseAdresse" placeholder="Détection en cours..." disabled style="min-height:60px;height:auto;padding:10px 14px;white-space:normal;word-wrap:break-word;">
                     </div>
                     <div class="form-group">
                         <label>📍 Préciser la commune</label>
