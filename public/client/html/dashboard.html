@@ -10,21 +10,24 @@
 <body>
 
     <!-- ========================================= -->
-    <!-- HEADER FIXE (ne scroll pas) -->
+    <!-- HEADER 1 LIGNE (fixe) -->
     <!-- ========================================= -->
     <header class="dashboard-header">
-        <div class="header-left">
+        <!-- Logo -->
+        <a href="/dashboard" class="header-logo">
             <span class="logo">🌿</span>
             <span class="app-name">Nature+</span>
-        </div>
+        </a>
 
+        <!-- Recherche -->
         <div class="header-center">
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher un produit...">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher...">
             </div>
         </div>
 
+        <!-- Boutons -->
         <div class="header-right">
             <button id="mesCommandesBtn" class="header-btn commandes-btn" title="Mes commandes">
                 <i class="fas fa-clipboard-list"></i>
@@ -41,17 +44,11 @@
                 <span id="cartBadge" class="badge badge-cart">0</span>
             </button>
 
-            <button id="optionsBtn" class="header-btn options-btn" title="Options">
-                <i class="fas fa-ellipsis-v"></i>
+            <button id="profilBtn" class="header-btn profil-btn" title="Mon profil">
+                <i class="fas fa-user-circle"></i>
             </button>
         </div>
     </header>
-
-    <!-- MENU OPTIONS -->
-    <div id="optionsMenu" class="options-menu">
-        <button id="accountBtn"><i class="fas fa-user-circle"></i> Mon compte</button>
-        <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
-    </div>
 
     <!-- ========================================= -->
     <!-- CONTENU PRINCIPAL (scrollable) -->
@@ -74,7 +71,7 @@
             </div>
         </div>
 
-        <!-- CARTE 1 : CARROUSEL AVEC BOUTONS NAV -->
+        <!-- CARTE 1 : CARROUSEL -->
         <div class="card-rectangle" id="productCard">
             <div class="carousel-container">
                 <!-- SKELETON LOADER -->
@@ -88,7 +85,7 @@
                     <!-- Les produits seront injectés ici par JS -->
                 </div>
 
-                <!-- BOUTONS DE NAVIGATION SUR LES IMAGES -->
+                <!-- BOUTONS DE NAVIGATION -->
                 <button class="carousel-btn prev" id="prevBtn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
@@ -113,7 +110,6 @@
                     <h2 class="detail-name">Nom du produit</h2>
                     <p class="detail-price">0 FCFA</p>
                     <p class="detail-desc">Description du produit</p>
-                    <p class="detail-stock">📦 Quantité : 0</p>
                     <button class="detail-add-btn" id="detailAddBtn">
                         <i class="fas fa-plus-circle"></i> Ajouter au panier
                     </button>
