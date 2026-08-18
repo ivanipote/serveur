@@ -146,7 +146,7 @@
         .product-image-container {
             width: 100%;
             height: 100%;
-            max-height: calc(100vh - 76px - 120px - 330px);
+            max-height: calc(100vh - 76px - 120px - 260px);
             min-height: 150px;
             border-radius: 20px;
             overflow: hidden;
@@ -244,33 +244,6 @@
             margin-top: 2px;
         }
 
-        .footer-content .product-stock {
-            display: inline-block;
-            padding: 6px 20px;
-            border-radius: 30px;
-            font-size: 15px;
-            font-weight: 700;
-            margin: 2px 0;
-        }
-
-        .footer-content .product-stock.in-stock {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .footer-content .product-stock.low-stock {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffc107;
-        }
-
-        .footer-content .product-stock.out-of-stock {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
         .footer-content .product-desc {
             font-size: 18px;
             font-weight: 700;
@@ -362,10 +335,6 @@
             background: #27ae60;
         }
 
-        .footer-content .add-btn.out-of-stock-btn {
-            background: #6c757d;
-        }
-
         .toast-container {
             position: fixed;
             bottom: 100px;
@@ -410,7 +379,7 @@
             .nature-message p { font-size: 13px; }
             .nature-message .merci { font-size: 14px; }
             .info-main { padding: 6px 12px 10px 12px; }
-            .product-image-container { max-height: calc(100vh - 68px - 110px - 290px); min-height: 120px; border-radius: 16px; }
+            .product-image-container { max-height: calc(100vh - 68px - 110px - 220px); min-height: 120px; border-radius: 16px; }
             .image-nav { width: 30px; height: 30px; font-size: 13px; }
             .image-nav.prev { left: 6px; }
             .image-nav.next { right: 6px; }
@@ -419,7 +388,6 @@
             .footer-content .product-name { font-size: 22px; }
             .footer-content .product-price { font-size: 28px; }
             .footer-content .product-desc { font-size: 16px; }
-            .footer-content .product-stock { font-size: 13px; padding: 4px 16px; }
             .footer-content .add-btn { font-size: 17px; padding: 14px 20px; max-width: 100%; }
             .quantity-selector .qty-btn { width: 34px; height: 34px; font-size: 16px; }
             .quantity-selector .qty-value { font-size: 20px; min-width: 30px; }
@@ -479,7 +447,6 @@
         <div class="footer-content">
             <div class="product-name" id="productName">Nom du produit</div>
             <div class="product-price" id="productPrice">0 FCFA</div>
-            <div class="product-stock in-stock" id="productStock">📦 0 en stock</div>
             <div class="product-desc" id="productDesc">Description du produit</div>
 
             <div class="quantity-selector">
@@ -500,7 +467,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ infoproduit.js chargé (pas de vérification session)');
+            console.log('✅ infoproduit.js chargé');
 
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
@@ -513,7 +480,6 @@
 
             const productName = document.getElementById('productName');
             const productPrice = document.getElementById('productPrice');
-            const productStock = document.getElementById('productStock');
             const productDesc = document.getElementById('productDesc');
             const addBtn = document.getElementById('addToCartBtn');
 
@@ -569,29 +535,16 @@
             prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
             nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
 
-            function updateQuantityButtons() {
-                if (!currentProduct) return;
-                const stock = currentProduct.quantity || 0;
-                qtyMinus.disabled = quantity <= 1;
-                qtyPlus.disabled = quantity >= stock || stock === 0;
-            }
-
             qtyMinus.addEventListener('click', function() {
                 if (quantity > 1) {
                     quantity--;
                     qtyValue.textContent = quantity;
-                    updateQuantityButtons();
                 }
             });
 
             qtyPlus.addEventListener('click', function() {
-                if (currentProduct && quantity < currentProduct.quantity) {
-                    quantity++;
-                    qtyValue.textContent = quantity;
-                    updateQuantityButtons();
-                } else if (currentProduct) {
-                    showToast('⚠️ Stock insuffisant', 'warning');
-                }
+                quantity++;
+                qtyValue.textContent = quantity;
             });
 
             async function loadProduct() {
@@ -627,36 +580,9 @@
                     productPrice.textContent = product.price.toLocaleString() + ' FCFA';
                     productDesc.textContent = product.description || 'Aucune description disponible.';
 
-                    const stock = product.quantity || 0;
-                    if (stock === 0) {
-                        productStock.textContent = '❌ Rupture de stock';
-                        productStock.className = 'product-stock out-of-stock';
-                        addBtn.disabled = true;
-                        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Rupture de stock';
-                        addBtn.className = 'add-btn out-of-stock-btn';
-                        qtyPlus.disabled = true;
-                        qtyMinus.disabled = true;
-                    } else if (stock <= 3) {
-                        productStock.textContent = `⚠️ Stock limité : ${stock} restant(s)`;
-                        productStock.className = 'product-stock low-stock';
-                        addBtn.disabled = false;
-                        addBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
-                        addBtn.className = 'add-btn';
-                        qtyPlus.disabled = false;
-                        qtyMinus.disabled = false;
-                    } else {
-                        productStock.textContent = `📦 ${stock} en stock`;
-                        productStock.className = 'product-stock in-stock';
-                        addBtn.disabled = false;
-                        addBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
-                        addBtn.className = 'add-btn';
-                        qtyPlus.disabled = false;
-                        qtyMinus.disabled = false;
-                    }
-
                     quantity = 1;
                     qtyValue.textContent = quantity;
-                    updateQuantityButtons();
+
                     addBtn.dataset.id = product.id;
 
                 } catch (error) {
