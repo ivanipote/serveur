@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
 
     // ==========================================
+    // URL DE L'API PAIEMENT (Render)
+    // ==========================================
+
+    const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
+
+    // ==========================================
     // VÉRIFICATION CONNEXION (via session)
     // ==========================================
 
