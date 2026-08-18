@@ -16,19 +16,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const cartBadge = document.getElementById('cartBadge');
     const track = document.getElementById('carouselTrack');
     const skeleton = document.getElementById('carouselSkeleton');
-    const detailBg = document.getElementById('detailBg');
+    const detailBgA = document.getElementById('detailBgA');
+    const detailBgB = document.getElementById('detailBgB');
     const navCurrent = document.getElementById('navCurrent');
     const navTotal = document.getElementById('navTotal');
     const detailAddBtn = document.getElementById('detailAddBtn');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const guestMessage = document.getElementById('guestMessage');
+    const guestDismiss = document.getElementById('guestDismiss');
+    const pageTransition = document.getElementById('pageTransition');
+    const carouselContainer = document.querySelector('.carousel-container');
 
     let products = [];
     let currentIndex = 0;
     let autoScrollInterval;
     let currentUser = null;
     let isAuthenticated = false;
+    let activeDetailLayer = 'a'; // pour le crossfade des fonds
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ==========================================
+    // NAVIGATION FLUIDE ENTRE LES PAGES
+    // ==========================================
+
+    function navigateTo(url) {
+        if (!url) return;
+        if (prefersReducedMotion || !pageTransition) {
+            window.location.href = url;
+            return;
+        }
+        pageTransition.classList.add('active');
+        window.setTimeout(() => {
+            window.location.href = url;
+        }, 260);
+    }
+
+    // Tout élément marqué data-nav navigue via la transition douce
+    document.querySelectorAll('[data-nav]').forEach((el) => {
+        el.addEventListener('click', function(e) {
+            const url = this.dataset.navUrl || this.getAttribute('href');
+            if (!url) return;
+            e.preventDefault();
+            navigateTo(url);
+        });
+    });
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -89,7 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBtn.style.opacity = '1';
             }
         } else {
-            if (guestMessage) guestMessage.style.display = 'flex';
+            if (guestMessage && !guestMessage.dataset.dismissed) {
+                guestMessage.style.display = 'flex';
+            }
             if (mesCommandesBtn) {
                 mesCommandesBtn.disabled = true;
                 mesCommandesBtn.style.opacity = '0.4';
@@ -103,49 +138,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ==========================================
-    // NAVIGATION
-    // ==========================================
-
-    if (searchInput) {
-        searchInput.addEventListener('click', function() {
-            window.location.href = '/searchproduct';
+    if (guestDismiss) {
+        guestDismiss.addEventListener('click', function() {
+            guestMessage.style.display = 'none';
+            guestMessage.dataset.dismissed = 'true';
         });
     }
 
+    // ==========================================
+    // NAVIGATION (header)
+    // ==========================================
+    // Le bouton de recherche est géré via [data-nav] plus haut.
+
     if (cartBtn) {
         cartBtn.addEventListener('click', function() {
-            window.location.href = '/panier';
+            navigateTo('/panier');
         });
     }
 
     if (mesCommandesBtn) {
         mesCommandesBtn.addEventListener('click', function() {
             if (!isAuthenticated) {
-                window.location.href = '/login';
+                navigateTo('/login');
                 return;
             }
-            window.location.href = '/mescommandes';
+            navigateTo('/mescommandes');
         });
     }
 
     if (notifBtn) {
         notifBtn.addEventListener('click', function() {
             if (!isAuthenticated) {
-                window.location.href = '/login';
+                navigateTo('/login');
                 return;
             }
-            window.location.href = '/notification';
+            navigateTo('/notification');
         });
     }
 
     if (profilBtn) {
         profilBtn.addEventListener('click', function() {
             if (!isAuthenticated) {
-                window.location.href = '/login';
+                navigateTo('/login');
                 return;
             }
-            window.location.href = '/profil';
+            navigateTo('/profil');
         });
     }
 
@@ -153,17 +190,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // BADGES
     // ==========================================
 
+    function setBadge(el, count) {
+        if (!el) return;
+        el.textContent = count;
+        el.style.display = count > 0 ? 'flex' : 'none';
+    }
+
     async function loadBadges() {
         if (!isAuthenticated) {
-            if (commandeBadge) commandeBadge.style.display = 'none';
-            if (notifBadge) notifBadge.style.display = 'none';
+            setBadge(commandeBadge, 0);
+            setBadge(notifBadge, 0);
             try {
                 const res = await fetch('/api/panier/count');
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    const count = data.count || 0;
-                    cartBadge.textContent = count;
-                    cartBadge.style.display = count > 0 ? 'flex' : 'none';
+                    setBadge(cartBadge, data.count || 0);
                 }
             } catch (e) { /* ignore */ }
             return;
@@ -172,27 +213,15 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const res1 = await fetch('/api/commandes');
             const data1 = await res1.json();
-            if (res1.ok && commandeBadge) {
-                const count = data1.length || 0;
-                commandeBadge.textContent = count;
-                commandeBadge.style.display = count > 0 ? 'flex' : 'none';
-            }
+            if (res1.ok) setBadge(commandeBadge, data1.length || 0);
 
             const res2 = await fetch('/api/notifications/count');
             const data2 = await res2.json();
-            if (res2.ok && notifBadge) {
-                const count = data2.count || 0;
-                notifBadge.textContent = count;
-                notifBadge.style.display = count > 0 ? 'flex' : 'none';
-            }
+            if (res2.ok) setBadge(notifBadge, data2.count || 0);
 
             const res3 = await fetch('/api/panier/count');
             const data3 = await res3.json();
-            if (res3.ok && cartBadge) {
-                const count = data3.count || 0;
-                cartBadge.textContent = count;
-                cartBadge.style.display = count > 0 ? 'flex' : 'none';
-            }
+            if (res3.ok) setBadge(cartBadge, data3.count || 0);
         } catch (error) {
             console.error('❌ Erreur badges:', error);
         }
@@ -221,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     track.style.visibility = 'visible';
                 }
                 renderCarousel();
-                updateDetail(0);
+                updateDetail(0, true);
                 goToSlide(0);
                 if (navTotal) navTotal.textContent = products.length;
                 startAutoScroll();
@@ -233,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (track) {
                     track.style.display = 'flex';
                     track.style.visibility = 'visible';
-                    track.innerHTML = '<p style="color:#888;text-align:center;padding:30px;">Aucun produit disponible.</p>';
+                    track.innerHTML = '<p style="color:#5b6b5f;text-align:center;padding:30px;width:100%;">Aucun produit disponible.</p>';
                 }
             }
         } catch (error) {
@@ -245,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (track) {
                 track.style.display = 'flex';
                 track.style.visibility = 'visible';
-                track.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:30px;">Erreur de chargement.</p>';
+                track.innerHTML = '<p style="color:#e2574f;text-align:center;padding:30px;width:100%;">Erreur de chargement.</p>';
             }
         }
     }
@@ -284,8 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const index = images.indexOf(currentImg);
                         const nextIndex = (index + 1) % images.length;
                         this.src = images[nextIndex];
-                        // Mettre à jour l'image de fond du détail
-                        detailBg.style.backgroundImage = `url(${images[nextIndex]})`;
+                        setDetailBackground(images[nextIndex]);
                     }
                 }
             });
@@ -319,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startAutoScroll() {
         if (autoScrollInterval) clearInterval(autoScrollInterval);
+        if (prefersReducedMotion) return; // pas de défilement auto si l'utilisateur préfère moins de mouvement
         autoScrollInterval = setInterval(() => {
             const total = products.length;
             if (total === 0) return;
@@ -328,6 +357,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetAutoScroll() {
         startAutoScroll();
+    }
+
+    // Pause du défilement auto quand l'utilisateur interagit avec le carrousel
+    if (carouselContainer) {
+        carouselContainer.addEventListener('mouseenter', () => clearInterval(autoScrollInterval));
+        carouselContainer.addEventListener('mouseleave', () => startAutoScroll());
+        carouselContainer.addEventListener('focusin', () => clearInterval(autoScrollInterval));
+        carouselContainer.addEventListener('focusout', () => startAutoScroll());
     }
 
     // ==========================================
@@ -356,12 +393,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // DÉTAIL PRODUIT
     // ==========================================
 
-    function updateDetail(index) {
+    // Fondu enchaîné entre deux calques : background-image n'étant pas animable,
+    // on prépare le calque caché puis on bascule l'opacité (qui, elle, l'est).
+    function setDetailBackground(imgSrc) {
+        const showingA = activeDetailLayer === 'a';
+        const incoming = showingA ? detailBgB : detailBgA;
+        const outgoing = showingA ? detailBgA : detailBgB;
+        if (!incoming || !outgoing) return;
+
+        incoming.style.backgroundImage = `url(${imgSrc})`;
+        incoming.classList.add('is-visible');
+        incoming.classList.remove('is-hidden');
+        outgoing.classList.add('is-hidden');
+        outgoing.classList.remove('is-visible');
+
+        activeDetailLayer = showingA ? 'b' : 'a';
+    }
+
+    function updateDetail(index, immediate) {
         const product = products[index];
-        if (!product || !detailBg) return;
+        if (!product) return;
 
         const imgSrc = product.image1 || 'https://via.placeholder.com/800x600';
-        detailBg.style.backgroundImage = `url(${imgSrc})`;
+
+        if (immediate && detailBgA) {
+            detailBgA.style.backgroundImage = `url(${imgSrc})`;
+            detailBgA.classList.add('is-visible');
+        } else {
+            setDetailBackground(imgSrc);
+        }
 
         const nameEl = document.querySelector('.detail-name');
         const priceEl = document.querySelector('.detail-price');
@@ -406,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
                     }, 1500);
                 } else if (data.error === 'Non authentifié') {
-                    window.location.href = '/login';
+                    navigateTo('/login');
                 } else {
                     alert('❌ ' + (data.error || 'Erreur'));
                 }

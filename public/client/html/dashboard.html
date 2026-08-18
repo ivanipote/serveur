@@ -4,113 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/dashboard.css">
 </head>
 <body>
 
     <!-- ========================================= -->
-    <!-- HEADER FIXE -->
+    <!-- VOILE DE TRANSITION ENTRE LES PAGES -->
+    <!-- ========================================= -->
+    <div id="pageTransition" class="page-transition" aria-hidden="true">
+        <span class="page-transition-mark"><i class="fas fa-leaf"></i></span>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- HEADER (15% de l'écran, fixe) -->
     <!-- ========================================= -->
     <header class="dashboard-header">
-        <!-- Logo (feuille uniquement) -->
-        <a href="/dashboard" class="header-logo">
-            <span class="logo">🌿</span>
+        <a href="/dashboard" class="header-logo" data-nav aria-label="Accueil Nature+">
+            <span class="logo-mark" aria-hidden="true">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 4C13 8 6 17 6 27c0 9.4 7.6 17 17 17 1.9 0 3.7-.3 5.4-.9C24.8 39 22 33.8 22 28c0-9 6-17 15-21.4C33 3.4 28.6 2.5 24 4Z" fill="url(#leafGrad)"/>
+                    <path d="M24 44C24 34 26 24 40 15" stroke="#0f2a1a" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+                    <defs>
+                        <linearGradient id="leafGrad" x1="6" y1="4" x2="37" y2="44" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#4ade80"/>
+                            <stop offset="1" stop-color="#1a5a33"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </span>
+            <span class="logo-word">Nature<span class="logo-plus">+</span></span>
         </a>
 
-        <!-- Recherche -->
         <div class="header-center">
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher...">
-            </div>
+            <button type="button" id="searchInput" class="search-trigger" data-nav data-nav-url="/searchproduct">
+                <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                <span>Rechercher un produit…</span>
+            </button>
         </div>
 
-        <!-- Boutons -->
         <div class="header-right">
-            <button id="mesCommandesBtn" class="header-btn commandes-btn" title="Mes commandes">
-                <i class="fas fa-clipboard-list"></i>
+            <button id="mesCommandesBtn" class="header-btn" type="button" aria-label="Mes commandes" title="Mes commandes">
+                <i class="fas fa-clipboard-list" aria-hidden="true"></i>
                 <span id="commandeBadge" class="badge badge-commandes">0</span>
             </button>
 
-            <button id="notifBtn" class="header-btn notif-btn" title="Notifications">
-                <i class="fas fa-bell"></i>
+            <button id="notifBtn" class="header-btn" type="button" aria-label="Notifications" title="Notifications">
+                <i class="fas fa-bell" aria-hidden="true"></i>
                 <span id="notifBadge" class="badge badge-notif">0</span>
             </button>
 
-            <button id="cartBtn" class="header-btn cart-btn" title="Mon panier">
-                <i class="fas fa-shopping-cart"></i>
+            <button id="cartBtn" class="header-btn header-btn-accent" type="button" aria-label="Mon panier" title="Mon panier">
+                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
                 <span id="cartBadge" class="badge badge-cart">0</span>
             </button>
 
-            <button id="profilBtn" class="header-btn profil-btn" title="Mon profil">
-                <i class="fas fa-user-circle"></i>
+            <button id="profilBtn" class="header-btn" type="button" aria-label="Mon profil" title="Mon profil">
+                <i class="fas fa-user-circle" aria-hidden="true"></i>
             </button>
         </div>
     </header>
 
     <!-- ========================================= -->
-    <!-- CONTENU PRINCIPAL (scrollable) -->
+    <!-- MESSAGE INVITÉ (bandeau flottant, n'affecte pas les proportions) -->
+    <!-- ========================================= -->
+    <div id="guestMessage" class="guest-message" style="display:none;" role="status">
+        <div class="guest-content">
+            <span class="guest-icon" aria-hidden="true"><i class="fas fa-leaf"></i></span>
+            <div class="guest-text">
+                <h3>Bienvenue sur Nature+</h3>
+                <p>Connectez-vous pour passer commande et profiter de toutes nos fonctionnalités.</p>
+            </div>
+            <a href="/login" class="guest-login-btn" data-nav>
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Se connecter
+            </a>
+            <button type="button" class="guest-dismiss" id="guestDismiss" aria-label="Fermer">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- CONTENU PRINCIPAL : carrousel 55% + détail 30% -->
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
 
-        <!-- MESSAGE INVITÉ STYLÉ -->
-        <div id="guestMessage" class="guest-message" style="display:none;">
-            <div class="guest-content">
-                <div class="guest-icon">
-                    <i class="fas fa-leaf"></i>
-                </div>
-                <div class="guest-text">
-                    <h3>🌿 Bienvenue sur Nature+</h3>
-                    <p>Connectez-vous pour passer commande et profiter de toutes nos fonctionnalités.</p>
-                </div>
-                <a href="/login" class="guest-login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Se connecter
-                </a>
-            </div>
-        </div>
-
-        <!-- CARTE 1 : CARROUSEL -->
+        <!-- CARTE 1 : CARROUSEL (55%) -->
         <div class="card-rectangle" id="productCard">
             <div class="carousel-container">
-                <!-- SKELETON LOADER -->
                 <div id="carouselSkeleton" class="skeleton-carousel">
                     <div class="skeleton-img"></div>
                     <div class="skeleton-footer"></div>
                 </div>
 
-                <!-- CARROUSEL TRACK -->
-                <div class="carousel-track" id="carouselTrack">
-                    <!-- Les produits seront injectés ici par JS -->
-                </div>
+                <div class="carousel-track" id="carouselTrack" role="region" aria-label="Produits en avant" aria-live="polite"></div>
 
-                <!-- BOUTONS DE NAVIGATION -->
-                <button class="carousel-btn prev" id="prevBtn">
-                    <i class="fas fa-chevron-left"></i>
+                <button class="carousel-btn prev" id="prevBtn" type="button" aria-label="Produit précédent">
+                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
                 </button>
-                <button class="carousel-btn next" id="nextBtn">
-                    <i class="fas fa-chevron-right"></i>
+                <button class="carousel-btn next" id="nextBtn" type="button" aria-label="Produit suivant">
+                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
                 </button>
 
-                <!-- INDICATEUR -->
                 <div class="carousel-nav" id="carouselNav">
                     <span id="navCurrent">1</span>
-                    <span>/</span>
+                    <span aria-hidden="true">/</span>
                     <span id="navTotal">1</span>
                 </div>
             </div>
         </div>
 
-        <!-- CARTE 2 : DÉTAIL PRODUIT (footer) -->
+        <!-- CARTE 2 : DÉTAIL PRODUIT (30%) -->
         <div class="card-detail" id="productDetail">
-            <div class="detail-bg" id="detailBg"></div>
+            <div class="detail-bg detail-bg-a" id="detailBgA"></div>
+            <div class="detail-bg detail-bg-b" id="detailBgB"></div>
             <div class="detail-overlay">
                 <div class="detail-content">
                     <h2 class="detail-name">Nom du produit</h2>
                     <p class="detail-price">0 FCFA</p>
                     <p class="detail-desc">Description du produit</p>
-                    <button class="detail-add-btn" id="detailAddBtn">
-                        <i class="fas fa-plus-circle"></i> Ajouter au panier
+                    <button class="detail-add-btn" id="detailAddBtn" type="button">
+                        <i class="fas fa-plus-circle" aria-hidden="true"></i> Ajouter au panier
                     </button>
                 </div>
             </div>
