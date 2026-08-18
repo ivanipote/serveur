@@ -10,7 +10,7 @@
 <body>
 
     <!-- ========================================= -->
-    <!-- HEADER -->
+    <!-- HEADER FIXE (ne scroll pas) -->
     <!-- ========================================= -->
     <header class="dashboard-header">
         <div class="header-left">
@@ -26,65 +26,77 @@
         </div>
 
         <div class="header-right">
-            <!-- MES COMMANDES -->
             <button id="mesCommandesBtn" class="header-btn commandes-btn" title="Mes commandes">
                 <i class="fas fa-clipboard-list"></i>
                 <span id="commandeBadge" class="badge badge-commandes">0</span>
             </button>
 
-            <!-- NOTIFICATIONS -->
             <button id="notifBtn" class="header-btn notif-btn" title="Notifications">
                 <i class="fas fa-bell"></i>
                 <span id="notifBadge" class="badge badge-notif">0</span>
             </button>
 
-            <!-- PANIER -->
             <button id="cartBtn" class="header-btn cart-btn" title="Mon panier">
                 <i class="fas fa-shopping-cart"></i>
                 <span id="cartBadge" class="badge badge-cart">0</span>
             </button>
 
-            <!-- OPTIONS -->
             <button id="optionsBtn" class="header-btn options-btn" title="Options">
                 <i class="fas fa-ellipsis-v"></i>
             </button>
         </div>
     </header>
 
-    <!-- ========================================= -->
-    <!-- MENU OPTIONS (dropdown) -->
-    <!-- ========================================= -->
+    <!-- MENU OPTIONS -->
     <div id="optionsMenu" class="options-menu">
         <button id="accountBtn"><i class="fas fa-user-circle"></i> Mon compte</button>
         <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
     </div>
 
     <!-- ========================================= -->
-    <!-- MESSAGE INVITÉ -->
+    <!-- CONTENU PRINCIPAL (scrollable) -->
     <!-- ========================================= -->
-    <div id="guestMessage" class="guest-message" style="display:none;">
-        <i class="fas fa-info-circle"></i>
-        🔑 <strong>Connectez-vous</strong> pour passer une commande et accéder à toutes vos fonctionnalités.
-        <a href="/login" class="guest-login-btn">Se connecter</a>
-    </div>
+    <main class="main-content" id="mainContent">
 
-    <!-- ========================================= -->
-    <!-- CONTENU PRINCIPAL -->
-    <!-- ========================================= -->
-    <main class="main-content">
+        <!-- MESSAGE INVITÉ STYLÉ -->
+        <div id="guestMessage" class="guest-message" style="display:none;">
+            <div class="guest-content">
+                <div class="guest-icon">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="guest-text">
+                    <h3>🌿 Bienvenue sur Nature+</h3>
+                    <p>Connectez-vous pour passer commande et profiter de toutes nos fonctionnalités.</p>
+                </div>
+                <a href="/login" class="guest-login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </a>
+            </div>
+        </div>
 
-        <!-- CARTE 1 : CARROUSEL -->
+        <!-- CARTE 1 : CARROUSEL AVEC BOUTONS NAV -->
         <div class="card-rectangle" id="productCard">
             <div class="carousel-container">
+                <!-- SKELETON LOADER -->
+                <div id="carouselSkeleton" class="skeleton-carousel">
+                    <div class="skeleton-img"></div>
+                    <div class="skeleton-footer"></div>
+                </div>
+
+                <!-- CARROUSEL TRACK -->
                 <div class="carousel-track" id="carouselTrack">
                     <!-- Les produits seront injectés ici par JS -->
                 </div>
+
+                <!-- BOUTONS DE NAVIGATION SUR LES IMAGES -->
                 <button class="carousel-btn prev" id="prevBtn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <button class="carousel-btn next" id="nextBtn">
                     <i class="fas fa-chevron-right"></i>
                 </button>
+
+                <!-- INDICATEUR -->
                 <div class="carousel-nav" id="carouselNav">
                     <span id="navCurrent">1</span>
                     <span>/</span>

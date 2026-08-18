@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const notifBadge = document.getElementById('notifBadge');
     const cartBadge = document.getElementById('cartBadge');
     const track = document.getElementById('carouselTrack');
+    const skeleton = document.getElementById('carouselSkeleton');
     const detailBg = document.getElementById('detailBg');
     const navCurrent = document.getElementById('navCurrent');
     const navTotal = document.getElementById('navTotal');
@@ -43,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     async function checkAuth() {
-        // 1. Essayer avec la session
         try {
             const res = await fetch('/api/client/me');
             const data = await res.json();
@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('❌ Erreur session:', error);
         }
 
-        // 2. Fallback localStorage
         const userId = localStorage.getItem('userId');
         const userName = localStorage.getItem('userName');
         const userEmail = localStorage.getItem('userEmail');
@@ -81,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         }
 
-        // 3. Utilisateur non connecté
         console.warn('❌ Non authentifié - Mode invité');
         isAuthenticated = false;
         updateUIForAuth(false);
@@ -94,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateUIForAuth(authenticated) {
         if (authenticated) {
-            // ✅ Mode connecté
             if (guestMessage) guestMessage.style.display = 'none';
             if (accountBtn) {
                 accountBtn.innerHTML = '<i class="fas fa-user-circle"></i> Mon compte';
@@ -112,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBtn.title = 'Notifications';
             }
         } else {
-            // ❌ Mode invité
             if (guestMessage) guestMessage.style.display = 'flex';
             if (accountBtn) {
                 accountBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Me connecter';
@@ -208,28 +204,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadBadges() {
         if (!isAuthenticated) {
-            // Masquer les badges si non connecté
             if (commandeBadge) commandeBadge.style.display = 'none';
             if (notifBadge) notifBadge.style.display = 'none';
-            if (cartBadge) {
-                // Le badge panier reste visible même non connecté
-                try {
-                    const res = await fetch('/api/panier/count');
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        const count = data.count || 0;
-                        cartBadge.textContent = count;
-                        cartBadge.style.display = count > 0 ? 'flex' : 'none';
-                    }
-                } catch (e) {
-                    console.warn('Erreur badge panier:', e);
+            try {
+                const res = await fetch('/api/panier/count');
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    const count = data.count || 0;
+                    cartBadge.textContent = count;
+                    cartBadge.style.display = count > 0 ? 'flex' : 'none';
                 }
+            } catch (e) {
+                console.warn('Erreur badge panier:', e);
             }
             return;
         }
 
         try {
-            // 1. Nombre total de commandes
             const res1 = await fetch('/api/commandes');
             const data1 = await res1.json();
             if (res1.ok && commandeBadge) {
@@ -239,7 +230,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('📋 Commandes:', count);
             }
 
-            // 2. Nombre de notifications
             const res2 = await fetch('/api/notifications/count');
             const data2 = await res2.json();
             if (res2.ok && notifBadge) {
@@ -249,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('🔔 Notifications:', count);
             }
 
-            // 3. Nombre d'articles dans le panier
             const res3 = await fetch('/api/panier/count');
             const data3 = await res3.json();
             if (res3.ok && cartBadge) {
@@ -264,27 +253,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES PRODUITS
+    // CHARGER LES PRODUITS AVEC SKELETON
     // ==========================================
 
     async function loadProducts() {
+        // Afficher le skeleton
+        if (skeleton) skeleton.style.display = 'flex';
+        if (track) track.style.display = 'none';
+
         try {
             const res = await fetch('/api/products');
             const data = await res.json();
 
             if (res.ok && data.length > 0 && track) {
                 products = data;
+                // Cacher le skeleton
+                if (skeleton) skeleton.style.display = 'none';
+                if (track) track.style.display = 'flex';
                 renderCarousel();
                 updateDetail(0);
                 goToSlide(0);
                 if (navTotal) navTotal.textContent = products.length;
                 startAutoScroll();
             } else if (track) {
+                if (skeleton) skeleton.style.display = 'none';
+                track.style.display = 'flex';
                 track.innerHTML = '<p style="color:#888;text-align:center;padding:40px;">Aucun produit disponible.</p>';
             }
         } catch (error) {
             console.error('Erreur chargement produits:', error);
+            if (skeleton) skeleton.style.display = 'none';
             if (track) {
+                track.style.display = 'flex';
                 track.innerHTML = '<p style="color:#888;text-align:center;padding:40px;">Erreur de chargement.</p>';
             }
         }
@@ -309,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             track.appendChild(item);
         });
+        updateNavButtons();
     }
 
     function goToSlide(index) {
@@ -319,7 +320,19 @@ document.addEventListener('DOMContentLoaded', function() {
         currentIndex = index;
         track.style.transform = `translateX(-${currentIndex * 100}%)`;
         if (navCurrent) navCurrent.textContent = currentIndex + 1;
+        updateNavButtons();
         updateDetail(currentIndex);
+    }
+
+    function updateNavButtons() {
+        const total = products.length;
+        if (total <= 1) {
+            prevBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+        } else {
+            prevBtn.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+        }
     }
 
     function startAutoScroll() {
@@ -341,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             if (products.length === 0) return;
             goToSlide(currentIndex - 1);
-            startAutoScroll();
+            resetAutoScroll();
         });
     }
 
@@ -350,8 +363,12 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             if (products.length === 0) return;
             goToSlide(currentIndex + 1);
-            startAutoScroll();
+            resetAutoScroll();
         });
+    }
+
+    function resetAutoScroll() {
+        startAutoScroll();
     }
 
     // ==========================================
@@ -437,7 +454,6 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadProducts();
             await loadBadges();
 
-            // Rafraîchir les badges toutes les 30 secondes
             setInterval(() => {
                 loadBadges();
             }, 30000);
