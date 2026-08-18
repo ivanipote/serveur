@@ -1,32 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ dashboard.js chargé');
-
-    // ==========================================
-    // RÉFÉRENCES
-    // ==========================================
-
-    const searchInput = document.getElementById('searchInput');
-    const optionsBtn = document.getElementById('optionsBtn');
-    const optionsMenu = document.getElementById('optionsMenu');
-    const cartBtn = document.getElementById('cartBtn');
-    const mesCommandesBtn = document.getElementById('mesCommandesBtn');
-    const notifBtn = document.getElementById('notifBtn');
-    const commandeBadge = document.getElementById('commandeBadge');
-    const notifBadge = document.getElementById('notifBadge');
-    const cartBadge = document.getElementById('cartBadge');
-    const track = document.getElementById('carouselTrack');
-    const detailBg = document.getElementById('detailBg');
-    const navCurrent = document.getElementById('navCurrent');
-    const navTotal = document.getElementById('navTotal');
-    const detailAddBtn = document.getElementById('detailAddBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-
-    let products = [];
-    let currentIndex = 0;
-    let autoScrollInterval;
-    let currentUser = null;
+    console.log('✅ panier.js chargé');
 
     // ==========================================
     // URL DE L'API PAIEMENT (Render)
@@ -35,317 +9,472 @@ document.addEventListener('DOMContentLoaded', function() {
     const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
 
     // ==========================================
-    // VÉRIFICATION CONNEXION (via session)
+    // RÉFÉRENCES
+    // ==========================================
+
+    const container = document.getElementById('cartContainer');
+    const cartCount = document.getElementById('cartCount');
+    const totalPrice = document.getElementById('totalPrice');
+    const toastContainer = document.getElementById('toastContainer');
+
+    // Overlays
+    const overlay = document.getElementById('confirmOverlay');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOk = document.getElementById('confirmOk');
+    const confirmCancel = document.getElementById('confirmCancel');
+
+    const commandeOverlay = document.getElementById('commandeOverlay');
+    const commandeMessage = document.getElementById('commandeMessage');
+    const commandeOk = document.getElementById('commandeOk');
+    const commandeCancel = document.getElementById('commandeCancel');
+
+    const clearBtn = document.getElementById('clearCartBtn');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    let panier = [];
+    let total = 0;
+    let pendingAction = null;
+    let pendingIndex = null;
+    let currentUser = null;
+
+    // ==========================================
+    // TOAST (notification)
+    // ==========================================
+
+    function showToast(message, type = 'success') {
+        if (!toastContainer) {
+            console.warn('⚠️ Toast container non trouvé');
+            return;
+        }
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#1a2a6c'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90%;
+            text-align: center;
+        `;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+
+    // ==========================================
+    // VÉRIFICATION CONNEXION (session + fallback)
     // ==========================================
 
     async function checkAuth() {
+        // 1. Essayer avec la session
         try {
             const res = await fetch('/api/client/me');
             const data = await res.json();
             if (data.success) {
                 currentUser = data.user;
-                console.log('👤 Utilisateur connecté:', currentUser);
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
+                localStorage.setItem('userEmail', data.user.email);
+                localStorage.setItem('userPhone', data.user.phone);
+                console.log('👤 Utilisateur connecté (session):', currentUser);
                 return true;
-            } else {
-                window.location.href = '/login';
-                return false;
             }
         } catch (error) {
-            console.error('❌ Erreur vérification auth:', error);
-            window.location.href = '/login';
-            return false;
+            console.error('❌ Erreur session:', error);
         }
-    }
 
-    // ==========================================
-    // MENU OPTIONS
-    // ==========================================
+        // 2. Fallback localStorage
+        const userId = localStorage.getItem('userId');
+        const userName = localStorage.getItem('userName');
+        const userEmail = localStorage.getItem('userEmail');
+        const userPhone = localStorage.getItem('userPhone');
 
-    if (optionsBtn) {
-        optionsBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            optionsMenu.classList.toggle('open');
-        });
-    }
-
-    document.addEventListener('click', function() {
-        if (optionsMenu) optionsMenu.classList.remove('open');
-    });
-
-    if (optionsMenu) {
-        optionsMenu.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-    }
-
-    // ==========================================
-    // MON COMPTE → /profil
-    // ==========================================
-
-    const accountBtn = document.getElementById('accountBtn');
-    if (accountBtn) {
-        accountBtn.addEventListener('click', function() {
-            window.location.href = '/profil';
-        });
-    }
-
-    // ==========================================
-    // DÉCONNEXION → /login
-    // ==========================================
-
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async function() {
-            await fetch('/api/client/logout', { method: 'POST' });
-            localStorage.clear();
-            window.location.href = '/login';
-        });
-    }
-
-    // ==========================================
-    // RECHERCHE → /searchproduct
-    // ==========================================
-
-    if (searchInput) {
-        searchInput.addEventListener('click', function() {
-            window.location.href = '/searchproduct';
-        });
-    }
-
-    // ==========================================
-    // PANIER → /panier
-    // ==========================================
-
-    if (cartBtn) {
-        cartBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = '/panier';
-        });
-    }
-
-    // ==========================================
-    // MES COMMANDES → /mescommandes
-    // ==========================================
-
-    if (mesCommandesBtn) {
-        mesCommandesBtn.addEventListener('click', function() {
-            window.location.href = '/mescommandes';
-        });
-    }
-
-    // ==========================================
-    // NOTIFICATIONS → /notification
-    // ==========================================
-
-    if (notifBtn) {
-        notifBtn.addEventListener('click', function() {
-            window.location.href = '/notification';
-        });
-    }
-
-    // ==========================================
-    // CHARGER LES BADGES (via session)
-    // ==========================================
-
-    async function loadBadges() {
-        if (!currentUser) return;
-
-        console.log('📊 Chargement des badges...');
-
-        try {
-            // 1. Nombre total de commandes
-            const res1 = await fetch('/api/commandes');
-            const data1 = await res1.json();
-            if (res1.ok && commandeBadge) {
-                const count = data1.length || 0;
-                commandeBadge.textContent = count;
-                commandeBadge.style.display = count > 0 ? 'flex' : 'none';
-                console.log('📋 Commandes:', count);
-            }
-
-            // 2. Nombre de notifications (messages non lus)
-            const res2 = await fetch('/api/notifications/count');
-            const data2 = await res2.json();
-            if (res2.ok && notifBadge) {
-                const count = data2.count || 0;
-                notifBadge.textContent = count;
-                notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                console.log('🔔 Notifications:', count);
-            }
-
-            // 3. Nombre d'articles dans le panier
-            const res3 = await fetch('/api/panier/count');
-            const data3 = await res3.json();
-            if (res3.ok && cartBadge) {
-                const count = data3.count || 0;
-                cartBadge.textContent = count;
-                cartBadge.style.display = count > 0 ? 'flex' : 'none';
-                console.log('🛒 Panier:', count);
-            }
-        } catch (error) {
-            console.error('❌ Erreur chargement badges:', error);
+        if (userId && userName) {
+            console.log('👤 Fallback: Utilisateur depuis localStorage');
+            currentUser = {
+                id: parseInt(userId),
+                name: userName,
+                email: userEmail,
+                phone: userPhone
+            };
+            return true;
         }
+
+        // 3. Redirection vers login
+        console.warn('❌ Non authentifié, redirection vers login');
+        window.location.href = '/login';
+        return false;
     }
 
     // ==========================================
-    // CHARGER LES PRODUITS
+    // OVERLAYS
     // ==========================================
 
-    async function loadProducts() {
+    function openConfirm(title, message, action, index = null) {
+        confirmTitle.textContent = title;
+        confirmMessage.textContent = message;
+        pendingAction = action;
+        pendingIndex = index;
+        overlay.classList.add('active');
+    }
+
+    function closeConfirm() {
+        overlay.classList.remove('active');
+        pendingAction = null;
+        pendingIndex = null;
+    }
+
+    if (confirmCancel) {
+        confirmCancel.addEventListener('click', closeConfirm);
+    }
+
+    if (confirmOk) {
+        confirmOk.addEventListener('click', function() {
+            if (pendingAction === 'remove' && pendingIndex !== null) {
+                executeRemove(pendingIndex);
+            } else if (pendingAction === 'clear') {
+                executeClear();
+            }
+            closeConfirm();
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeConfirm();
+        });
+    }
+
+    function openCommande() {
+        const totalItems = panier.reduce((sum, item) => sum + item.quantity, 0);
+        commandeMessage.textContent = `Voulez-vous confirmer cette commande de ${totalItems} article(s) pour un total de ${total.toLocaleString()} FCFA ?`;
+        commandeOverlay.classList.add('active');
+    }
+
+    function closeCommande() {
+        commandeOverlay.classList.remove('active');
+    }
+
+    if (commandeCancel) {
+        commandeCancel.addEventListener('click', closeCommande);
+    }
+
+    if (commandeOk) {
+        commandeOk.addEventListener('click', function() {
+            closeCommande();
+            window.location.href = '/passcommande';
+        });
+    }
+
+    if (commandeOverlay) {
+        commandeOverlay.addEventListener('click', function(e) {
+            if (e.target === commandeOverlay) closeCommande();
+        });
+    }
+
+    // ==========================================
+    // CHARGER LE PANIER
+    // ==========================================
+
+    async function loadPanier() {
         try {
-            const res = await fetch('/api/products');
+            const res = await fetch('/api/panier');
             const data = await res.json();
 
-            if (res.ok && data.length > 0 && track) {
-                products = data;
-                renderCarousel();
-                updateDetail(0);
-                goToSlide(0);
-                if (navTotal) navTotal.textContent = products.length;
-                startAutoScroll();
-            } else if (track) {
-                track.innerHTML = '<p style="color:#888;text-align:center;padding:40px;">Aucun produit disponible.</p>';
+            if (data.success && data.panier.length > 0) {
+                panier = data.panier;
+                renderPanier();
+            } else {
+                renderEmpty();
             }
         } catch (error) {
-            console.error('Erreur chargement produits:', error);
-            if (track) {
-                track.innerHTML = '<p style="color:#888;text-align:center;padding:40px;">Erreur de chargement.</p>';
-            }
+            console.error('Erreur chargement panier:', error);
+            renderEmpty();
         }
     }
 
     // ==========================================
-    // CARROUSEL
+    // PANIER VIDE STYLISÉ
     // ==========================================
 
-    function renderCarousel() {
-        if (!track) return;
-        track.innerHTML = '';
-        products.forEach((p) => {
-            const item = document.createElement('div');
-            item.className = 'carousel-item';
-            const imgSrc = p.image1 || 'https://via.placeholder.com/800x600';
-            item.innerHTML = `
-                <img src="${imgSrc}" alt="${p.name}" loading="lazy">
-                <div class="product-footer">
-                    <span class="product-name">${p.name}</span>
+    function renderEmpty() {
+        if (!container) return;
+        container.innerHTML = `
+            <div class="cart-empty">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Votre panier est vide</h3>
+                <p style="color:#888;font-size:15px;margin-bottom:16px;">
+                    Découvrez nos produits et commencez vos achats !
+                </p>
+                <a href="/dashboard" class="btn-shop" style="
+                    display:inline-block;
+                    background:#2d7d46;
+                    color:white;
+                    padding:14px 36px;
+                    border-radius:30px;
+                    text-decoration:none;
+                    font-weight:600;
+                    font-size:16px;
+                    transition:background 0.3s;
+                ">🛍️ Voir les produits</a>
+            </div>
+        `;
+        if (cartCount) cartCount.textContent = '(0)';
+        if (totalPrice) totalPrice.textContent = '0 FCFA';
+        if (checkoutBtn) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.style.opacity = '0.5';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.style.opacity = '0.5';
+        }
+    }
+
+    function goToProduct(productId) {
+        window.location.href = '/infoproduit?id=' + productId;
+    }
+
+    // ==========================================
+    // AFFICHER LE PANIER (AMÉLIORÉ)
+    // ==========================================
+
+    function renderPanier() {
+        if (!container) return;
+
+        if (panier.length === 0) {
+            renderEmpty();
+            return;
+        }
+
+        total = panier.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const totalItems = panier.reduce((sum, item) => sum + item.quantity, 0);
+
+        let html = '';
+
+        panier.forEach((item, index) => {
+            const imgSrc = item.image1 || 'https://via.placeholder.com/50';
+            const totalLigne = item.price * item.quantity;
+            const stockDispo = item.stock || 'N/A';
+
+            html += `
+                <div class="cart-item" data-index="${index}" data-id="${item.product_id || item.id}">
+                    <div class="item-header">
+                        <img src="${imgSrc}" alt="${item.name}" class="item-img" loading="lazy">
+                        <span class="item-name">${item.name}</span>
+                    </div>
+                    <div class="item-main">
+                        <div class="item-price">
+                            ${totalLigne.toLocaleString()} FCFA
+                            <span style="font-size:13px;color:#aaa;font-weight:400;display:block;">
+                                (${item.price.toLocaleString()} × ${item.quantity})
+                            </span>
+                        </div>
+                        <div class="item-desc">${item.description || ''}</div>
+                        <div class="item-stock" style="font-size:13px;color:#888;margin-top:4px;">
+                            📦 Stock: ${stockDispo}
+                        </div>
+                    </div>
+                    <div class="item-footer">
+                        <div class="item-qty">
+                            <button class="qty-minus" data-index="${index}">−</button>
+                            <span>${item.quantity}</span>
+                            <button class="qty-plus" data-index="${index}">+</button>
+                        </div>
+                        <button class="item-remove" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
             `;
-            track.appendChild(item);
         });
-    }
 
-    function goToSlide(index) {
-        if (!track || products.length === 0) return;
-        const total = products.length;
-        if (index < 0) index = total - 1;
-        if (index >= total) index = 0;
-        currentIndex = index;
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-        if (navCurrent) navCurrent.textContent = currentIndex + 1;
-        updateDetail(currentIndex);
-    }
+        container.innerHTML = html;
+        if (cartCount) cartCount.textContent = `(${totalItems})`;
+        if (totalPrice) totalPrice.textContent = total.toLocaleString() + ' FCFA';
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.style.opacity = '1';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = false;
+            clearBtn.style.opacity = '1';
+        }
 
-    function startAutoScroll() {
-        if (autoScrollInterval) clearInterval(autoScrollInterval);
-        autoScrollInterval = setInterval(() => {
-            const total = products.length;
-            if (total === 0) return;
-            const next = (currentIndex + 1) % total;
-            goToSlide(next);
-        }, 4000);
-    }
-
-    // ==========================================
-    // BOUTONS DE NAVIGATION
-    // ==========================================
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (products.length === 0) return;
-            goToSlide(currentIndex - 1);
-            startAutoScroll();
+        // Clic sur l'article → infoproduit
+        document.querySelectorAll('.cart-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.item-qty') || e.target.closest('.item-remove')) {
+                    return;
+                }
+                const id = this.dataset.id;
+                if (id) goToProduct(id);
+            });
         });
-    }
 
-    if (nextBtn) {
-        nextBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (products.length === 0) return;
-            goToSlide(currentIndex + 1);
-            startAutoScroll();
+        // Quantité
+        document.querySelectorAll('.qty-plus').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = parseInt(this.dataset.index);
+                updateQuantity(index, 1);
+            });
         });
-    }
 
-    // ==========================================
-    // DÉTAIL PRODUIT
-    // ==========================================
+        document.querySelectorAll('.qty-minus').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = parseInt(this.dataset.index);
+                updateQuantity(index, -1);
+            });
+        });
 
-    function updateDetail(index) {
-        const product = products[index];
-        if (!product || !detailBg) return;
+        document.querySelectorAll('.item-remove').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = parseInt(this.dataset.index);
+                const item = panier[index];
+                openConfirm(
+                    '⚠️ Retirer du panier',
+                    `Voulez-vous retirer "${item.name}" du panier ?`,
+                    'remove',
+                    index
+                );
+            });
+        });
 
-        const imgSrc = product.image1 || 'https://via.placeholder.com/800x600';
-        detailBg.style.backgroundImage = `url(${imgSrc})`;
+        if (checkoutBtn) {
+            checkoutBtn.onclick = function() {
+                if (panier.length === 0) return;
+                openCommande();
+            };
+        }
 
-        const nameEl = document.querySelector('.detail-name');
-        const priceEl = document.querySelector('.detail-price');
-        const descEl = document.querySelector('.detail-desc');
-        const stockEl = document.querySelector('.detail-stock');
-
-        if (nameEl) nameEl.textContent = product.name;
-        if (priceEl) priceEl.textContent = product.price.toLocaleString() + ' FCFA';
-        if (descEl) descEl.textContent = product.description || 'Aucune description.';
-        if (stockEl) stockEl.textContent = '📦 Quantité : ' + (product.quantity || 0);
-
-        if (detailAddBtn) {
-            detailAddBtn.dataset.productId = product.id;
-            detailAddBtn.dataset.productName = product.name;
-            detailAddBtn.dataset.productPrice = product.price;
-            detailAddBtn.classList.remove('added');
-            detailAddBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
+        if (clearBtn) {
+            clearBtn.onclick = function() {
+                if (panier.length === 0) return;
+                openConfirm(
+                    '🗑️ Vider le panier',
+                    'Êtes-vous sûr de vouloir vider tout votre panier ? Cette action est définitive.',
+                    'clear'
+                );
+            };
         }
     }
 
     // ==========================================
-    // AJOUTER AU PANIER
+    // ACTIONS
     // ==========================================
 
-    if (detailAddBtn) {
-        detailAddBtn.addEventListener('click', async function() {
-            const productId = this.dataset.productId;
+    async function updateQuantity(index, delta) {
+        const item = panier[index];
+        const newQty = item.quantity + delta;
 
-            if (!productId) {
-                alert('❌ Erreur: produit non identifié');
-                return;
+        if (newQty <= 0) {
+            openConfirm(
+                '⚠️ Retirer du panier',
+                `Voulez-vous retirer "${item.name}" du panier ?`,
+                'remove',
+                index
+            );
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/panier/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: item.product_id || item.id,
+                    quantity: newQty
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                item.quantity = newQty;
+                renderPanier();
+                updateBadge();
+                showToast(`✅ Quantité mise à jour (${newQty})`, 'success');
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur mise à jour'), 'error');
             }
+        } catch (error) {
+            console.error('Erreur mise à jour:', error);
+            showToast('❌ Erreur de connexion', 'error');
+        }
+    }
 
-            try {
-                const res = await fetch('/api/panier/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId, quantity: 1 })
-                });
+    async function executeRemove(index) {
+        const item = panier[index];
+        try {
+            const res = await fetch('/api/panier/remove', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: item.product_id || item.id
+                })
+            });
 
-                const data = await res.json();
-
-                if (data.success) {
-                    this.classList.add('added');
-                    this.innerHTML = '<i class="fas fa-check"></i> Ajouté !';
-                    await loadBadges();
-                    setTimeout(() => {
-                        this.classList.remove('added');
-                        this.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
-                    }, 1500);
-                } else {
-                    alert('❌ ' + (data.error || 'Erreur lors de l\'ajout'));
-                }
-            } catch (error) {
-                console.error('Erreur ajout panier:', error);
-                alert('❌ Erreur de connexion au serveur.');
+            const data = await res.json();
+            if (data.success) {
+                panier.splice(index, 1);
+                if (panier.length === 0) renderEmpty();
+                else renderPanier();
+                updateBadge();
+                showToast('✅ Article retiré du panier', 'success');
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
-        });
+        } catch (error) {
+            console.error('Erreur suppression:', error);
+            showToast('❌ Erreur de connexion', 'error');
+        }
+    }
+
+    async function executeClear() {
+        try {
+            const res = await fetch('/api/panier/clear', {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                panier = [];
+                renderEmpty();
+                updateBadge();
+                showToast('🗑️ Panier vidé avec succès', 'success');
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+            }
+        } catch (error) {
+            console.error('Erreur vidage:', error);
+            showToast('❌ Erreur de connexion', 'error');
+        }
+    }
+
+    async function updateBadge() {
+        try {
+            const res = await fetch('/api/panier/count');
+            const data = await res.json();
+            if (data.success) {
+                const badge = document.querySelector('.cart-badge');
+                if (badge) badge.textContent = data.count || 0;
+            }
+        } catch (error) {
+            console.error('Erreur badge:', error);
+        }
     }
 
     // ==========================================
@@ -354,16 +483,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     (async function init() {
         try {
-            console.log('🚀 Initialisation du dashboard...');
+            console.log('🚀 Initialisation du panier...');
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            await loadProducts();
-            await loadBadges();
+            await loadPanier();
+            await updateBadge();
 
-            // Rafraîchir les badges toutes les 30 secondes
+            // Rafraîchir le badge toutes les 30 secondes
             setInterval(() => {
-                loadBadges();
+                updateBadge();
             }, 30000);
 
             console.log('✅ Initialisation terminée');
