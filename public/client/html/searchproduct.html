@@ -140,10 +140,13 @@
             font-size: 13px;
             cursor: pointer;
             font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
         }
 
         .history-title button:hover {
-            text-decoration: underline;
+            background: #fde8e8;
         }
 
         .history-item {
@@ -191,19 +194,20 @@
         .history-item .remove-history:hover {
             color: #e74c3c;
             background: #fef0f0;
+            transform: scale(1.2);
         }
 
         /* ===== RÉSULTATS LIVE ===== */
         .result-item {
             background: white;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border-radius: 12px;
             margin-bottom: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             border: 1px solid #f0f0f5;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 14px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -211,18 +215,48 @@
         .result-item:hover {
             border-color: #2d7d46;
             transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         }
 
-        .result-item .name {
+        .result-item .result-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #f0f2f5;
+            flex-shrink: 0;
+        }
+
+        .result-item .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-item .result-info .name {
             font-size: 15px;
             font-weight: 600;
             color: #1a1a2e;
+        }
+
+        .result-item .result-info .price {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d7d46;
+        }
+
+        .result-item .result-info .desc {
+            font-size: 12px;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .result-item .open-icon {
             color: #aaa;
             font-size: 14px;
             transition: color 0.2s;
+            flex-shrink: 0;
         }
 
         .result-item:hover .open-icon {
@@ -272,16 +306,27 @@
             margin-bottom: 16px;
         }
 
+        /* ========================================== */
+        /* RESPONSIVE                                 */
+        /* ========================================== */
+
         @media (max-width: 600px) {
             body { padding-top: 68px; }
             .search-header { padding: 10px 14px; gap: 10px; }
             .search-input-wrapper input { height: 42px; font-size: 14px; padding: 0 12px 0 40px; }
             .search-input-wrapper .search-icon { left: 12px; font-size: 14px; }
             .back-btn { width: 36px; height: 36px; font-size: 16px; }
-            .result-item { padding: 12px 14px; }
-            .result-item .name { font-size: 14px; }
+            .result-item { padding: 10px 14px; gap: 10px; }
+            .result-item .result-img { width: 40px; height: 40px; }
+            .result-item .result-info .name { font-size: 14px; }
+            .result-item .result-info .price { font-size: 13px; }
             .history-item { padding: 10px 14px; }
             .history-item .term { font-size: 14px; }
+        }
+
+        @media (max-width: 400px) {
+            .result-item .result-info .desc { display: none; }
+            .result-item .result-img { width: 36px; height: 36px; }
         }
     </style>
 </head>
@@ -316,7 +361,9 @@
             let products = [];
             let timeoutId = null;
 
-            // ===== GESTION DE L'HISTORIQUE =====
+            // ==========================================
+            // GESTION DE L'HISTORIQUE
+            // ==========================================
 
             function getHistory() {
                 try {
@@ -346,15 +393,35 @@
                 renderDefault();
             }
 
-            // ===== REDIRECTION VERS results.html =====
+            // ==========================================
+            // PRÉ-REMPLIR LA RECHERCHE
+            // ==========================================
+
+            function prefillSearch() {
+                const savedQuery = sessionStorage.getItem('lastSearchQuery');
+                if (savedQuery) {
+                    searchInput.value = savedQuery;
+                    // Lancer la recherche après un court délai
+                    setTimeout(() => {
+                        searchInput.dispatchEvent(new Event('input'));
+                    }, 300);
+                }
+            }
+
+            // ==========================================
+            // REDIRECTION VERS results.html
+            // ==========================================
 
             function redirectToResults(query) {
                 if (query.trim() === '') return;
                 saveHistory(query.trim());
+                sessionStorage.setItem('lastSearchQuery', query.trim());
                 window.location.href = '/results?q=' + encodeURIComponent(query.trim());
             }
 
-            // ===== AFFICHAGE ÉTAT PAR DÉFAUT =====
+            // ==========================================
+            // AFFICHAGE ÉTAT PAR DÉFAUT
+            // ==========================================
 
             function renderDefault() {
                 const history = getHistory();
@@ -369,12 +436,15 @@
                     html += history.map(term => `
                         <div class="history-item" data-term="${term}">
                             <span class="term"><i class="fas fa-clock"></i> ${term}</span>
-                            <button class="remove-history" data-term="${term}"><i class="fas fa-times"></i></button>
+                            <button class="remove-history" data-term="${term}" title="Supprimer">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
                         </div>
                     `).join('');
 
                     container.innerHTML = html;
 
+                    // Clic sur un élément de l'historique
                     document.querySelectorAll('.history-item').forEach(item => {
                         item.addEventListener('click', function(e) {
                             if (e.target.closest('.remove-history')) return;
@@ -383,6 +453,7 @@
                         });
                     });
 
+                    // Supprimer un élément de l'historique
                     document.querySelectorAll('.remove-history').forEach(btn => {
                         btn.addEventListener('click', function(e) {
                             e.stopPropagation();
@@ -391,10 +462,16 @@
                         });
                     });
 
-                    document.getElementById('clearHistoryBtn').addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        clearHistory();
-                    });
+                    // Tout effacer
+                    const clearBtn = document.getElementById('clearHistoryBtn');
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (confirm('Effacer tout l\'historique de recherche ?')) {
+                                clearHistory();
+                            }
+                        });
+                    }
 
                 } else {
                     container.innerHTML = `
@@ -407,7 +484,9 @@
                 }
             }
 
-            // ===== RECHERCHE EN TEMPS RÉEL =====
+            // ==========================================
+            // RECHERCHE EN TEMPS RÉEL
+            // ==========================================
 
             function renderLiveResults(query) {
                 if (query.trim() === '') {
@@ -426,6 +505,9 @@
                         <div class="no-results">
                             <i class="fas fa-times-circle"></i>
                             Aucun résultat pour "<strong>${query}</strong>"
+                            <p style="margin-top:8px;font-size:14px;">
+                                Essayez un autre mot-clé
+                            </p>
                         </div>
                     `;
                     return;
@@ -433,7 +515,12 @@
 
                 container.innerHTML = results.map(p => `
                     <div class="result-item" data-id="${p.id}" data-name="${p.name}">
-                        <span class="name">${p.name}</span>
+                        <img src="${p.image1 || 'https://via.placeholder.com/50'}" alt="${p.name}" class="result-img" loading="lazy">
+                        <div class="result-info">
+                            <div class="name">${p.name}</div>
+                            <div class="price">${p.price.toLocaleString()} FCFA</div>
+                            <div class="desc">${p.description || ''}</div>
+                        </div>
                         <span class="open-icon"><i class="fas fa-chevron-right"></i></span>
                     </div>
                 `).join('');
@@ -446,7 +533,9 @@
                 });
             }
 
-            // ===== GESTION DE LA SAISIE =====
+            // ==========================================
+            // GESTION DE LA SAISIE
+            // ==========================================
 
             searchInput.addEventListener('input', function() {
                 const query = this.value.trim();
@@ -458,6 +547,7 @@
                     return;
                 }
 
+                // Afficher le loader
                 container.innerHTML = `
                     <div class="loader-snippet"><div class="line"></div><div class="line short"></div></div>
                     <div class="loader-snippet"><div class="line"></div><div class="line short"></div></div>
@@ -469,7 +559,9 @@
                 }, 350);
             });
 
-            // ===== APPUI SUR ENTRÉE =====
+            // ==========================================
+            // APPUI SUR ENTRÉE
+            // ==========================================
 
             searchInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
@@ -481,7 +573,9 @@
                 }
             });
 
-            // ===== CHARGER LES PRODUITS =====
+            // ==========================================
+            // CHARGER LES PRODUITS
+            // ==========================================
 
             async function loadProducts() {
                 try {
@@ -489,17 +583,30 @@
                     const data = await res.json();
                     if (res.ok) {
                         products = data;
+                        console.log('✅ Produits chargés:', products.length);
                     }
                 } catch (error) {
                     console.error('Erreur chargement produits:', error);
                 }
             }
 
-            // ===== INITIALISATION =====
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
 
-            loadProducts();
-            renderDefault();
-            searchInput.focus();
+            (async function init() {
+                await loadProducts();
+                renderDefault();
+                prefillSearch();
+                searchInput.focus();
+
+                // Si le champ a une valeur, placer le curseur à la fin
+                if (searchInput.value) {
+                    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+                }
+
+                console.log('✅ searchproduct.html initialisé');
+            })();
 
         });
     </script>
