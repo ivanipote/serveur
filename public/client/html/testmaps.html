@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📍 Test GPS - Nature+</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 30px 24px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .btn-primary {
+            background: #2d7d46;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            background: #1a5a33;
+            transform: scale(1.02);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #e8e8f0;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #d5d5e0;
+        }
+
+        .info-card {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-top: 16px;
+            border: 1px solid #e8ecf4;
+            display: none;
+        }
+
+        .info-card.visible {
+            display: block;
+        }
+
+        .info-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-card .value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1a1a2e;
+            margin-top: 2px;
+            word-break: break-word;
+        }
+
+        .info-card .value.large {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d7d46;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-row .label {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .info-row .value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .map-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: #2d7d46;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .map-link:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .api-selector {
+            display: flex;
+            gap: 10px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+
+        .api-selector button {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e8e8f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+            min-width: 80px;
+        }
+
+        .api-selector button.active {
+            border-color: #2d7d46;
+            background: #e8f5ec;
+            color: #2d7d46;
+        }
+
+        .api-selector button:hover {
+            border-color: #2d7d46;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 16px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .api-selector button {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            .info-row .value {
+                max-width: 50%;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📍 Test GPS</h1>
+        <p class="subtitle">Détection de votre position avec géocodage inverse</p>
+
+        <!-- Sélecteur d'API -->
+        <div class="api-selector">
+            <button class="active" data-api="nominatim">🌍 Nominatim</button>
+            <button data-api="google">🗺️ Google Maps</button>
+        </div>
+
+        <!-- Statut -->
+        <div id="statusContainer" style="margin-bottom:12px;">
+            <span id="statusBadge" class="status-badge info">⏳ En attente</span>
+        </div>
+
+        <!-- Bouton -->
+        <button class="btn-primary" id="getLocationBtn">
+            📍 Obtenir ma position
+        </button>
+
+        <!-- Résultats -->
+        <div id="resultsContainer">
+
+            <!-- Coordonnées -->
+            <div class="info-card" id="coordsCard">
+                <div class="label">📌 Coordonnées GPS</div>
+                <div class="value large" id="coordsDisplay">-</div>
+            </div>
+
+            <!-- Adresse -->
+            <div class="info-card" id="addressCard">
+                <div class="label">📍 Adresse</div>
+                <div class="value" id="addressDisplay" style="font-size:16px;line-height:1.6;">-</div>
+            </div>
+
+            <!-- Détails -->
+            <div class="info-card" id="detailsCard">
+                <div class="label">📋 Détails du lieu</div>
+                <div id="detailsDisplay">
+                    <div class="info-row">
+                        <span class="label">Pays</span>
+                        <span class="value" id="detailCountry">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Ville / Commune</span>
+                        <span class="value" id="detailCity">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Quartier</span>
+                        <span class="value" id="detailNeighborhood">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Rue</span>
+                        <span class="value" id="detailRoad">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Code postal</span>
+                        <span class="value" id="detailPostcode">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lien Google Maps -->
+            <div id="mapLinkContainer" style="margin-top:12px;display:none;">
+                <a href="#" target="_blank" class="map-link" id="mapLink">
+                    🗺️ Ouvrir dans Google Maps
+                </a>
+            </div>
+
+        </div>
+
+        <div class="footer-note">
+            🌐 API utilisée : <span id="currentApiLabel">Nominatim (OpenStreetMap)</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ testemaps.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const getLocationBtn = document.getElementById('getLocationBtn');
+            const statusBadge = document.getElementById('statusBadge');
+            const coordsDisplay = document.getElementById('coordsDisplay');
+            const addressDisplay = document.getElementById('addressDisplay');
+            const detailCountry = document.getElementById('detailCountry');
+            const detailCity = document.getElementById('detailCity');
+            const detailNeighborhood = document.getElementById('detailNeighborhood');
+            const detailRoad = document.getElementById('detailRoad');
+            const detailPostcode = document.getElementById('detailPostcode');
+            const mapLink = document.getElementById('mapLink');
+            const mapLinkContainer = document.getElementById('mapLinkContainer');
+            const currentApiLabel = document.getElementById('currentApiLabel');
+
+            const coordsCard = document.getElementById('coordsCard');
+            const addressCard = document.getElementById('addressCard');
+            const detailsCard = document.getElementById('detailsCard');
+
+            let selectedApi = 'nominatim';
+            let currentCoords = null;
+
+            // ==========================================
+            // SÉLECTEUR D'API
+            // ==========================================
+
+            document.querySelectorAll('.api-selector button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.api-selector button').forEach(b => b.classList.remove(
+                    'active'));
+                    this.classList.add('active');
+                    selectedApi = this.dataset.api;
+                    currentApiLabel.textContent = selectedApi === 'nominatim' ?
+                        'Nominatim (OpenStreetMap)' :
+                        'Google Maps (à configurer)';
+                    resetResults();
+                });
+            });
+
+            // ==========================================
+            // RÉINITIALISATION
+            // ==========================================
+
+            function resetResults() {
+                coordsCard.classList.remove('visible');
+                addressCard.classList.remove('visible');
+                detailsCard.classList.remove('visible');
+                mapLinkContainer.style.display = 'none';
+                coordsDisplay.textContent = '-';
+                addressDisplay.textContent = '-';
+                detailCountry.textContent = '-';
+                detailCity.textContent = '-';
+                detailNeighborhood.textContent = '-';
+                detailRoad.textContent = '-';
+                detailPostcode.textContent = '-';
+                statusBadge.textContent = '⏳ En attente';
+                statusBadge.className = 'status-badge info';
+                getLocationBtn.disabled = false;
+                getLocationBtn.innerHTML = '📍 Obtenir ma position';
+            }
+
+            // ==========================================
+            // AFFICHER LE STATUT
+            // ==========================================
+
+            function setStatus(text, type) {
+                statusBadge.textContent = text;
+                statusBadge.className = 'status-badge ' + type;
+            }
+
+            // ==========================================
+            // GÉOLOCALISATION
+            // ==========================================
+
+            getLocationBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    setStatus('❌ GPS non supporté', 'error');
+                    return;
+                }
+
+                setStatus('⏳ Recherche en cours...', 'loading');
+                getLocationBtn.disabled = true;
+                getLocationBtn.innerHTML = '<span class="spinner"></span> Recherche...';
+
+                navigator.geolocation.getCurrentPosition(
+                    async function(position) {
+                        currentCoords = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
+                        };
+
+                        coordsDisplay.textContent = `${currentCoords.lat}, ${currentCoords.lon}`;
+                        coordsCard.classList.add('visible');
+
+                        setStatus('✅ Position trouvée !', 'success');
+                        getLocationBtn.disabled = false;
+                        getLocationBtn.innerHTML = '📍 Obtenir ma position';
+
+                        // Lien Google Maps
+                        mapLink.href =
+                            `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lon}`;
+                        mapLinkContainer.style.display = 'block';
+
+                        // Géocodage inverse
+                        await reverseGeocode(currentCoords.lat, currentCoords.lon);
+
+                    },
+                    function(error) {
+                        console.error('Erreur GPS:', error.message);
+                        setStatus('❌ ' + error.message, 'error');
+                        getLocationBtn.disabled = false;
+                        getLocationBtn.innerHTML = '📍 Obtenir ma position';
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0
+                    }
+                );
+            });
+
+            // ==========================================
+            // GÉOCODAGE INVERSE - NOMINATIM
+            // ==========================================
+
+            async function reverseGeocodeNominatim(lat, lon) {
+                try {
+                    const url =
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data && data.address) {
+                        const addr = data.address;
+                        const displayName = data.display_name || 'Adresse non trouvée';
+
+                        addressDisplay.textContent = displayName;
+                        addressCard.classList.add('visible');
+
+                        detailCountry.textContent = addr.country || '-';
+                        detailCity.textContent = addr.city || addr.town || addr.village || addr.municipality ||
+                            '-';
+                        detailNeighborhood.textContent = addr.neighbourhood || addr.suburb || addr.quarter ||
+                            '-';
+                        detailRoad.textContent = addr.road || addr.pedestrian || '-';
+                        detailPostcode.textContent = addr.postcode || '-';
+
+                        detailsCard.classList.add('visible');
+
+                        setStatus('✅ Géocodage réussi !', 'success');
+                    } else {
+                        addressDisplay.textContent = 'Adresse non trouvée';
+                        addressCard.classList.add('visible');
+                        setStatus('⚠️ Adresse non trouvée', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur Nominatim:', error);
+                    addressDisplay.textContent = 'Erreur de géocodage';
+                    addressCard.classList.add('visible');
+                    setStatus('❌ Erreur géocodage', 'error');
+                }
+            }
+
+            // ==========================================
+            // GÉOCODAGE INVERSE - GOOGLE MAPS
+            // ==========================================
+
+            async function reverseGeocodeGoogle(lat, lon) {
+                // 🔑 À remplacer par ta clé de démonstration
+                const API_KEY = 'YOUR_GOOGLE_DEMO_KEY_HERE';
+
+                try {
+                    const url =
+                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${API_KEY}&language=fr`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.status === 'OK' && data.results && data.results.length > 0) {
+                        const result = data.results[0];
+                        const addressComponents = result.address_components || [];
+                        const formattedAddress = result.formatted_address || 'Adresse non trouvée';
+
+                        addressDisplay.textContent = formattedAddress;
+                        addressCard.classList.add('visible');
+
+                        // Extraction des composants
+                        let country = '-',
+                            city = '-',
+                            neighborhood = '-',
+                            road = '-',
+                            postcode = '-';
+
+                        addressComponents.forEach(comp => {
+                            const types = comp.types || [];
+                            if (types.includes('country')) country = comp.long_name;
+                            if (types.includes('locality') || types.includes('administrative_area_level_2'))
+                                city = comp.long_name;
+                            if (types.includes('neighborhood') || types.includes('sublocality'))
+                                neighborhood = comp.long_name;
+                            if (types.includes('route')) road = comp.long_name;
+                            if (types.includes('postal_code')) postcode = comp.long_name;
+                        });
+
+                        detailCountry.textContent = country;
+                        detailCity.textContent = city;
+                        detailNeighborhood.textContent = neighborhood;
+                        detailRoad.textContent = road;
+                        detailPostcode.textContent = postcode;
+
+                        detailsCard.classList.add('visible');
+
+                        setStatus('✅ Géocodage réussi !', 'success');
+                    } else {
+                        addressDisplay.textContent = 'Adresse non trouvée (status: ' + data.status + ')';
+                        addressCard.classList.add('visible');
+                        setStatus('⚠️ Adresse non trouvée', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur Google:', error);
+                    addressDisplay.textContent = 'Erreur de géocodage Google';
+                    addressCard.classList.add('visible');
+                    setStatus('❌ Erreur géocodage', 'error');
+                }
+            }
+
+            // ==========================================
+            // GÉOCODAGE INVERSE (selecteur)
+            // ==========================================
+
+            async function reverseGeocode(lat, lon) {
+                if (selectedApi === 'google') {
+                    await reverseGeocodeGoogle(lat, lon);
+                } else {
+                    await reverseGeocodeNominatim(lat, lon);
+                }
+            }
+
+            // ==========================================
+            // INIT
+            // ==========================================
+
+            resetResults();
+            console.log('✅ testemaps.html prêt');
+            console.log(`📍 API sélectionnée: ${selectedApi}`);
+
+        });
+    </script>
+
+</body>
+</html>
