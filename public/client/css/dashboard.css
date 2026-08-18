@@ -100,7 +100,6 @@ body {
     flex-shrink: 0;
 }
 
-/* ===== BOUTON GÉNÉRIQUE ===== */
 .header-btn {
     background: #e8e8f0;
     border: none;
@@ -126,7 +125,18 @@ body {
     font-size: 18px;
 }
 
-/* ===== BADGE GÉNÉRIQUE ===== */
+.header-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.header-btn:disabled:hover {
+    background: #e8e8f0;
+    transform: none;
+}
+
+/* ===== BADGE ===== */
 .header-btn .badge {
     position: absolute;
     top: -4px;
@@ -144,7 +154,6 @@ body {
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-/* ===== BADGE SPÉCIFIQUE ===== */
 .header-btn .badge-commandes {
     background: #1a2a6c;
 }
@@ -157,7 +166,6 @@ body {
     background: #2d7d46;
 }
 
-/* ===== BOUTON PANIER SPÉCIAL ===== */
 .header-btn.cart-btn {
     background: #e8f5ec;
     color: #2d7d46;
@@ -171,7 +179,6 @@ body {
     color: #2d7d46;
 }
 
-/* ===== BOUTON MES COMMANDES SPÉCIAL ===== */
 .header-btn.commandes-btn {
     background: #e8ecf5;
     color: #1a2a6c;
@@ -185,7 +192,6 @@ body {
     color: #1a2a6c;
 }
 
-/* ===== BOUTON NOTIFICATIONS SPÉCIAL ===== */
 .header-btn.notif-btn {
     background: #fdf0e8;
     color: #e67e22;
@@ -269,6 +275,51 @@ body {
 
 #logoutBtn:hover {
     background: #e0f0e6;
+}
+
+/* ==========================================
+   GUEST MESSAGE
+   ========================================== */
+
+.guest-message {
+    background: linear-gradient(135deg, #fff3cd, #ffe69c);
+    border: 1px solid #ffc107;
+    padding: 14px 24px;
+    margin: 8px 24px 0 24px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 15px;
+    color: #856404;
+    box-shadow: 0 2px 10px rgba(255, 193, 7, 0.15);
+}
+
+.guest-message i {
+    font-size: 22px;
+    color: #e67e22;
+}
+
+.guest-message strong {
+    color: #6c3a00;
+}
+
+.guest-login-btn {
+    background: #2d7d46;
+    color: white;
+    padding: 6px 20px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.3s;
+    margin-left: 4px;
+}
+
+.guest-login-btn:hover {
+    background: #1a5a33;
 }
 
 /* ==========================================
@@ -357,7 +408,6 @@ body {
     text-align: center;
 }
 
-/* ===== BOUTONS DE NAVIGATION ===== */
 .carousel-btn {
     position: absolute;
     top: 50%;
@@ -393,7 +443,6 @@ body {
     right: 16px;
 }
 
-/* ===== INDICATEURS DE NAVIGATION ===== */
 .carousel-nav {
     position: absolute;
     bottom: 80px;
@@ -648,6 +697,22 @@ body {
     .header-right {
         gap: 4px;
     }
+
+    .guest-message {
+        margin: 6px 16px 0 16px;
+        padding: 12px 16px;
+        font-size: 13px;
+        border-radius: 12px;
+    }
+
+    .guest-message i {
+        font-size: 18px;
+    }
+
+    .guest-login-btn {
+        font-size: 13px;
+        padding: 4px 16px;
+    }
 }
 
 @media (max-width: 400px) {
@@ -685,5 +750,18 @@ body {
     .detail-add-btn {
         padding: 8px 18px;
         font-size: 13px;
+    }
+
+    .guest-message {
+        margin: 4px 12px 0 12px;
+        padding: 10px 12px;
+        font-size: 12px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .guest-login-btn {
+        font-size: 12px;
+        padding: 4px 14px;
     }
 }

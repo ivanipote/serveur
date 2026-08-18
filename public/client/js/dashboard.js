@@ -22,11 +22,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const detailAddBtn = document.getElementById('detailAddBtn');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const guestMessage = document.getElementById('guestMessage');
+    const accountBtn = document.getElementById('accountBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
     let products = [];
     let currentIndex = 0;
     let autoScrollInterval;
     let currentUser = null;
+    let isAuthenticated = false;
 
     // ==========================================
     // URL DE L'API PAIEMENT (Render)
@@ -39,25 +43,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     async function checkAuth() {
-        // 1. D'abord, essayer avec la session
+        // 1. Essayer avec la session
         try {
             const res = await fetch('/api/client/me');
             const data = await res.json();
             if (data.success) {
                 currentUser = data.user;
-                // Sauvegarder dans localStorage pour fallback
                 localStorage.setItem('userId', data.user.id);
                 localStorage.setItem('userName', data.user.name);
                 localStorage.setItem('userEmail', data.user.email);
                 localStorage.setItem('userPhone', data.user.phone);
+                isAuthenticated = true;
                 console.log('👤 Utilisateur connecté (session):', currentUser);
+                updateUIForAuth(true);
                 return true;
             }
         } catch (error) {
             console.error('❌ Erreur session:', error);
         }
 
-        // 2. Fallback : utiliser localStorage
+        // 2. Fallback localStorage
         const userId = localStorage.getItem('userId');
         const userName = localStorage.getItem('userName');
         const userEmail = localStorage.getItem('userEmail');
@@ -71,13 +76,60 @@ document.addEventListener('DOMContentLoaded', function() {
                 email: userEmail,
                 phone: userPhone
             };
+            isAuthenticated = true;
+            updateUIForAuth(true);
             return true;
         }
 
-        // 3. Sinon, rediriger vers login
-        console.warn('❌ Non authentifié, redirection vers login');
-        window.location.href = '/login';
+        // 3. Utilisateur non connecté
+        console.warn('❌ Non authentifié - Mode invité');
+        isAuthenticated = false;
+        updateUIForAuth(false);
         return false;
+    }
+
+    // ==========================================
+    // MISE À JOUR DE L'INTERFACE SELON AUTH
+    // ==========================================
+
+    function updateUIForAuth(authenticated) {
+        if (authenticated) {
+            // ✅ Mode connecté
+            if (guestMessage) guestMessage.style.display = 'none';
+            if (accountBtn) {
+                accountBtn.innerHTML = '<i class="fas fa-user-circle"></i> Mon compte';
+                accountBtn.onclick = function() { window.location.href = '/profil'; };
+            }
+            if (logoutBtn) logoutBtn.style.display = 'flex';
+            if (mesCommandesBtn) {
+                mesCommandesBtn.disabled = false;
+                mesCommandesBtn.style.opacity = '1';
+                mesCommandesBtn.title = 'Mes commandes';
+            }
+            if (notifBtn) {
+                notifBtn.disabled = false;
+                notifBtn.style.opacity = '1';
+                notifBtn.title = 'Notifications';
+            }
+        } else {
+            // ❌ Mode invité
+            if (guestMessage) guestMessage.style.display = 'flex';
+            if (accountBtn) {
+                accountBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Me connecter';
+                accountBtn.onclick = function() { window.location.href = '/login'; };
+            }
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (mesCommandesBtn) {
+                mesCommandesBtn.disabled = true;
+                mesCommandesBtn.style.opacity = '0.5';
+                mesCommandesBtn.title = 'Connectez-vous pour voir vos commandes';
+            }
+            if (notifBtn) {
+                notifBtn.disabled = true;
+                notifBtn.style.opacity = '0.5';
+                notifBtn.title = 'Connectez-vous pour voir vos notifications';
+            }
+        }
     }
 
     // ==========================================
@@ -98,30 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (optionsMenu) {
         optionsMenu.addEventListener('click', function(e) {
             e.stopPropagation();
-        });
-    }
-
-    // ==========================================
-    // MON COMPTE → /profil
-    // ==========================================
-
-    const accountBtn = document.getElementById('accountBtn');
-    if (accountBtn) {
-        accountBtn.addEventListener('click', function() {
-            window.location.href = '/profil';
-        });
-    }
-
-    // ==========================================
-    // DÉCONNEXION → /login
-    // ==========================================
-
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async function() {
-            await fetch('/api/client/logout', { method: 'POST' });
-            localStorage.clear();
-            window.location.href = '/login';
         });
     }
 
@@ -152,6 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (mesCommandesBtn) {
         mesCommandesBtn.addEventListener('click', function() {
+            if (!isAuthenticated) {
+                window.location.href = '/login';
+                return;
+            }
             window.location.href = '/mescommandes';
         });
     }
@@ -162,18 +194,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (notifBtn) {
         notifBtn.addEventListener('click', function() {
+            if (!isAuthenticated) {
+                window.location.href = '/login';
+                return;
+            }
             window.location.href = '/notification';
         });
     }
 
     // ==========================================
-    // CHARGER LES BADGES (via session ou localStorage)
+    // CHARGER LES BADGES
     // ==========================================
 
     async function loadBadges() {
-        if (!currentUser) return;
-
-        console.log('📊 Chargement des badges...');
+        if (!isAuthenticated) {
+            // Masquer les badges si non connecté
+            if (commandeBadge) commandeBadge.style.display = 'none';
+            if (notifBadge) notifBadge.style.display = 'none';
+            if (cartBadge) {
+                // Le badge panier reste visible même non connecté
+                try {
+                    const res = await fetch('/api/panier/count');
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        const count = data.count || 0;
+                        cartBadge.textContent = count;
+                        cartBadge.style.display = count > 0 ? 'flex' : 'none';
+                    }
+                } catch (e) {
+                    console.warn('Erreur badge panier:', e);
+                }
+            }
+            return;
+        }
 
         try {
             // 1. Nombre total de commandes
@@ -185,12 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandeBadge.style.display = count > 0 ? 'flex' : 'none';
                 console.log('📋 Commandes:', count);
             }
-        } catch (error) {
-            console.error('❌ Erreur chargement commandes:', error);
-        }
 
-        try {
-            // 2. Nombre de notifications (messages non lus)
+            // 2. Nombre de notifications
             const res2 = await fetch('/api/notifications/count');
             const data2 = await res2.json();
             if (res2.ok && notifBadge) {
@@ -199,11 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBadge.style.display = count > 0 ? 'flex' : 'none';
                 console.log('🔔 Notifications:', count);
             }
-        } catch (error) {
-            console.error('❌ Erreur chargement notifications:', error);
-        }
 
-        try {
             // 3. Nombre d'articles dans le panier
             const res3 = await fetch('/api/panier/count');
             const data3 = await res3.json();
@@ -214,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('🛒 Panier:', count);
             }
         } catch (error) {
-            console.error('❌ Erreur chargement panier:', error);
+            console.error('❌ Erreur chargement badges:', error);
         }
     }
 
@@ -369,6 +414,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.classList.remove('added');
                         this.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter au panier';
                     }, 1500);
+                } else if (data.error === 'Non authentifié') {
+                    window.location.href = '/login';
                 } else {
                     alert('❌ ' + (data.error || 'Erreur lors de l\'ajout'));
                 }
@@ -386,9 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
     (async function init() {
         try {
             console.log('🚀 Initialisation du dashboard...');
-            const isAuth = await checkAuth();
-            if (!isAuth) return;
-
+            await checkAuth();
             await loadProducts();
             await loadBadges();
 

@@ -26,25 +26,25 @@
         </div>
 
         <div class="header-right">
-            <!-- BOUTON MES COMMANDES -->
+            <!-- MES COMMANDES -->
             <button id="mesCommandesBtn" class="header-btn commandes-btn" title="Mes commandes">
                 <i class="fas fa-clipboard-list"></i>
                 <span id="commandeBadge" class="badge badge-commandes">0</span>
             </button>
 
-            <!-- BOUTON NOTIFICATIONS -->
+            <!-- NOTIFICATIONS -->
             <button id="notifBtn" class="header-btn notif-btn" title="Notifications">
                 <i class="fas fa-bell"></i>
                 <span id="notifBadge" class="badge badge-notif">0</span>
             </button>
 
-            <!-- BOUTON PANIER -->
+            <!-- PANIER -->
             <button id="cartBtn" class="header-btn cart-btn" title="Mon panier">
                 <i class="fas fa-shopping-cart"></i>
                 <span id="cartBadge" class="badge badge-cart">0</span>
             </button>
 
-            <!-- BOUTON OPTIONS -->
+            <!-- OPTIONS -->
             <button id="optionsBtn" class="header-btn options-btn" title="Options">
                 <i class="fas fa-ellipsis-v"></i>
             </button>
@@ -57,6 +57,15 @@
     <div id="optionsMenu" class="options-menu">
         <button id="accountBtn"><i class="fas fa-user-circle"></i> Mon compte</button>
         <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MESSAGE INVITÉ -->
+    <!-- ========================================= -->
+    <div id="guestMessage" class="guest-message" style="display:none;">
+        <i class="fas fa-info-circle"></i>
+        🔑 <strong>Connectez-vous</strong> pour passer une commande et accéder à toutes vos fonctionnalités.
+        <a href="/login" class="guest-login-btn">Se connecter</a>
     </div>
 
     <!-- ========================================= -->
