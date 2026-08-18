@@ -223,28 +223,157 @@
             cursor: not-allowed;
         }
 
-        /* ===== MESSAGE ===== */
-        .message {
-            padding: 12px 16px;
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
             border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            display: none;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90%;
             text-align: center;
         }
 
-        .message.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .toast.error {
+            background: #dc3545;
         }
 
-        .message.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .toast.warning {
+            background: #e67e22;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== OVERLAY CONFIRMATION STYLÉ ===== */
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .confirm-overlay.active {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: white;
+            border-radius: 24px;
+            padding: 32px 28px 28px 28px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: scaleIn 0.3s ease;
+        }
+
+        .confirm-box .confirm-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .confirm-box h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .confirm-box p {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .confirm-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .confirm-btn.cancel {
+            background: #e8e8f0;
+            color: #666;
+        }
+
+        .confirm-btn.cancel:hover {
+            background: #d5d5e0;
+            transform: scale(1.02);
+        }
+
+        .confirm-btn.ok {
+            background: #2d7d46;
+            color: white;
+        }
+
+        .confirm-btn.ok:hover {
+            background: #1a5a33;
+            transform: scale(1.02);
+        }
+
+        .confirm-btn.ok.danger {
+            background: #e74c3c;
+        }
+
+        .confirm-btn.ok.danger:hover {
+            background: #c0392b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         /* ===== ONGLETS RAPIDES ===== */
@@ -327,10 +456,19 @@
             .avatar-circle { width: 70px; height: 70px; font-size: 18px; }
             .avatar-circle i { font-size: 24px; }
             .avatar-name { font-size: 16px; }
+            .confirm-box { padding: 24px 20px 20px 20px; }
+            .confirm-box h3 { font-size: 18px; }
+            .confirm-btn { font-size: 14px; padding: 10px; }
+            .toast-container { bottom: 80px; }
+            .toast { font-size: 14px; padding: 10px 18px; }
         }
 
         @media (max-width: 400px) {
             .quick-tabs { grid-template-columns: repeat(2, 1fr); }
+            .confirm-box { padding: 20px 16px 16px 16px; }
+            .confirm-box .confirm-icon { font-size: 36px; }
+            .confirm-box h3 { font-size: 16px; }
+            .confirm-btn { font-size: 13px; padding: 8px; }
         }
     </style>
 </head>
@@ -355,8 +493,8 @@
             <div class="avatar-name" id="avatarName">Nature+</div>
         </div>
 
-        <!-- Message -->
-        <div id="message" class="message"></div>
+        <!-- TOAST CONTAINER -->
+        <div class="toast-container" id="toastContainer"></div>
 
         <!-- Nom -->
         <div class="info-card" id="field-name">
@@ -429,17 +567,92 @@
 
     </div>
 
+    <!-- ===== OVERLAY CONFIRMATION STYLÉ ===== -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon" id="confirmIcon">⚠️</div>
+            <h3 id="confirmTitle">Êtes-vous sûr ?</h3>
+            <p id="confirmMessage">Cette action est irréversible.</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" id="confirmCancel">Annuler</button>
+                <button class="confirm-btn ok danger" id="confirmOk">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
             console.log('✅ profil.js chargé');
 
             // ==========================================
-            // VÉRIFICATION CONNEXION (via session)
+            // RÉFÉRENCES
             // ==========================================
 
             let userData = {};
             let editingField = null;
+
+            const toastContainer = document.getElementById('toastContainer');
+            const confirmOverlay = document.getElementById('confirmOverlay');
+            const confirmIcon = document.getElementById('confirmIcon');
+            const confirmTitle = document.getElementById('confirmTitle');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const confirmOk = document.getElementById('confirmOk');
+            const confirmCancel = document.getElementById('confirmCancel');
+
+            let pendingConfirmAction = null;
+
+            // ==========================================
+            // TOAST (remplace les alertes)
+            // ==========================================
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = 'toast' + (type === 'error' ? ' error' : type === 'warning' ? ' warning' : '');
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // ==========================================
+            // OVERLAY CONFIRMATION
+            // ==========================================
+
+            function showConfirm(icon, title, message, action) {
+                confirmIcon.textContent = icon;
+                confirmTitle.textContent = title;
+                confirmMessage.textContent = message;
+                pendingConfirmAction = action;
+                confirmOverlay.classList.add('active');
+            }
+
+            function hideConfirm() {
+                confirmOverlay.classList.remove('active');
+                pendingConfirmAction = null;
+            }
+
+            confirmCancel.addEventListener('click', hideConfirm);
+
+            confirmOk.addEventListener('click', function() {
+                if (pendingConfirmAction) {
+                    pendingConfirmAction();
+                }
+                hideConfirm();
+            });
+
+            confirmOverlay.addEventListener('click', function(e) {
+                if (e.target === confirmOverlay) hideConfirm();
+            });
+
+            // ==========================================
+            // VÉRIFICATION CONNEXION
+            // ==========================================
 
             async function checkAuth() {
                 try {
@@ -449,7 +662,6 @@
                         userData = data.user;
                         console.log('👤 Utilisateur:', userData);
                         updateDisplay();
-                        // Mettre à jour l'avatar
                         document.getElementById('avatarName').textContent = userData.name || 'Nature+';
                         return true;
                     } else {
@@ -461,20 +673,6 @@
                     window.location.href = '/login';
                     return false;
                 }
-            }
-
-            // ==========================================
-            // ÉLÉMENTS
-            // ==========================================
-
-            const messageEl = document.getElementById('message');
-
-            function showMessage(text, type = 'success') {
-                messageEl.textContent = text;
-                messageEl.className = 'message ' + type;
-                setTimeout(() => {
-                    messageEl.className = 'message';
-                }, 4000);
             }
 
             function updateDisplay() {
@@ -599,22 +797,22 @@
                 const value = input.value.trim();
 
                 if (!value) {
-                    showMessage('⚠️ Ce champ ne peut pas être vide.', 'error');
+                    showToast('⚠️ Ce champ ne peut pas être vide.', 'warning');
                     return;
                 }
 
                 if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    showMessage('⚠️ Email invalide.', 'error');
+                    showToast('⚠️ Email invalide.', 'error');
                     return;
                 }
 
                 if (field === 'phone' && value.replace(/\D/g, '').length < 8) {
-                    showMessage('⚠️ Numéro invalide (8 chiffres minimum).', 'error');
+                    showToast('⚠️ Numéro invalide (8 chiffres minimum).', 'error');
                     return;
                 }
 
                 if (field === 'password' && (value.length !== 4 || !/^\d{4}$/.test(value))) {
-                    showMessage('⚠️ Mot de passe doit être 4 chiffres.', 'error');
+                    showToast('⚠️ Mot de passe doit être 4 chiffres.', 'error');
                     return;
                 }
 
@@ -652,13 +850,13 @@
                         userData[field] = value;
                         updateDisplay();
                         cancelEdit(field);
-                        showMessage('✅ ' + field.charAt(0).toUpperCase() + field.slice(1) + ' mis à jour !');
+                        showToast('✅ ' + field.charAt(0).toUpperCase() + field.slice(1) + ' mis à jour !');
                     } else {
-                        showMessage('❌ ' + (data.error || 'Erreur'), 'error');
+                        showToast('❌ ' + (data.error || 'Erreur'), 'error');
                     }
                 } catch (error) {
                     console.error('Erreur:', error);
-                    showMessage('❌ Erreur de connexion', 'error');
+                    showToast('❌ Erreur de connexion', 'error');
                 }
 
                 saveBtn.disabled = false;
@@ -677,20 +875,25 @@
             });
 
             // ==========================================
-            // DÉCONNEXION AVEC CONFIRMATION
+            // DÉCONNEXION AVEC OVERLAY CONFIRMATION
             // ==========================================
 
-            document.getElementById('logoutBtn').addEventListener('click', async function() {
-                if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-                    try {
-                        await fetch('/api/client/logout', { method: 'POST' });
-                        localStorage.clear();
-                        window.location.href = '/login';
-                    } catch (error) {
-                        console.error('Erreur déconnexion:', error);
-                        showMessage('❌ Erreur lors de la déconnexion', 'error');
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                showConfirm(
+                    '🚪',
+                    'Se déconnecter',
+                    'Êtes-vous sûr de vouloir vous déconnecter ?',
+                    async function() {
+                        try {
+                            await fetch('/api/client/logout', { method: 'POST' });
+                            localStorage.clear();
+                            window.location.href = '/login';
+                        } catch (error) {
+                            console.error('Erreur déconnexion:', error);
+                            showToast('❌ Erreur lors de la déconnexion', 'error');
+                        }
                     }
-                }
+                );
             });
 
             // ==========================================
