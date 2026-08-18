@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <!-- ===== HEADER FIXE ===== -->
+    <!-- HEADER FIXE -->
     <header class="cart-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
@@ -17,14 +17,14 @@
         <span class="cart-title">🛒 Mon panier <span class="cart-count" id="cartCount">(0)</span></span>
     </header>
 
-    <!-- ===== CONTENU PRINCIPAL ===== -->
+    <!-- CONTENU PRINCIPAL -->
     <main class="cart-main" id="cartMain">
         <div class="cart-container" id="cartContainer">
             <!-- Les articles seront injectés ici -->
         </div>
     </main>
 
-    <!-- ===== FOOTER FIXE ===== -->
+    <!-- FOOTER FIXE -->
     <footer class="cart-footer" id="cartFooter">
         <div class="footer-content">
             <div class="footer-total">
@@ -42,7 +42,7 @@
         </div>
     </footer>
 
-    <!-- ===== OVERLAY CONFIRMATION ===== -->
+    <!-- OVERLAY CONFIRMATION -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
             <div class="confirm-icon">⚠️</div>
@@ -55,7 +55,7 @@
         </div>
     </div>
 
-    <!-- ===== OVERLAY COMMANDE ===== -->
+    <!-- OVERLAY COMMANDE -->
     <div class="confirm-overlay" id="commandeOverlay">
         <div class="confirm-box">
             <div class="confirm-icon">🛒</div>
@@ -67,6 +67,9 @@
             </div>
         </div>
     </div>
+
+    <!-- TOAST (ajouté) -->
+    <div id="toastContainer" style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;"></div>
 
     <script src="/client/js/panier.js"></script>
 </body>
