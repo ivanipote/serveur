@@ -143,7 +143,27 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
+        // 🆕 TABLE SESSION (pour connect-pg-simple)
+        // ========================================================
+
+        console.log('🔄 Création de la table session...');
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS "session" (
+                "sid" varchar NOT NULL COLLATE "default",
+                "sess" json NOT NULL,
+                "expire" timestamp(6) NOT NULL
+            )
+        `);
+        await client.query(`
+            ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+        `);
+        console.log('✅ Table session créée');
+
+        // ========================================================
         // INDEX
+        // ========================================================
+
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_user_id ON commandes(user_id)`);
@@ -155,6 +175,16 @@ async function initializeDatabase() {
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
+        console.log('   - admins (marchands)');
+        console.log('   - products (produits)');
+        console.log('   - users (clients)');
+        console.log('   - panier (panier client)');
+        console.log('   - payments (paiements)');
+        console.log('   - frais_livraison (communes et tarifs)');
+        console.log('   - commandes (commandes clients)');
+        console.log('   - messages (notifications clients)');
+        console.log('   - session (sessions PostgreSQL)');
+        console.log('   - Index créés pour optimiser les performances');
 
     } catch (error) {
         await client.query('ROLLBACK');
