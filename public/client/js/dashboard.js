@@ -35,26 +35,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
 
     // ==========================================
-    // VÉRIFICATION CONNEXION (via session)
+    // VÉRIFICATION CONNEXION (session + fallback localStorage)
     // ==========================================
 
     async function checkAuth() {
+        // 1. D'abord, essayer avec la session
         try {
             const res = await fetch('/api/client/me');
             const data = await res.json();
             if (data.success) {
                 currentUser = data.user;
-                console.log('👤 Utilisateur connecté:', currentUser);
+                // Sauvegarder dans localStorage pour fallback
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
+                localStorage.setItem('userEmail', data.user.email);
+                localStorage.setItem('userPhone', data.user.phone);
+                console.log('👤 Utilisateur connecté (session):', currentUser);
                 return true;
-            } else {
-                window.location.href = '/login';
-                return false;
             }
         } catch (error) {
-            console.error('❌ Erreur vérification auth:', error);
-            window.location.href = '/login';
-            return false;
+            console.error('❌ Erreur session:', error);
         }
+
+        // 2. Fallback : utiliser localStorage
+        const userId = localStorage.getItem('userId');
+        const userName = localStorage.getItem('userName');
+        const userEmail = localStorage.getItem('userEmail');
+        const userPhone = localStorage.getItem('userPhone');
+
+        if (userId && userName) {
+            console.log('👤 Fallback: Utilisateur depuis localStorage');
+            currentUser = {
+                id: parseInt(userId),
+                name: userName,
+                email: userEmail,
+                phone: userPhone
+            };
+            return true;
+        }
+
+        // 3. Sinon, rediriger vers login
+        console.warn('❌ Non authentifié, redirection vers login');
+        window.location.href = '/login';
+        return false;
     }
 
     // ==========================================
@@ -144,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES BADGES (via session)
+    // CHARGER LES BADGES (via session ou localStorage)
     // ==========================================
 
     async function loadBadges() {
@@ -162,7 +185,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandeBadge.style.display = count > 0 ? 'flex' : 'none';
                 console.log('📋 Commandes:', count);
             }
+        } catch (error) {
+            console.error('❌ Erreur chargement commandes:', error);
+        }
 
+        try {
             // 2. Nombre de notifications (messages non lus)
             const res2 = await fetch('/api/notifications/count');
             const data2 = await res2.json();
@@ -172,7 +199,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBadge.style.display = count > 0 ? 'flex' : 'none';
                 console.log('🔔 Notifications:', count);
             }
+        } catch (error) {
+            console.error('❌ Erreur chargement notifications:', error);
+        }
 
+        try {
             // 3. Nombre d'articles dans le panier
             const res3 = await fetch('/api/panier/count');
             const data3 = await res3.json();
@@ -183,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('🛒 Panier:', count);
             }
         } catch (error) {
-            console.error('❌ Erreur chargement badges:', error);
+            console.error('❌ Erreur chargement panier:', error);
         }
     }
 
