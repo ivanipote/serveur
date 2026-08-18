@@ -368,7 +368,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 distanceEstimee.value = distance.toFixed(2) + ' km';
 
-                await getFraisByCommune(commune);
+                // ==========================================
+                // ✅ RÈGLE DE FRAIS DE LIVRAISON (Chez moi)
+                // ==========================================
+                let fraisCalcules = 0;
+                if (distance >= 1.5) {
+                    fraisCalcules = 140;
+                } else {
+                    fraisCalcules = 0;
+                }
+
+                // Appliquer les frais
+                fraisActuels = fraisCalcules;
+                console.log(`📍 Distance: ${distance.toFixed(2)} km → Frais: ${fraisActuels} FCFA`);
+
+                // Afficher les frais dans le footer
+                updateFooter();
+
+                // Afficher un message si la livraison est gratuite
+                if (fraisActuels === 0) {
+                    gpsStatus.textContent = '✅ Livraison GRATUITE (moins de 1.5 km)';
+                    gpsStatus.className = 'gps-status success';
+                } else {
+                    gpsStatus.textContent = `📍 Livraison ${fraisActuels} FCFA (${distance.toFixed(2)} km)`;
+                    gpsStatus.className = 'gps-status';
+                }
             }
         } catch (error) {
             console.error('Erreur géocodage:', error);
@@ -378,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RÉCUPÉRER LES FRAIS PAR COMMUNE
+    // RÉCUPÉRER LES FRAIS PAR COMMUNE (pour option Adresse)
     // ==========================================
 
     async function getFraisByCommune(communeName) {
@@ -545,7 +569,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <strong>Commune :</strong> ${commune}<br>
                     <strong>Quartier / Lieu :</strong> ${quartier}<br>
                     <strong>Rue :</strong> ${rue}<br>
-                    <strong>📏 Distance :</strong> ${distanceEstimee.value || 'Non calculée'}
+                    <strong>📏 Distance :</strong> ${distanceEstimee.value || 'Non calculée'}<br>
+                    <strong>🚚 Frais de livraison :</strong> ${fraisActuels === 0 ? 'GRATUIT ✅' : fraisActuels.toLocaleString() + ' FCFA'}
                 </div>
             </div>
             <div style="margin-top:8px;font-size:13px;color:#888;text-align:center;">
@@ -663,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let precision = null;
 
         if (optionActive === 'chezmoi') {
-            commune = communeSelectionnee ? communeSelectionnee.commune : gpsCommune.value;
+            commune = gpsCommune.value || '';
             quartier = gpsQuartier.value || null;
             precision = 'Rue: ' + gpsRue.value + ' | Quartier: ' + gpsQuartier.value + ' | ' + gpsAdresse.value;
         } else {
