@@ -401,7 +401,6 @@
                 const savedQuery = sessionStorage.getItem('lastSearchQuery');
                 if (savedQuery) {
                     searchInput.value = savedQuery;
-                    // Lancer la recherche après un court délai
                     setTimeout(() => {
                         searchInput.dispatchEvent(new Event('input'));
                     }, 300);
@@ -444,7 +443,6 @@
 
                     container.innerHTML = html;
 
-                    // Clic sur un élément de l'historique
                     document.querySelectorAll('.history-item').forEach(item => {
                         item.addEventListener('click', function(e) {
                             if (e.target.closest('.remove-history')) return;
@@ -453,7 +451,6 @@
                         });
                     });
 
-                    // Supprimer un élément de l'historique
                     document.querySelectorAll('.remove-history').forEach(btn => {
                         btn.addEventListener('click', function(e) {
                             e.stopPropagation();
@@ -462,7 +459,6 @@
                         });
                     });
 
-                    // Tout effacer
                     const clearBtn = document.getElementById('clearHistoryBtn');
                     if (clearBtn) {
                         clearBtn.addEventListener('click', function(e) {
@@ -547,7 +543,6 @@
                     return;
                 }
 
-                // Afficher le loader
                 container.innerHTML = `
                     <div class="loader-snippet"><div class="line"></div><div class="line short"></div></div>
                     <div class="loader-snippet"><div class="line"></div><div class="line short"></div></div>
@@ -600,7 +595,6 @@
                 prefillSearch();
                 searchInput.focus();
 
-                // Si le champ a une valeur, placer le curseur à la fin
                 if (searchInput.value) {
                     searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
                 }
