@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // RÉFÉRENCES
     // ==========================================
 
-    const userId = localStorage.getItem('userId');
     const recapItems = document.getElementById('recapItems');
     const subtotalEl = document.getElementById('subtotal');
     const footerSubtotal = document.getElementById('footerSubtotal');
@@ -17,19 +16,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const gpsStatus = document.getElementById('gpsStatus');
     const gpsAdresse = document.getElementById('gpsAdresse');
     const gpsCommune = document.getElementById('gpsCommune');
+    const gpsAdresseAdresse = document.getElementById('gpsAdresseAdresse');
     const distanceEstimee = document.getElementById('distanceEstimee');
 
-    // Overlay message
+    // Overlays
+    const positionOverlay = document.getElementById('positionOverlay');
+    const positionMessage = document.getElementById('positionMessage');
+    const retryPositionBtn = document.getElementById('retryPositionBtn');
+
+    const recapOverlay = document.getElementById('recapOverlay');
+    const recapDetail = document.getElementById('recapDetail');
+    const recapCancelBtn = document.getElementById('recapCancelBtn');
+    const recapConfirmBtn = document.getElementById('recapConfirmBtn');
+
     const messageOverlay = document.getElementById('messageOverlay');
     const messageIcon = document.getElementById('messageIcon');
     const messageTitle = document.getElementById('messageTitle');
     const messageText = document.getElementById('messageText');
     const messageBtn = document.getElementById('messageBtn');
 
-    // Overlay confirmation
     const confirmOverlay = document.getElementById('confirmOverlay');
 
-    // Overlay communes
     const communeOverlay = document.getElementById('communeOverlay');
     const communeList = document.getElementById('communeList');
     const communeBtn = document.getElementById('communeBtn');
@@ -42,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let communeSelectionnee = null;
     let userCoords = null;
     let currentUser = null;
+    let isGpsResolved = false;
 
     // ==========================================
     // VÉRIFICATION CONNEXION (via session)
@@ -56,10 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('👤 Utilisateur connecté:', currentUser);
                 return true;
             } else {
-                // Fallback localStorage
                 const userId = localStorage.getItem('userId');
                 if (userId) {
-                    console.log('⚠️ Session perdue, fallback localStorage');
                     const userRes = await fetch(`/api/client/user/${userId}`);
                     const userData = await userRes.json();
                     if (userData.success) {
@@ -95,6 +101,29 @@ document.addEventListener('DOMContentLoaded', function() {
     messageBtn.addEventListener('click', hideMessage);
     messageOverlay.addEventListener('click', function(e) {
         if (e.target === messageOverlay) hideMessage();
+    });
+
+    // ==========================================
+    // TOGGLE CODE (Afficher/Masquer)
+    // ==========================================
+
+    document.querySelectorAll('.toggle-code-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            const container = document.getElementById(targetId);
+            const boxes = container.querySelectorAll('.code-box');
+            const icon = this.querySelector('i');
+
+            if (boxes.length === 0) return;
+
+            const isPassword = boxes[0].type === 'password';
+
+            boxes.forEach(box => {
+                box.type = isPassword ? 'text' : 'password';
+            });
+
+            icon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+        });
     });
 
     // ==========================================
@@ -166,6 +195,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 800);
     }
 
+    function clearCodeBoxes(containerId) {
+        const container = document.getElementById(containerId);
+        const boxes = container.querySelectorAll('.code-box');
+        boxes.forEach(box => {
+            box.value = '';
+            box.classList.remove('filled');
+        });
+        if (boxes.length > 0) {
+            boxes[0].focus();
+        }
+    }
+
     initCodeBoxes('codeBoxesChezMoi');
     initCodeBoxes('codeBoxesAdresse');
 
@@ -211,17 +252,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // GÉOLOCALISATION
+    // PRÉ-REMPLISSAGE DES CHAMPS
     // ==========================================
 
+    function prefillUserData() {
+        if (!currentUser) return;
+
+        const nom = currentUser.name || '';
+        const telephone = currentUser.phone || '';
+
+        document.getElementById('nomComplet').value = nom;
+        document.getElementById('telephone').value = telephone;
+        document.getElementById('nomCompletAdresse').value = nom;
+        document.getElementById('telephoneAdresse').value = telephone;
+
+        console.log('✅ Champs pré-remplis avec:', { nom, telephone });
+    }
+
+    // ==========================================
+    // GÉOLOCALISATION OBLIGATOIRE
+    // ==========================================
+
+    function showPositionOverlay(message) {
+        positionMessage.textContent = message || 'Veuillez autoriser la géolocalisation...';
+        retryPositionBtn.style.display = 'none';
+        positionOverlay.classList.add('active');
+    }
+
+    function hidePositionOverlay() {
+        positionOverlay.classList.remove('active');
+    }
+
     function getLocation() {
-        gpsStatus.textContent = '⏳ Détection GPS...';
-        gpsStatus.className = 'gps-status';
+        isGpsResolved = false;
+        showPositionOverlay('📍 Demande de votre position...');
 
         if (!navigator.geolocation) {
-            gpsStatus.textContent = '⚠️ GPS non supporté';
-            gpsStatus.className = 'gps-status error';
-            document.getElementById('adresseBtn').click();
+            positionMessage.textContent = '⚠️ GPS non supporté par votre navigateur. Veuillez entrer votre adresse manuellement.';
+            retryPositionBtn.style.display = 'block';
             return;
         }
 
@@ -231,18 +299,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     lat: position.coords.latitude,
                     lon: position.coords.longitude
                 };
+                isGpsResolved = true;
+
+                positionMessage.textContent = '✅ Position détectée avec succès !';
+                setTimeout(() => {
+                    hidePositionOverlay();
+                }, 500);
+
+                await getAddressFromCoords(userCoords.lat, userCoords.lon);
                 gpsStatus.textContent = '📍 Position détectée';
                 gpsStatus.className = 'gps-status success';
-                await getAddressFromCoords(userCoords.lat, userCoords.lon);
             },
             function(error) {
                 console.error('Erreur GPS:', error.message);
-                gpsStatus.textContent = '❌ ' + error.message;
+                positionMessage.textContent = '❌ ' + error.message + '. Veuillez réessayer ou entrer votre adresse manuellement.';
+                retryPositionBtn.style.display = 'block';
+                gpsStatus.textContent = '❌ Position non disponible';
                 gpsStatus.className = 'gps-status error';
-                document.getElementById('adresseBtn').click();
             }
         );
     }
+
+    retryPositionBtn.addEventListener('click', function() {
+        getLocation();
+    });
 
     async function getAddressFromCoords(lat, lon) {
         try {
@@ -253,8 +333,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data && data.address) {
                 const addr = data.address;
                 const commune = addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
-                gpsAdresse.value = data.display_name;
+                const displayName = data.display_name || '';
+
+                gpsAdresse.value = displayName;
                 gpsCommune.value = commune;
+                gpsAdresseAdresse.value = displayName;
+
                 await getFraisByCommune(commune);
             }
         } catch (error) {
@@ -376,6 +460,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // OVERLAY RÉCAPITULATIF
+    // ==========================================
+
+    function showRecapOverlay() {
+        const total = sousTotal + fraisActuels;
+        const totalItems = panier.reduce((sum, item) => sum + item.quantity, 0);
+
+        let productsHtml = panier.map(item =>
+            `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f2f5;font-size:14px;">
+                <span>${item.name} × ${item.quantity}</span>
+                <span style="font-weight:600;">${(item.price * item.quantity).toLocaleString()} FCFA</span>
+            </div>`
+        ).join('');
+
+        recapDetail.innerHTML = `
+            <div style="margin-bottom:12px;">
+                <strong style="color:#1a1a2e;">📦 ${totalItems} article(s)</strong>
+            </div>
+            ${productsHtml}
+            <div style="margin-top:12px;padding-top:10px;border-top:2px solid #e8ecf4;">
+                <div style="display:flex;justify-content:space-between;font-size:15px;">
+                    <span style="color:#888;">Sous-total</span>
+                    <span style="font-weight:600;">${sousTotal.toLocaleString()} FCFA</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:15px;margin-top:2px;">
+                    <span style="color:#888;">Livraison</span>
+                    <span style="font-weight:600;">${fraisActuels.toLocaleString()} FCFA</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-top:6px;padding-top:6px;border-top:2px solid #2d7d46;">
+                    <span style="color:#1a1a2e;">TOTAL</span>
+                    <span style="color:#2d7d46;">${total.toLocaleString()} FCFA</span>
+                </div>
+            </div>
+            <div style="margin-top:8px;font-size:13px;color:#888;text-align:center;">
+                📍 ${optionActive === 'chezmoi' ? 'Livraison à domicile' : 'Livraison à l\'adresse indiquée'}
+            </div>
+        `;
+
+        recapOverlay.classList.add('active');
+    }
+
+    function hideRecapOverlay() {
+        recapOverlay.classList.remove('active');
+    }
+
+    recapCancelBtn.addEventListener('click', hideRecapOverlay);
+
+    recapOverlay.addEventListener('click', function(e) {
+        if (e.target === recapOverlay) hideRecapOverlay();
+    });
+
+    // ==========================================
     // VÉRIFICATION CODE
     // ==========================================
 
@@ -393,63 +529,90 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CONFIRMER
+    // CONFIRMER (Affiche le récapitulatif)
     // ==========================================
 
-    confirmerBtn.addEventListener('click', async function() {
-        let codeLogin, nom, telephone;
-
-        if (optionActive === 'chezmoi') {
-            codeLogin = getCodeFromBoxes('codeBoxesChezMoi');
-            telephone = document.getElementById('telephone').value.trim();
-            nom = document.getElementById('nomComplet').value.trim();
-        } else {
-            codeLogin = getCodeFromBoxes('codeBoxesAdresse');
-            telephone = document.getElementById('telephoneAdresse').value.trim();
-            nom = document.getElementById('nomCompletAdresse').value.trim();
-        }
-
-        if (!nom) nom = currentUser?.name || localStorage.getItem('userName') || '';
-
-        // Vérification téléphone
-        if (!telephone || telephone.length < 8 || telephone.length > 12 || !/^\d+$/.test(telephone)) {
-            document.getElementById(optionActive === 'chezmoi' ? 'telephone' : 'telephoneAdresse').classList.add('error');
-            showMessage('⚠️', 'Numéro invalide', 'Entrez un numéro valide (8-12 chiffres).');
-            setTimeout(() => {
-                document.getElementById(optionActive === 'chezmoi' ? 'telephone' : 'telephoneAdresse').classList.remove('error');
-            }, 800);
+    confirmerBtn.addEventListener('click', function() {
+        // Vérifier que le GPS est résolu pour l'option "Chez moi"
+        if (optionActive === 'chezmoi' && !isGpsResolved) {
+            showMessage('⚠️', 'Position requise', 'Veuillez autoriser la géolocalisation pour la livraison à domicile.');
+            getLocation();
             return;
         }
 
+        // Vérifier les champs pour l'option "Adresse"
+        if (optionActive === 'adresse') {
+            const lieu = document.getElementById('lieuLivraison').value.trim();
+            if (!lieu) {
+                showMessage('⚠️', 'Champ manquant', 'Veuillez préciser le lieu de livraison.');
+                document.getElementById('lieuLivraison').focus();
+                return;
+            }
+            if (!communeSelectionnee) {
+                showMessage('⚠️', 'Commune manquante', 'Veuillez sélectionner une commune.');
+                return;
+            }
+        }
+
+        // Vérifier le code secret
+        const codeContainer = optionActive === 'chezmoi' ? 'codeBoxesChezMoi' : 'codeBoxesAdresse';
+        const codeLogin = getCodeFromBoxes(codeContainer);
+
         if (!codeLogin || codeLogin.length !== 4 || !/^\d{4}$/.test(codeLogin)) {
-            setCodeBoxesError(optionActive === 'chezmoi' ? 'codeBoxesChezMoi' : 'codeBoxesAdresse');
+            setCodeBoxesError(codeContainer);
             showMessage('⚠️', 'Code invalide', 'Entrez 4 chiffres.');
             return;
         }
+
+        // Vérifier le nom et téléphone
+        const nom = optionActive === 'chezmoi' ? document.getElementById('nomComplet').value.trim() : document.getElementById('nomCompletAdresse').value.trim();
+        const telephone = optionActive === 'chezmoi' ? document.getElementById('telephone').value.trim() : document.getElementById('telephoneAdresse').value.trim();
 
         if (!nom) {
             showMessage('⚠️', 'Champ manquant', 'Entrez votre nom.');
             return;
         }
 
-        if (optionActive === 'adresse') {
-            const quartier = document.getElementById('quartier').value.trim();
-            const precision = document.getElementById('precision').value.trim();
-            if (!quartier || !precision) {
-                showMessage('⚠️', 'Champs manquants', 'Remplissez quartier et précision.');
-                return;
-            }
-            if (!communeSelectionnee) {
-                showMessage('⚠️', 'Commune manquante', 'Sélectionnez une commune.');
-                return;
-            }
+        if (!telephone || telephone.length < 8 || telephone.length > 12 || !/^\d+$/.test(telephone)) {
+            showMessage('⚠️', 'Numéro invalide', 'Entrez un numéro valide (8-12 chiffres).');
+            return;
         }
 
-        const verifyResult = await verifyCode(codeLogin);
-        if (!verifyResult.success) {
-            setCodeBoxesError(optionActive === 'chezmoi' ? 'codeBoxesChezMoi' : 'codeBoxesAdresse');
-            showMessage('❌', 'Code incorrect', 'Le code est incorrect.');
-            return;
+        // Vérifier le code
+        verifyCode(codeLogin).then(result => {
+            if (!result.success) {
+                setCodeBoxesError(codeContainer);
+                showMessage('❌', 'Code incorrect', 'Le code secret est incorrect.');
+                return;
+            }
+
+            // Tout est bon → afficher le récapitulatif
+            showRecapOverlay();
+        });
+    });
+
+    // ==========================================
+    // CONFIRMER LA COMMANDE (depuis le récapitulatif)
+    // ==========================================
+
+    recapConfirmBtn.addEventListener('click', async function() {
+        hideRecapOverlay();
+
+        const nom = optionActive === 'chezmoi' ? document.getElementById('nomComplet').value.trim() : document.getElementById('nomCompletAdresse').value.trim();
+        const telephone = optionActive === 'chezmoi' ? document.getElementById('telephone').value.trim() : document.getElementById('telephoneAdresse').value.trim();
+        const codeContainer = optionActive === 'chezmoi' ? 'codeBoxesChezMoi' : 'codeBoxesAdresse';
+        const codeLogin = getCodeFromBoxes(codeContainer);
+
+        let commune = '';
+        let quartier = null;
+        let precision = null;
+
+        if (optionActive === 'chezmoi') {
+            commune = communeSelectionnee ? communeSelectionnee.commune : gpsCommune.value;
+        } else {
+            commune = communeSelectionnee ? communeSelectionnee.commune : '';
+            quartier = document.getElementById('lieuLivraison').value.trim();
+            precision = 'Lieu précis: ' + quartier;
         }
 
         const commandeData = {
@@ -459,10 +622,10 @@ document.addEventListener('DOMContentLoaded', function() {
             telephone,
             codeLogin,
             option: optionActive,
-            commune: optionActive === 'chezmoi' ? (communeSelectionnee ? communeSelectionnee.commune : gpsCommune.value) : (communeSelectionnee ? communeSelectionnee.commune : ''),
+            commune: commune || '',
             fraisLivraison: fraisActuels,
-            quartier: optionActive === 'adresse' ? document.getElementById('quartier').value.trim() : null,
-            precision: optionActive === 'adresse' ? document.getElementById('precision').value.trim() : null,
+            quartier: quartier || null,
+            precision: precision || null,
             latitude: userCoords ? userCoords.lat : null,
             longitude: userCoords ? userCoords.lon : null
         };
@@ -487,19 +650,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = '/mescommandes';
                 }, 500);
             } else {
-                showMessage('❌', 'Erreur', data.error || 'Erreur');
+                showMessage('❌', 'Erreur', data.error || 'Erreur lors de la création de la commande.');
                 confirmOverlay.classList.remove('active');
                 confirmerBtn.disabled = false;
             }
         } catch (error) {
-            showMessage('❌', 'Erreur', 'Connexion au serveur.');
+            showMessage('❌', 'Erreur', 'Connexion au serveur impossible.');
             confirmOverlay.classList.remove('active');
             confirmerBtn.disabled = false;
         }
     });
 
     // ==========================================
-    // INIT
+    // INITIALISATION
     // ==========================================
 
     (async function init() {
@@ -508,8 +671,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
+            prefillUserData();
             await loadPanier();
-            setTimeout(getLocation, 1000);
+
+            // Démarrer la géolocalisation automatiquement
+            setTimeout(() => {
+                getLocation();
+            }, 1000);
+
             console.log('✅ Initialisation terminée');
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation:', error);
