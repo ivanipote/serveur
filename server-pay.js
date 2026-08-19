@@ -259,7 +259,7 @@ app.post('/api/payment/cancel', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT (améliorée)
+// ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT
 // ========================================================
 
 app.get('/api/payment/check/:reference', async (req, res) => {
@@ -545,6 +545,16 @@ async function handlePaymentSuccess(data) {
                 '💳 Paiement effectué',
                 `Votre paiement pour la commande #${orderId} a été confirmé. Commande en préparation.`
             );
+        }
+
+        // ✅ ENVOI SSE (mise à jour temps réel)
+        if (global.sendSSEEvent) {
+            global.sendSSEEvent('commande-update', {
+                commandeId: parseInt(orderId),
+                status: 'paiement_effectue',
+                userId: user?.user_id,
+                message: 'Paiement effectué, commande en préparation'
+            }, user?.user_id);
         }
 
         console.log(`📢 ADMIN: Paiement réussi pour la commande #${orderId} - Montant: ${amount} FCFA`);
