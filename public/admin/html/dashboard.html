@@ -135,13 +135,60 @@
             <!-- ========================================= -->
             <!-- SECTION : COMMANDES (PLACEHOLDER)         -->
             <!-- ========================================= -->
-            <section id="page-commandes" class="page-section">
-                <div class="placeholder-msg">
-                    <i class="fas fa-truck"></i>
-                    <h2>📋 Commandes</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
-                </div>
-            </section>
+            <!-- ========================================= -->
+<!-- SECTION : COMMANDES                       -->
+<!-- ========================================= -->
+<section id="page-commandes" class="page-section">
+    <div class="section-header">
+        <h2>📋 Commandes clients</h2>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <span class="badge-commandes" id="commandesCount">0 commandes</span>
+            <button class="btn-refresh" id="refreshCommandesBtn" title="Rafraîchir">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-bar">
+        <div class="filter-buttons" id="filterButtons">
+            <button class="filter-btn active" data-filter="all">📋 Tous</button>
+            <button class="filter-btn" data-filter="en_attente">⏳ En attente</button>
+            <button class="filter-btn" data-filter="accepter">💳 Paiement</button>
+            <button class="filter-btn" data-filter="paiement_effectue">💳 Payée</button>
+            <button class="filter-btn" data-filter="livraison_en_cours">🚚 En cours</button>
+            <button class="filter-btn" data-filter="disponible">📍 Disponible</button>
+            <button class="filter-btn" data-filter="recuperee">✅ Récupérée</button>
+            <button class="filter-btn" data-filter="refuse">❌ Refusée</button>
+            <button class="filter-btn" data-filter="annulee">❌ Annulée</button>
+        </div>
+        <div class="filter-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchCommande" placeholder="Rechercher (client, ID, référence...)">
+            <span id="filterCount">0 commandes</span>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Référence</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="commandesList">
+                <tr><td colspan="7" class="empty-msg">Chargement des commandes...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
 
             <!-- ========================================= -->
             <!-- SECTION : PAIEMENTS (PLACEHOLDER)         -->

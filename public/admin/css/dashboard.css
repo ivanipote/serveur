@@ -618,3 +618,442 @@ body {
     color: #888;
     padding: 20px;
 }
+/* ==========================================
+   COMMANDES - FILTRES
+   ========================================== */
+
+.filters-bar {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e8ecf4;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.filter-btn {
+    padding: 6px 16px;
+    border: 2px solid #e8ecf4;
+    border-radius: 20px;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-btn:hover {
+    border-color: #1a2a6c;
+    color: #1a2a6c;
+}
+
+.filter-btn.active {
+    background: #1a2a6c;
+    color: white;
+    border-color: #1a2a6c;
+}
+
+.filter-btn.active:hover {
+    background: #0d1b4a;
+}
+
+.filter-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-search i {
+    color: #aaa;
+    font-size: 16px;
+}
+
+.filter-search input {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 14px;
+    border: 2px solid #e8ecf4;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.filter-search input:focus {
+    border-color: #1a2a6c;
+}
+
+.filter-search #filterCount {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a2a6c;
+    white-space: nowrap;
+}
+
+/* ==========================================
+   COMMANDES - ACTIONS
+   ========================================== */
+
+.btn-action {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+.btn-action.maps {
+    background: #e3f2fd;
+    color: #1e88e5;
+}
+
+.btn-action.maps:hover {
+    background: #bbdefb;
+}
+
+.btn-action.sync {
+    background: #fff3e0;
+    color: #e67e22;
+}
+
+.btn-action.sync:hover {
+    background: #ffe0b2;
+}
+
+.btn-action.status {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.btn-action.status:hover {
+    background: #c8e6c9;
+}
+
+.btn-action.detail {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.btn-action.detail:hover {
+    background: #e1bee7;
+}
+
+.btn-refresh {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+    color: #1a2a6c;
+    background: #e8ecf4;
+    transform: rotate(180deg);
+}
+
+/* ==========================================
+   OVERLAY DÉTAIL COMMANDE
+   ========================================== */
+
+.detail-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 300;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.detail-overlay.active {
+    display: flex;
+}
+
+.detail-box {
+    background: white;
+    border-radius: 24px;
+    padding: 28px 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.detail-box .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f2f7;
+}
+
+.detail-box .box-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.detail-box .box-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.detail-box .box-header .close-btn:hover {
+    background: #f0f2f5;
+}
+
+.detail-section {
+    margin-bottom: 16px;
+}
+
+.detail-section .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a2a6c;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-section .section-title i {
+    color: #888;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #f5f5fa;
+}
+
+.detail-row .label {
+    color: #888;
+}
+
+.detail-row .value {
+    color: #1a1a2e;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+}
+
+.detail-row .value .status-badge {
+    font-size: 12px;
+}
+
+.detail-products {
+    background: #f8f9fc;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 4px;
+}
+
+.detail-products .product-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.detail-products .product-item:last-child {
+    border-bottom: none;
+}
+
+.detail-products .product-item .name {
+    color: #1a1a2e;
+}
+
+.detail-products .product-item .qty {
+    color: #888;
+}
+
+.detail-products .product-item .price {
+    color: #2d7d46;
+    font-weight: 600;
+}
+
+.detail-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0 4px 0;
+    border-top: 2px solid #2d7d46;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.detail-total .total-value {
+    color: #2d7d46;
+}
+
+.detail-gps-link {
+    display: inline-block;
+    color: #1e88e5;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.detail-gps-link:hover {
+    text-decoration: underline;
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================
+   OVERLAY STATUT (modification)
+   ========================================== */
+
+.status-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 350;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.status-overlay.active {
+    display: flex;
+}
+
+.status-box {
+    background: white;
+    border-radius: 24px;
+    padding: 28px 32px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.status-box .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.status-box .box-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.status-box .box-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #888;
+    cursor: pointer;
+}
+
+.status-box .form-group {
+    margin-bottom: 16px;
+}
+
+.status-box .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.status-box .form-group select,
+.status-box .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e8e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+}
+
+.status-box .form-group select:focus,
+.status-box .form-group textarea:focus {
+    border-color: #1a2a6c;
+}
+
+.status-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.status-actions .btn-cancel {
+    flex: 1;
+    background: #e8e8f0;
+    color: #666;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.status-actions .btn-save {
+    flex: 2;
+    background: #1a2a6c;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.status-actions .btn-save:hover {
+    background: #0d1b4a;
+}
