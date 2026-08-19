@@ -53,8 +53,10 @@ async function createNotification(userId, commandeId, type, title, content) {
             [userId, commandeId, type, title, content, false]
         );
         console.log(`✅ Notification créée pour user ${userId}: ${title}`);
+        return true;
     } catch (err) {
         console.error('❌ Erreur création notification:', err);
+        return false;
     }
 }
 
@@ -168,6 +170,12 @@ app.post('/api/payment/update-status', async (req, res) => {
     }
 
     try {
+        // ✅ Statuts autorisés pour cette route
+        const allowedStatus = ['payee', 'paiement_effectue', 'annulee', 'refuse'];
+        if (!allowedStatus.includes(status)) {
+            return res.status(400).json({ error: 'Statut invalide.' });
+        }
+
         let query = 'UPDATE commandes SET status = $1 WHERE id = $2';
         let params = [status, commandeId];
 
@@ -182,7 +190,7 @@ app.post('/api/payment/update-status', async (req, res) => {
             return res.status(404).json({ error: 'Commande non trouvée.' });
         }
 
-        const paymentStatus = status === 'payee' ? 'success' : 'canceled';
+        const paymentStatus = status === 'payee' || status === 'paiement_effectue' ? 'success' : 'canceled';
         await db.query(
             `UPDATE payments SET status = $1 WHERE commande_id = $2`,
             [paymentStatus, commandeId]
@@ -190,11 +198,14 @@ app.post('/api/payment/update-status', async (req, res) => {
 
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [commandeId]);
         if (commande) {
-            const title = status === 'payee' ? '💳 Paiement confirmé' : '⏰ Paiement annulé';
-            const content = status === 'payee' 
-                ? `Votre paiement pour la commande #${commandeId} a été confirmé.`
-                : `Le paiement pour la commande #${commandeId} a été annulé.`;
-            
+            let title = '⏰ Paiement annulé';
+            let content = `Le paiement pour la commande #${commandeId} a été annulé.`;
+
+            if (status === 'payee' || status === 'paiement_effectue') {
+                title = '💳 Paiement confirmé';
+                content = `Votre paiement pour la commande #${commandeId} a été confirmé. Commande en préparation.`;
+            }
+
             await createNotification(commande.user_id, commandeId, 'paiement', title, content);
         }
 
@@ -486,6 +497,7 @@ async function handlePaymentSuccess(data) {
             return;
         }
 
+        // ✅ Vérifier et déduire le stock
         for (const item of panier) {
             const productId = item.product_id || item.id;
             const quantity = item.quantity || 1;
@@ -509,26 +521,29 @@ async function handlePaymentSuccess(data) {
             console.log(`✅ Stock déduit: produit #${productId} (-${quantity})`);
         }
 
+        // ✅ Mettre à jour le paiement
         await db.query(
             `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
             ['success', reference]
         );
         console.log(`✅ Payment ${reference} : statut -> success`);
 
+        // ✅ Mettre à jour la commande → paiement_effectue
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
-            ['payee', orderId]
+            ['paiement_effectue', orderId]
         );
-        console.log(`✅ Commande #${orderId} : statut -> payee`);
+        console.log(`✅ Commande #${orderId} : statut -> paiement_effectue`);
 
+        // ✅ Notification au client
         const user = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
         if (user) {
             await createNotification(
                 user.user_id,
                 orderId,
                 'paiement',
-                '💳 Paiement réussi',
-                `Le paiement de ${amount ? amount.toLocaleString() + ' FCFA' : ''} pour la commande #${orderId} a été confirmé.`
+                '💳 Paiement effectué',
+                `Votre paiement pour la commande #${orderId} a été confirmé. Commande en préparation.`
             );
         }
 
@@ -555,7 +570,7 @@ async function handlePaymentFailed(data) {
 
         await db.query(
             `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
-            ['annulee', 'Paiement échoué', orderId]
+            ['refuse', 'Paiement échoué', orderId]
         );
 
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
