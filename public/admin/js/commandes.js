@@ -73,20 +73,8 @@ function renderCommandesTable() {
     };
 
     tbody.innerHTML = filtered.map(c => {
-        // ✅ Déterminer les actions disponibles selon le statut
         const status = c.status || 'en_attente';
-        
-        // ✅ Statuts "finaux" : plus d'actions
         const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
-        
-        // ✅ Statuts "bloqués" : on ne peut plus revenir en arrière
-        const isBlocked = ['paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'].includes(status);
-        
-        // ✅ Actions disponibles
-        const showMaps = true;
-        const showSync = !isFinal && status !== 'paiement_effectue';
-        const showStatus = !isFinal;
-        const showDetail = true;
 
         return `
             <tr>
@@ -97,23 +85,23 @@ function renderCommandesTable() {
                 <td><span class="status-badge ${status}">${statusLabels[status] || status}</span></td>
                 <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                 <td>
-                    ${showMaps ? `<button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Voir sur Maps">
+                    <button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Voir sur Maps">
                         <i class="fas fa-map-marker-alt"></i>
-                    </button>` : ''}
+                    </button>
                     
-                    ${showSync ? `<button class="btn-action sync" onclick="syncCommande(${c.id})" title="Synchroniser">
+                    ${!isFinal ? `<button class="btn-action sync" onclick="syncCommande(${c.id})" title="Synchroniser">
                         <i class="fas fa-sync-alt"></i>
                     </button>` : ''}
                     
-                    ${showStatus ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Modifier statut">
+                    ${!isFinal ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Modifier statut">
                         <i class="fas fa-edit"></i>
                     </button>` : `<button class="btn-action status" style="opacity:0.4;cursor:not-allowed;" disabled title="Statut final">
                         <i class="fas fa-lock"></i>
                     </button>`}
                     
-                    ${showDetail ? `<button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Voir détails">
+                    <button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Voir détails">
                         <i class="fas fa-eye"></i>
-                    </button>` : ''}
+                    </button>
                 </td>
             </tr>
         `;
@@ -195,7 +183,7 @@ async function syncCommande(commandeId) {
 }
 
 // ==========================================
-// OVERLAY STATUT (avec sécurisation)
+// OVERLAY STATUT (SÉCURISÉ)
 // ==========================================
 
 function openStatusOverlay(commandeId) {
@@ -209,17 +197,29 @@ function openStatusOverlay(commandeId) {
     
     // ✅ Déterminer les statuts disponibles selon le statut actuel
     let availableStatuses = [];
+    const statusLabels = {
+        'en_attente': '⏳ En attente',
+        'accepter': '💳 Paiement requis',
+        'refuse': '❌ Refusée',
+        'paiement_effectue': '💳 Payée',
+        'livraison_en_cours': '🚚 En cours',
+        'disponible': '📍 Disponible',
+        'recuperee': '✅ Récupérée'
+    };
+    
+    // ✅ Si la commande est déjà payée ou plus, on cache les statuts précédents
+    const isPaid = ['paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'].includes(currentStatus);
     
     if (currentStatus === 'en_attente') {
         availableStatuses = ['accepter', 'refuse'];
     } else if (currentStatus === 'accepter') {
         availableStatuses = ['paiement_effectue', 'refuse'];
     } else if (currentStatus === 'paiement_effectue') {
-        availableStatuses = ['livraison_en_cours'];
+        availableStatuses = ['livraison_en_cours'];  // ✅ 'en_attente' et 'accepter' sont masqués
     } else if (currentStatus === 'livraison_en_cours') {
-        availableStatuses = ['disponible'];
+        availableStatuses = ['disponible'];           // ✅ 'en_attente', 'accepter', 'paiement_effectue' sont masqués
     } else if (currentStatus === 'disponible') {
-        availableStatuses = ['recuperee'];
+        availableStatuses = ['recuperee'];            // ✅ Seul 'recuperee' est disponible
     } else {
         // Statuts finaux : plus d'actions
         alert('⚠️ Cette commande est dans un statut final. Aucune modification possible.');
@@ -230,18 +230,9 @@ function openStatusOverlay(commandeId) {
     document.getElementById('statusCommandeId').textContent = commandeId;
     document.getElementById('statusClientInfo').textContent = 'Client: ' + commande.nom;
     
-    // ✅ Remplir le select avec les statuts disponibles
+    // ✅ Remplir le select avec les statuts disponibles uniquement
     const select = document.getElementById('statusSelect');
     select.innerHTML = '';
-    
-    const statusLabels = {
-        'accepter': '💳 Paiement requis',
-        'refuse': '❌ Refusée',
-        'paiement_effectue': '💳 Payée',
-        'livraison_en_cours': '🚚 En cours',
-        'disponible': '📍 Disponible',
-        'recuperee': '✅ Récupérée'
-    };
     
     availableStatuses.forEach(s => {
         const option = document.createElement('option');
