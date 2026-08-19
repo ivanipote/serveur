@@ -271,17 +271,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (via Render)
+    // VÉRIFIER LE PAIEMENT (via Render) - CORRIGÉ
     // ==========================================
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
         const btn = document.querySelector(`.btn-check-payment[data-id="${commandeId}"]`);
         if (!btn) return;
 
+        // ✅ Utiliser geniusReference ou reference
         const refToCheck = geniusReference || reference;
 
+        // ✅ Si la référence est un nombre (commande_id), ne pas vérifier
         if (!refToCheck || /^\d+$/.test(refToCheck)) {
-            showToast('⚠️ Pas de référence de paiement disponible', 'info');
+            showToast('ℹ️ Aucune référence de paiement disponible', 'info');
             return;
         }
 
@@ -290,10 +292,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
+            
+            // ✅ Si le serveur répond avec 500, afficher un message
+            if (!res.ok) {
+                if (res.status === 500) {
+                    showToast('⚠️ Le service de paiement est temporairement indisponible', 'error');
+                } else {
+                    showToast('⚠️ Erreur lors de la vérification', 'error');
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                return;
+            }
+
             const data = await res.json();
 
             if (data.success && data.status === 'success') {
-                const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
+                const updateRes = await fetch('/api/payment/update-status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ commandeId, status: 'payee' })
@@ -306,8 +321,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else if (data.status === 'pending') {
                 showToast('⏳ Paiement en attente...', 'info');
+            } else if (data.status === 'not_found') {
+                showToast('ℹ️ Aucun paiement trouvé pour cette commande', 'info');
             } else {
-                showToast('❌ Paiement non trouvé', 'error');
+                showToast('❌ Statut: ' + (data.status || 'inconnu'), 'error');
             }
         } catch (error) {
             console.error('Erreur vérification:', error);
