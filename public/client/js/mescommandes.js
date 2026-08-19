@@ -94,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
-                showToast(data.message || 'Nouvelle notification', 'info');
             });
 
         } catch (error) {
@@ -133,70 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (badgeTotal) {
             badgeTotal.textContent = commandes.length;
         }
-
-        const statusMessages = {
-            'en_attente': '⏳ En attente',
-            'accepter': '💳 Paiement requis',
-            'refuse': '❌ Refusée',
-            'annulee': '❌ Annulée',
-            'paiement_effectue': '💳 Payée',
-            'livraison_en_cours': '🚚 En cours',
-            'disponible': '📍 Disponible',
-            'recuperee': '✅ Récupérée'
-        };
-        showToast(`📦 Commande #${commandeId}: ${statusMessages[status] || status}`, status);
-    }
-
-    // ==========================================
-    // TOAST
-    // ==========================================
-
-    function showToast(message, type = 'info') {
-        const colors = {
-            'success': '#28a745',
-            'error': '#dc3545',
-            'warning': '#e67e22',
-            'info': '#1a2a6c',
-            'en_attente': '#f9a825',
-            'accepter': '#1e88e5',
-            'refuse': '#e53935',
-            'annulee': '#e53935',
-            'paiement_effectue': '#43a047',
-            'livraison_en_cours': '#00acc1',
-            'disponible': '#2e7d32',
-            'recuperee': '#1b5e20'
-        };
-
-        const bgColor = colors[type] || colors.info;
-
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            background: ${bgColor};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 15px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s ease;
-            pointer-events: auto;
-            max-width: 90%;
-            text-align: center;
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 999;
-        `;
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.transition = 'all 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
     }
 
     // ==========================================
@@ -394,7 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const refToCheck = geniusReference || reference;
         if (!refToCheck || /^\d+$/.test(refToCheck)) {
-            showToast('ℹ️ Aucune référence de paiement disponible', 'info');
             return;
         }
 
@@ -406,9 +340,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!res.ok) {
                 if (res.status === 500) {
-                    showToast('⚠️ Service de paiement temporairement indisponible', 'error');
+                    console.warn('⚠️ Service de paiement temporairement indisponible');
                 } else {
-                    showToast('⚠️ Erreur lors de la vérification', 'error');
+                    console.warn('⚠️ Erreur lors de la vérification');
                 }
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
@@ -425,20 +359,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (updateRes.ok) {
                     await loadCommandes();
-                    showToast('✅ Paiement confirmé !', 'success');
                 } else {
-                    showToast('⚠️ Mise à jour en cours...', 'info');
+                    console.warn('⚠️ Mise à jour en cours...');
                 }
             } else if (data.status === 'pending') {
-                showToast('⏳ Paiement en attente...', 'info');
+                console.log('⏳ Paiement en attente...');
             } else if (data.status === 'not_found') {
-                showToast('ℹ️ Aucun paiement trouvé pour cette commande', 'info');
+                console.log('ℹ️ Aucun paiement trouvé pour cette commande');
             } else {
-                showToast('❌ Statut: ' + (data.status || 'inconnu'), 'error');
+                console.log('❌ Statut: ' + (data.status || 'inconnu'));
             }
         } catch (error) {
             console.error('Erreur vérification:', error);
-            showToast('❌ Erreur de vérification', 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -485,7 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (res.ok) {
                 await loadCommandes();
-                showToast('✅ Commande annulée', 'success');
             } else {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
             }
@@ -591,10 +522,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         await checkPaymentWithGenius(commande.id, ref, geniusRef);
                     }
                 }
-                showToast('✅ Statuts mis à jour !', 'success');
             } catch (error) {
                 console.error('❌ Erreur rafraîchissement:', error);
-                showToast('⚠️ Erreur lors du rafraîchissement', 'error');
             } finally {
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-sync-alt"></i> Rafraîchir';
@@ -649,9 +578,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
-
-            // ✅ SUPPRESSION DE cause_refus - plus jamais affiché sur la carte
-            // La cause de refus/annulation va uniquement dans les notifications
 
             html += `
                 <div class="commande-card status-${statusClass}">
