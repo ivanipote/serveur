@@ -227,4 +227,4 @@ module.exports = {
     all: (text, params) => pool.query(text, params).then(res => res.rows),
     run: (text, params) => pool.query(text, params),
     initialize: initializeDatabase
-};
+};// Version avec table updates
