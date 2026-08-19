@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (via Render)
+    // VÉRIFIER LE PAIEMENT (via Render) - CORRIGÉ
     // ==========================================
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const refToCheck = geniusReference || reference;
         if (!refToCheck || /^\d+$/.test(refToCheck)) {
+            showToast('ℹ️ Aucune référence de paiement disponible', 'info');
             return;
         }
 
@@ -276,9 +277,15 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         try {
+            // ✅ Appel vers nature-plus-pay
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
+            
             if (!res.ok) {
-                showToast('⚠️ Service de paiement indisponible', 'error');
+                if (res.status === 500) {
+                    showToast('⚠️ Le service de paiement est temporairement indisponible', 'error');
+                } else {
+                    showToast('⚠️ Erreur lors de la vérification', 'error');
+                }
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
                 return;
@@ -287,7 +294,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (data.success && data.status === 'success') {
-                const updateRes = await fetch('/api/payment/update-status', {
+                // ✅ CORRECTION : Appel vers nature-plus-pay
+                const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
@@ -295,11 +303,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (updateRes.ok) {
                     await loadCommandes();
                     showToast('✅ Paiement confirmé !', 'success');
+                } else {
+                    showToast('⚠️ Mise à jour en cours...', 'info');
                 }
             } else if (data.status === 'pending') {
                 showToast('⏳ Paiement en attente...', 'info');
+            } else if (data.status === 'not_found') {
+                showToast('ℹ️ Aucun paiement trouvé pour cette commande', 'info');
             } else {
-                showToast('ℹ️ Statut: ' + (data.status || 'inconnu'), 'info');
+                showToast('❌ Statut: ' + (data.status || 'inconnu'), 'error');
             }
         } catch (error) {
             console.error('Erreur vérification:', error);
@@ -474,7 +486,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderCommandes() {
         console.log('🎨 Rendu des commandes, nombre:', commandes.length);
 
-        // Définition des couleurs par statut
         const statusColorMap = {
             'en_attente': 'status-en_attente',
             'accepter': 'status-accepter',
