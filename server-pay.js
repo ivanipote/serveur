@@ -10,13 +10,14 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 // ========================================================
-// CONFIGURATION GENIUS PAY
+// CONFIGURATION GENIUS PAY - PRODUCTION
 // ========================================================
 
-const SECRET_KEY = process.env.GENIUS_SECRET_KEY || 'ss_sandbox_B2RCD03octNvZPUD4zjcmGUGKbxqzTRzKHH1qf6e8TnlEQzP';
-const PUBLIC_KEY = process.env.GENIUS_PUBLIC_KEY || 'sk_sandbox_XpcqcXI54Gj537UMCqPpqPq5NTyxQ6oV';
+const SECRET_KEY = process.env.GENIUS_SECRET_KEY || 'sk_live_879e4d0046612a47dd8c111f9607258d97cdb804a7b6157ee25bf11e5b69b3f0';
+const PUBLIC_KEY = process.env.GENIUS_PUBLIC_KEY || 'pk_live_pAtZ5Q17QAtABm4fMVSIYFI6wMCt1LBU';
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_JG9u1JOvIgIfATYyla65J1zV7h0NWO6SzfYGufB8WWHuRG0m';
+
 const GENIUS_API_URL = 'https://geniuspay.ci/api/v1/merchant/payments';
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_LV1XzCsDS7ZXSJIODpqEkeIFTg3sSCSu7tMZm8cqbP6G9Jxj';
 
 // ========================================================
 // REDIS - Connexion
@@ -69,7 +70,7 @@ app.use((req, res, next) => {
     next();
 });
 
-console.log('🔑 Mode: SANDBOX');
+console.log('🔑 Mode: LIVE ✅');
 console.log('🔔 Webhook Secret: ✅ Chargé');
 
 // ========================================================
@@ -148,7 +149,7 @@ app.post('/api/payment/create', async (req, res) => {
             }
         };
 
-        console.log('📤 Envoi à Genius Pay...');
+        console.log('📤 Envoi à Genius Pay (LIVE)...');
         console.log('📤 Payload:', JSON.stringify(payload, null, 2));
 
         const response = await axios.post(GENIUS_API_URL, payload, {
@@ -344,7 +345,7 @@ app.get('/api/payment/check/:reference', async (req, res) => {
         }
 
         try {
-            console.log('🔍 Recherche chez Genius Pay...');
+            console.log('🔍 Recherche chez Genius Pay (LIVE)...');
             const response = await axios.get(
                 `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
                 {
@@ -708,7 +709,7 @@ async function handlePaymentRefunded(data) {
 
 app.listen(PORT, () => {
     console.log(`========================================`);
-    console.log(`🚀 SERVEUR PAIEMENT - Nature+ (Socket.IO + Redis)`);
+    console.log(`🚀 SERVEUR PAIEMENT - Nature+ (LIVE ✅)`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`📍 http://localhost:${PORT}`);
     console.log(`📍 Socket.IO: port 3003`);
