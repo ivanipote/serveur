@@ -189,7 +189,6 @@ app.post('/api/admin/products', upload.fields([
         return res.status(400).json({ error: 'Prix valide requis.' });
     }
 
-    // Récupérer les URLs Cloudinary
     const image1 = req.files && req.files['image1'] ? req.files['image1'][0].path : '';
     const image2 = req.files && req.files['image2'] ? req.files['image2'][0].path : '';
 
@@ -416,6 +415,106 @@ app.delete('/api/admin/livraison/:id', async (req, res) => {
 });
 
 // ========================================================
+// 🆕 ROUTE ADMIN : ENVOYER UNE NOTIFICATION
+// ========================================================
+
+app.post('/api/admin/notification/send', async (req, res) => {
+    const { userId, title, content } = req.body;
+
+    if (!userId || !title || !content) {
+        return res.status(400).json({ error: 'userId, title et content requis.' });
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [userId, null, 'admin', title, content, false]
+        );
+        console.log(`✅ Notification admin envoyée à l'utilisateur ${userId}: ${title}`);
+        res.json({ success: true, message: 'Notification envoyée avec succès' });
+    } catch (err) {
+        console.error('❌ Erreur envoi notification:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ========================================================
+// 🆕 ROUTE ADMIN : VÉRIFIER LES MISES À JOUR (GitHub)
+// ========================================================
+
+app.get('/api/admin/check-updates', async (req, res) => {
+    try {
+        // 1. Récupérer le dernier commit depuis GitHub
+        const repoUrl = 'https://api.github.com/repos/ivanipote/serveur/commits/main';
+        const response = await fetch(repoUrl);
+        
+        if (!response.ok) {
+            return res.status(500).json({ error: 'Erreur lors de la récupération du dernier commit' });
+        }
+
+        const data = await response.json();
+        const lastCommit = {
+            sha: data.sha,
+            message: data.commit.message,
+            date: data.commit.author.date,
+            url: data.html_url
+        };
+
+        // 2. Vérifier si ce commit a déjà été notifié
+        const existing = await db.get(
+            'SELECT * FROM updates WHERE commit_sha = $1',
+            [lastCommit.sha]
+        );
+
+        if (existing) {
+            return res.json({
+                success: true,
+                isNew: false,
+                message: 'Aucune nouvelle mise à jour',
+                commit: lastCommit
+            });
+        }
+
+        // 3. Enregistrer le commit dans la table updates
+        await db.query(
+            `INSERT INTO updates (commit_sha, commit_message, commit_date, commit_url)
+             VALUES ($1, $2, $3, $4)`,
+            [lastCommit.sha, lastCommit.message, lastCommit.date, lastCommit.url]
+        );
+
+        // 4. Envoyer une notification à tous les utilisateurs
+        const users = await db.all('SELECT id FROM users');
+        let sentCount = 0;
+
+        for (const user of users) {
+            await createNotification(
+                user.id,
+                null,
+                'systeme',
+                '🔄 Mise à jour disponible',
+                `Nouvelle version : ${lastCommit.message}`
+            );
+            sentCount++;
+        }
+
+        console.log(`✅ ${sentCount} notifications de mise à jour envoyées`);
+
+        res.json({
+            success: true,
+            isNew: true,
+            sentCount: sentCount,
+            message: `Nouvelle mise à jour détectée : ${lastCommit.message}`,
+            commit: lastCommit
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur check-updates:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========================================================
 // ROUTES CLIENT - AUTH
 // ========================================================
 
@@ -489,7 +588,6 @@ app.post('/api/client/login', async (req, res) => {
             }
 
             console.log('✅ Session sauvegardée pour userId:', user.id);
-            console.log('🆔 Session ID:', req.session.id);
 
             res.json({
                 success: true,
@@ -937,13 +1035,20 @@ app.put('/api/notifications/read/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// PUT /api/notifications/read-all
+// 🆕 PUT /api/notifications/read-all
 app.put('/api/notifications/read-all', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
     try {
-        await db.query('UPDATE messages SET is_read = $1 WHERE user_id = $2', [true, userId]);
-        res.json({ success: true, message: 'Toutes les notifications marquées comme lues' });
+        const result = await db.query(
+            'UPDATE messages SET is_read = $1 WHERE user_id = $2',
+            [true, userId]
+        );
+        res.json({ 
+            success: true, 
+            message: 'Toutes les notifications marquées comme lues',
+            count: result.rowCount 
+        });
     } catch (err) {
         console.error('❌ Erreur:', err);
         res.status(500).json({ error: err.message });
