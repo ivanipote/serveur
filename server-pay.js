@@ -2,6 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
 const db = require('./database');
+const { Server } = require('socket.io');
+const Redis = require('ioredis');
+const { createAdapter } = require('@socket.io/redis-adapter');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -14,6 +17,39 @@ const SECRET_KEY = process.env.GENIUS_SECRET_KEY || 'ss_sandbox_B2RCD03octNvZPUD
 const PUBLIC_KEY = process.env.GENIUS_PUBLIC_KEY || 'sk_sandbox_XpcqcXI54Gj537UMCqPpqPq5NTyxQ6oV';
 const GENIUS_API_URL = 'https://geniuspay.ci/api/v1/merchant/payments';
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_LV1XzCsDS7ZXSJIODpqEkeIFTg3sSCSu7tMZm8cqbP6G9Jxj';
+
+// ========================================================
+// REDIS - Connexion
+// ========================================================
+
+const redisClient = new Redis(process.env.REDIS_URL, {
+    tls: {},
+    retryStrategy: (times) => Math.min(times * 50, 2000)
+});
+
+redisClient.on('connect', () => console.log('✅ Redis (pay) connecté'));
+redisClient.on('error', (err) => console.error('❌ Redis erreur:', err));
+
+// ========================================================
+// SOCKET.IO - Connexion au serveur client
+// ========================================================
+
+const socket = new Server({
+    cors: {
+        origin: ['https://nature-plus-client.onrender.com', 'http://localhost:3000'],
+        credentials: true
+    },
+    adapter: createAdapter(redisClient)
+});
+
+socket.listen(3003); // Port différent pour éviter conflit
+
+socket.on('connection', (sock) => {
+    console.log('✅ Socket.IO (pay) connecté');
+    sock.on('disconnect', () => {
+        console.log('❌ Socket.IO (pay) déconnecté');
+    });
+});
 
 // ========================================================
 // MIDDLEWARE
@@ -31,7 +67,7 @@ app.use((req, res, next) => {
 });
 
 console.log('🔑 Mode: SANDBOX');
-console.log('🔔 Webhook Secret:', WEBHOOK_SECRET ? '✅ Chargé' : '❌ Non');
+console.log('🔔 Webhook Secret: ✅ Chargé');
 
 // ========================================================
 // ROUTE HEALTH
@@ -86,7 +122,6 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
-        // ✅ GÉNÉRATION D'UNE RÉFÉRENCE UNIQUE
         const paymentRef = `PAY-${commandeId}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
@@ -101,8 +136,8 @@ app.post('/api/payment/create', async (req, res) => {
                 phone: cleanPhone,
                 name: customerName
             },
-            success_url: `https://nature-plus-client.onrender.com/payment-success`,
-            error_url: `https://nature-plus-client.onrender.com/payment-failed`,
+            success_url: `https://nature-plus-client.onrender.com/payment-success?commande_id=${commandeId}`,
+            error_url: `https://nature-plus-client.onrender.com/payment-failed?commande_id=${commandeId}`,
             metadata: {
                 order_id: commandeId,
                 user_id: userId,
@@ -170,7 +205,6 @@ app.post('/api/payment/update-status', async (req, res) => {
     }
 
     try {
-        // ✅ Statuts autorisés pour cette route
         const allowedStatus = ['payee', 'paiement_effectue', 'annulee', 'refuse'];
         if (!allowedStatus.includes(status)) {
             return res.status(400).json({ error: 'Statut invalide.' });
@@ -207,6 +241,14 @@ app.post('/api/payment/update-status', async (req, res) => {
             }
 
             await createNotification(commande.user_id, commandeId, 'paiement', title, content);
+
+            // ✅ Socket.IO - Émettre l'événement
+            socket.emit('commande-update', {
+                commandeId: parseInt(commandeId),
+                status: status === 'payee' || status === 'paiement_effectue' ? 'paiement_effectue' : status,
+                userId: commande.user_id,
+                message: `Statut mis à jour : ${status}`
+            });
         }
 
         res.json({ success: true, message: `Statut mis à jour : ${status}` });
@@ -251,6 +293,14 @@ app.post('/api/payment/cancel', async (req, res) => {
             `Vous avez annulé le paiement pour la commande #${commandeId}.`
         );
 
+        // ✅ Socket.IO
+        socket.emit('commande-update', {
+            commandeId: parseInt(commandeId),
+            status: 'annulee',
+            userId: row.user_id,
+            message: `Paiement annulé pour la commande #${commandeId}`
+        });
+
         res.json({ success: true, message: 'Paiement annulé avec succès' });
     } catch (err) {
         console.error('❌ Erreur:', err);
@@ -272,7 +322,6 @@ app.get('/api/payment/check/:reference', async (req, res) => {
     }
 
     try {
-        // ✅ Recherche dans reference, genius_reference, commande_id
         let row = null;
         try {
             row = await db.get(
@@ -293,7 +342,6 @@ app.get('/api/payment/check/:reference', async (req, res) => {
             });
         }
 
-        // Si pas trouvé dans la base, vérifier chez Genius Pay
         try {
             console.log('🔍 Recherche chez Genius Pay...');
             const response = await axios.get(
@@ -378,7 +426,7 @@ app.post('/api/commande/restore/:id', async (req, res) => {
 
 app.post('/api/payment/webhook', (req, res) => {
     console.log('🔔 Webhook reçu');
-    
+
     const signature = req.headers['x-webhook-signature'];
     const timestamp = req.headers['x-webhook-timestamp'];
     const event = req.headers['x-webhook-event'];
@@ -497,7 +545,6 @@ async function handlePaymentSuccess(data) {
             return;
         }
 
-        // ✅ Vérifier et déduire le stock
         for (const item of panier) {
             const productId = item.product_id || item.id;
             const quantity = item.quantity || 1;
@@ -521,21 +568,18 @@ async function handlePaymentSuccess(data) {
             console.log(`✅ Stock déduit: produit #${productId} (-${quantity})`);
         }
 
-        // ✅ Mettre à jour le paiement
         await db.query(
             `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
             ['success', reference]
         );
         console.log(`✅ Payment ${reference} : statut -> success`);
 
-        // ✅ Mettre à jour la commande → paiement_effectue
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['paiement_effectue', orderId]
         );
         console.log(`✅ Commande #${orderId} : statut -> paiement_effectue`);
 
-        // ✅ Notification au client
         const user = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
         if (user) {
             await createNotification(
@@ -545,16 +589,14 @@ async function handlePaymentSuccess(data) {
                 '💳 Paiement effectué',
                 `Votre paiement pour la commande #${orderId} a été confirmé. Commande en préparation.`
             );
-        }
 
-        // ✅ ENVOI SSE (mise à jour temps réel)
-        if (global.sendSSEEvent) {
-            global.sendSSEEvent('commande-update', {
+            // ✅ Socket.IO - Émettre l'événement
+            socket.emit('commande-update', {
                 commandeId: parseInt(orderId),
                 status: 'paiement_effectue',
-                userId: user?.user_id,
+                userId: user.user_id,
                 message: 'Paiement effectué, commande en préparation'
-            }, user?.user_id);
+            });
         }
 
         console.log(`📢 ADMIN: Paiement réussi pour la commande #${orderId} - Montant: ${amount} FCFA`);
@@ -666,8 +708,9 @@ async function handlePaymentRefunded(data) {
 
 app.listen(PORT, () => {
     console.log(`========================================`);
-    console.log(`🚀 SERVEUR PAIEMENT - Nature+`);
+    console.log(`🚀 SERVEUR PAIEMENT - Nature+ (Socket.IO + Redis)`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`📍 http://localhost:${PORT}`);
+    console.log(`📍 Socket.IO: port 3003`);
     console.log(`========================================`);
 });
