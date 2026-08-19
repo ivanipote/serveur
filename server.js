@@ -961,7 +961,7 @@ app.post('/api/panier/update', isAuthenticated, async (req, res) => {
 });
 
 // ========================================================
-// ROUTES COMMANDES
+// ROUTE : CRÉER UNE COMMANDE (AVEC SSE)
 // ========================================================
 
 app.post('/api/commande/create', isAuthenticated, async (req, res) => {
@@ -1010,6 +1010,7 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
 
         const commandeId = result.rows[0].id;
 
+        // ✅ Notification au client
         await createNotification(
             userId,
             commandeId,
@@ -1018,12 +1019,25 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
             `Votre commande #${commandeId} (${finalRef}) a été créée avec succès.`
         );
 
+        // ✅ ENVOI SSE - Nouvelle commande (pour admin)
+        if (global.sendSSEEvent) {
+            global.sendSSEEvent('nouvelle-commande', {
+                commandeId: commandeId,
+                userId: userId,
+                nom: nom,
+                total: total,
+                reference: finalRef,
+                message: `🆕 Nouvelle commande #${commandeId} de ${nom}`
+            });
+        }
+
         res.json({
             success: true,
             id: commandeId,
             reference: finalRef,
             message: 'Commande créée avec succès'
         });
+
     } catch (err) {
         console.error('❌ Erreur DB:', err);
         res.status(500).json({ error: err.message });
