@@ -603,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDU DES COMMANDES (Modèle 5)
+    // RENDU DES COMMANDES (Modèle 5 - sans cause_refus)
     // ==========================================
 
     function renderCommandes() {
@@ -649,8 +649,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
-            const causeHtml = c.cause_refus ? `<div class="commande-cause">❌ ${c.cause_refus}</div>` : '';
-            const geniusRef = c.genius_reference || '';
+
+            // ✅ SUPPRESSION DE cause_refus - plus jamais affiché sur la carte
+            // La cause de refus/annulation va uniquement dans les notifications
 
             html += `
                 <div class="commande-card status-${statusClass}">
@@ -660,7 +661,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="date">${dateStr}</span>
                     <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
                     <div class="status-text"><span class="status-icon">${statusInfo.icon}</span> ${statusInfo.label}</div>
-                    ${causeHtml}
                     <div class="actions">
                         ${isPaymentInProgress ? `
                             <button class="btn btn-cancel-pay" data-id="${c.id}">
@@ -688,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                         ` : ''}
                         ${showSync ? `
-                            <button class="btn-sync" data-id="${c.id}" data-ref="${c.reference || c.id}" data-genius="${geniusRef}" title="Vérifier le paiement">
+                            <button class="btn-sync" data-id="${c.id}" data-ref="${c.reference || c.id}" data-genius="${c.genius_reference || ''}" title="Vérifier le paiement">
                                 <i class="fas fa-sync-alt"></i> Sync
                             </button>
                         ` : ''}
