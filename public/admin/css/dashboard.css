@@ -487,3 +487,134 @@ body {
         align-items: stretch;
     }
 }
+/* ==========================================
+   STATS AMÉLIORÉES
+   ========================================== */
+
+.stat-card {
+    background: white;
+    padding: 20px 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e8ecf4;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(26, 42, 108, 0.06);
+}
+
+.stat-card .stat-icon {
+    font-size: 32px;
+    width: 56px;
+    height: 56px;
+    background: #f0f2f7;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-card .stat-content {
+    flex: 1;
+}
+
+.stat-card .stat-content h3 {
+    font-size: 13px;
+    color: #888;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.stat-card .stat-content p {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a2a6c;
+    line-height: 1.2;
+}
+
+.stat-card .stat-trend {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 2px;
+}
+
+.stat-trend.up {
+    background: #d4edda;
+    color: #155724;
+}
+
+.stat-trend.down {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stat-trend.neutral {
+    background: #e8e8f0;
+    color: #888;
+}
+
+/* ==========================================
+   DERNIÈRES COMMANDES
+   ========================================== */
+
+.recent-orders {
+    margin-top: 24px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    border: 1px solid #e8ecf4;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.recent-orders .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.recent-orders .section-header h2 {
+    font-size: 18px;
+    color: #1a2a6c;
+    font-weight: 700;
+}
+
+.badge-count {
+    background: #1a2a6c;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+}
+
+.recent-orders .table-container {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.recent-orders .table-container table {
+    min-width: auto;
+}
+
+.recent-orders .table-container td,
+.recent-orders .table-container th {
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.recent-orders .empty-msg {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}

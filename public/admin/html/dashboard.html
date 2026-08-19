@@ -69,33 +69,69 @@
                 </div>
             </header>
 
-            <!-- ========================================= -->
-            <!-- SECTION : VUE D'ENSEMBLE                  -->
-            <!-- ========================================= -->
-            <section id="page-overview" class="page-section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>📦 Produits</h3>
-                        <p id="statProducts">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>💰 Ventes</h3>
-                        <p id="statSales">0 FCFA</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>📋 Commandes</h3>
-                        <p id="statCommandes">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>👤 Clients</h3>
-                        <p id="statClients">0</p>
-                    </div>
-                </div>
-                <div class="welcome-box">
-                    <p>✅ Bienvenue dans votre espace admin. Gérez vos produits, suivez vos commandes et vos clients.</p>
-                </div>
-            </section>
+           <!-- ========================================= -->
+<!-- SECTION : VUE D'ENSEMBLE                  -->
+<!-- ========================================= -->
+<section id="page-overview" class="page-section active">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-content">
+                <h3>Produits</h3>
+                <p id="statProducts">0</p>
+                <span class="stat-trend" id="trendProducts">+0%</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <h3>Ventes</h3>
+                <p id="statSales">0 FCFA</p>
+                <span class="stat-trend" id="trendSales">+0%</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-content">
+                <h3>Commandes</h3>
+                <p id="statCommandes">0</p>
+                <span class="stat-trend" id="trendCommandes">+0%</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👤</div>
+            <div class="stat-content">
+                <h3>Clients</h3>
+                <p id="statClients">0</p>
+                <span class="stat-trend" id="trendClients">+0%</span>
+            </div>
+        </div>
+    </div>
 
+    <!-- Dernières commandes -->
+    <div class="recent-orders">
+        <div class="section-header">
+            <h2>📋 Dernières commandes</h2>
+            <span class="badge-count" id="recentOrdersCount">0</span>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Client</th>
+                        <th>Total</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="recentOrdersList">
+                    <tr><td colspan="5" class="empty-msg">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
             <!-- ========================================= -->
             <!-- SECTION : COMMANDES (PLACEHOLDER)         -->
             <!-- ========================================= -->
