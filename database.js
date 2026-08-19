@@ -74,13 +74,13 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE PAYMENTS (product_id NULLABLE)
+        // TABLE PAYMENTS (product_id NULL, SANS FK)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS payments (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
-                product_id INTEGER,            -- ← NULL autorisé
+                product_id INTEGER,            -- NULL autorisé
                 reference TEXT UNIQUE NOT NULL,
                 amount INTEGER NOT NULL,
                 status TEXT DEFAULT 'pending',
@@ -88,30 +88,9 @@ async function initializeDatabase() {
                 commande_id INTEGER,
                 genius_reference TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id),
-                FOREIGN KEY (product_id) REFERENCES products(id)
+                FOREIGN KEY (user_id) REFERENCES users(id)
+                -- ✅ PAS DE FOREIGN KEY sur product_id
             )
-        `);
-
-        // ========================================================
-        // 🔧 FORCER product_id à NULL (migration)
-        // ========================================================
-
-        console.log('🔄 Migration: verification de product_id...');
-        await client.query(`
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name = 'payments' AND column_name = 'product_id' 
-                    AND is_nullable = 'NO'
-                ) THEN
-                    ALTER TABLE payments ALTER COLUMN product_id DROP NOT NULL;
-                    RAISE NOTICE '✅ product_id modifié (NULL autorisé)';
-                ELSE
-                    RAISE NOTICE 'ℹ️ product_id déjà NULL';
-                END IF;
-            END $$;
         `);
 
         // TABLE FRAIS_LIVRAISON
@@ -214,7 +193,7 @@ async function initializeDatabase() {
         console.log('   - products');
         console.log('   - users');
         console.log('   - panier');
-        console.log('   - payments (product_id NULL)');
+        console.log('   - payments (product_id NULL, sans FK)');
         console.log('   - frais_livraison');
         console.log('   - commandes');
         console.log('   - messages (ON DELETE CASCADE)');
