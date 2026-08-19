@@ -72,30 +72,52 @@ function renderCommandesTable() {
         'recuperee': '✅ Récupérée'
     };
 
-    tbody.innerHTML = filtered.map(c => `
-        <tr>
-            <td>#${c.id}</td>
-            <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
-            <td>${c.nom}</td>
-            <td>${(c.total || 0).toLocaleString()} FCFA</td>
-            <td><span class="status-badge ${c.status}">${statusLabels[c.status] || c.status}</span></td>
-            <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-            <td>
-                <button class="btn-action maps" onclick="openMaps(${c.latitude || ''}, ${c.longitude || ''}, ${c.id})" title="Voir sur Maps">
-                    <i class="fas fa-map-marker-alt"></i>
-                </button>
-                <button class="btn-action sync" onclick="syncCommande(${c.id})" title="Synchroniser">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Modifier statut">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Voir détails">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = filtered.map(c => {
+        // ✅ Déterminer les actions disponibles selon le statut
+        const status = c.status || 'en_attente';
+        
+        // ✅ Statuts "finaux" : plus d'actions
+        const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
+        
+        // ✅ Statuts "bloqués" : on ne peut plus revenir en arrière
+        const isBlocked = ['paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'].includes(status);
+        
+        // ✅ Actions disponibles
+        const showMaps = true;
+        const showSync = !isFinal && status !== 'paiement_effectue';
+        const showStatus = !isFinal;
+        const showDetail = true;
+
+        return `
+            <tr>
+                <td>#${c.id}</td>
+                <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
+                <td>${c.nom}</td>
+                <td>${(c.total || 0).toLocaleString()} FCFA</td>
+                <td><span class="status-badge ${status}">${statusLabels[status] || status}</span></td>
+                <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                <td>
+                    ${showMaps ? `<button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Voir sur Maps">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </button>` : ''}
+                    
+                    ${showSync ? `<button class="btn-action sync" onclick="syncCommande(${c.id})" title="Synchroniser">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>` : ''}
+                    
+                    ${showStatus ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Modifier statut">
+                        <i class="fas fa-edit"></i>
+                    </button>` : `<button class="btn-action status" style="opacity:0.4;cursor:not-allowed;" disabled title="Statut final">
+                        <i class="fas fa-lock"></i>
+                    </button>`}
+                    
+                    ${showDetail ? `<button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Voir détails">
+                        <i class="fas fa-eye"></i>
+                    </button>` : ''}
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // ==========================================
@@ -133,16 +155,22 @@ function openMaps(lat, lon, id) {
 }
 
 // ==========================================
-// BOUTON SYNC
+// BOUTON SYNC (CORRIGÉ)
 // ==========================================
 
 async function syncCommande(commandeId) {
     try {
-        const res = await fetch(`/api/payment/check/${commandeId}`);
+        const res = await fetch(`https://nature-plus-pay.onrender.com/api/payment/check/${commandeId}`);
+        
+        if (!res.ok) {
+            alert('⚠️ Service de paiement indisponible');
+            return;
+        }
+
         const data = await res.json();
 
         if (data.success && data.status === 'success') {
-            const updateRes = await fetch('/api/payment/update-status', {
+            const updateRes = await fetch('https://nature-plus-pay.onrender.com/api/payment/update-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
@@ -150,9 +178,15 @@ async function syncCommande(commandeId) {
             if (updateRes.ok) {
                 alert('✅ Paiement synchronisé !');
                 loadCommandes();
+            } else {
+                alert('⚠️ Erreur lors de la mise à jour');
             }
+        } else if (data.status === 'pending') {
+            alert('⏳ Paiement en attente...');
+        } else if (data.status === 'not_found') {
+            alert('ℹ️ Aucun paiement trouvé pour cette commande');
         } else {
-            alert('ℹ️ Aucun paiement trouvé ou paiement en attente.');
+            alert('ℹ️ Statut: ' + (data.status || 'inconnu'));
         }
     } catch (error) {
         console.error('Erreur sync:', error);
@@ -161,13 +195,61 @@ async function syncCommande(commandeId) {
 }
 
 // ==========================================
-// OVERLAY STATUT (modification)
+// OVERLAY STATUT (avec sécurisation)
 // ==========================================
 
 function openStatusOverlay(commandeId) {
+    const commande = allCommandes.find(c => c.id === commandeId);
+    if (!commande) {
+        alert('❌ Commande non trouvée');
+        return;
+    }
+
+    const currentStatus = commande.status || 'en_attente';
+    
+    // ✅ Déterminer les statuts disponibles selon le statut actuel
+    let availableStatuses = [];
+    
+    if (currentStatus === 'en_attente') {
+        availableStatuses = ['accepter', 'refuse'];
+    } else if (currentStatus === 'accepter') {
+        availableStatuses = ['paiement_effectue', 'refuse'];
+    } else if (currentStatus === 'paiement_effectue') {
+        availableStatuses = ['livraison_en_cours'];
+    } else if (currentStatus === 'livraison_en_cours') {
+        availableStatuses = ['disponible'];
+    } else if (currentStatus === 'disponible') {
+        availableStatuses = ['recuperee'];
+    } else {
+        // Statuts finaux : plus d'actions
+        alert('⚠️ Cette commande est dans un statut final. Aucune modification possible.');
+        return;
+    }
+
     currentCommandeId = commandeId;
     document.getElementById('statusCommandeId').textContent = commandeId;
-    document.getElementById('statusSelect').value = 'en_attente';
+    document.getElementById('statusClientInfo').textContent = 'Client: ' + commande.nom;
+    
+    // ✅ Remplir le select avec les statuts disponibles
+    const select = document.getElementById('statusSelect');
+    select.innerHTML = '';
+    
+    const statusLabels = {
+        'accepter': '💳 Paiement requis',
+        'refuse': '❌ Refusée',
+        'paiement_effectue': '💳 Payée',
+        'livraison_en_cours': '🚚 En cours',
+        'disponible': '📍 Disponible',
+        'recuperee': '✅ Récupérée'
+    };
+    
+    availableStatuses.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = statusLabels[s] || s;
+        select.appendChild(option);
+    });
+    
     document.getElementById('causeRefusGroup').style.display = 'none';
     document.getElementById('statusOverlay').classList.add('active');
 }
@@ -210,22 +292,23 @@ document.getElementById('saveStatusBtn').addEventListener('click', async functio
     }
 });
 
+document.getElementById('cancelStatusBtn').addEventListener('click', function() {
+    document.getElementById('statusOverlay').classList.remove('active');
+});
+
 // ==========================================
 // OVERLAY DÉTAIL COMMANDE
 // ==========================================
 
 async function openDetailOverlay(commandeId) {
     try {
-        const res = await fetch('/api/admin/commandes');
-        const data = await res.json();
-        const commande = data.find(c => c.id === commandeId);
+        const commande = allCommandes.find(c => c.id === commandeId);
 
         if (!commande) {
             alert('❌ Commande non trouvée');
             return;
         }
 
-        // Parser le panier
         let panier = [];
         try {
             panier = JSON.parse(commande.panier || '[]');
