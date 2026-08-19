@@ -69,126 +69,124 @@
                 </div>
             </header>
 
-           <!-- ========================================= -->
-<!-- SECTION : VUE D'ENSEMBLE                  -->
-<!-- ========================================= -->
-<section id="page-overview" class="page-section active">
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">📦</div>
-            <div class="stat-content">
-                <h3>Produits</h3>
-                <p id="statProducts">0</p>
-                <span class="stat-trend" id="trendProducts">+0%</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-content">
-                <h3>Ventes</h3>
-                <p id="statSales">0 FCFA</p>
-                <span class="stat-trend" id="trendSales">+0%</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📋</div>
-            <div class="stat-content">
-                <h3>Commandes</h3>
-                <p id="statCommandes">0</p>
-                <span class="stat-trend" id="trendCommandes">+0%</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">👤</div>
-            <div class="stat-content">
-                <h3>Clients</h3>
-                <p id="statClients">0</p>
-                <span class="stat-trend" id="trendClients">+0%</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dernières commandes -->
-    <div class="recent-orders">
-        <div class="section-header">
-            <h2>📋 Dernières commandes</h2>
-            <span class="badge-count" id="recentOrdersCount">0</span>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Client</th>
-                        <th>Total</th>
-                        <th>Statut</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody id="recentOrdersList">
-                    <tr><td colspan="5" class="empty-msg">Chargement...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
             <!-- ========================================= -->
-            <!-- SECTION : COMMANDES (PLACEHOLDER)         -->
+            <!-- SECTION : VUE D'ENSEMBLE                  -->
             <!-- ========================================= -->
+            <section id="page-overview" class="page-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-content">
+                            <h3>Produits</h3>
+                            <p id="statProducts">0</p>
+                            <span class="stat-trend" id="trendProducts">+0%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <h3>Ventes</h3>
+                            <p id="statSales">0 FCFA</p>
+                            <span class="stat-trend" id="trendSales">+0%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-content">
+                            <h3>Commandes</h3>
+                            <p id="statCommandes">0</p>
+                            <span class="stat-trend" id="trendCommandes">+0%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-content">
+                            <h3>Clients</h3>
+                            <p id="statClients">0</p>
+                            <span class="stat-trend" id="trendClients">+0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dernières commandes -->
+                <div class="recent-orders">
+                    <div class="section-header">
+                        <h2>📋 Dernières commandes</h2>
+                        <span class="badge-count" id="recentOrdersCount">0</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Client</th>
+                                    <th>Total</th>
+                                    <th>Statut</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersList">
+                                <tr><td colspan="5" class="empty-msg">Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- ========================================= -->
-<!-- SECTION : COMMANDES                       -->
-<!-- ========================================= -->
-<section id="page-commandes" class="page-section">
-    <div class="section-header">
-        <h2>📋 Commandes clients</h2>
-        <div style="display:flex;gap:10px;align-items:center;">
-            <span class="badge-commandes" id="commandesCount">0 commandes</span>
-            <button class="btn-refresh" id="refreshCommandesBtn" title="Rafraîchir">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-        </div>
-    </div>
+            <!-- SECTION : COMMANDES                       -->
+            <!-- ========================================= -->
+            <section id="page-commandes" class="page-section">
+                <div class="section-header">
+                    <h2>📋 Commandes clients</h2>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <span class="badge-commandes" id="commandesCount">0 commandes</span>
+                        <button class="btn-refresh" id="refreshCommandesBtn" title="Rafraîchir">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
 
-    <!-- Filtres -->
-    <div class="filters-bar">
-        <div class="filter-buttons" id="filterButtons">
-            <button class="filter-btn active" data-filter="all">📋 Tous</button>
-            <button class="filter-btn" data-filter="en_attente">⏳ En attente</button>
-            <button class="filter-btn" data-filter="accepter">💳 Paiement</button>
-            <button class="filter-btn" data-filter="paiement_effectue">💳 Payée</button>
-            <button class="filter-btn" data-filter="livraison_en_cours">🚚 En cours</button>
-            <button class="filter-btn" data-filter="disponible">📍 Disponible</button>
-            <button class="filter-btn" data-filter="recuperee">✅ Récupérée</button>
-            <button class="filter-btn" data-filter="refuse">❌ Refusée</button>
-            <button class="filter-btn" data-filter="annulee">❌ Annulée</button>
-        </div>
-        <div class="filter-search">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchCommande" placeholder="Rechercher (client, ID, référence...)">
-            <span id="filterCount">0 commandes</span>
-        </div>
-    </div>
+                <!-- Filtres -->
+                <div class="filters-bar">
+                    <div class="filter-buttons" id="filterButtons">
+                        <button class="filter-btn active" data-filter="all">📋 Tous</button>
+                        <button class="filter-btn" data-filter="en_attente">⏳ En attente</button>
+                        <button class="filter-btn" data-filter="accepter">💳 Paiement</button>
+                        <button class="filter-btn" data-filter="paiement_effectue">💳 Payée</button>
+                        <button class="filter-btn" data-filter="livraison_en_cours">🚚 En cours</button>
+                        <button class="filter-btn" data-filter="disponible">📍 Disponible</button>
+                        <button class="filter-btn" data-filter="recuperee">✅ Récupérée</button>
+                        <button class="filter-btn" data-filter="refuse">❌ Refusée</button>
+                        <button class="filter-btn" data-filter="annulee">❌ Annulée</button>
+                    </div>
+                    <div class="filter-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchCommande" placeholder="Rechercher (client, ID, référence...)">
+                        <span id="filterCount">0 commandes</span>
+                    </div>
+                </div>
 
-    <!-- Tableau -->
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Référence</th>
-                    <th>Client</th>
-                    <th>Total</th>
-                    <th>Statut</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="commandesList">
-                <tr><td colspan="7" class="empty-msg">Chargement des commandes...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</section>
+                <!-- Tableau -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Référence</th>
+                                <th>Client</th>
+                                <th>Total</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commandesList">
+                            <tr><td colspan="7" class="empty-msg">Chargement des commandes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- ========================================= -->
             <!-- SECTION : PAIEMENTS (PLACEHOLDER)         -->
@@ -270,9 +268,58 @@
         </main>
     </div>
 
-    <!-- ===== SCRIPTS (chargés un par un) ===== -->
+    <!-- ===== OVERLAY STATUT ===== -->
+    <div class="status-overlay" id="statusOverlay">
+        <div class="status-box">
+            <div class="box-header">
+                <h3>📋 Modifier le statut</h3>
+                <button class="close-btn" id="closeStatusOverlay"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="status-content">
+                <div class="form-group">
+                    <label>Commande #<span id="statusCommandeId">-</span></label>
+                    <p id="statusClientInfo" style="font-size:14px;color:#888;margin-bottom:12px;">Client: -</p>
+                </div>
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select id="statusSelect">
+                        <option value="en_attente">⏳ En attente</option>
+                        <option value="accepter">💳 Paiement requis</option>
+                        <option value="refuse">❌ Refusée</option>
+                        <option value="paiement_effectue">💳 Payée</option>
+                        <option value="livraison_en_cours">🚚 En cours</option>
+                        <option value="disponible">📍 Disponible</option>
+                        <option value="recuperee">✅ Récupérée</option>
+                    </select>
+                </div>
+                <div class="form-group" id="causeRefusGroup" style="display:none;">
+                    <label>Cause du refus</label>
+                    <textarea id="causeRefus" placeholder="Expliquez la raison du refus..." rows="3"></textarea>
+                </div>
+                <div class="status-actions">
+                    <button class="btn-cancel" id="cancelStatusBtn">Annuler</button>
+                    <button class="btn-save" id="saveStatusBtn">💾 Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY DÉTAIL COMMANDE ===== -->
+    <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-box">
+            <div class="box-header">
+                <h3>📦 Détail de la commande</h3>
+                <button class="close-btn" id="closeDetailOverlay"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="detail-content" id="detailContent">
+                <p style="color:#888;text-align:center;padding:20px;">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
     <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/commandes.js"></script>
-    <!-- Les JS spécifiques seront ajoutés au fur et à mesure -->
+    <!-- Les autres JS seront ajoutés au fur et à mesure -->
 </body>
 </html>
