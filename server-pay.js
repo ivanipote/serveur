@@ -84,7 +84,7 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
-        const paymentRef = reference || `PAY-${commandeId}-${Date.now()}`;
+      const paymentRef = `PAY-${commandeId}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
