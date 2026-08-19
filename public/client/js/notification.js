@@ -62,55 +62,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
-                // Recharger les notifications
                 loadNotifications();
-                // Afficher un toast
-                showToast(data.message || 'Nouvelle notification', 'info');
             });
 
         } catch (error) {
             console.error('❌ Erreur connexion Socket.IO:', error);
             setTimeout(() => connectSocketIO(), 5000);
         }
-    }
-
-    // ==========================================
-    // TOAST
-    // ==========================================
-
-    function showToast(message, type = 'success') {
-        const colors = {
-            success: '#28a745',
-            error: '#dc3545',
-            warning: '#e67e22',
-            info: '#1a2a6c'
-        };
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${colors[type] || '#28a745'};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 15px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            z-index: 999;
-            text-align: center;
-            max-width: 90%;
-            animation: slideUp 0.3s ease;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.transition = 'all 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 2800);
     }
 
     // ==========================================
@@ -138,24 +96,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // DATE RELATIVE
+    // DATE RELATIVE (AFFICHE L'HEURE RÉELLE)
     // ==========================================
 
     function timeAgo(dateString) {
-        const now = new Date();
         const date = new Date(dateString);
+        const now = new Date();
         const diffMs = now - date;
         const diffSec = Math.floor(diffMs / 1000);
         const diffMin = Math.floor(diffSec / 60);
         const diffHour = Math.floor(diffMin / 60);
         const diffDay = Math.floor(diffHour / 24);
 
-        if (diffSec < 60) return 'à l\'instant';
-        if (diffMin < 60) return `il y a ${diffMin} min`;
-        if (diffHour < 24) return `il y a ${diffHour}h`;
-        if (diffDay === 1) return 'hier';
-        if (diffDay < 7) return `il y a ${diffDay} jours`;
-        return date.toLocaleDateString('fr-FR');
+        // Moins d'1 minute
+        if (diffSec < 60) return 'À l\'instant';
+        
+        // Moins d'1 heure
+        if (diffMin < 60) return `Il y a ${diffMin} min`;
+        
+        // Aujourd'hui (moins de 24h) → afficher l'heure
+        if (diffHour < 24) {
+            const heures = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `Aujourd'hui ${heures}:${minutes}`;
+        }
+        
+        // Moins de 7 jours → afficher le jour + heure
+        if (diffDay < 7) {
+            const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            const heures = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${jours[date.getDay()]} ${heures}:${minutes}`;
+        }
+        
+        // Plus de 7 jours → date complète
+        return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     }
 
     // ==========================================
@@ -327,7 +302,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function attachEvents() {
-        // Marquer comme lu
         document.querySelectorAll('.btn-read:not(.already)').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -336,7 +310,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Supprimer
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -346,7 +319,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Clic sur la carte → marquer comme lu
         document.querySelectorAll('.notif-card.unread').forEach(card => {
             card.addEventListener('click', function() {
                 const id = this.dataset.id;
@@ -356,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // MARQUER COMME LU
+    // MARQUER COMME LU (SANS TOAST)
     // ==========================================
 
     async function markAsRead(id) {
@@ -370,14 +342,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (notif) notif.is_read = 1;
                 renderNotifications();
                 updateBadge();
-                showToast('✅ Notification marquée comme lue');
             } else {
                 console.error('Erreur:', data);
-                showToast('❌ Erreur lors de la mise à jour', 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -401,14 +370,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderNotifications();
                     updateBadge();
                 }
-                showToast('🗑️ Notification supprimée');
             } else {
                 console.error('Erreur:', data);
-                showToast('❌ Erreur lors de la suppression', 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -446,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TOUT MARQUER COMME LU
+    // TOUT MARQUER COMME LU (SANS TOAST)
     // ==========================================
 
     readAllBtn.addEventListener('click', async function() {
@@ -454,10 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const unreadCount = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
 
-        if (unreadCount === 0) {
-            showToast('✅ Toutes vos notifications sont déjà lues', 'info');
-            return;
-        }
+        if (unreadCount === 0) return;
 
         try {
             const res = await fetch('/api/notifications/read-all', {
@@ -470,14 +433,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifications.forEach(n => n.is_read = 1);
                 renderNotifications();
                 updateBadge();
-                showToast(`✅ ${unreadCount} notification(s) marquée(s) comme lues`);
             } else {
                 console.error('Erreur:', data);
-                showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     });
 
