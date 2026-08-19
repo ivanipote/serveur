@@ -34,7 +34,7 @@ console.log('🔑 Mode: SANDBOX');
 console.log('🔔 Webhook Secret:', WEBHOOK_SECRET ? '✅ Chargé' : '❌ Non');
 
 // ========================================================
-// 🆕 ROUTE HEALTH (pour Render)
+// ROUTE HEALTH (pour Render)
 // ========================================================
 
 app.get('/health', (req, res) => {
@@ -86,7 +86,7 @@ app.post('/api/payment/create', async (req, res) => {
     try {
         const paymentRef = reference || `PAY-${commandeId}-${Date.now()}`;
 
-        // 🔹 RÉCUPÉRER L'USER_ID DE LA COMMANDE
+        // Récupérer l'user_id de la commande
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
 
@@ -98,7 +98,7 @@ app.post('/api/payment/create', async (req, res) => {
                 phone: cleanPhone
             },
             method: 'WAVE',
-            // 🔹 À MODIFIER AVEC L'URL RENDER
+            // ✅ URLs de retour vers Render
             successUrl: `https://nature-plus-client.onrender.com/payment-success?commande_id=${commandeId}`,
             errorUrl: `https://nature-plus-client.onrender.com/payment-failed?commande_id=${commandeId}`
         };
@@ -118,7 +118,6 @@ app.post('/api/payment/create', async (req, res) => {
         const geniusReference = paymentData.data?.reference || paymentData.reference || `GENUS_${Date.now()}`;
         const checkoutUrl = paymentData.data?.checkout_url || paymentData.checkout_url || null;
 
-        // 🔹 INSÉRER LE PAIEMENT AVEC USER_ID
         await db.query(
             `INSERT INTO payments (user_id, product_id, reference, genius_reference, amount, status, checkout_url, commande_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -126,7 +125,6 @@ app.post('/api/payment/create', async (req, res) => {
         );
         console.log('✅ Payment enregistré');
 
-        // 🔹 METTRE À JOUR LE STATUT DE LA COMMANDE
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['paiement_en_cours', commandeId]
@@ -253,7 +251,6 @@ app.get('/api/payment/check/:reference', async (req, res) => {
         return res.status(400).json({ error: 'Référence requise.' });
     }
 
-    // Si la référence est un nombre (ID de commande)
     if (/^\d+$/.test(reference)) {
         try {
             const row = await db.get('SELECT * FROM payments WHERE commande_id = $1', [reference]);
@@ -270,7 +267,6 @@ app.get('/api/payment/check/:reference', async (req, res) => {
         }
     }
 
-    // Sinon, vérifier chez Genius Pay
     try {
         const response = await axios.get(
             `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
@@ -443,31 +439,79 @@ async function handlePaymentSuccess(data) {
     }
 
     try {
-        // Mettre à jour le paiement
+        // 1. Récupérer la commande
+        const commande = await db.get('SELECT * FROM commandes WHERE id = $1', [orderId]);
+
+        if (!commande) {
+            console.error(`❌ Commande #${orderId} non trouvée`);
+            return;
+        }
+
+        // 2. Récupérer le panier
+        let panier = [];
+        try {
+            panier = JSON.parse(commande.panier);
+        } catch (e) {
+            console.error('❌ Erreur parsing panier:', e);
+            return;
+        }
+
+        // 3. Vérifier et déduire le stock pour chaque produit
+        for (const item of panier) {
+            const productId = item.product_id || item.id;
+            const quantity = item.quantity || 1;
+
+            // Vérifier le stock actuel
+            const product = await db.get('SELECT quantity FROM products WHERE id = $1', [productId]);
+
+            if (!product) {
+                console.error(`❌ Produit #${productId} non trouvé`);
+                continue;
+            }
+
+            if (product.quantity < quantity) {
+                console.error(`❌ Stock insuffisant pour produit #${productId}: ${product.quantity} < ${quantity}`);
+                // Option: annuler la commande ou notifier l'admin
+                continue;
+            }
+
+            // Déduire le stock
+            await db.query(
+                'UPDATE products SET quantity = quantity - $1 WHERE id = $2',
+                [quantity, productId]
+            );
+            console.log(`✅ Stock déduit: produit #${productId} (-${quantity})`);
+        }
+
+        // 4. Mettre à jour le paiement
         await db.query(
             `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
             ['success', reference]
         );
         console.log(`✅ Payment ${reference} : statut -> success`);
 
-        // Mettre à jour la commande
+        // 5. Mettre à jour la commande
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['payee', orderId]
         );
         console.log(`✅ Commande #${orderId} : statut -> payee`);
 
-        // Créer une notification
-        const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
-        if (commande) {
+        // 6. Créer une notification pour le client
+        const user = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
+        if (user) {
             await createNotification(
-                commande.user_id,
+                user.user_id,
                 orderId,
                 'paiement',
                 '💳 Paiement réussi',
                 `Le paiement de ${amount ? amount.toLocaleString() + ' FCFA' : ''} pour la commande #${orderId} a été confirmé.`
             );
         }
+
+        // 7. Notifier l'admin (via console ou système)
+        console.log(`📢 ADMIN: Paiement réussi pour la commande #${orderId} - Montant: ${amount} FCFA`);
+
     } catch (err) {
         console.error('❌ Erreur traitement payment.success:', err);
     }
@@ -502,6 +546,9 @@ async function handlePaymentFailed(data) {
                 `Le paiement pour la commande #${orderId} a échoué. Veuillez réessayer.`
             );
         }
+
+        console.log(`📢 ADMIN: Paiement échoué pour la commande #${orderId}`);
+
     } catch (err) {
         console.error('❌ Erreur traitement payment.failed:', err);
     }
@@ -525,6 +572,9 @@ async function handlePaymentCancelled(data) {
             `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
             ['annulee', 'Paiement annulé', orderId]
         );
+
+        console.log(`📢 ADMIN: Paiement annulé pour la commande #${orderId}`);
+
     } catch (err) {
         console.error('❌ Erreur traitement payment.cancelled:', err);
     }
@@ -555,6 +605,9 @@ async function handlePaymentRefunded(data) {
                 `Le remboursement de ${amount ? amount.toLocaleString() + ' FCFA' : ''} pour la commande #${orderId} a été effectué.`
             );
         }
+
+        console.log(`📢 ADMIN: Remboursement effectué pour la commande #${orderId}`);
+
     } catch (err) {
         console.error('❌ Erreur traitement payment.refunded:', err);
     }
