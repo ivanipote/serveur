@@ -93,6 +93,27 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
+        // 🔧 FORCER product_id à NULL (migration)
+        // ========================================================
+
+        console.log('🔄 Migration: verification de product_id...');
+        await client.query(`
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'payments' AND column_name = 'product_id' 
+                    AND is_nullable = 'NO'
+                ) THEN
+                    ALTER TABLE payments ALTER COLUMN product_id DROP NOT NULL;
+                    RAISE NOTICE '✅ product_id modifié (NULL autorisé)';
+                ELSE
+                    RAISE NOTICE 'ℹ️ product_id déjà NULL';
+                END IF;
+            END $$;
+        `);
+
         // TABLE FRAIS_LIVRAISON
         await client.query(`
             CREATE TABLE IF NOT EXISTS frais_livraison (
@@ -103,9 +124,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // ========================================================
         // TABLE COMMANDES
-        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS commandes (
                 id SERIAL PRIMARY KEY,
@@ -131,9 +150,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // ========================================================
         // TABLE MESSAGES (avec ON DELETE CASCADE)
-        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
