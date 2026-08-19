@@ -11,6 +11,8 @@ body {
     display: flex;
     flex-direction: column;
     padding-top: 76px;
+    overflow: hidden;
+    height: 100vh;
 }
 
 /* ===== HEADER ===== */
@@ -160,14 +162,17 @@ body {
 /* ===== CONTENU ===== */
 .notif-main {
     flex: 1;
-    padding: 16px 20px;
+    padding: 16px 20px 20px 20px;
     overflow-y: auto;
     max-width: 700px;
     width: 100%;
     margin: 0 auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* ===== SKELETON LOADER ===== */
+/* ==========================================
+   SKELETON LOADER
+   ========================================== */
 .skeleton-loader {
     display: flex;
     flex-direction: column;
@@ -177,15 +182,32 @@ body {
 .skeleton-item {
     background: white;
     border-radius: 16px;
-    padding: 18px 20px;
+    padding: 16px 18px;
     border: 1px solid #f0f0f5;
     display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.skeleton-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.skeleton-body {
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .skeleton-line {
-    height: 18px;
+    height: 16px;
     background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
     background-size: 200% 100%;
     border-radius: 8px;
@@ -194,7 +216,7 @@ body {
 
 .skeleton-line.short {
     width: 60%;
-    height: 14px;
+    height: 12px;
 }
 
 @keyframes shimmer {
@@ -202,16 +224,20 @@ body {
     100% { background-position: 200% 0; }
 }
 
-/* ===== NOTIFICATION CARD ===== */
+/* ==========================================
+   NOTIFICATION CARD - STYLE CARTE 2 (avec avatar)
+   ========================================== */
 .notif-card {
     background: white;
     border-radius: 16px;
     padding: 16px 18px;
-    margin-bottom: 10px;
     border: 1px solid #f0f0f5;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
     transition: all 0.3s;
-    cursor: pointer;
+    margin-bottom: 10px;
     position: relative;
 }
 
@@ -221,80 +247,94 @@ body {
 }
 
 .notif-card.unread {
+    background: #fdfaf5;
     border-left: 4px solid #e67e22;
-    background: #fdf8f3;
 }
 
 .notif-card.read {
     border-left: 4px solid #2d7d46;
-    opacity: 0.7;
+    opacity: 0.75;
 }
 
-.notif-card .notif-header-card {
+/* Avatar */
+.notif-card .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2d7d46, #1a5a33);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
-    gap: 8px;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
-.notif-card .notif-title-card {
+/* Corps */
+.notif-card .body {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-card .body .title {
     font-size: 15px;
     font-weight: 700;
     color: #1a1a2e;
 }
 
-.notif-card .notif-type {
+.notif-card .body .content {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-top: 2px;
+}
+
+.notif-card .body .date {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+/* Tag type */
+.notif-card .body .type-tag {
+    display: inline-block;
     font-size: 11px;
     font-weight: 600;
     padding: 2px 12px;
     border-radius: 20px;
-    background: #e8e8f0;
-    color: #888;
-    flex-shrink: 0;
+    margin-top: 6px;
 }
 
-.notif-card .notif-type.commande {
+.notif-card .body .type-tag.commande {
     background: #cce5ff;
     color: #004085;
 }
 
-.notif-card .notif-type.paiement {
+.notif-card .body .type-tag.paiement {
     background: #c3e6cb;
     color: #0b5e2e;
 }
 
-.notif-card .notif-type.admin {
+.notif-card .body .type-tag.admin {
     background: #d1ecf1;
     color: #0c5460;
 }
 
-.notif-card .notif-type.systeme {
+.notif-card .body .type-tag.systeme {
     background: #fff3cd;
     color: #856404;
 }
 
-.notif-card .notif-content {
-    font-size: 14px;
-    color: #555;
-    line-height: 1.5;
-}
-
-.notif-card .notif-date {
-    font-size: 12px;
-    color: #aaa;
-    margin-top: 6px;
-}
-
-.notif-card .notif-actions {
+/* Actions */
+.notif-card .actions {
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 6px;
+    margin-top: 8px;
     flex-wrap: wrap;
 }
 
-.notif-card .notif-actions button {
-    padding: 6px 16px;
+.notif-card .actions button {
+    padding: 5px 14px;
     border: none;
     border-radius: 20px;
     font-size: 12px;
@@ -303,37 +343,39 @@ body {
     transition: all 0.3s;
 }
 
-.btn-mark-read {
+.notif-card .actions .btn-mark-read {
     background: #2d7d46;
     color: white;
 }
 
-.btn-mark-read:hover {
+.notif-card .actions .btn-mark-read:hover {
     background: #1a5a33;
-    transform: scale(1.02);
+    transform: scale(1.03);
 }
 
-.btn-mark-read.read {
+.notif-card .actions .btn-mark-read.read {
     background: #e8e8f0;
     color: #888;
     cursor: default;
 }
 
-.btn-mark-read.read:hover {
+.notif-card .actions .btn-mark-read.read:hover {
     transform: none;
 }
 
-.btn-delete-notif {
+.notif-card .actions .btn-delete {
     background: #e74c3c;
     color: white;
 }
 
-.btn-delete-notif:hover {
+.notif-card .actions .btn-delete:hover {
     background: #c0392b;
-    transform: scale(1.02);
+    transform: scale(1.03);
 }
 
-/* ===== OVERLAY CONFIRMATION ===== */
+/* ==========================================
+   OVERLAY CONFIRMATION
+   ========================================== */
 .confirm-overlay {
     position: fixed;
     top: 0;
@@ -427,7 +469,14 @@ body {
     background: #c0392b;
 }
 
-/* ===== EMPTY STATE ===== */
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -463,18 +512,14 @@ body {
     background: #1a5a33;
 }
 
-/* ===== ANIMATIONS ===== */
-@keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-/* ===== RESPONSIVE ===== */
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 @media (max-width: 600px) {
-    body { padding-top: 66px; }
+    body { padding-top: 60px; }
 
     .notif-header {
-        padding: 10px 14px;
+        padding: 8px 14px;
         gap: 8px;
         height: 60px;
         min-height: 60px;
@@ -482,7 +527,7 @@ body {
     }
 
     .back-btn { width: 36px; height: 36px; font-size: 16px; }
-    .notif-title { font-size: 16px; }
+    .notif-title { font-size: 15px; }
     .badge-count { font-size: 11px; padding: 3px 10px; }
     .btn-read-all { font-size: 11px; padding: 4px 12px; }
 
@@ -496,12 +541,13 @@ body {
 
     .notif-main { padding: 12px 14px; }
 
-    .notif-card { padding: 14px 16px; }
-    .notif-card .notif-title-card { font-size: 14px; }
-    .notif-card .notif-content { font-size: 13px; }
+    .notif-card { padding: 14px 16px; gap: 12px; }
+    .notif-card .avatar { width: 36px; height: 36px; font-size: 14px; }
+    .notif-card .body .title { font-size: 14px; }
+    .notif-card .body .content { font-size: 13px; }
 
-    .notif-actions { flex-direction: column; }
-    .notif-actions button { width: 100%; justify-content: center; }
+    .notif-card .actions { flex-direction: row; flex-wrap: wrap; }
+    .notif-card .actions button { font-size: 11px; padding: 4px 12px; }
 
     .confirm-box { padding: 24px 18px 20px 18px; }
     .confirm-box h3 { font-size: 18px; }
@@ -509,21 +555,25 @@ body {
 }
 
 @media (max-width: 400px) {
+    body { padding-top: 54px; }
+
     .notif-header {
-        padding: 8px 10px;
+        padding: 6px 10px;
         gap: 6px;
         height: 54px;
         min-height: 54px;
         max-height: 54px;
+        border-bottom-left-radius: 14px;
+        border-bottom-right-radius: 14px;
     }
 
     .back-btn { width: 32px; height: 32px; font-size: 14px; }
-    .notif-title { font-size: 14px; }
+    .notif-title { font-size: 13px; }
     .badge-count { font-size: 10px; padding: 2px 8px; }
     .btn-read-all { font-size: 10px; padding: 3px 10px; }
 
     .filter-bar {
-        padding: 8px 8px;
+        padding: 6px 8px;
         gap: 4px;
         top: 54px;
     }
@@ -532,9 +582,13 @@ body {
 
     .notif-main { padding: 8px 8px; }
 
-    .notif-card { padding: 12px 12px; }
-    .notif-card .notif-title-card { font-size: 13px; }
-    .notif-card .notif-content { font-size: 12px; }
+    .notif-card { padding: 12px 12px; gap: 10px; border-radius: 12px; }
+    .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
+    .notif-card .body .title { font-size: 13px; }
+    .notif-card .body .content { font-size: 12px; }
+    .notif-card .body .date { font-size: 10px; }
+
+    .notif-card .actions button { font-size: 10px; padding: 3px 10px; }
 
     .empty-state i { font-size: 40px; }
     .empty-state h3 { font-size: 17px; }

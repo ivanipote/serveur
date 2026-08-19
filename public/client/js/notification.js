@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS
+    // RENDRE LES NOTIFICATIONS (style carte 2)
     // ==========================================
 
     function renderNotifications() {
@@ -131,6 +131,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const dateStr = timeAgo(n.created_at);
 
+            // Avatar: lettre ou icône
+            const avatarIcon = getAvatarIcon(n.type);
+
             let actionHtml = '';
             if (isUnread) {
                 actionHtml = `
@@ -146,23 +149,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
-            const commandeLink = n.commande_id ?
-                `data-commande="${n.commande_id}"` :
-                '';
-
             html += `
-                <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}" ${commandeLink}>
-                    <div class="notif-header-card">
-                        <span class="notif-title-card">${n.title || 'Notification'}</span>
-                        <span class="notif-type ${typeClass}">${typeLabel}</span>
-                    </div>
-                    <div class="notif-content">${n.content || 'Aucun contenu'}</div>
-                    <div class="notif-date">${dateStr}</div>
-                    <div class="notif-actions">
-                        ${actionHtml}
-                        <button class="btn-delete-notif" data-id="${n.id}">
-                            <i class="fas fa-trash-alt"></i> Supprimer
-                        </button>
+                <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
+                    <div class="avatar">${avatarIcon}</div>
+                    <div class="body">
+                        <div class="title">${n.title || 'Notification'}</div>
+                        <div class="content">${n.content || 'Aucun contenu'}</div>
+                        <div class="date">${dateStr}</div>
+                        <span class="type-tag ${typeClass}">${typeLabel}</span>
+                        <div class="actions">
+                            ${actionHtml}
+                            <button class="btn-delete" data-id="${n.id}">
+                                <i class="fas fa-trash-alt"></i> Supprimer
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -170,6 +170,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         mainContent.innerHTML = html;
         attachEvents();
+    }
+
+    // ==========================================
+    // AVATAR PAR TYPE
+    // ==========================================
+
+    function getAvatarIcon(type) {
+        const icons = {
+            'commande': '📦',
+            'paiement': '💳',
+            'admin': '📢',
+            'systeme': '⚙️'
+        };
+        return icons[type] || '🌿';
     }
 
     // ==========================================
@@ -203,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Supprimer
-        document.querySelectorAll('.btn-delete-notif').forEach(btn => {
+        document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const id = this.dataset.id;
@@ -212,20 +226,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Clic sur la carte → rediriger vers commande
-        document.querySelectorAll('.notif-card').forEach(card => {
+        // Clic sur la carte → marquer comme lu
+        document.querySelectorAll('.notif-card.unread').forEach(card => {
             card.addEventListener('click', function() {
-                const commandeId = this.dataset.commande;
-                if (commandeId) {
-                    window.location.href = `/detailcom?id=${commandeId}`;
-                } else {
-                    // Si pas de commande, marquer comme lu
-                    const id = this.dataset.id;
-                    const isUnread = this.classList.contains('unread');
-                    if (isUnread) {
-                        markAsRead(id);
-                    }
-                }
+                const id = this.dataset.id;
+                markAsRead(id);
             });
         });
     }
@@ -323,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const unreadCount = notifications.filter(n => n.is_read === 0).length;
         if (unreadCount === 0) {
-            // Toast ou message silencieux
             return;
         }
 
