@@ -20,27 +20,57 @@ document.addEventListener('DOMContentLoaded', function() {
     let userId = null;
     let currentFilter = 'all';
     let deleteTargetId = null;
+    let socket = null;
+    let isSocketConnected = false;
 
     // ==========================================
-    // VÉRIFICATION CONNEXION
+    // SOCKET.IO - Connexion
     // ==========================================
 
-    async function checkAuth() {
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        console.log('🔌 Connexion Socket.IO client (notification)...');
+
         try {
-            const res = await fetch('/api/client/me');
-            const data = await res.json();
-            if (data.success) {
-                userId = data.user.id;
-                console.log('👤 Utilisateur connecté:', data.user);
-                return true;
-            } else {
-                window.location.href = '/login';
-                return false;
-            }
+            const userIdLocal = localStorage.getItem('userId') || '1';
+
+            socket = io({
+                auth: {
+                    userId: parseInt(userIdLocal),
+                    isAdmin: false
+                }
+            });
+
+            socket.on('connect', function() {
+                console.log('✅ Socket.IO client notification connecté');
+                isSocketConnected = true;
+            });
+
+            socket.on('disconnect', function() {
+                console.log('❌ Socket.IO client notification déconnecté');
+                isSocketConnected = false;
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectSocketIO();
+                    }
+                }, 3000);
+            });
+
+            socket.on('notification', function(data) {
+                console.log('🔔 Notification reçue (client):', data);
+                // Recharger les notifications
+                loadNotifications();
+                // Afficher un toast
+                showToast(data.message || 'Nouvelle notification', 'info');
+            });
+
         } catch (error) {
-            console.error('❌ Erreur vérification auth:', error);
-            window.location.href = '/login';
-            return false;
+            console.error('❌ Erreur connexion Socket.IO:', error);
+            setTimeout(() => connectSocketIO(), 5000);
         }
     }
 
@@ -84,6 +114,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // VÉRIFICATION CONNEXION
+    // ==========================================
+
+    async function checkAuth() {
+        try {
+            const res = await fetch('/api/client/me');
+            const data = await res.json();
+            if (data.success) {
+                userId = data.user.id;
+                localStorage.setItem('userId', data.user.id);
+                console.log('👤 Utilisateur connecté:', data.user);
+                return true;
+            } else {
+                window.location.href = '/login';
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Erreur vérification auth:', error);
+            window.location.href = '/login';
+            return false;
+        }
+    }
+
+    // ==========================================
     // DATE RELATIVE
     // ==========================================
 
@@ -116,6 +170,46 @@ document.addEventListener('DOMContentLoaded', function() {
             'systeme': '⚙️'
         };
         return icons[type] || '🌿';
+    }
+
+    function getAvatarClass(type) {
+        const classes = {
+            'commande': 'commande',
+            'paiement': 'paiement',
+            'admin': 'admin',
+            'systeme': 'systeme'
+        };
+        return classes[type] || 'systeme';
+    }
+
+    function getBadgeClass(type) {
+        const classes = {
+            'commande': 'commande',
+            'paiement': 'paiement',
+            'admin': 'admin',
+            'systeme': 'systeme'
+        };
+        return classes[type] || 'systeme';
+    }
+
+    function getContentClass(type) {
+        const classes = {
+            'commande': 'commande',
+            'paiement': 'paiement',
+            'admin': 'admin',
+            'systeme': 'systeme'
+        };
+        return classes[type] || 'systeme';
+    }
+
+    function getTypeLabel(type) {
+        const labels = {
+            'commande': '📦 Commande',
+            'paiement': '💳 Paiement',
+            'admin': '📢 Admin',
+            'systeme': '⚙️ Système'
+        };
+        return labels[type] || type;
     }
 
     // ==========================================
@@ -172,49 +266,37 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         filtered.forEach(n => {
-            // 🔴 VÉRIFICATION : is_read doit être 0 ou 1
             const isUnread = n.is_read === 0 || n.is_read === false;
             const typeClass = n.type || 'systeme';
-            const typeLabels = {
-                'commande': '📦 Commande',
-                'paiement': '💳 Paiement',
-                'admin': '📢 Admin',
-                'systeme': '⚙️ Système'
-            };
-            const typeLabel = typeLabels[typeClass] || typeClass;
+            const typeLabel = getTypeLabel(n.type);
             const dateStr = timeAgo(n.created_at);
             const avatarIcon = getAvatarIcon(n.type);
-
-            // ✅ BOUTON "Marquer comme lu" : ACTIF si non lu
-            let actionHtml = '';
-            if (isUnread) {
-                actionHtml = `
-                    <button class="btn-mark-read" data-id="${n.id}">
-                        <i class="fas fa-check"></i> Marquer comme lu
-                    </button>
-                `;
-            } else {
-                actionHtml = `
-                    <button class="btn-mark-read read" disabled>
-                        <i class="fas fa-check"></i> Lu
-                    </button>
-                `;
-            }
+            const avatarClass = getAvatarClass(n.type);
+            const badgeClass = getBadgeClass(n.type);
+            const contentClass = getContentClass(n.type);
 
             html += `
                 <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
-                    <div class="avatar">${avatarIcon}</div>
+                    <div class="avatar ${avatarClass}">${avatarIcon}</div>
                     <div class="body">
                         <div class="title">${n.title || 'Notification'}</div>
-                        <div class="content">${n.content || 'Aucun contenu'}</div>
+                        <div class="content ${contentClass}">${n.content || 'Aucun contenu'}</div>
                         <div class="date">${dateStr}</div>
-                        <span class="type-tag ${typeClass}">${typeLabel}</span>
-                        <div class="actions">
-                            ${actionHtml}
-                            <button class="btn-delete" data-id="${n.id}">
-                                <i class="fas fa-trash-alt"></i> Supprimer
+                        <span class="badge-type ${badgeClass}">${typeLabel}</span>
+                    </div>
+                    <div class="header-actions">
+                        ${isUnread ? `
+                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                                <i class="fas fa-check"></i>
                             </button>
-                        </div>
+                        ` : `
+                            <button class="btn btn-read already" disabled title="Déjà lu">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `}
+                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -246,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function attachEvents() {
         // Marquer comme lu
-        document.querySelectorAll('.btn-mark-read:not(.read)').forEach(btn => {
+        document.querySelectorAll('.btn-read:not(.already)').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const id = this.dataset.id;
@@ -364,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TOUT MARQUER COMME LU (CORRIGÉ)
+    // TOUT MARQUER COMME LU
     // ==========================================
 
     readAllBtn.addEventListener('click', async function() {
@@ -434,6 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isAuth) return;
 
             await loadNotifications();
+            connectSocketIO();
             console.log('✅ Initialisation terminée');
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation:', error);

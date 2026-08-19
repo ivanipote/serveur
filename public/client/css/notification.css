@@ -170,9 +170,9 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* ==========================================
-   SKELETON LOADER
-   ========================================== */
+/* ========================================== */
+/* SKELETON LOADER                            */
+/* ========================================== */
 .skeleton-loader {
     display: flex;
     flex-direction: column;
@@ -224,38 +224,30 @@ body {
     100% { background-position: 200% 0; }
 }
 
-/* ==========================================
-   NOTIFICATION CARD - BLANCHE SANS BORDURE COLORÉE
-   ========================================== */
+/* ========================================== */
+/* CARTE NOTIFICATION - Blanche               */
+/* ========================================== */
+
 .notif-card {
     background: white;
     border-radius: 16px;
-    padding: 16px 18px;
-    border: 1px solid #f0f0f5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 16px 18px 14px 18px;
+    border: 1px solid #e8ecf4;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s;
     display: flex;
     gap: 14px;
     align-items: flex-start;
-    transition: all 0.3s;
-    margin-bottom: 10px;
+    position: relative;
+    margin-bottom: 12px;
 }
 
 .notif-card:hover {
-    border-color: #d0d0da;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
-/* Pas de bordure colorée, juste une ombre légère pour les non lues */
-.notif-card.unread {
-    background: #ffffff;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-}
-
-.notif-card.read {
-    opacity: 0.75;
-}
-
-/* Avatar */
+/* --- Avatar / Icône --- */
 .notif-card .avatar {
     width: 44px;
     height: 44px;
@@ -264,12 +256,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555;
     font-size: 18px;
     flex-shrink: 0;
+    color: #555;
 }
 
-/* Corps */
+/* --- Corps --- */
 .notif-card .body {
     flex: 1;
     min-width: 0;
@@ -283,7 +275,6 @@ body {
 
 .notif-card .body .content {
     font-size: 14px;
-    color: #555;
     line-height: 1.5;
     margin-top: 2px;
 }
@@ -294,67 +285,100 @@ body {
     margin-top: 4px;
 }
 
-/* Tag type - sans couleur de fond, juste le texte */
-.notif-card .body .type-tag {
+/* --- Badge en bas à gauche --- */
+.notif-card .badge-type {
     display: inline-block;
     font-size: 11px;
-    font-weight: 600;
-    padding: 2px 0;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 20px;
     margin-top: 6px;
-    color: #888;
+    letter-spacing: 0.3px;
 }
 
-/* Actions */
-.notif-card .actions {
+/* --- Couleurs des badges ET du texte du message --- */
+.notif-card .badge-type.commande { background: #1a2a6c; color: white; }
+.notif-card .badge-type.paiement { background: #2d7d46; color: white; }
+.notif-card .badge-type.admin { background: #e67e22; color: white; }
+.notif-card .badge-type.systeme { background: #7f8c8d; color: white; }
+
+/* --- Couleurs du texte du contenu par type --- */
+.notif-card .body .content.commande { color: #1a2a6c; }
+.notif-card .body .content.paiement { color: #2d7d46; }
+.notif-card .body .content.admin { color: #e67e22; }
+.notif-card .body .content.systeme { color: #7f8c8d; }
+
+/* --- Icône avatar par type --- */
+.notif-card .avatar.commande { background: #e8ecf5; color: #1a2a6c; }
+.notif-card .avatar.paiement { background: #e8f5ec; color: #2d7d46; }
+.notif-card .avatar.admin { background: #fdf0e8; color: #e67e22; }
+.notif-card .avatar.systeme { background: #f0f0f5; color: #7f8c8d; }
+
+/* --- Actions dans le header (en haut à droite) --- */
+.notif-card .header-actions {
+    position: absolute;
+    top: 14px;
+    right: 16px;
     display: flex;
     gap: 6px;
-    margin-top: 8px;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
-.notif-card .actions button {
-    padding: 5px 14px;
+.notif-card .header-actions .btn {
+    background: none;
     border: none;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 50%;
     transition: all 0.3s;
+    color: #bbb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
 }
 
-.notif-card .actions .btn-mark-read {
-    background: #2d7d46;
-    color: white;
+.notif-card .header-actions .btn:hover {
+    background: #f0f2f5;
 }
 
-.notif-card .actions .btn-mark-read:hover {
-    background: #1a5a33;
-    transform: scale(1.03);
+.notif-card .header-actions .btn-read {
+    color: #2d7d46;
 }
 
-.notif-card .actions .btn-mark-read.read {
-    background: #e8e8f0;
-    color: #888;
+.notif-card .header-actions .btn-read:hover {
+    background: #e8f5ec;
+    color: #1a5a33;
+}
+
+.notif-card .header-actions .btn-read.already {
+    color: #ccc;
     cursor: default;
 }
 
-.notif-card .actions .btn-mark-read.read:hover {
-    transform: none;
+.notif-card .header-actions .btn-read.already:hover {
+    background: none;
 }
 
-.notif-card .actions .btn-delete {
-    background: #e74c3c;
-    color: white;
+.notif-card .header-actions .btn-delete:hover {
+    color: #e74c3c;
+    background: #fef0f0;
 }
 
-.notif-card .actions .btn-delete:hover {
-    background: #c0392b;
-    transform: scale(1.03);
+/* --- non lue / lue (sans bordure) --- */
+.notif-card.read {
+    opacity: 0.7;
 }
 
-/* ==========================================
-   OVERLAY CONFIRMATION
-   ========================================== */
+.notif-card.unread .body .title {
+    color: #1a1a2e;
+}
+
+/* ========================================== */
+/* OVERLAY CONFIRMATION                       */
+/* ========================================== */
 .confirm-overlay {
     position: fixed;
     top: 0;
@@ -453,9 +477,9 @@ body {
     to { transform: scale(1); opacity: 1; }
 }
 
-/* ==========================================
-   EMPTY STATE
-   ========================================== */
+/* ========================================== */
+/* EMPTY STATE                                */
+/* ========================================== */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -491,9 +515,9 @@ body {
     background: #1a5a33;
 }
 
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
+/* ========================================== */
+/* RESPONSIVE                                 */
+/* ========================================== */
 @media (max-width: 600px) {
     body { padding-top: 60px; }
 
@@ -520,13 +544,21 @@ body {
 
     .notif-main { padding: 12px 14px; }
 
-    .notif-card { padding: 14px 16px; gap: 12px; }
-    .notif-card .avatar { width: 36px; height: 36px; font-size: 14px; }
+    .notif-card { padding: 14px 14px 12px 14px; gap: 12px; }
+    .notif-card .avatar { width: 36px; height: 36px; font-size: 15px; }
     .notif-card .body .title { font-size: 14px; }
     .notif-card .body .content { font-size: 13px; }
 
-    .notif-card .actions { flex-direction: row; flex-wrap: wrap; }
-    .notif-card .actions button { font-size: 11px; padding: 4px 12px; }
+    .notif-card .header-actions {
+        top: 10px;
+        right: 12px;
+    }
+
+    .notif-card .header-actions .btn {
+        font-size: 13px;
+        width: 24px;
+        height: 24px;
+    }
 
     .confirm-box { padding: 24px 18px 20px 18px; }
     .confirm-box h3 { font-size: 18px; }
@@ -561,13 +593,17 @@ body {
 
     .notif-main { padding: 8px 8px; }
 
-    .notif-card { padding: 12px 12px; gap: 10px; border-radius: 12px; }
+    .notif-card { padding: 12px 12px 10px 12px; gap: 10px; border-radius: 12px; }
     .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
     .notif-card .body .title { font-size: 13px; }
     .notif-card .body .content { font-size: 12px; }
     .notif-card .body .date { font-size: 10px; }
 
-    .notif-card .actions button { font-size: 10px; padding: 3px 10px; }
+    .notif-card .header-actions .btn {
+        font-size: 11px;
+        width: 20px;
+        height: 20px;
+    }
 
     .empty-state i { font-size: 40px; }
     .empty-state h3 { font-size: 17px; }
