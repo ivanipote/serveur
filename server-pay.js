@@ -13,9 +13,9 @@ const PORT = process.env.PORT || 3002;
 // CONFIGURATION GENIUS PAY - PRODUCTION
 // ========================================================
 
-const SECRET_KEY = process.env.GENIUS_SECRET_KEY || 'sk_live_879e4d0046612a47dd8c111f9607258d97cdb804a7b6157ee25bf11e5b69b3f0';
-const PUBLIC_KEY = process.env.GENIUS_PUBLIC_KEY || 'pk_live_pAtZ5Q17QAtABm4fMVSIYFI6wMCt1LBU';
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_JG9u1JOvIgIfATYyla65J1zV7h0NWO6SzfYGufB8WWHuRG0m';
+const SECRET_KEY = process.env.GENIUS_SECRET_KEY;
+const PUBLIC_KEY = process.env.GENIUS_PUBLIC_KEY;
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 const GENIUS_API_URL = 'https://geniuspay.ci/api/v1/merchant/payments';
 
