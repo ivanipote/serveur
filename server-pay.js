@@ -30,6 +30,9 @@ const redisClient = new Redis(process.env.REDIS_URL, {
 redisClient.on('connect', () => console.log('✅ Redis (pay) connecté'));
 redisClient.on('error', (err) => console.error('❌ Redis erreur:', err));
 
+const pubClient = redisClient.duplicate();
+const subClient = redisClient.duplicate();
+
 // ========================================================
 // SOCKET.IO - Connexion au serveur client
 // ========================================================
@@ -39,10 +42,10 @@ const socket = new Server({
         origin: ['https://nature-plus-client.onrender.com', 'http://localhost:3000'],
         credentials: true
     },
-    adapter: createAdapter(redisClient)
+    adapter: createAdapter(pubClient, subClient)
 });
 
-socket.listen(3003); // Port différent pour éviter conflit
+socket.listen(3003);
 
 socket.on('connection', (sock) => {
     console.log('✅ Socket.IO (pay) connecté');
@@ -242,7 +245,6 @@ app.post('/api/payment/update-status', async (req, res) => {
 
             await createNotification(commande.user_id, commandeId, 'paiement', title, content);
 
-            // ✅ Socket.IO - Émettre l'événement
             socket.emit('commande-update', {
                 commandeId: parseInt(commandeId),
                 status: status === 'payee' || status === 'paiement_effectue' ? 'paiement_effectue' : status,
@@ -293,7 +295,6 @@ app.post('/api/payment/cancel', async (req, res) => {
             `Vous avez annulé le paiement pour la commande #${commandeId}.`
         );
 
-        // ✅ Socket.IO
         socket.emit('commande-update', {
             commandeId: parseInt(commandeId),
             status: 'annulee',
@@ -590,7 +591,6 @@ async function handlePaymentSuccess(data) {
                 `Votre paiement pour la commande #${orderId} a été confirmé. Commande en préparation.`
             );
 
-            // ✅ Socket.IO - Émettre l'événement
             socket.emit('commande-update', {
                 commandeId: parseInt(orderId),
                 status: 'paiement_effectue',
