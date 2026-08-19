@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainContent = document.getElementById('mainContent');
     const loadingState = document.getElementById('loadingState');
     const badgeTotal = document.getElementById('badgeTotal');
+    const refreshBtn = document.getElementById('refreshStatusBtn');
+    const toastContainer = document.getElementById('toastContainer');
 
-    // Overlay Confirmation
+    // Overlays
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmIcon = document.getElementById('confirmIcon');
     const confirmTitle = document.getElementById('confirmTitle');
@@ -24,14 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
 
-    // Overlay Message
     const messageOverlay = document.getElementById('messageOverlay');
     const messageIcon = document.getElementById('messageIcon');
     const messageTitle = document.getElementById('messageTitle');
     const messageText = document.getElementById('messageText');
     const messageBtn = document.getElementById('messageBtn');
 
-    // Overlay Paiement
     const paymentOverlay = document.getElementById('paymentOverlay');
     const paymentAmount = document.getElementById('paymentAmount');
     const paymentPhone = document.getElementById('paymentPhone');
@@ -47,6 +47,36 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentAmount = 0;
     let currentReference = '';
     let currentUser = null;
+
+    // ==========================================
+    // TOAST
+    // ==========================================
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#1a2a6c'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90%;
+            text-align: center;
+        `;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
     // ==========================================
     // AUTHENTIFICATION
@@ -71,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // OVERLAY CONFIRMATION
+    // OVERLAYS
     // ==========================================
 
     function showConfirm(icon, title, message) {
@@ -98,10 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ==========================================
-    // OVERLAY MESSAGE
-    // ==========================================
-
     function showMessage(icon, title, text) {
         return new Promise((resolve) => {
             messageIcon.textContent = icon;
@@ -121,29 +147,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ==========================================
-    // OVERLAY PAIEMENT
-    // ==========================================
-
     function openPaymentOverlay(commandeId, amount, phone, reference) {
-        if (!paymentOverlay) {
-            console.error('❌ paymentOverlay non trouvé');
-            return;
-        }
         currentCommandeId = commandeId;
         currentAmount = amount;
         currentReference = reference;
-
         paymentAmount.textContent = amount.toLocaleString() + ' FCFA';
         paymentPhone.textContent = phone || 'Non renseigné';
-
         paymentOverlay.classList.add('active');
     }
 
     function closePaymentOverlay() {
-        if (paymentOverlay) {
-            paymentOverlay.classList.remove('active');
-        }
+        paymentOverlay.classList.remove('active');
     }
 
     if (cancelPaymentBtn) {
@@ -161,26 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
             closePaymentOverlay();
             await handlePayment(currentCommandeId, currentAmount, currentReference, phone);
         });
-    }
-
-    // ==========================================
-    // TOAST
-    // ==========================================
-
-    function showToast(message, type = 'info') {
-        const oldToast = document.querySelector('.payment-toast');
-        if (oldToast) oldToast.remove();
-
-        const toast = document.createElement('div');
-        toast.className = `payment-toast ${type}`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        setTimeout(() => toast.classList.add('show'), 50);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
     }
 
     // ==========================================
@@ -237,9 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function extractProducts(panierData) {
         if (!panierData) return [];
-
         if (Array.isArray(panierData)) return panierData;
-
         if (typeof panierData === 'string') {
             try {
                 const parsed = JSON.parse(panierData);
@@ -251,11 +243,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return [];
             } catch (e) {
-                console.warn('⚠️ Erreur parsing JSON:', e);
                 return [];
             }
         }
-
         if (typeof panierData === 'object') {
             if (Array.isArray(panierData.panier)) return panierData.panier;
             if (Array.isArray(panierData.items)) return panierData.items;
@@ -266,24 +256,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return [];
         }
-
         return [];
     }
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (via Render) - CORRIGÉ
+    // VÉRIFIER LE PAIEMENT (via Render)
     // ==========================================
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
         const btn = document.querySelector(`.btn-check-payment[data-id="${commandeId}"]`);
         if (!btn) return;
 
-        // ✅ Utiliser geniusReference ou reference
         const refToCheck = geniusReference || reference;
-
-        // ✅ Si la référence est un nombre (commande_id), ne pas vérifier
         if (!refToCheck || /^\d+$/.test(refToCheck)) {
-            showToast('ℹ️ Aucune référence de paiement disponible', 'info');
             return;
         }
 
@@ -292,14 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
-            
-            // ✅ Si le serveur répond avec 500, afficher un message
             if (!res.ok) {
-                if (res.status === 500) {
-                    showToast('⚠️ Le service de paiement est temporairement indisponible', 'error');
-                } else {
-                    showToast('⚠️ Erreur lors de la vérification', 'error');
-                }
+                showToast('⚠️ Service de paiement indisponible', 'error');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
                 return;
@@ -311,20 +290,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const updateRes = await fetch('/api/payment/update-status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ commandeId, status: 'payee' })
+                    body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
                 });
                 if (updateRes.ok) {
                     await loadCommandes();
                     showToast('✅ Paiement confirmé !', 'success');
-                } else {
-                    showToast('⚠️ Mise à jour en cours...', 'info');
                 }
             } else if (data.status === 'pending') {
                 showToast('⏳ Paiement en attente...', 'info');
-            } else if (data.status === 'not_found') {
-                showToast('ℹ️ Aucun paiement trouvé pour cette commande', 'info');
             } else {
-                showToast('❌ Statut: ' + (data.status || 'inconnu'), 'error');
+                showToast('ℹ️ Statut: ' + (data.status || 'inconnu'), 'info');
             }
         } catch (error) {
             console.error('Erreur vérification:', error);
@@ -375,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (res.ok) {
                 await loadCommandes();
+                showToast('✅ Commande annulée', 'success');
             } else {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
             }
@@ -462,24 +438,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // VÉRIFIER LE STATUT APRÈS REDIRECTION
+    // BOUTON RAFRAÎCHIR
     // ==========================================
 
-    async function checkPaymentStatus() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success');
-        const error = urlParams.get('error');
-        const commandeId = urlParams.get('commande_id');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rafraîchissement...';
 
-        if (success === 'true') {
-            await showMessage('✅', 'Paiement réussi !', 'Votre commande est en cours de préparation.');
-            await loadCommandes();
-            window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (error === 'true') {
-            await showMessage('❌', 'Paiement annulé', 'Le paiement n\'a pas été effectué. Vous pouvez réessayer.');
-            await loadCommandes();
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+            try {
+                await loadCommandes();
+                const paymentInProgress = commandes.filter(c => c.status === 'paiement_en_cours');
+                if (paymentInProgress.length > 0) {
+                    for (const commande of paymentInProgress) {
+                        const ref = commande.reference || commande.id;
+                        const geniusRef = commande.genius_reference || '';
+                        await checkPaymentWithGenius(commande.id, ref, geniusRef);
+                    }
+                }
+                showToast('✅ Statuts mis à jour !', 'success');
+            } catch (error) {
+                console.error('❌ Erreur rafraîchissement:', error);
+                showToast('⚠️ Erreur lors du rafraîchissement', 'error');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> Rafraîchir';
+            }
+        });
     }
 
     // ==========================================
@@ -489,22 +474,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderCommandes() {
         console.log('🎨 Rendu des commandes, nombre:', commandes.length);
 
+        // Définition des couleurs par statut
+        const statusColorMap = {
+            'en_attente': 'status-en_attente',
+            'accepter': 'status-accepter',
+            'refuse': 'status-refuse',
+            'annulee': 'status-annulee',
+            'paiement_effectue': 'status-paiement_effectue',
+            'livraison_en_cours': 'status-livraison_en_cours',
+            'disponible': 'status-disponible',
+            'recuperee': 'status-recuperee'
+        };
+
         const statusLabels = {
-            'en_attente': '⏳ En attente',
-            'acceptee': '✅ Acceptée',
-            'refusee': '❌ Refusée',
-            'pret_livraison': '📦 Prêt',
-            'livraison_en_cours': '🚚 En cours',
-            'votre_colis_est_la': '📍 Arrivé',
-            'payee': '💳 Payée',
-            'paiement_en_cours': '⏳ Paiement en cours...',
-            'achat_effectue': '✅ Récupéré',
-            'annulee': '❌ Annulée'
+            'en_attente': '⏳ En attente de validation',
+            'accepter': '💳 Effectuer le paiement',
+            'refuse': '❌ Commande refusée',
+            'annulee': '❌ Commande annulée',
+            'paiement_effectue': '💳 Paiement terminé 📦 En préparation',
+            'livraison_en_cours': '🚚 En cours de livraison',
+            'disponible': '📍 Commande disponible',
+            'recuperee': '✅ Commande récupérée !'
         };
 
         let html = '';
 
         commandes.forEach((c) => {
+            const statusClass = c.status || 'en_attente';
+            const cardColorClass = statusColorMap[statusClass] || 'status-en_attente';
+            const label = statusLabels[statusClass] || statusClass;
+
             const panier = extractProducts(c.panier);
             let productsStr = 'Aucun produit';
             if (panier.length > 0) {
@@ -513,13 +512,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const qty = p.quantity || p.qty || p.quantite || 1;
                     return `${name} × ${qty}`;
                 }).join(', ');
-                if (productsStr.trim() === '') productsStr = 'Produits non disponibles';
             }
 
-            const statusClass = c.status || 'en_attente';
-            const isPayable = c.status === 'payee';
-            const isDeletable = c.status === 'refusee' || c.status === 'annulee';
-            const isCancellable = c.status === 'en_attente' || c.status === 'acceptee';
+            const isPayable = c.status === 'accepter';
+            const isDeletable = c.status === 'refuse' || c.status === 'annulee';
+            const isCancellable = c.status === 'en_attente';
             const isRestorable = c.status === 'annulee';
             const isPaymentInProgress = c.status === 'paiement_en_cours';
 
@@ -527,12 +524,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference ? `(${c.reference})` : `(#${c.id})`;
             const causeHtml = c.cause_refus ? `<div class="commande-cause">❌ ${c.cause_refus}</div>` : '';
-
             const geniusRef = c.genius_reference || '';
 
             html += `
-                <div class="commande-card" id="card-${c.id}">
-                    <div class="commande-header">
+                <div class="commande-card ${cardColorClass}" id="card-${c.id}">
+                    <div class="commande-header-card">
                         <span class="commande-id">#${c.id}</span>
                         <span class="commande-ref">${refDisplay}</span>
                         <span class="commande-date">${dateStr}</span>
@@ -542,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         📦 <span>${c.option === 'chezmoi' ? 'Livraison à domicile' : 'Adresse'}</span>
                         ${c.commune ? `📍 <span>${c.commune}</span>` : ''}
                     </div>
-                    <span class="commande-status ${statusClass}">${statusLabels[statusClass] || statusClass}</span>
+                    <span class="commande-status-badge ${statusClass}">${label}</span>
                     ${causeHtml}
                     <div class="commande-actions">
                         ${isPaymentInProgress ? `
@@ -589,7 +585,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ===== ÉVÉNEMENTS =====
 
-        // Vérifier le paiement (via Render)
         document.querySelectorAll('.btn-check-payment').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -600,7 +595,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Annuler le paiement (via Render)
         document.querySelectorAll('.btn-cancel-payment').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -609,7 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Payer (via Render)
         document.querySelectorAll('.btn-pay').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
@@ -620,7 +613,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Restaurer (via Render)
         document.querySelectorAll('.btn-restore').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -629,7 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Supprimer
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -638,7 +629,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Annuler
         document.querySelectorAll('.btn-cancel').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -647,7 +637,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Détails
         document.querySelectorAll('.btn-detail').forEach(btn => {
             btn.addEventListener('click', function() {
                 window.location.href = `/detailcom?id=${this.dataset.id}`;
@@ -665,7 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
             await loadCommandes();
-            await checkPaymentStatus();
             console.log('✅ Initialisation terminée');
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation:', error);

@@ -14,10 +14,7 @@ body {
     padding-bottom: 20px;
 }
 
-/* ==========================================
-   HEADER
-   ========================================== */
-
+/* ===== HEADER ===== */
 .page-header {
     background: white;
     padding: 12px 20px;
@@ -61,7 +58,6 @@ body {
     font-size: 18px;
     font-weight: 700;
     color: #1a1a2e;
-    text-align: center;
 }
 
 .badge-total {
@@ -74,10 +70,39 @@ body {
     flex-shrink: 0;
 }
 
-/* ==========================================
-   MAIN
-   ========================================== */
+/* ===== BOUTON RAFRAÎCHIR ===== */
+.btn-refresh {
+    background: #2d7d46;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
 
+.btn-refresh:hover {
+    background: #1a5a33;
+    transform: scale(1.02);
+}
+
+.btn-refresh:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-refresh .fa-spinner {
+    animation: spin 0.8s linear infinite;
+}
+
+/* ===== MAIN ===== */
 .main-content {
     flex: 1;
     padding: 20px;
@@ -98,11 +123,10 @@ body {
 }
 
 /* ==========================================
-   CARTE DE COMMANDE
+   CARTE DE COMMANDE - COULEURS PAR STATUT
    ========================================== */
 
 .commande-card {
-    background: white;
     border-radius: 16px;
     padding: 16px 20px;
     margin-bottom: 12px;
@@ -112,12 +136,67 @@ body {
 }
 
 .commande-card:hover {
-    border-color: #2d7d46;
-    box-shadow: 0 4px 16px rgba(45,125,70,0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
-/* ===== HEADER DE LA CARTE ===== */
-.commande-header {
+/* --- STATUTS --- */
+
+/* 📋 En attente (jaune) */
+.commande-card.status-en_attente {
+    background: #fff8e1;
+    border-left: 4px solid #f9a825;
+}
+
+/* 💳 Effectuer le paiement (bleu) */
+.commande-card.status-accepter {
+    background: #e3f2fd;
+    border-left: 4px solid #1e88e5;
+}
+
+/* ❌ Refusée / Annulée (rouge) */
+.commande-card.status-refuse,
+.commande-card.status-annulee {
+    background: #ffebee;
+    border-left: 4px solid #e53935;
+}
+
+/* 💳 Paiement terminé / Préparation (vert clair) */
+.commande-card.status-paiement_effectue {
+    background: #e8f5e9;
+    border-left: 4px solid #43a047;
+}
+
+/* 🚚 Livraison en cours (bleu clair) */
+.commande-card.status-livraison_en_cours {
+    background: #e0f7fa;
+    border-left: 4px solid #00acc1;
+}
+
+/* 📍 Commande disponible (vert) */
+.commande-card.status-disponible {
+    background: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+}
+
+/* ✅ Commande récupérée (VERT FOND) */
+.commande-card.status-recuperee {
+    background: #c8e6c9;
+    border-left: 4px solid #1b5e20;
+    border: 2px solid #2e7d32;
+}
+
+/* ❌ Annulée (même que refusée) */
+.commande-card.status-annulee {
+    background: #ffebee;
+    border-left: 4px solid #e53935;
+}
+
+/* ==========================================
+   CONTENU DE LA CARTE
+   ========================================== */
+
+.commande-header-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -143,7 +222,6 @@ body {
     color: #aaa;
 }
 
-/* ===== TOTAL ===== */
 .commande-total {
     font-size: 22px;
     font-weight: 700;
@@ -151,7 +229,6 @@ body {
     margin: 2px 0;
 }
 
-/* ===== INFOS ===== */
 .commande-infos {
     display: flex;
     gap: 16px;
@@ -166,8 +243,7 @@ body {
     font-weight: 500;
 }
 
-/* ===== STATUT ===== */
-.commande-status {
+.commande-status-badge {
     display: inline-block;
     padding: 4px 14px;
     border-radius: 20px;
@@ -176,18 +252,16 @@ body {
     margin-bottom: 8px;
 }
 
-.commande-status.en_attente { background: #fff3cd; color: #856404; }
-.commande-status.acceptee { background: #cce5ff; color: #004085; }
-.commande-status.refusee { background: #f8d7da; color: #721c24; }
-.commande-status.annulee { background: #f8d7da; color: #721c24; }
-.commande-status.payee { background: #c3e6cb; color: #0b5e2e; }
-.commande-status.paiement_en_cours { background: #fff3cd; color: #856404; }
-.commande-status.pret_livraison { background: #d4edda; color: #155724; }
-.commande-status.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
-.commande-status.votre_colis_est_la { background: #d4edda; color: #155724; }
-.commande-status.achat_effectue { background: #d4edda; color: #155724; }
+/* Badges par statut */
+.commande-status-badge.en_attente { background: #fff3cd; color: #856404; }
+.commande-status-badge.accepter { background: #cce5ff; color: #004085; }
+.commande-status-badge.refuse { background: #f8d7da; color: #721c24; }
+.commande-status-badge.annulee { background: #f8d7da; color: #721c24; }
+.commande-status-badge.paiement_effectue { background: #c3e6cb; color: #0b5e2e; }
+.commande-status-badge.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
+.commande-status-badge.disponible { background: #d4edda; color: #155724; }
+.commande-status-badge.recuperee { background: #a5d6a7; color: #1b5e20; }
 
-/* ===== CAUSE REFUS ===== */
 .commande-cause {
     font-size: 13px;
     color: #e74c3c;
@@ -197,7 +271,6 @@ body {
     border-radius: 8px;
 }
 
-/* ===== ACTIONS ===== */
 .commande-actions {
     display: flex;
     gap: 8px;
@@ -275,7 +348,7 @@ body {
 }
 
 /* ==========================================
-   TOAST NOTIFICATION
+   TOAST
    ========================================== */
 
 .payment-toast {
@@ -571,29 +644,29 @@ body {
 
 @media (max-width: 600px) {
     body { padding-top: 68px; }
-    .page-header { padding: 10px 14px; gap: 10px; }
+    .page-header { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
     .back-btn { width: 36px; height: 36px; font-size: 16px; }
-    .page-title { font-size: 16px; }
+    .page-title { font-size: 15px; }
     .badge-total { font-size: 11px; padding: 3px 10px; }
+    .btn-refresh { font-size: 11px; padding: 4px 12px; }
     .main-content { padding: 12px; }
     .commande-card { padding: 14px 16px; }
     .commande-total { font-size: 20px; }
     .commande-ref { font-size: 11px; }
     .commande-date { font-size: 11px; }
-    .commande-status { font-size: 12px; padding: 3px 12px; }
     .commande-actions .btn { font-size: 12px; padding: 5px 12px; }
     .payment-box { padding: 24px 18px 20px 18px; }
     .payment-box h3 { font-size: 18px; }
     .payment-actions { flex-direction: column; }
     .payment-actions .btn-cancel-payment,
     .payment-actions .btn-confirm-payment { padding: 12px; font-size: 14px; }
-    .payment-toast { font-size: 13px; padding: 10px 18px; bottom: 20px; }
+    .commande-actions { flex-direction: column; }
+    .commande-actions .btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 400px) {
-    .commande-header { flex-direction: column; align-items: flex-start; gap: 2px; }
-    .commande-actions { flex-direction: column; }
-    .commande-actions .btn { width: 100%; justify-content: center; }
+    .commande-header-card { flex-direction: column; align-items: flex-start; gap: 2px; }
     .commande-infos { flex-direction: column; gap: 4px; }
-    .payment-box { padding: 18px 14px 16px 14px; }
+    .page-header { gap: 6px; }
+    .btn-refresh { font-size: 10px; padding: 3px 10px; }
 }
