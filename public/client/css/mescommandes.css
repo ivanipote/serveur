@@ -70,7 +70,6 @@ body {
     flex-shrink: 0;
 }
 
-/* ===== BOUTON RAFRAÎCHIR ===== */
 .btn-refresh {
     background: #2d7d46;
     color: white;
@@ -122,267 +121,217 @@ body {
     margin-bottom: 12px;
 }
 
-/* ==========================================
-   CARTE DE COMMANDE - COULEURS PAR STATUT
-   ========================================== */
+/* ========================================== */
+/* MODÈLE 5 : Carte arrondie (style badge)    */
+/* ========================================== */
 
 .commande-card {
-    border-radius: 16px;
-    padding: 16px 20px;
-    margin-bottom: 12px;
+    background: white;
+    border-radius: 20px;
+    padding: 18px 18px 14px 18px;
     border: 1px solid #e8ecf4;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: all 0.3s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
 }
 
 .commande-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* --- STATUTS --- */
-
-/* 📋 En attente (jaune) */
-.commande-card.status-en_attente {
-    background: #fff8e1;
-    border-left: 4px solid #f9a825;
-}
-
-/* 💳 Effectuer le paiement (bleu) */
-.commande-card.status-accepter {
-    background: #e3f2fd;
-    border-left: 4px solid #1e88e5;
-}
-
-/* ❌ Refusée / Annulée (rouge) */
-.commande-card.status-refuse,
-.commande-card.status-annulee {
-    background: #ffebee;
-    border-left: 4px solid #e53935;
-}
-
-/* 💳 Paiement terminé / Préparation (vert clair) */
-.commande-card.status-paiement_effectue {
-    background: #e8f5e9;
-    border-left: 4px solid #43a047;
-}
-
-/* 🚚 Livraison en cours (bleu clair) */
-.commande-card.status-livraison_en_cours {
-    background: #e0f7fa;
-    border-left: 4px solid #00acc1;
-}
-
-/* 📍 Commande disponible (vert) */
-.commande-card.status-disponible {
-    background: #e8f5e9;
-    border-left: 4px solid #2e7d32;
-}
-
-/* ✅ Commande récupérée (VERT FOND) */
-.commande-card.status-recuperee {
-    background: #c8e6c9;
-    border-left: 4px solid #1b5e20;
-    border: 2px solid #2e7d32;
-}
-
-/* ❌ Annulée (même que refusée) */
-.commande-card.status-annulee {
-    background: #ffebee;
-    border-left: 4px solid #e53935;
-}
-
-/* ==========================================
-   CONTENU DE LA CARTE
-   ========================================== */
-
-.commande-header-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 4px;
-}
-
-.commande-id {
-    font-size: 14px;
-    font-weight: 700;
-    color: #1a2a6c;
-}
-
-.commande-ref {
-    font-size: 12px;
-    color: #888;
-    font-weight: 400;
-}
-
-.commande-date {
-    font-size: 12px;
-    color: #aaa;
-}
-
-.commande-total {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1a2e;
-    margin: 2px 0;
-}
-
-.commande-infos {
-    display: flex;
-    gap: 16px;
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-}
-
-.commande-infos span {
-    color: #1a1a2e;
-    font-weight: 500;
-}
-
-.commande-status-badge {
-    display: inline-block;
+/* --- Badge en haut à droite --- */
+.commande-card .badge-top {
+    position: absolute;
+    top: 14px;
+    right: 16px;
     padding: 4px 14px;
     border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
-/* Badges par statut */
-.commande-status-badge.en_attente { background: #fff3cd; color: #856404; }
-.commande-status-badge.accepter { background: #cce5ff; color: #004085; }
-.commande-status-badge.refuse { background: #f8d7da; color: #721c24; }
-.commande-status-badge.annulee { background: #f8d7da; color: #721c24; }
-.commande-status-badge.paiement_effectue { background: #c3e6cb; color: #0b5e2e; }
-.commande-status-badge.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
-.commande-status-badge.disponible { background: #d4edda; color: #155724; }
-.commande-status-badge.recuperee { background: #a5d6a7; color: #1b5e20; }
+/* --- Couleurs des badges --- */
+.commande-card .badge-top.en_attente { background: #fff3cd; color: #856404; }
+.commande-card .badge-top.accepter { background: #cce5ff; color: #004085; }
+.commande-card .badge-top.paiement_en_cours { background: #ffe0b2; color: #e67e22; }
+.commande-card .badge-top.paiement_effectue { background: #c3e6cb; color: #0b5e2e; }
+.commande-card .badge-top.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
+.commande-card .badge-top.disponible { background: #d4edda; color: #155724; }
+.commande-card .badge-top.recuperee { background: #a5d6a7; color: #1b5e20; }
+.commande-card .badge-top.refuse { background: #f8d7da; color: #721c24; }
 
-.commande-cause {
+/* --- Couleurs de fond par statut (optionnel) --- */
+.commande-card.status-en_attente { background: #fffde7; }
+.commande-card.status-accepter { background: #e3f2fd; }
+.commande-card.status-paiement_en_cours { background: #fff3e0; }
+.commande-card.status-paiement_effectue { background: #e8f5e9; }
+.commande-card.status-livraison_en_cours { background: #e0f7fa; }
+.commande-card.status-disponible { background: #e8f5e9; }
+.commande-card.status-recuperee { background: #c8e6c9; }
+.commande-card.status-refuse { background: #ffebee; }
+.commande-card.status-annulee { background: #ffebee; }
+
+/* --- Contenu --- */
+.commande-card .id {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a2a6c;
+    margin-top: 4px;
+}
+
+.commande-card .ref {
+    font-size: 11px;
+    color: #888;
+    display: block;
+}
+
+.commande-card .date {
+    font-size: 11px;
+    color: #aaa;
+    display: block;
+}
+
+.commande-card .total {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2d7d46;
+    margin: 6px 0 2px 0;
+}
+
+/* --- Statut en dessous du prix --- */
+.commande-card .status-text {
     font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.commande-card .status-text .status-icon {
+    font-size: 16px;
+}
+
+/* --- Cause refus --- */
+.commande-card .commande-cause {
+    font-size: 12px;
     color: #e74c3c;
-    margin: 4px 0 8px 0;
-    padding: 8px 12px;
+    margin: 4px 0 6px 0;
+    padding: 4px 10px;
     background: #fef0f0;
     border-radius: 8px;
 }
 
-.commande-actions {
+/* --- Footer : actions (boutons) --- */
+.commande-card .actions {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-top: 8px;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #f0f2f5;
     align-items: center;
+    min-height: 44px;
 }
 
-.commande-actions .btn {
+.commande-card .actions .btn {
     padding: 6px 16px;
     border: none;
-    border-radius: 20px;
-    font-size: 13px;
+    border-radius: 50px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
+    height: 36px;
+    min-height: 36px;
 }
 
-.commande-actions .btn:hover {
-    transform: scale(1.03);
+.commande-card .actions .btn:hover {
+    transform: scale(1.04);
 }
 
-.commande-actions .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-pay { background: #2d7d46; color: white; }
-.btn-pay:hover { background: #1a5a33; }
-
-.btn-cancel { background: #e67e22; color: white; }
-.btn-cancel:hover { background: #d35400; }
-
-.btn-delete { background: #e74c3c; color: white; }
-.btn-delete:hover { background: #c0392b; }
-
-.btn-restore { background: #1a2a6c; color: white; }
-.btn-restore:hover { background: #0d1b4a; }
-
-.btn-detail { background: #e8e8f0; color: #1a1a2e; }
-.btn-detail:hover { background: #d5d5e0; }
-
-.btn-cancel-payment { background: #e74c3c; color: white; }
-.btn-cancel-payment:hover { background: #c0392b; }
-
-.btn-check-payment {
+.commande-card .actions .btn-icon-only {
     background: none;
     border: none;
     color: #aaa;
-    font-size: 13px;
+    font-size: 15px;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 0 10px;
     border-radius: 50%;
     transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    min-height: 36px;
+    width: 36px;
 }
 
-.btn-check-payment:hover {
+.commande-card .actions .btn-icon-only:hover {
     color: #2d7d46;
     background: #e8f5ec;
     transform: rotate(180deg);
 }
 
-.btn-check-payment:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-check-payment .fa-spinner {
-    animation: spin 1s linear infinite;
-}
-
-/* ==========================================
-   TOAST
-   ========================================== */
-
-.payment-toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: #1a1a2e;
+/* --- Types de boutons --- */
+.btn-pay {
+    background: linear-gradient(135deg, #2d7d46, #1a5a33);
     color: white;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-    z-index: 500;
-    opacity: 0;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    max-width: 90%;
-    text-align: center;
+}
+.btn-pay:hover { background: linear-gradient(135deg, #1a5a33, #0d3d22); }
+
+.btn-cancel { background: #e67e22; color: white; }
+.btn-cancel:hover { background: #d35400; }
+
+.btn-cancel-pay { background: #e74c3c; color: white; }
+.btn-cancel-pay:hover { background: #c0392b; }
+
+.btn-delete { background: #e74c3c; color: white; }
+.btn-delete:hover { background: #c0392b; }
+
+.btn-detail { background: #e8e8f0; color: #1a1a2e; }
+.btn-detail:hover { background: #d5d5e0; }
+
+.btn-restore { background: #1a2a6c; color: white; }
+.btn-restore:hover { background: #0d1b4a; }
+
+.btn-sync {
+    background: none;
+    border: 1px solid #e0e0e8;
+    color: #888;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    min-height: 36px;
 }
 
-.payment-toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
+.btn-sync:hover {
+    border-color: #2d7d46;
+    color: #2d7d46;
+    background: #e8f5ec;
+    transform: rotate(180deg);
 }
 
-.payment-toast.success { background: #2d7d46; }
-.payment-toast.error { background: #e74c3c; }
-.payment-toast.info { background: #1a2a6c; }
-
-/* ==========================================
-   OVERLAY CONFIRMATION
-   ========================================== */
+/* ========================================== */
+/* OVERLAYS                                   */
+/* ========================================== */
 
 .confirm-overlay {
     position: fixed;
@@ -441,10 +390,6 @@ body {
 .confirm-btn.ok.danger { background: #e74c3c; }
 .confirm-btn.ok.danger:hover { background: #c0392b; }
 
-/* ==========================================
-   OVERLAY MESSAGE
-   ========================================== */
-
 .message-overlay {
     position: fixed;
     top: 0;
@@ -490,10 +435,6 @@ body {
 }
 
 .message-btn:hover { background: #1a5a33; transform: scale(1.02); }
-
-/* ==========================================
-   OVERLAY PAIEMENT
-   ========================================== */
 
 .payment-overlay {
     position: fixed;
@@ -593,9 +534,9 @@ body {
     box-shadow: 0 8px 30px rgba(45,125,70,0.25);
 }
 
-/* ==========================================
-   EMPTY STATE
-   ========================================== */
+/* ========================================== */
+/* EMPTY STATE                                */
+/* ========================================== */
 
 .empty-state {
     text-align: center;
@@ -620,9 +561,9 @@ body {
 
 .empty-state .btn-shop:hover { background: #1a5a33; }
 
-/* ==========================================
-   ANIMATIONS
-   ========================================== */
+/* ========================================== */
+/* ANIMATIONS                                 */
+/* ========================================== */
 
 @keyframes scaleIn {
     from { transform: scale(0.9); opacity: 0; }
@@ -638,9 +579,14 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================== */
+/* RESPONSIVE                                 */
+/* ========================================== */
 
 @media (max-width: 600px) {
     body { padding-top: 68px; }
@@ -650,23 +596,22 @@ body {
     .badge-total { font-size: 11px; padding: 3px 10px; }
     .btn-refresh { font-size: 11px; padding: 4px 12px; }
     .main-content { padding: 12px; }
-    .commande-card { padding: 14px 16px; }
-    .commande-total { font-size: 20px; }
-    .commande-ref { font-size: 11px; }
-    .commande-date { font-size: 11px; }
-    .commande-actions .btn { font-size: 12px; padding: 5px 12px; }
+    .commande-card { padding: 16px 14px 12px 14px; }
+    .commande-card .total { font-size: 20px; }
+    .commande-card .badge-top { font-size: 11px; padding: 3px 12px; top: 12px; right: 12px; }
+    .commande-card .actions .btn { font-size: 11px; padding: 5px 12px; height: 32px; min-height: 32px; }
+    .commande-card .actions .btn-icon-only { height: 32px; min-height: 32px; width: 32px; font-size: 13px; }
+    .commande-card .actions .btn-sync { height: 32px; min-height: 32px; font-size: 11px; padding: 4px 12px; }
     .payment-box { padding: 24px 18px 20px 18px; }
     .payment-box h3 { font-size: 18px; }
     .payment-actions { flex-direction: column; }
     .payment-actions .btn-cancel-payment,
     .payment-actions .btn-confirm-payment { padding: 12px; font-size: 14px; }
-    .commande-actions { flex-direction: column; }
-    .commande-actions .btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 400px) {
-    .commande-header-card { flex-direction: column; align-items: flex-start; gap: 2px; }
-    .commande-infos { flex-direction: column; gap: 4px; }
+    .commande-card .actions { flex-wrap: wrap; justify-content: center; }
+    .commande-card .actions .btn { font-size: 10px; padding: 4px 10px; height: 30px; min-height: 30px; }
     .page-header { gap: 6px; }
     .btn-refresh { font-size: 10px; padding: 3px 10px; }
 }

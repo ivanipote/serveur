@@ -112,14 +112,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const { commandeId, status, userId, message } = data;
 
-        // Vérifier si la commande appartient à l'utilisateur connecté
         const userIdLocal = parseInt(localStorage.getItem('userId') || '0');
         if (userId && userId !== userIdLocal) {
             console.log('⏭️ Commande pour un autre utilisateur, ignorée');
             return;
         }
 
-        // 1. Mettre à jour dans le tableau local
         const existingIndex = commandes.findIndex(c => c.id === commandeId);
 
         if (existingIndex !== -1) {
@@ -132,12 +130,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 2. Mettre à jour le badge
         if (badgeTotal) {
             badgeTotal.textContent = commandes.length;
         }
 
-        // 3. Toast
         const statusMessages = {
             'en_attente': '⏳ En attente',
             'accepter': '💳 Paiement requis',
@@ -186,6 +182,11 @@ document.addEventListener('DOMContentLoaded', function() {
             pointer-events: auto;
             max-width: 90%;
             text-align: center;
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
         `;
         toast.textContent = message;
         toastContainer.appendChild(toast);
@@ -350,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // EXTRAIRE LES PRODUITS
+    // EXTRAIRE LES PRODUITS (utilisé pour le détail)
     // ==========================================
 
     function extractProducts(panierData) {
@@ -388,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
-        const btn = document.querySelector(`.btn-check-payment[data-id="${commandeId}"]`);
+        const btn = document.querySelector(`.btn-sync[data-id="${commandeId}"]`);
         if (!btn) return;
 
         const refToCheck = geniusReference || reference;
@@ -602,86 +603,73 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDU DES COMMANDES
+    // RENDU DES COMMANDES (Modèle 5)
     // ==========================================
 
     function renderCommandes() {
         console.log('🎨 Rendu des commandes, nombre:', commandes.length);
 
-        const statusColorMap = {
-            'en_attente': 'status-en_attente',
-            'accepter': 'status-accepter',
-            'refuse': 'status-refuse',
-            'annulee': 'status-annulee',
-            'paiement_effectue': 'status-paiement_effectue',
-            'livraison_en_cours': 'status-livraison_en_cours',
-            'disponible': 'status-disponible',
-            'recuperee': 'status-recuperee'
-        };
+        if (commandes.length === 0) {
+            mainContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>Aucune commande</h3>
+                    <p>Vous n'avez pas encore passé de commande.</p>
+                    <a href="/dashboard" class="btn-shop">🛍️ Voir les produits</a>
+                </div>
+            `;
+            return;
+        }
 
         const statusLabels = {
-            'en_attente': '⏳ En attente de validation',
-            'accepter': '💳 Effectuer le paiement',
-            'refuse': '❌ Commande refusée',
-            'annulee': '❌ Commande annulée',
-            'paiement_effectue': '💳 Paiement terminé 📦 En préparation',
-            'livraison_en_cours': '🚚 En cours de livraison',
-            'disponible': '📍 Commande disponible',
-            'recuperee': '✅ Commande récupérée !'
+            'en_attente': { label: 'En attente de validation', icon: '⏳', class: 'en_attente' },
+            'accepter': { label: 'Effectuer le paiement', icon: '💳', class: 'accepter' },
+            'paiement_en_cours': { label: 'Paiement en cours...', icon: '⏳', class: 'paiement_en_cours' },
+            'paiement_effectue': { label: 'Payée — En préparation', icon: '✅', class: 'paiement_effectue' },
+            'livraison_en_cours': { label: 'En cours de livraison', icon: '🚚', class: 'livraison_en_cours' },
+            'disponible': { label: 'Commande disponible', icon: '📍', class: 'disponible' },
+            'recuperee': { label: 'Commande récupérée !', icon: '✅', class: 'recuperee' },
+            'refuse': { label: 'Commande refusée', icon: '❌', class: 'refuse' },
+            'annulee': { label: 'Commande annulée', icon: '❌', class: 'annulee' }
         };
 
         let html = '';
 
         commandes.forEach((c) => {
             const statusClass = c.status || 'en_attente';
-            const cardColorClass = statusColorMap[statusClass] || 'status-en_attente';
-            const label = statusLabels[statusClass] || statusClass;
-
-            const panier = extractProducts(c.panier);
-            let productsStr = 'Aucun produit';
-            if (panier.length > 0) {
-                productsStr = panier.map(p => {
-                    const name = p.name || p.nom || p.product_name || 'Produit';
-                    const qty = p.quantity || p.qty || p.quantite || 1;
-                    return `${name} × ${qty}`;
-                }).join(', ');
-            }
+            const statusInfo = statusLabels[statusClass] || { label: statusClass, icon: '📋', class: 'en_attente' };
 
             const isPayable = c.status === 'accepter';
             const isDeletable = c.status === 'refuse' || c.status === 'annulee';
             const isCancellable = c.status === 'en_attente';
             const isRestorable = c.status === 'annulee';
             const isPaymentInProgress = c.status === 'paiement_en_cours';
+            const showSync = c.status === 'paiement_en_cours' || c.status === 'paiement_effectue';
 
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            const refDisplay = c.reference ? `(${c.reference})` : `(#${c.id})`;
+            const refDisplay = c.reference || `NAT-${c.id}`;
             const causeHtml = c.cause_refus ? `<div class="commande-cause">❌ ${c.cause_refus}</div>` : '';
             const geniusRef = c.genius_reference || '';
 
             html += `
-                <div class="commande-card ${cardColorClass}" id="card-${c.id}">
-                    <div class="commande-header-card">
-                        <span class="commande-id">#${c.id}</span>
-                        <span class="commande-ref">${refDisplay}</span>
-                        <span class="commande-date">${dateStr}</span>
-                    </div>
-                    <div class="commande-total">${(c.total || 0).toLocaleString()} FCFA</div>
-                    <div class="commande-infos">
-                        📦 <span>${c.option === 'chezmoi' ? 'Livraison à domicile' : 'Adresse'}</span>
-                        ${c.commune ? `📍 <span>${c.commune}</span>` : ''}
-                    </div>
-                    <span class="commande-status-badge ${statusClass}">${label}</span>
+                <div class="commande-card status-${statusClass}">
+                    <span class="badge-top ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span>
+                    <div class="id">#${c.id}</div>
+                    <span class="ref">${refDisplay}</span>
+                    <span class="date">${dateStr}</span>
+                    <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
+                    <div class="status-text"><span class="status-icon">${statusInfo.icon}</span> ${statusInfo.label}</div>
                     ${causeHtml}
-                    <div class="commande-actions">
+                    <div class="actions">
                         ${isPaymentInProgress ? `
-                            <button class="btn btn-cancel-payment" data-id="${c.id}">
+                            <button class="btn btn-cancel-pay" data-id="${c.id}">
                                 <i class="fas fa-times-circle"></i> Annuler paiement
                             </button>
                         ` : ''}
                         ${isPayable ? `
                             <button class="btn btn-pay" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
-                                <i class="fas fa-wave-square"></i> Payer
+                                <i class="fas fa-credit-card"></i> Payer
                             </button>
                         ` : ''}
                         ${isRestorable ? `
@@ -699,15 +687,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-times-circle"></i> Annuler
                             </button>
                         ` : ''}
+                        ${showSync ? `
+                            <button class="btn-sync" data-id="${c.id}" data-ref="${c.reference || c.id}" data-genius="${geniusRef}" title="Vérifier le paiement">
+                                <i class="fas fa-sync-alt"></i> Sync
+                            </button>
+                        ` : ''}
                         <button class="btn btn-detail" data-id="${c.id}">
-                            <i class="fas fa-eye"></i> Voir détails
-                        </button>
-                        <button class="btn btn-check-payment" 
-                                data-id="${c.id}" 
-                                data-ref="${c.reference || c.id}"
-                                data-genius="${geniusRef}"
-                                title="Vérifier le paiement">
-                            <i class="fas fa-sync-alt"></i>
+                            <i class="fas fa-eye"></i> Détails
                         </button>
                     </div>
                 </div>
@@ -718,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ===== ÉVÉNEMENTS =====
 
-        document.querySelectorAll('.btn-check-payment').forEach(btn => {
+        document.querySelectorAll('.btn-sync').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const id = parseInt(this.dataset.id);
@@ -728,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        document.querySelectorAll('.btn-cancel-payment').forEach(btn => {
+        document.querySelectorAll('.btn-cancel-pay').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
                 const result = await showConfirm('❌', 'Annuler le paiement', 'Êtes-vous sûr de vouloir annuler ce paiement ?');
