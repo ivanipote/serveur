@@ -205,6 +205,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .section-header h2 {
@@ -250,13 +252,14 @@ body {
     background: white;
     border-radius: 16px;
     border: 1px solid #e8ecf4;
-    overflow: hidden;
+    overflow: auto;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .table-container table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 700px;
 }
 
 .table-container th {
@@ -315,6 +318,36 @@ body {
 .status-badge.payee {
     background: #c3e6cb;
     color: #0b5e2e;
+}
+
+.status-badge.refusee {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.annulee {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.canceled {
+    background: #f8d7da;
+    color: #721c24;
 }
 
 .empty-msg {
@@ -444,15 +477,35 @@ body {
     color: #2563eb;
 }
 
+.btn-sm.edit:hover {
+    background: #bfdbfe;
+}
+
 /* ==========================================
-   FORM
+   FORM (ajout produit)
    ========================================== */
 .product-form {
-    max-width: 600px;
+    max-width: 700px;
     background: white;
     padding: 30px;
     border-radius: 16px;
     border: 1px solid #e8ecf4;
+}
+
+.product-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.product-form .form-row .form-group {
+    margin-bottom: 12px;
+}
+
+.product-form .form-row .form-group textarea {
+    height: 100%;
+    min-height: 80px;
+    resize: vertical;
 }
 
 .product-form .form-group {
@@ -476,6 +529,7 @@ body {
     font-size: 14px;
     outline: none;
     transition: border-color 0.3s;
+    font-family: inherit;
 }
 
 .product-form input:focus,
@@ -493,6 +547,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+    margin-top: 8px;
 }
 
 .btn-submit:hover {
@@ -520,355 +575,46 @@ body {
     color: #721c24;
 }
 
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 200px;
-        padding: 20px 14px;
-    }
-    .main-content {
-        margin-left: 200px;
-        padding: 20px;
-    }
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .commune-form .form-row {
-        flex-direction: column;
-    }
-}
-
-@media (max-width: 500px) {
-    .sidebar {
-        display: none;
-    }
-    .main-content {
-        margin-left: 0;
-    }
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-}
-/* ==========================================
-   STATUS OVERLAY
-   ========================================== */
-.status-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 200;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.status-overlay.active {
-    display: flex;
-}
-
-.status-box {
-    background: white;
-    border-radius: 24px;
-    padding: 24px 28px 28px 28px;
-    max-width: 480px;
-    width: 100%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: scaleIn 0.3s ease;
-}
-
-.status-box .box-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.status-box .box-header h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a2e;
-}
-
-.status-box .box-header .close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #888;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.status-box .box-header .close-btn:hover {
-    background: #f0f2f5;
-}
-
-.status-box .status-content .form-group {
-    margin-bottom: 16px;
-}
-
-.status-box .status-content .form-group label {
+.message.info {
     display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 4px;
-}
-
-.status-box .status-content .form-group select,
-.status-box .status-content .form-group textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 2px solid #e8e8f0;
-    border-radius: 12px;
-    font-size: 14px;
-    background: #f8f9fc;
-    outline: none;
-    transition: border-color 0.3s;
-    font-family: inherit;
-}
-
-.status-box .status-content .form-group select:focus,
-.status-box .status-content .form-group textarea:focus {
-    border-color: #1a2a6c;
-}
-
-.status-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-}
-
-.status-actions .btn-cancel {
-    flex: 1;
-    background: #e8e8f0;
-    color: #666;
-    border: none;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.status-actions .btn-cancel:hover {
-    background: #d5d5e0;
-}
-
-.status-actions .btn-save {
-    flex: 2;
-    background: #1a2a6c;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.status-actions .btn-save:hover {
-    background: #0d1b4a;
-    transform: scale(1.02);
-}
-
-/* ==========================================
-   DETAIL OVERLAY
-   ========================================== */
-.detail-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 250;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.detail-overlay.active {
-    display: flex;
-}
-
-.detail-box {
-    background: white;
-    border-radius: 24px;
-    padding: 24px 28px 28px 28px;
-    max-width: 580px;
-    width: 100%;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: scaleIn 0.3s ease;
-}
-
-.detail-box .box-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-shrink: 0;
-}
-
-.detail-box .box-header h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a2e;
-}
-
-.detail-box .box-header .close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #888;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.detail-box .box-header .close-btn:hover {
-    background: #f0f2f5;
-}
-
-.detail-box .detail-content {
-    overflow-y: auto;
-    flex: 1;
-    padding-right: 4px;
-}
-
-.detail-box .detail-content::-webkit-scrollbar {
-    width: 4px;
-}
-
-.detail-box .detail-content::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
-
-.detail-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #f5f5fa;
-    font-size: 14px;
-}
-
-.detail-item .label {
-    color: #888;
-    font-weight: 500;
-}
-
-.detail-item .value {
-    color: #1a1a2e;
-    font-weight: 600;
-    text-align: right;
-    max-width: 60%;
-}
-
-.detail-item .value.products {
-    font-weight: 400;
-    text-align: right;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.detail-item .value .badge-status {
-    display: inline-block;
-    padding: 2px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.detail-item .value .badge-status.en_attente {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.detail-item .value .badge-status.acceptee {
-    background: #cce5ff;
-    color: #004085;
-}
-
-.detail-item .value .badge-status.refusee {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.detail-item .value .badge-status.pret_livraison {
-    background: #d4edda;
-    color: #155724;
-}
-
-.detail-item .value .badge-status.livraison_en_cours {
     background: #d1ecf1;
     color: #0c5460;
 }
 
-.detail-item .value .badge-status.votre_colis_est_la {
-    background: #d4edda;
-    color: #155724;
+/* ==========================================
+   APERÇU IMAGES
+   ========================================== */
+.image-preview {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
 }
 
-.detail-item .value .badge-status.payee {
-    background: #c3e6cb;
-    color: #0b5e2e;
-}
-
-.status-btn {
-    background: #1a2a6c;
-    color: white;
-    border: none;
-    padding: 6px 14px;
+.image-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
     border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
+    border: 2px solid #e8ecf4;
 }
 
-.status-btn:hover {
-    background: #0d1b4a;
-    transform: scale(1.02);
-}
-
-.detail-btn {
-    background: #e8e8f0;
-    color: #1a1a2e;
-    border: none;
-    padding: 6px 14px;
+.image-preview .preview-placeholder {
+    width: 80px;
+    height: 80px;
     border-radius: 8px;
+    border: 2px dashed #d0d0da;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
     font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
+    text-align: center;
 }
 
-.detail-btn:hover {
-    background: #d5d5e0;
-}
 /* ==========================================
    FILTRES - COMMANDES
    ========================================== */
-
 .filters-bar {
     background: white;
     border-radius: 16px;
@@ -947,10 +693,157 @@ body {
 }
 
 /* ==========================================
-   OVERLAY DÉTAIL AMÉLIORÉ
+   ENVOYER UN MESSAGE
    ========================================== */
+.send-message-container {
+    max-width: 600px;
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e8ecf4;
+}
 
-.detail-overlay {
+.send-message-container .form-group {
+    margin-bottom: 16px;
+}
+
+.send-message-container .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #1a1a2e;
+    font-size: 14px;
+}
+
+.send-message-container .form-select,
+.send-message-container .form-input,
+.send-message-container .form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e8ecf4;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.send-message-container .form-select:focus,
+.send-message-container .form-input:focus,
+.send-message-container .form-textarea:focus {
+    border-color: #1a2a6c;
+}
+
+.send-message-container .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.btn-send-all {
+    background: #6C63FF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-send-all:hover {
+    background: #5A52D5;
+    transform: scale(1.02);
+}
+
+/* ==========================================
+   MISES À JOUR
+   ========================================== */
+.updates-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 800px;
+}
+
+.update-item {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 1px solid #e8ecf4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    transition: all 0.3s;
+}
+
+.update-item:hover {
+    border-color: #1a2a6c;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.update-item .update-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.update-item .update-info .commit-sha {
+    font-size: 12px;
+    color: #888;
+    font-family: monospace;
+}
+
+.update-item .update-info .commit-message {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.update-item .update-info .commit-date {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.update-item .update-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.update-item .update-actions .btn-notify {
+    background: #2d7d46;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.update-item .update-actions .btn-notify:hover {
+    background: #1a5a33;
+    transform: scale(1.02);
+}
+
+.update-item .update-actions .btn-notify:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.update-item .update-actions .btn-notify.done {
+    background: #e8ecf4;
+    color: #888;
+}
+
+/* ==========================================
+   OVERLAYS (détail commande, statut, produit)
+   ========================================== */
+.detail-overlay,
+.status-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -959,21 +852,23 @@ body {
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 250;
+    z-index: 200;
     display: none;
     justify-content: center;
     align-items: center;
     padding: 20px;
 }
 
-.detail-overlay.active {
+.detail-overlay.active,
+.status-overlay.active {
     display: flex;
 }
 
-.detail-box {
+.detail-box,
+.status-box {
     background: white;
     border-radius: 24px;
-    padding: 24px 28px 20px 28px;
+    padding: 24px 28px 28px 28px;
     max-width: 580px;
     width: 100%;
     max-height: 90vh;
@@ -983,7 +878,8 @@ body {
     animation: scaleIn 0.3s ease;
 }
 
-.detail-box .box-header {
+.detail-box .box-header,
+.status-box .box-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -991,13 +887,15 @@ body {
     flex-shrink: 0;
 }
 
-.detail-box .box-header h3 {
+.detail-box .box-header h3,
+.status-box .box-header h3 {
     font-size: 18px;
     font-weight: 700;
     color: #1a1a2e;
 }
 
-.detail-box .box-header .close-btn {
+.detail-box .box-header .close-btn,
+.status-box .box-header .close-btn {
     background: none;
     border: none;
     font-size: 24px;
@@ -1008,25 +906,32 @@ body {
     transition: background 0.2s;
 }
 
-.detail-box .box-header .close-btn:hover {
+.detail-box .box-header .close-btn:hover,
+.status-box .box-header .close-btn:hover {
     background: #f0f2f5;
 }
 
-.detail-box .detail-content {
+.detail-box .detail-content,
+.status-box .status-content {
     overflow-y: auto;
     flex: 1;
     padding-right: 4px;
 }
 
-.detail-box .detail-content::-webkit-scrollbar {
+.detail-box .detail-content::-webkit-scrollbar,
+.status-box .status-content::-webkit-scrollbar {
     width: 4px;
 }
 
-.detail-box .detail-content::-webkit-scrollbar-thumb {
+.detail-box .detail-content::-webkit-scrollbar-thumb,
+.status-box .status-content::-webkit-scrollbar-thumb {
     background: #ccc;
     border-radius: 10px;
 }
 
+/* ==========================================
+   DETAIL ITEMS
+   ========================================== */
 .detail-item {
     display: flex;
     justify-content: space-between;
@@ -1103,7 +1008,9 @@ body {
     color: #721c24;
 }
 
-/* ===== DÉTAIL ACTIONS ===== */
+/* ==========================================
+   DETAIL ACTIONS (commandes)
+   ========================================== */
 .detail-actions {
     display: flex;
     gap: 8px;
@@ -1201,78 +1108,428 @@ body {
 }
 
 /* ==========================================
-   ANIMATIONS
+   STATUS OVERLAY
    ========================================== */
+.status-box .status-content .form-group {
+    margin-bottom: 16px;
+}
 
-@keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+.status-box .status-content .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.status-box .status-content .form-group select,
+.status-box .status-content .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #f8f9fc;
+    outline: none;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.status-box .status-content .form-group select:focus,
+.status-box .status-content .form-group textarea:focus {
+    border-color: #1a2a6c;
+}
+
+.status-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.status-actions .btn-cancel {
+    flex: 1;
+    background: #e8e8f0;
+    color: #666;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.status-actions .btn-cancel:hover {
+    background: #d5d5e0;
+}
+
+.status-actions .btn-save {
+    flex: 2;
+    background: #1a2a6c;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.status-actions .btn-save:hover {
+    background: #0d1b4a;
+    transform: scale(1.02);
 }
 
 /* ==========================================
-   RESPONSIVE FILTRES
+   OVERLAY PRODUIT (détail et modification)
    ========================================== */
+.product-detail-box,
+.product-edit-box {
+    max-width: 550px;
+}
+
+.product-detail-box .detail-item .value img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e8ecf4;
+}
+
+.product-detail-box .detail-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #f0f2f7;
+}
+
+.product-detail-box .detail-actions .btn-edit {
+    background: #1a2a6c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    flex: 1;
+}
+
+.product-detail-box .detail-actions .btn-edit:hover {
+    background: #0d1b4a;
+    transform: scale(1.02);
+}
+
+.product-detail-box .detail-actions .btn-delete {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.product-detail-box .detail-actions .btn-delete:hover {
+    background: #c0392b;
+    transform: scale(1.02);
+}
+
+/* ==========================================
+   PRODUCT EDIT OVERLAY
+   ========================================== */
+.product-edit-box .form-group {
+    margin-bottom: 12px;
+}
+
+.product-edit-box .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #1a1a2e;
+    font-size: 13px;
+}
+
+.product-edit-box .form-group input,
+.product-edit-box .form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e8ecf4;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.product-edit-box .form-group input:focus,
+.product-edit-box .form-group textarea:focus {
+    border-color: #1a2a6c;
+}
+
+.product-edit-box .form-group .edit-image-preview {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.product-edit-box .form-group .edit-image-preview img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e8ecf4;
+}
+
+.product-edit-box .edit-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #f0f2f7;
+}
+
+.product-edit-box .edit-actions .btn-save-edit {
+    background: #2d7d46;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    flex: 1;
+}
+
+.product-edit-box .edit-actions .btn-save-edit:hover {
+    background: #1a5a33;
+    transform: scale(1.02);
+}
+
+.product-edit-box .edit-actions .btn-cancel-edit {
+    background: #e8ecf4;
+    color: #666;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.product-edit-box .edit-actions .btn-cancel-edit:hover {
+    background: #d5d9e4;
+}
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 1024px) {
+    .product-form .form-row {
+        grid-template-columns: 1fr;
+    }
+}
 
 @media (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+        padding: 20px 14px;
+    }
+
+    .main-content {
+        margin-left: 200px;
+        padding: 20px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .commune-form .form-row {
+        flex-direction: column;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
     .filters-bar {
         padding: 12px 16px;
     }
-    
+
     .filter-buttons {
         gap: 6px;
     }
-    
+
     .filter-btn {
         font-size: 12px;
         padding: 4px 12px;
     }
-    
-    .filter-search {
-        flex-wrap: wrap;
-    }
-    
+
     .filter-search input {
         min-width: 150px;
         font-size: 13px;
         padding: 8px 12px;
     }
-    
+
     .detail-box {
-        padding: 18px 16px 16px 16px;
         max-width: 100%;
         margin: 10px;
+        padding: 18px 16px 16px 16px;
     }
-    
+
     .detail-item {
         font-size: 13px;
         padding: 6px 0;
     }
-    
+
     .detail-actions {
         gap: 6px;
     }
-    
+
     .detail-actions .btn-status {
         font-size: 12px;
         padding: 6px 12px;
     }
+
+    .product-detail-box,
+    .product-edit-box {
+        max-width: 100%;
+        margin: 10px;
+    }
+
+    .product-detail-box .detail-item .value img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .update-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .update-item .update-actions {
+        justify-content: flex-end;
+    }
+
+    .send-message-container {
+        padding: 16px;
+    }
+
+    .send-message-container .form-group select {
+        min-width: 100%;
+    }
+
+    .product-form {
+        padding: 20px;
+    }
+
+    .product-form .form-row {
+        grid-template-columns: 1fr;
+    }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 500px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .filter-buttons {
         flex-wrap: nowrap;
         overflow-x: auto;
         padding-bottom: 4px;
     }
-    
+
     .filter-btn {
         flex-shrink: 0;
         font-size: 11px;
         padding: 4px 10px;
     }
-    
+
     .filter-search input {
         min-width: 120px;
         font-size: 12px;
+    }
+
+    .detail-actions {
+        flex-direction: column;
+    }
+
+    .detail-actions .btn-status {
+        width: 100%;
+        text-align: center;
+    }
+
+    .product-edit-box .edit-actions {
+        flex-direction: column;
+    }
+
+    .product-edit-box .edit-actions .btn-save-edit,
+    .product-edit-box .edit-actions .btn-cancel-edit {
+        width: 100%;
+        text-align: center;
+    }
+
+    .update-item .update-actions {
+        flex-direction: column;
+    }
+
+    .update-item .update-actions .btn-notify {
+        width: 100%;
+        text-align: center;
+    }
+
+    .status-actions {
+        flex-direction: column;
+    }
+
+    .status-actions .btn-cancel,
+    .status-actions .btn-save {
+        width: 100%;
+    }
+
+    .product-detail-box .detail-actions {
+        flex-direction: column;
+    }
+
+    .product-detail-box .detail-actions .btn-edit,
+    .product-detail-box .detail-actions .btn-delete {
+        width: 100%;
+        text-align: center;
     }
 }

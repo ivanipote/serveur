@@ -32,11 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelStatusBtn = document.getElementById('cancelStatusBtn');
     const closeStatusOverlay = document.getElementById('closeStatusOverlay');
 
-    // Overlay détail
+    // Overlay détail commande
     const detailOverlay = document.getElementById('detailOverlay');
     const detailContent = document.getElementById('detailContent');
     const detailActions = document.getElementById('detailActions');
     const closeDetailOverlay = document.getElementById('closeDetailOverlay');
+
+    // Overlay produit détail
+    const productDetailOverlay = document.getElementById('productDetailOverlay');
+    const productDetailContent = document.getElementById('productDetailContent');
+    const closeProductDetail = document.getElementById('closeProductDetail');
+
+    // Overlay produit modification
+    const productEditOverlay = document.getElementById('productEditOverlay');
+    const productEditContent = document.getElementById('productEditContent');
+    const closeProductEdit = document.getElementById('closeProductEdit');
 
     // Variables
     let currentCommandeId = null;
@@ -44,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let allCommandes = [];
     let currentFilter = 'all';
     let searchTerm = '';
+    let editProductId = null;
 
     // ==========================================
     // NAVIGATION
@@ -69,13 +80,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandes: '📋 Commandes',
                 livraison: '📍 Frais de livraison',
                 payments: '💳 Paiements',
-                clients: '👤 Clients'
+                clients: '👤 Clients',
+                'send-message': '📨 Envoyer un message',
+                updates: '🔄 Mises à jour'
             };
             pageTitle.textContent = titles[pageId] || 'Dashboard';
 
-            // Recharger les commandes si on clique sur l'onglet
             if (pageId === 'commandes') {
                 loadCommandes();
+            }
+            if (pageId === 'send-message') {
+                loadUsersForMessage();
             }
         });
     });
@@ -120,13 +135,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (res.ok && data.length > 0) {
                 container.innerHTML = data.map(p => `
-                    <div class="product-card">
+                    <div class="product-card" data-id="${p.id}" data-name="${p.name}" onclick="openProductDetail(${p.id})" style="cursor:pointer;">
                         <img src="${p.image1 || ''}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/200'">
                         <h4>${p.name}</h4>
-                        <div class="price">${p.price} FCFA</div>
+                        <div class="price">${p.price.toLocaleString()} FCFA</div>
                         <p style="font-size:12px;color:#888;">Stock: ${p.quantity || 0}</p>
                         <div class="actions">
-                            <button class="btn-sm danger" onclick="deleteProduct(${p.id})">🗑️</button>
+                            <button class="btn-sm edit" onclick="event.stopPropagation();openProductEdit(${p.id})">✏️</button>
+                            <button class="btn-sm danger" onclick="event.stopPropagation();deleteProduct(${p.id})">🗑️</button>
                         </div>
                     </div>
                 `).join('');
@@ -150,6 +166,194 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Erreur:', error);
         }
     };
+
+    // ==========================================
+    // APERÇU IMAGES (formulaire ajout)
+    // ==========================================
+
+    document.getElementById('productImage1')?.addEventListener('change', function(e) {
+        previewImage(e, 'preview1');
+    });
+    document.getElementById('productImage2')?.addEventListener('change', function(e) {
+        previewImage(e, 'preview2');
+    });
+
+    function previewImage(event, previewId) {
+        const container = document.getElementById(previewId);
+        container.innerHTML = '';
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                container.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'preview-placeholder';
+            placeholder.textContent = 'Aucune image';
+            container.appendChild(placeholder);
+        }
+    }
+
+    // ==========================================
+    // OVERLAY DÉTAIL PRODUIT
+    // ==========================================
+
+    window.openProductDetail = async function(productId) {
+        try {
+            const res = await fetch('/api/admin/products');
+            const products = await res.json();
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const stockStatus = product.quantity <= 0 ? '❌ Rupture' :
+                               product.quantity <= 3 ? '⚠️ Stock limité' : '✅ En stock';
+
+            productDetailContent.innerHTML = `
+                <div class="detail-item"><span class="label">ID</span><span class="value">#${product.id}</span></div>
+                <div class="detail-item"><span class="label">Nom</span><span class="value">${product.name}</span></div>
+                <div class="detail-item"><span class="label">Prix</span><span class="value">${product.price.toLocaleString()} FCFA</span></div>
+                <div class="detail-item"><span class="label">Quantité</span><span class="value">${product.quantity || 0}</span></div>
+                <div class="detail-item"><span class="label">Stock</span><span class="value">${stockStatus}</span></div>
+                <div class="detail-item"><span class="label">Description</span><span class="value" style="max-width:50%;">${product.description || '-'}</span></div>
+                <div class="detail-item"><span class="label">Images</span><span class="value" style="max-width:50%;">
+                    ${product.image1 ? `<img src="${product.image1}" alt="img1" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">` : '-'}
+                    ${product.image2 ? `<img src="${product.image2}" alt="img2" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">` : ''}
+                </span></div>
+                <div class="detail-item"><span class="label">Créé le</span><span class="value">${new Date(product.created_at).toLocaleString()}</span></div>
+                <div class="detail-actions">
+                    <button class="btn-edit" onclick="openProductEdit(${product.id})">✏️ Modifier</button>
+                    <button class="btn-delete" onclick="deleteProduct(${product.id})">🗑️ Supprimer</button>
+                </div>
+            `;
+
+            productDetailOverlay.classList.add('active');
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    };
+
+    if (closeProductDetail) {
+        closeProductDetail.addEventListener('click', function() {
+            productDetailOverlay.classList.remove('active');
+        });
+    }
+
+    // ==========================================
+    // OVERLAY MODIFICATION PRODUIT
+    // ==========================================
+
+    window.openProductEdit = async function(productId) {
+        try {
+            const res = await fetch('/api/admin/products');
+            const products = await res.json();
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            editProductId = productId;
+
+            productEditContent.innerHTML = `
+                <form id="editProductForm">
+                    <div class="form-group">
+                        <label>Nom</label>
+                        <input type="text" id="editName" value="${product.name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Prix (FCFA)</label>
+                        <input type="number" id="editPrice" value="${product.price}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantité</label>
+                        <input type="number" id="editQty" value="${product.quantity || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="editDesc" rows="3">${product.description || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Images actuelles</label>
+                        <div class="edit-image-preview">
+                            ${product.image1 ? `<img src="${product.image1}" alt="img1">` : ''}
+                            ${product.image2 ? `<img src="${product.image2}" alt="img2">` : ''}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Remplacer Image 1</label>
+                        <input type="file" id="editImage1" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Remplacer Image 2</label>
+                        <input type="file" id="editImage2" accept="image/*">
+                    </div>
+                    <div class="edit-actions">
+                        <button type="submit" class="btn-save-edit">💾 Enregistrer</button>
+                        <button type="button" class="btn-cancel-edit" onclick="document.getElementById('productEditOverlay').classList.remove('active')">Annuler</button>
+                    </div>
+                    <div id="editMessage" class="message"></div>
+                </form>
+            `;
+
+            productEditOverlay.classList.add('active');
+
+            document.getElementById('editProductForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await saveProductEdit();
+            });
+
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    };
+
+    if (closeProductEdit) {
+        closeProductEdit.addEventListener('click', function() {
+            productEditOverlay.classList.remove('active');
+        });
+    }
+
+    async function saveProductEdit() {
+        const formData = new FormData();
+        formData.append('name', document.getElementById('editName').value.trim());
+        formData.append('price', document.getElementById('editPrice').value);
+        formData.append('quantity', document.getElementById('editQty').value || 0);
+        formData.append('description', document.getElementById('editDesc').value.trim());
+
+        const file1 = document.getElementById('editImage1').files[0];
+        const file2 = document.getElementById('editImage2').files[0];
+        if (file1) formData.append('image1', file1);
+        if (file2) formData.append('image2', file2);
+
+        const msg = document.getElementById('editMessage');
+
+        try {
+            const res = await fetch(`/api/admin/products/${editProductId}`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                msg.textContent = '✅ Produit mis à jour avec succès !';
+                msg.className = 'message success';
+                setTimeout(() => {
+                    productEditOverlay.classList.remove('active');
+                    loadProducts();
+                    loadStats();
+                }, 1000);
+            } else {
+                msg.textContent = '❌ ' + (data.error || 'Erreur');
+                msg.className = 'message error';
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            msg.textContent = '❌ Erreur de connexion';
+            msg.className = 'message error';
+        }
+    }
 
     // ==========================================
     // AJOUTER PRODUIT
@@ -189,6 +393,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     productMsg.textContent = '✅ Produit ajouté avec succès !';
                     productMsg.className = 'message success';
                     this.reset();
+                    document.getElementById('preview1').innerHTML = '';
+                    document.getElementById('preview2').innerHTML = '';
                     loadProducts();
                     loadStats();
                     setTimeout(() => showPage('products'), 1000);
@@ -208,10 +414,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // COMMANDES - ADMIN (AVEC FILTRES ET RECHERCHE)
+    // COMMANDES
     // ==========================================
 
-    // ===== FILTRES =====
     function setupFilters() {
         const buttons = document.querySelectorAll('.filter-btn');
         const searchInput = document.getElementById('searchCommande');
@@ -233,7 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ===== AFFICHER LE TABLEAU =====
     function renderCommandesTable() {
         const container = document.getElementById('commandesList');
         const countEl = document.getElementById('filterCount');
@@ -242,12 +446,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let filtered = allCommandes;
 
-        // Filtre par statut
         if (currentFilter !== 'all') {
             filtered = filtered.filter(c => c.status === currentFilter);
         }
 
-        // Recherche
         if (searchTerm !== '') {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(c =>
@@ -258,12 +460,10 @@ document.addEventListener('DOMContentLoaded', function() {
             );
         }
 
-        // Mettre à jour le compteur
         if (countEl) {
             countEl.textContent = filtered.length + ' commandes';
         }
 
-        // Afficher le tableau
         if (filtered.length === 0) {
             container.innerHTML = `<p class="empty-msg">Aucune commande trouvée.</p>`;
             return;
@@ -323,7 +523,10 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = html;
     }
 
-    // ===== OVERLAY DÉTAIL AMÉLIORÉ =====
+    // ==========================================
+    // OVERLAY DÉTAIL COMMANDE
+    // ==========================================
+
     window.openDetailOverlay = function(commande) {
         currentDetailCommande = commande;
         const content = document.getElementById('detailContent');
@@ -331,7 +534,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!content || !actions) return;
 
-        // Désérialiser le panier
         let panier = [];
         try {
             panier = JSON.parse(commande.panier || '[]');
@@ -360,71 +562,27 @@ document.addEventListener('DOMContentLoaded', function() {
             '';
 
         content.innerHTML = `
-            <div class="detail-item">
-                <span class="label"># Commande</span>
-                <span class="value">${commande.id}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Référence</span>
-                <span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Client</span>
-                <span class="value">${commande.nom}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Téléphone</span>
-                <span class="value">${commande.telephone || '-'}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Total</span>
-                <span class="value">${(commande.total || 0).toLocaleString()} FCFA</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Frais livraison</span>
-                <span class="value">${(commande.frais_livraison || 0).toLocaleString()} FCFA</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Commune</span>
-                <span class="value">${commande.commune || '-'}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Quartier</span>
-                <span class="value">${commande.quartier || '-'}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Précision</span>
-                <span class="value">${commande.precision || '-'}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Option</span>
-                <span class="value">${commande.option === 'chezmoi' ? '📍 Chez moi' : '✏️ Adresse'}</span>
-            </div>
-            ${commande.latitude ? `
-            <div class="detail-item">
-                <span class="label">GPS</span>
-                <span class="value" style="font-size:12px;">${commande.latitude}, ${commande.longitude}</span>
-            </div>` : ''}
-            <div class="detail-item">
-                <span class="label">Produits</span>
-                <span class="value products">${productsHtml}</span>
-            </div>
-            <div class="detail-item">
-                <span class="label">Statut</span>
-                <span class="value"><span class="badge-status ${statusClass}">${statusLabels[statusClass] || statusClass}</span></span>
-            </div>
+            <div class="detail-item"><span class="label"># Commande</span><span class="value">${commande.id}</span></div>
+            <div class="detail-item"><span class="label">Référence</span><span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span></div>
+            <div class="detail-item"><span class="label">Client</span><span class="value">${commande.nom}</span></div>
+            <div class="detail-item"><span class="label">Téléphone</span><span class="value">${commande.telephone || '-'}</span></div>
+            <div class="detail-item"><span class="label">Total</span><span class="value">${(commande.total || 0).toLocaleString()} FCFA</span></div>
+            <div class="detail-item"><span class="label">Frais livraison</span><span class="value">${(commande.frais_livraison || 0).toLocaleString()} FCFA</span></div>
+            <div class="detail-item"><span class="label">Commune</span><span class="value">${commande.commune || '-'}</span></div>
+            <div class="detail-item"><span class="label">Quartier</span><span class="value">${commande.quartier || '-'}</span></div>
+            <div class="detail-item"><span class="label">Précision</span><span class="value">${commande.precision || '-'}</span></div>
+            <div class="detail-item"><span class="label">Option</span><span class="value">${commande.option === 'chezmoi' ? '📍 Chez moi' : '✏️ Adresse'}</span></div>
+            ${commande.latitude ? `<div class="detail-item"><span class="label">GPS</span><span class="value" style="font-size:12px;">${commande.latitude}, ${commande.longitude}</span></div>` : ''}
+            <div class="detail-item"><span class="label">Produits</span><span class="value products">${productsHtml}</span></div>
+            <div class="detail-item"><span class="label">Statut</span><span class="value"><span class="badge-status ${statusClass}">${statusLabels[statusClass] || statusClass}</span></span></div>
             ${causeHtml}
-            <div class="detail-item">
-                <span class="label">Date</span>
-                <span class="value">${new Date(commande.created_at).toLocaleString()}</span>
-            </div>
+            <div class="detail-item"><span class="label">Date</span><span class="value">${new Date(commande.created_at).toLocaleString()}</span></div>
             <div class="detail-item" style="border-bottom:none;padding-top:4px;">
                 <span class="label" style="font-size:11px;color:#bbb;">Code secret</span>
                 <span class="value" style="font-size:11px;color:#bbb;letter-spacing:2px;">${commande.code_login || '••••'}</span>
             </div>
         `;
 
-        // ===== BOUTONS D'ACTION DANS L'OVERLAY =====
         const statusList = [
             { value: 'en_attente', label: '⏳ En attente', color: 'en_attente' },
             { value: 'acceptee', label: '✅ Accepter', color: 'acceptee' },
@@ -450,17 +608,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         actions.innerHTML = actionsHtml || '<span style="color:#888;font-size:13px;">Aucune action disponible.</span>';
 
-        document.getElementById('detailOverlay').classList.add('active');
+        detailOverlay.classList.add('active');
     };
 
-    // ===== CHANGER LE STATUT DEPUIS LE DÉTAIL =====
+    if (closeDetailOverlay) {
+        closeDetailOverlay.addEventListener('click', function() {
+            detailOverlay.classList.remove('active');
+        });
+    }
+
     window.changeStatusFromDetail = function(newStatus) {
         if (!currentDetailCommande) return;
 
-        // Si c'est "refusee", demander une cause
         if (newStatus === 'refusee') {
             const cause = prompt('✏️ Motif du refus :');
-            if (cause === null) return; // Annulé
+            if (cause === null) return;
             if (cause.trim() === '') {
                 alert('⚠️ Veuillez indiquer une cause.');
                 return;
@@ -471,7 +633,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // ===== MISE À JOUR DU STATUT =====
     async function updateStatus(commandeId, status, causeRefus = null) {
         try {
             const body = { commandeId, status };
@@ -486,11 +647,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (res.ok) {
-                // Fermer les overlays
-                document.getElementById('detailOverlay').classList.remove('active');
-                document.getElementById('statusOverlay').classList.remove('active');
-
-                // Recharger
+                detailOverlay.classList.remove('active');
+                statusOverlay.classList.remove('active');
                 loadCommandes();
                 loadStats();
             } else {
@@ -502,7 +660,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ===== OVERLAY STATUT =====
+    // ==========================================
+    // OVERLAY STATUT
+    // ==========================================
+
     window.openStatusOverlay = function(commandeId, clientName) {
         currentCommandeId = commandeId;
         statusCommandeId.textContent = commandeId;
@@ -556,19 +717,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ===== CLOSE DETAIL OVERLAY =====
-    if (closeDetailOverlay) {
-        closeDetailOverlay.addEventListener('click', function() {
-            detailOverlay.classList.remove('active');
-        });
-    }
-    if (detailOverlay) {
-        detailOverlay.addEventListener('click', function(e) {
-            if (e.target === detailOverlay) detailOverlay.classList.remove('active');
-        });
-    }
-
-    // ===== CHARGER LES COMMANDES =====
     async function loadCommandes() {
         try {
             const res = await fetch('/api/admin/commandes');
@@ -794,6 +942,170 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // ENVOYER UN MESSAGE
+    // ==========================================
+
+    async function loadUsersForMessage() {
+        try {
+            const res = await fetch('/api/admin/clients');
+            const data = await res.json();
+            const select = document.getElementById('messageUserSelect');
+            if (select) {
+                select.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+                if (data.length > 0) {
+                    data.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.name} (${user.email})`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'Aucun client disponible';
+                    select.appendChild(opt);
+                }
+            }
+        } catch (error) {
+            console.error('Erreur chargement users:', error);
+        }
+    }
+
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', async function() {
+            const userId = document.getElementById('messageUserSelect').value;
+            const title = document.getElementById('messageTitle').value.trim();
+            const content = document.getElementById('messageContent').value.trim();
+            const result = document.getElementById('messageResult');
+
+            if (!userId || !title || !content) {
+                result.textContent = '⚠️ Veuillez remplir tous les champs.';
+                result.className = 'message error';
+                return;
+            }
+
+            result.textContent = '⏳ Envoi en cours...';
+            result.className = 'message info';
+
+            try {
+                const res = await fetch('/api/admin/notification/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, title, content })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    result.textContent = '✅ Message envoyé avec succès !';
+                    result.className = 'message success';
+                    document.getElementById('messageTitle').value = '';
+                    document.getElementById('messageContent').value = '';
+                    setTimeout(() => { result.className = 'message'; }, 3000);
+                } else {
+                    result.textContent = '❌ ' + (data.error || 'Erreur');
+                    result.className = 'message error';
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                result.textContent = '❌ Erreur de connexion';
+                result.className = 'message error';
+            }
+        });
+    }
+
+    const sendToAllBtn = document.getElementById('sendToAllBtn');
+    if (sendToAllBtn) {
+        sendToAllBtn.addEventListener('click', function() {
+            const select = document.getElementById('messageUserSelect');
+            if (select) {
+                const allOption = Array.from(select.options).find(opt => opt.value === '');
+                if (allOption) select.value = '';
+            }
+            document.getElementById('messageUserSelect').style.borderColor = '#6C63FF';
+            // Focus sur le titre
+            document.getElementById('messageTitle').focus();
+        });
+    }
+
+    // ==========================================
+    // MISES À JOUR
+    // ==========================================
+
+    const checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
+    if (checkUpdatesBtn) {
+        checkUpdatesBtn.addEventListener('click', async function() {
+            const container = document.getElementById('updatesList');
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
+
+            try {
+                const res = await fetch('/api/admin/check-updates');
+                const data = await res.json();
+
+                if (data.success) {
+                    if (data.isNew) {
+                        container.innerHTML = `
+                            <div class="update-item" style="border-left:4px solid #2d7d46;">
+                                <div class="update-info">
+                                    <div class="commit-message">🆕 ${data.commit.message}</div>
+                                    <div class="commit-sha">${data.commit.sha.substring(0, 7)}</div>
+                                    <div class="commit-date">${new Date(data.commit.date).toLocaleString()}</div>
+                                    <div style="font-size:13px;color:#2d7d46;margin-top:4px;">
+                                        ✅ ${data.sentCount} notification(s) envoyée(s) aux utilisateurs
+                                    </div>
+                                </div>
+                                <div class="update-actions">
+                                    <button class="btn-notify done" disabled>✅ Envoyé</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="update-item">
+                                <div class="update-info">
+                                    <div class="commit-message">📌 Dernier commit déjà notifié</div>
+                                    <div class="commit-sha">${data.commit.sha.substring(0, 7)}</div>
+                                    <div class="commit-date">${new Date(data.commit.date).toLocaleString()}</div>
+                                </div>
+                                <div class="update-actions">
+                                    <button class="btn-notify done" disabled>✅ Déjà envoyé</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `<p class="empty-msg" style="color:#e74c3c;">❌ Erreur: ${data.error || 'Impossible de vérifier'}</p>`;
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                container.innerHTML = `<p class="empty-msg" style="color:#e74c3c;">❌ Erreur de connexion</p>`;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Vérifier';
+        });
+    }
+
+    // ==========================================
+    // RECHERCHE PRODUITS (live)
+    // ==========================================
+
+    const searchProductInput = document.getElementById('searchProduct');
+    if (searchProductInput) {
+        searchProductInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const name = card.dataset.name?.toLowerCase() || '';
+                card.style.display = name.includes(term) ? '' : 'none';
+            });
+        });
+    }
+
+    // ==========================================
     // AFFICHER LA PAGE
     // ==========================================
 
@@ -806,10 +1118,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // INITIALISATION
     // ==========================================
 
-    // Configurer les filtres
     setupFilters();
 
-    // Charger les données
     loadStats();
     loadProducts();
     loadCommandes();

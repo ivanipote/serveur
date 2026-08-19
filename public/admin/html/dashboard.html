@@ -14,7 +14,7 @@
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <h2>🌿 Nature+</h2>
+                <h2>🌿 <span>Nature+</span></h2>
                 <p>Espace Admin</p>
             </div>
 
@@ -39,6 +39,13 @@
                 </a>
                 <a href="#" data-page="clients">
                     <i class="fas fa-users"></i> Clients
+                </a>
+                <!-- 🆕 Nouveaux onglets -->
+                <a href="#" data-page="send-message">
+                    <i class="fas fa-paper-plane"></i> Envoyer un message
+                </a>
+                <a href="#" data-page="updates">
+                    <i class="fas fa-sync-alt"></i> Mises à jour
                 </a>
             </nav>
 
@@ -87,14 +94,17 @@
             </section>
 
             <!-- ========================================= -->
-            <!-- PAGE : PRODUITS -->
+            <!-- PAGE : PRODUITS (améliorée) -->
             <!-- ========================================= -->
             <section id="page-products" class="page-section">
                 <div class="section-header">
                     <h2>📦 Liste des produits</h2>
-                    <button class="btn-add" onclick="showPage('add-product')">
-                        <i class="fas fa-plus"></i> Ajouter
-                    </button>
+                    <div style="display:flex;gap:10px;">
+                        <input type="text" id="searchProduct" placeholder="🔍 Rechercher..." style="padding:8px 14px;border:2px solid #e8e8f0;border-radius:10px;font-size:14px;outline:none;">
+                        <button class="btn-add" onclick="showPage('add-product')">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </button>
+                    </div>
                 </div>
                 <div id="productList" class="product-grid">
                     <p class="empty-msg">Chargement des produits...</p>
@@ -102,34 +112,42 @@
             </section>
 
             <!-- ========================================= -->
-            <!-- PAGE : AJOUTER UN PRODUIT -->
+            <!-- PAGE : AJOUTER UN PRODUIT (améliorée) -->
             <!-- ========================================= -->
             <section id="page-add-product" class="page-section">
                 <h2>➕ Ajouter un produit</h2>
                 <form id="addProductForm" class="product-form" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label>Nom du produit</label>
-                        <input type="text" id="productName" name="name" placeholder="Ex: Pack Premium" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom du produit</label>
+                            <input type="text" id="productName" name="name" placeholder="Ex: Pack Premium" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Prix (FCFA)</label>
+                            <input type="number" id="productPrice" name="price" placeholder="200" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Prix (FCFA)</label>
-                        <input type="number" id="productPrice" name="price" placeholder="200" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quantité</label>
+                            <input type="number" id="productQty" name="quantity" placeholder="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="productDesc" name="description" rows="3" placeholder="Description du produit..."></textarea>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Quantité</label>
-                        <input type="number" id="productQty" name="quantity" placeholder="10">
-                    </div>
-                    <div class="form-group">
-                        <label>Image 1</label>
-                        <input type="file" id="productImage1" name="image1" accept="image/*" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Image 2</label>
-                        <input type="file" id="productImage2" name="image2" accept="image/*">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="productDesc" name="description" rows="4" placeholder="Description du produit..."></textarea>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Image 1</label>
+                            <input type="file" id="productImage1" name="image1" accept="image/*" required>
+                            <div class="image-preview" id="preview1"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Image 2</label>
+                            <input type="file" id="productImage2" name="image2" accept="image/*">
+                            <div class="image-preview" id="preview2"></div>
+                        </div>
                     </div>
                     <button type="submit" class="btn-submit">💾 Enregistrer</button>
                     <div id="productMessage" class="message"></div>
@@ -137,15 +155,13 @@
             </section>
 
             <!-- ========================================= -->
-            <!-- PAGE : COMMANDES (AMÉLIORÉE) -->
+            <!-- PAGE : COMMANDES -->
             <!-- ========================================= -->
             <section id="page-commandes" class="page-section">
                 <div class="section-header">
                     <h2>📋 Commandes clients</h2>
                     <span class="badge-commandes" id="commandesCount">0 commandes</span>
                 </div>
-
-                <!-- 🔍 FILTRES -->
                 <div class="filters-bar">
                     <div class="filter-buttons" id="filterButtons">
                         <button class="filter-btn active" data-filter="all">📋 Tous</button>
@@ -164,8 +180,6 @@
                         <span id="filterCount">0 commandes</span>
                     </div>
                 </div>
-
-                <!-- 📋 TABLEAU -->
                 <div id="commandesList" class="table-container">
                     <p class="empty-msg">Chargement des commandes...</p>
                 </div>
@@ -215,10 +229,81 @@
                 </div>
             </section>
 
+            <!-- ========================================= -->
+            <!-- 🆕 PAGE : ENVOYER UN MESSAGE -->
+            <!-- ========================================= -->
+            <section id="page-send-message" class="page-section">
+                <h2>📨 Envoyer un message</h2>
+                <div class="send-message-container">
+                    <div class="form-group">
+                        <label>Destinataire</label>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <select id="messageUserSelect" class="form-select" style="flex:1;min-width:200px;">
+                                <option value="">-- Sélectionner un client --</option>
+                            </select>
+                            <button id="sendToAllBtn" class="btn-send-all" style="background:#6C63FF;color:white;border:none;padding:10px 20px;border-radius:10px;font-weight:600;cursor:pointer;">
+                                <i class="fas fa-users"></i> Tous les clients
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Titre</label>
+                        <input type="text" id="messageTitle" placeholder="Titre du message" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Contenu</label>
+                        <textarea id="messageContent" rows="5" placeholder="Votre message..." class="form-textarea"></textarea>
+                    </div>
+                    <button id="sendMessageBtn" class="btn-submit">📤 Envoyer le message</button>
+                    <div id="messageResult" class="message"></div>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- 🆕 PAGE : MISES À JOUR -->
+            <!-- ========================================= -->
+            <section id="page-updates" class="page-section">
+                <div class="section-header">
+                    <h2>🔄 Mises à jour</h2>
+                    <button id="checkUpdatesBtn" class="btn-add">
+                        <i class="fas fa-sync-alt"></i> Vérifier
+                    </button>
+                </div>
+                <div id="updatesList" class="updates-container">
+                    <p class="empty-msg">Cliquez sur "Vérifier" pour voir les dernières mises à jour.</p>
+                </div>
+            </section>
+
         </main>
     </div>
 
-    <!-- ===== OVERLAY DÉTAIL COMMANDE (AMÉLIORÉ) ===== -->
+    <!-- ===== OVERLAY DÉTAIL PRODUIT (avec modification) ===== -->
+    <div class="detail-overlay" id="productDetailOverlay">
+        <div class="detail-box product-detail-box">
+            <div class="box-header">
+                <h3>📦 Détail du produit</h3>
+                <button class="close-btn" id="closeProductDetail"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="detail-content" id="productDetailContent">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY MODIFICATION PRODUIT ===== -->
+    <div class="detail-overlay" id="productEditOverlay">
+        <div class="detail-box product-edit-box">
+            <div class="box-header">
+                <h3>✏️ Modifier le produit</h3>
+                <button class="close-btn" id="closeProductEdit"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="detail-content" id="productEditContent">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY DÉTAIL COMMANDE ===== -->
     <div class="detail-overlay" id="detailOverlay">
         <div class="detail-box">
             <div class="box-header">
@@ -228,14 +313,13 @@
             <div class="detail-content" id="detailContent">
                 <p style="color:#888;text-align:center;padding:20px;">Chargement...</p>
             </div>
-            <!-- Actions en bas -->
             <div class="detail-actions" id="detailActions">
                 <!-- Les boutons seront injectés par JS -->
             </div>
         </div>
     </div>
 
-    <!-- ===== OVERLAY STATUT (gardé) ===== -->
+    <!-- ===== OVERLAY STATUT ===== -->
     <div class="status-overlay" id="statusOverlay">
         <div class="status-box">
             <div class="box-header">
