@@ -11,107 +11,143 @@
 
     <div class="dashboard-container">
 
-        <!-- ===== SIDEBAR FIXE ===== -->
+        <!-- ========================================= -->
+        <!-- SIDEBAR                                   -->
+        <!-- ========================================= -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <h2>🌿 <span>Nature+</span></h2>
-                <p>Espace Admin</p>
+                <div class="brand-icon">🌿</div>
+                <h2>Nature<span>+</span></h2>
+                <p class="brand-sub">Espace Admin</p>
             </div>
 
             <nav class="sidebar-nav">
                 <a href="#" class="active" data-page="overview">
-                    <i class="fas fa-chart-pie"></i> Vue d'ensemble
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Vue d'ensemble</span>
+                    <span class="badge-nav" id="navBadgeOverview">●</span>
                 </a>
                 <a href="#" data-page="commandes">
-                    <i class="fas fa-truck"></i> Commandes
+                    <i class="fas fa-truck"></i>
+                    <span>Commandes</span>
+                    <span class="badge-nav" id="navBadgeCommandes">0</span>
                 </a>
                 <a href="#" data-page="payments">
-                    <i class="fas fa-credit-card"></i> Paiements
+                    <i class="fas fa-credit-card"></i>
+                    <span>Paiements</span>
                 </a>
                 <a href="#" data-page="products">
-                    <i class="fas fa-box"></i> Produits
+                    <i class="fas fa-box"></i>
+                    <span>Produits</span>
                 </a>
                 <a href="#" data-page="add-product">
-                    <i class="fas fa-plus-circle"></i> Ajouter un produit
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Ajouter un produit</span>
                 </a>
                 <a href="#" data-page="clients">
-                    <i class="fas fa-users"></i> Clients
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
                 </a>
                 <a href="#" data-page="livraison">
-                    <i class="fas fa-map-pin"></i> Frais de livraison
+                    <i class="fas fa-map-pin"></i>
+                    <span>Frais de livraison</span>
                 </a>
                 <a href="#" data-page="send-message">
-                    <i class="fas fa-paper-plane"></i> Envoyer un message
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Envoyer un message</span>
                 </a>
                 <a href="#" data-page="updates">
-                    <i class="fas fa-sync-alt"></i> Mises à jour
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Mises à jour</span>
                 </a>
             </nav>
 
             <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="avatar-sm" id="adminAvatar">👤</div>
+                    <span id="adminName">Admin</span>
+                </div>
                 <button id="logoutBtn" class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i> Déconnexion
                 </button>
             </div>
         </aside>
 
-        <!-- ===== MAIN CONTENT ===== -->
+        <!-- ========================================= -->
+        <!-- MAIN CONTENT                              -->
+        <!-- ========================================= -->
         <main class="main-content">
 
             <!-- HEADER -->
             <header class="main-header">
-                <h1 id="pageTitle">📊 Vue d'ensemble</h1>
-                <div class="admin-info">
-                    <span id="adminName">👤 Admin</span>
+                <div class="header-left">
+                    <h1 id="pageTitle">📊 Vue d'ensemble</h1>
+                    <span class="header-status" id="connectionStatus">● Connecté</span>
+                </div>
+                <div class="header-right">
                     <button id="refreshPageBtn" class="btn-refresh-header" title="Rafraîchir">
                         <i class="fas fa-sync-alt"></i>
                     </button>
+                    <span class="header-time" id="headerTime"></span>
                 </div>
             </header>
 
             <!-- ========================================= -->
-            <!-- SECTION : VUE D'ENSEMBLE                  -->
+            <!-- PAGE : VUE D'ENSEMBLE                     -->
             <!-- ========================================= -->
             <section id="page-overview" class="page-section active">
+
+                <!-- STATS -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">📦</div>
+                        <div class="stat-icon" style="background:#e8ecf5;color:#1a2a6c;">
+                            <i class="fas fa-box"></i>
+                        </div>
                         <div class="stat-content">
-                            <h3>Produits</h3>
-                            <p id="statProducts">0</p>
+                            <span class="stat-label">Produits</span>
+                            <span class="stat-value" id="statProducts">0</span>
                             <span class="stat-trend" id="trendProducts">+0%</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">💰</div>
+                        <div class="stat-icon" style="background:#e8f5ec;color:#2d7d46;">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
                         <div class="stat-content">
-                            <h3>Ventes</h3>
-                            <p id="statSales">0 FCFA</p>
+                            <span class="stat-label">Ventes</span>
+                            <span class="stat-value" id="statSales">0 FCFA</span>
                             <span class="stat-trend" id="trendSales">+0%</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📋</div>
+                        <div class="stat-icon" style="background:#fdf0e8;color:#e67e22;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
                         <div class="stat-content">
-                            <h3>Commandes</h3>
-                            <p id="statCommandes">0</p>
+                            <span class="stat-label">Commandes</span>
+                            <span class="stat-value" id="statCommandes">0</span>
                             <span class="stat-trend" id="trendCommandes">+0%</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">👤</div>
+                        <div class="stat-icon" style="background:#f5e8f5;color:#8e44ad;">
+                            <i class="fas fa-users"></i>
+                        </div>
                         <div class="stat-content">
-                            <h3>Clients</h3>
-                            <p id="statClients">0</p>
+                            <span class="stat-label">Clients</span>
+                            <span class="stat-value" id="statClients">0</span>
                             <span class="stat-trend" id="trendClients">+0%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Dernières commandes -->
+                <!-- DERNIÈRES COMMANDES -->
                 <div class="recent-orders">
                     <div class="section-header">
-                        <h2>📋 Dernières commandes</h2>
+                        <div>
+                            <h2>📋 Dernières commandes</h2>
+                            <span class="section-sub">Les 5 dernières commandes passées</span>
+                        </div>
                         <span class="badge-count" id="recentOrdersCount">0</span>
                     </div>
                     <div class="table-container">
@@ -130,19 +166,25 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="section-footer">
+                        <a href="#" data-page="commandes" class="link-all">Voir toutes les commandes →</a>
+                    </div>
                 </div>
+
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : COMMANDES                       -->
+            <!-- PAGE : COMMANDES                          -->
             <!-- ========================================= -->
             <section id="page-commandes" class="page-section">
                 <div class="section-header">
-                    <h2>📋 Commandes clients</h2>
-                    <div style="display:flex;gap:10px;align-items:center;">
-                        <span class="badge-commandes" id="commandesCount">0 commandes</span>
+                    <div>
+                        <h2>📋 Commandes clients</h2>
+                        <span class="section-sub" id="commandesCount">0 commandes</span>
+                    </div>
+                    <div class="header-actions">
                         <button class="btn-refresh" id="refreshCommandesBtn" title="Rafraîchir">
-                            <i class="fas fa-sync-alt"></i>
+                            <i class="fas fa-sync-alt"></i> Rafraîchir
                         </button>
                     </div>
                 </div>
@@ -189,79 +231,86 @@
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : PAIEMENTS (PLACEHOLDER)         -->
+            <!-- PAGE : PAIEMENTS (placeholder)            -->
             <!-- ========================================= -->
             <section id="page-payments" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-credit-card"></i>
                     <h2>💳 Paiements</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Historique des transactions et paiements effectués.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : PRODUITS (PLACEHOLDER)          -->
+            <!-- PAGE : PRODUITS (placeholder)             -->
             <!-- ========================================= -->
             <section id="page-products" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-box"></i>
                     <h2>📦 Produits</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Gérez votre catalogue de produits.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : AJOUTER PRODUIT (PLACEHOLDER)   -->
+            <!-- PAGE : AJOUTER PRODUIT (placeholder)      -->
             <!-- ========================================= -->
             <section id="page-add-product" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-plus-circle"></i>
                     <h2>➕ Ajouter un produit</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Ajoutez un nouveau produit avec ses images.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : CLIENTS (PLACEHOLDER)           -->
+            <!-- PAGE : CLIENTS (placeholder)              -->
             <!-- ========================================= -->
             <section id="page-clients" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-users"></i>
                     <h2>👤 Clients</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Liste des clients inscrits sur la plateforme.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : LIVRAISON (PLACEHOLDER)         -->
+            <!-- PAGE : LIVRAISON (placeholder)            -->
             <!-- ========================================= -->
             <section id="page-livraison" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-map-pin"></i>
                     <h2>📍 Frais de livraison</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Gérez les tarifs par commune.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : ENVOYER MESSAGE (PLACEHOLDER)   -->
+            <!-- PAGE : ENVOYER MESSAGE (placeholder)      -->
             <!-- ========================================= -->
             <section id="page-send-message" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-paper-plane"></i>
                     <h2>📨 Envoyer un message</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Envoyez des notifications à vos clients.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- SECTION : MISES À JOUR (PLACEHOLDER)      -->
+            <!-- PAGE : MISES À JOUR (placeholder)         -->
             <!-- ========================================= -->
             <section id="page-updates" class="page-section">
                 <div class="placeholder-msg">
                     <i class="fas fa-sync-alt"></i>
                     <h2>🔄 Mises à jour</h2>
-                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                    <p>Suivez les versions et mises à jour du système.</p>
+                    <span class="placeholder-sub">Bientôt disponible</span>
                 </div>
             </section>
 
@@ -318,8 +367,9 @@
     </div>
 
     <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/commandes.js"></script>
-    <!-- Les autres JS seront ajoutés au fur et à mesure -->
+
 </body>
 </html>
