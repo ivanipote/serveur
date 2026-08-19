@@ -97,8 +97,8 @@ app.post('/api/payment/create', async (req, res) => {
                 phone: cleanPhone
             },
             method: 'WAVE',
-            successUrl: `https://nature-plus-client.onrender.com/payment-success?commande_id=${commandeId}`,
-            errorUrl: `https://nature-plus-client.onrender.com/payment-failed?commande_id=${commandeId}`
+           successUrl: `https://nature-plus-client.onrender.com/payment-success`,
+errorUrl: `https://nature-plus-client.onrender.com/payment-failed`
         };
 
         console.log('📤 Envoi à Genius Pay...');
