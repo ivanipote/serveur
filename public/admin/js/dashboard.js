@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📊 Chargement de la vue d\'ensemble...');
 
         try {
-            // 1. Stats
             const statsRes = await fetch('/api/admin/stats');
             const statsData = await statsRes.json();
 
@@ -109,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('statCommandes').textContent = statsData.commandes || 0;
             document.getElementById('statClients').textContent = statsData.clients || 0;
 
-            // 2. Tendances
             const keys = ['products', 'sales', 'commandes', 'clients'];
             keys.forEach(key => {
                 const trend = document.getElementById('trend' + key.charAt(0).toUpperCase() + key.slice(1));
@@ -120,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // 3. Dernières commandes
             await loadRecentOrders();
 
             console.log('✅ Vue d\'ensemble mise à jour');
@@ -192,7 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Exposer les fonctions
     window.loadOverview = loadOverview;
     window.startOverviewAutoRefresh = startOverviewAutoRefresh;
     window.stopOverviewAutoRefresh = stopOverviewAutoRefresh;
@@ -201,9 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // FONCTIONS POUR LES AUTRES ONGLETS (placeholders)
     // ==========================================
 
-    window.loadCommandes = function() {
-        console.log('📋 Onglet Commandes - À implémenter');
-    };
+    // ⚠️ Commandes est géré par commandes.js (pas de placeholder ici)
 
     window.loadPayments = function() {
         console.log('💳 Onglet Paiements - À implémenter');
