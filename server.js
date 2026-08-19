@@ -1307,6 +1307,49 @@ app.get('/admin/dashboard', (req, res) => {
 });
 
 // ========================================================
+// ROUTES PAGES (ADMIN) - déjà existant
+// ========================================================
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
+});
+
+app.get('/admin/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
+});
+
+app.get('/admin/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'register.html'));
+});
+
+app.get('/admin/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashboard.html'));
+});
+
+// ========================================================
+// 🆕 ROUTES PAIEMENT (pages de retour)
+// ========================================================
+
+app.get('/payment-success', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-success.html'));
+});
+
+app.get('/payment-failed', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-failed.html'));
+});
+
+// ========================================================
+// DÉMARRAGE
+// ========================================================
+
+app.listen(PORT, () => {
+    console.log(`========================================`);
+    console.log(`🚀 SERVEUR CLIENT - Nature+ (Pages)`);
+    console.log(`📍 Port: ${PORT}`);
+    console.log(`📍 http://localhost:${PORT}`);
+    console.log(`========================================`);
+});
+// ========================================================
 // DÉMARRAGE
 // ========================================================
 
