@@ -1,5 +1,9 @@
 // ==========================================
-// ONGLET : COMMANDES (Socket.IO Ultra Rapide)
+// COMMANDES.JS - ADMIN
+// ==========================================
+
+// ==========================================
+// ONGLET : COMMANDES (avec Socket.IO)
 // ==========================================
 
 let allCommandes = [];
@@ -8,11 +12,9 @@ let searchTerm = '';
 let currentCommandeId = null;
 let socket = null;
 let isSocketConnected = false;
-let lastEventTime = 0;
-let syncTimeout = null;
 
 // ==========================================
-// SOCKET.IO - Connexion Ultra Rapide
+// SOCKET.IO - Connexion
 // ==========================================
 
 function connectSocketIO() {
@@ -21,7 +23,7 @@ function connectSocketIO() {
         socket = null;
     }
 
-    console.log('🔌 Connexion Socket.IO admin (ultra rapide)...');
+    console.log('🔌 Connexion Socket.IO admin (commandes)...');
 
     try {
         const adminId = localStorage.getItem('adminId') || '1';
@@ -32,7 +34,6 @@ function connectSocketIO() {
                 userId: parseInt(adminId),
                 isAdmin: true
             },
-            // ✅ FORCER WEBSOCKET POUR RÉDUIRE LA LATENCE
             transports: ['websocket', 'polling'],
             timeout: 5000,
             reconnection: true,
@@ -40,114 +41,45 @@ function connectSocketIO() {
             reconnectionDelay: 500,
             reconnectionDelayMax: 3000,
             randomizationFactor: 0.3,
-            // ✅ PRIORISER WEBSOCKET
             upgrade: true,
             rememberUpgrade: true
         });
 
         socket.on('connect', function() {
             const duration = Date.now() - connectStart;
-            console.log(`✅ Socket.IO admin connecté en ${duration}ms`);
+            console.log(`✅ Socket.IO admin commandes connecté en ${duration}ms`);
             isSocketConnected = true;
-            showStatus(`✅ Connecté en ${duration}ms`, 'success');
         });
 
         socket.on('connect_error', function(error) {
             console.error('❌ Erreur connexion:', error);
             isSocketConnected = false;
-            showStatus('⚠️ Connexion en cours...', 'warning');
         });
 
         socket.on('disconnect', function(reason) {
             console.log(`❌ Socket.IO déconnecté: ${reason}`);
             isSocketConnected = false;
-            showStatus('⚠️ Reconnexion...', 'warning');
             setTimeout(() => {
                 if (!isSocketConnected) {
                     connectSocketIO();
                 }
-            }, 1000);
+            }, 2000);
         });
 
-        // ✅ RECEPTION ULTRA RAPIDE
         socket.on('nouvelle-commande', function(data) {
-            const now = Date.now();
-            const latency = data._timestamp ? now - data._timestamp : 0;
-            console.log(`🆕 Nouvelle commande en ${latency}ms:`, data);
-            
-            if (latency > 0) {
-                showStatus(`📦 Nouvelle commande en ${latency}ms`, 'success');
-            }
-            
+            console.log('🆕 Nouvelle commande reçue (commandes):', data);
             handleNouvelleCommande(data);
         });
 
         socket.on('commande-update', function(data) {
-            const now = Date.now();
-            const latency = data._timestamp ? now - data._timestamp : 0;
-            console.log(`📦 Mise à jour commande en ${latency}ms:`, data);
-            
-            if (latency > 0) {
-                showStatus(`📦 Mise à jour en ${latency}ms`, 'info');
-            }
-            
+            console.log('📦 Mise à jour commande reçue (commandes):', data);
             handleCommandeUpdate(data);
-        });
-
-        // ✅ PING POUR SURVEILLER LA CONNEXION
-        socket.on('ping', function() {
-            console.log('📶 Ping reçu');
         });
 
     } catch (error) {
         console.error('❌ Erreur connexion Socket.IO:', error);
-        setTimeout(() => connectSocketIO(), 2000);
+        setTimeout(() => connectSocketIO(), 3000);
     }
-}
-
-// ==========================================
-// INDICATEUR DE STATUT
-// ==========================================
-
-function showStatus(message, type = 'info') {
-    const statusEl = document.getElementById('connectionStatus');
-    if (!statusEl) {
-        // Créer l'élément s'il n'existe pas
-        const header = document.querySelector('.main-header .admin-info');
-        if (header) {
-            const status = document.createElement('span');
-            status.id = 'connectionStatus';
-            status.style.cssText = `
-                font-size: 12px;
-                padding: 4px 12px;
-                border-radius: 12px;
-                font-weight: 600;
-                margin-left: 10px;
-            `;
-            header.appendChild(status);
-        }
-    }
-    
-    const el = document.getElementById('connectionStatus');
-    if (!el) return;
-    
-    const colors = {
-        success: '#27ae60',
-        warning: '#f39c12',
-        error: '#e74c3c',
-        info: '#3498db'
-    };
-    
-    el.textContent = message;
-    el.style.background = colors[type] || '#888';
-    el.style.color = 'white';
-    el.style.display = 'inline-block';
-    
-    // Disparaître après 3s
-    clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => {
-        if (el) el.style.display = 'none';
-    }, 3000);
 }
 
 // ==========================================
@@ -155,47 +87,27 @@ function showStatus(message, type = 'info') {
 // ==========================================
 
 function handleNouvelleCommande(data) {
-    console.log('🆕 Nouvelle commande:', data);
-    
-    // Recharger immédiatement
+    // Recharger toutes les commandes
     loadCommandes();
-    
-    // Toast instantané
     showToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
-    
-    // Animation flash sur la ligne concernée
-    setTimeout(() => {
-        const rows = document.querySelectorAll('#commandesList tr');
-        if (rows.length > 0) {
-            const firstRow = rows[0];
-            firstRow.style.background = '#e8f5e9';
-            firstRow.style.transition = 'background 0.5s';
-            setTimeout(() => {
-                firstRow.style.background = '';
-            }, 1000);
-        }
-    }, 100);
 }
 
 function handleCommandeUpdate(data) {
-    console.log('📦 Mise à jour commande:', data);
-
     const { commandeId, status, userId, message } = data;
 
     // 1. Mettre à jour dans le tableau local
     const existingIndex = allCommandes.findIndex(c => c.id === commandeId);
 
     if (existingIndex !== -1) {
-        const oldStatus = allCommandes[existingIndex].status;
         allCommandes[existingIndex].status = status;
-        console.log(`✅ Commande #${commandeId}: ${oldStatus} → ${status}`);
+        console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
     } else {
         console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
         loadCommandes();
         return;
     }
 
-    // 2. Re-rendre immédiatement
+    // 2. Re-rendre le tableau
     renderCommandesTable();
     updateFilterCounts();
 
@@ -210,58 +122,36 @@ function handleCommandeUpdate(data) {
         'disponible': '📍 Disponible',
         'recuperee': '✅ Récupérée'
     };
-    showToast(`📦 Commande #${commandeId}: ${statusLabels[status] || status}`, status);
-    
-    // 4. Animation flash sur la ligne
-    setTimeout(() => {
-        const row = document.querySelector(`#commandesList tr[data-id="${commandeId}"]`);
-        if (row) {
-            row.style.background = '#fff3cd';
-            row.style.transition = 'background 0.5s';
-            setTimeout(() => {
-                row.style.background = '';
-            }, 1000);
-        }
-    }, 100);
+    showToast(`📦 Commande #${commandeId}: ${statusLabels[status] || status}`, 'info');
 }
 
 // ==========================================
 // TOAST
 // ==========================================
 
-function showToast(message, status) {
+function showToast(message, type = 'info') {
     const colors = {
-        'en_attente': '#f9a825',
-        'accepter': '#1e88e5',
-        'refuse': '#e53935',
-        'annulee': '#e53935',
-        'paiement_effectue': '#43a047',
-        'livraison_en_cours': '#00acc1',
-        'disponible': '#2e7d32',
-        'recuperee': '#1b5e20',
         'success': '#43a047',
         'error': '#e53935',
-        'info': '#3498db'
+        'info': '#1a2a6c',
+        'warning': '#e67e22'
     };
-
-    const bgColor = colors[status] || '#1a2a6c';
 
     const toast = document.createElement('div');
     toast.style.cssText = `
         position: fixed;
-        bottom: 80px;
-        right: 20px;
-        background: ${bgColor};
+        bottom: 30px;
+        right: 30px;
+        background: ${colors[type] || '#1a2a6c'};
         color: white;
-        padding: 12px 20px;
+        padding: 14px 24px;
         border-radius: 12px;
         font-weight: 600;
         font-size: 14px;
         box-shadow: 0 8px 30px rgba(0,0,0,0.2);
         z-index: 999;
-        max-width: 350px;
+        max-width: 400px;
         animation: slideInRight 0.3s ease;
-        pointer-events: none;
         transition: opacity 0.3s;
     `;
     toast.textContent = message;
@@ -270,7 +160,7 @@ function showToast(message, status) {
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 4000);
 }
 
 // ==========================================
@@ -318,7 +208,7 @@ async function loadCommandes() {
 }
 
 // ==========================================
-// RENDU DU TABLEAU AVEC data-id
+// RENDU DU TABLEAU
 // ==========================================
 
 function renderCommandesTable() {
@@ -691,4 +581,4 @@ window.syncCommande = syncCommande;
 window.openStatusOverlay = openStatusOverlay;
 window.openDetailOverlay = openDetailOverlay;
 
-console.log('✅ commandes.js chargé avec Socket.IO Ultra Rapide');
+console.log('✅ commandes.js chargé avec Socket.IO');

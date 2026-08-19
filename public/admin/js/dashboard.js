@@ -1,3 +1,7 @@
+// ==========================================
+// DASHBOARD.JS - ADMIN
+// ==========================================
+
 document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ admin dashboard.js chargé');
@@ -8,21 +12,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const adminToken = localStorage.getItem('adminToken');
     if (!adminToken) {
-        window.location.href = '/admin/html/login.html';
+        window.location.href = '/admin/login';
         return;
     }
 
     const adminName = localStorage.getItem('adminName') || 'Admin';
-    document.getElementById('adminName').textContent = '👤 ' + adminName;
+    document.getElementById('adminName').textContent = adminName;
 
     // ==========================================
-    // SOCKET.IO - Connexion Ultra Rapide
+    // HORLOGE
+    // ==========================================
+
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('headerTime').textContent = `${hours}:${minutes}`;
+    }
+    updateClock();
+    setInterval(updateClock, 60000);
+
+    // ==========================================
+    // SOCKET.IO - CONNEXION
     // ==========================================
 
     let socket = null;
     let isSocketConnected = false;
-    let lastEventTime = 0;
-    let syncTimeout = null;
+    let statusTimeout = null;
 
     function connectSocketIO() {
         if (socket) {
@@ -30,18 +46,16 @@ document.addEventListener('DOMContentLoaded', function() {
             socket = null;
         }
 
-        console.log('🔌 Connexion Socket.IO admin dashboard (ultra rapide)...');
+        console.log('🔌 Connexion Socket.IO admin...');
 
         try {
             const adminId = localStorage.getItem('adminId') || '1';
-            const connectStart = Date.now();
 
             socket = io({
                 auth: {
                     userId: parseInt(adminId),
                     isAdmin: true
                 },
-                // ✅ FORCER WEBSOCKET
                 transports: ['websocket', 'polling'],
                 timeout: 5000,
                 reconnection: true,
@@ -54,136 +68,116 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             socket.on('connect', function() {
-                const duration = Date.now() - connectStart;
-                console.log(`✅ Socket.IO admin dashboard connecté en ${duration}ms`);
+                console.log('✅ Socket.IO admin connecté');
                 isSocketConnected = true;
-                showStatus(`✅ Connecté en ${duration}ms`, 'success');
+                updateConnectionStatus('● Connecté', true);
             });
 
             socket.on('connect_error', function(error) {
                 console.error('❌ Erreur connexion:', error);
                 isSocketConnected = false;
-                showStatus('⚠️ Connexion...', 'warning');
+                updateConnectionStatus('● Déconnecté', false);
             });
 
             socket.on('disconnect', function(reason) {
                 console.log(`❌ Socket.IO déconnecté: ${reason}`);
                 isSocketConnected = false;
-                showStatus('⚠️ Reconnexion...', 'warning');
+                updateConnectionStatus('● Reconnexion...', false);
                 setTimeout(() => {
                     if (!isSocketConnected) {
                         connectSocketIO();
                     }
-                }, 1000);
+                }, 2000);
             });
 
-            // ✅ RECEPTION ULTRA RAPIDE
             socket.on('nouvelle-commande', function(data) {
-                const now = Date.now();
-                const latency = data._timestamp ? now - data._timestamp : 0;
-                console.log(`🆕 Nouvelle commande (dashboard) en ${latency}ms`);
-                
-                // Rafraîchir immédiatement
-                loadOverview();
-                
-                // Toast avec latence
-                if (latency > 0) {
-                    showDashboardToast(`🆕 Commande #${data.commandeId} en ${latency}ms`, 'success');
-                } else {
-                    showDashboardToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
-                }
+                console.log('🆕 Nouvelle commande reçue:', data);
+                handleNouvelleCommande(data);
             });
 
             socket.on('commande-update', function(data) {
-                const now = Date.now();
-                const latency = data._timestamp ? now - data._timestamp : 0;
-                console.log(`📦 Mise à jour (dashboard) en ${latency}ms`);
-                
-                // Rafraîchir immédiatement
-                loadOverview();
-                
-                if (latency > 0) {
-                    showDashboardToast(`📦 Mise à jour en ${latency}ms`, 'info');
-                }
+                console.log('📦 Mise à jour commande reçue:', data);
+                handleCommandeUpdate(data);
             });
 
         } catch (error) {
             console.error('❌ Erreur connexion Socket.IO:', error);
-            setTimeout(() => connectSocketIO(), 2000);
+            setTimeout(() => connectSocketIO(), 3000);
         }
     }
 
     // ==========================================
-    // INDICATEUR DE STATUT
+    // STATUT CONNEXION
     // ==========================================
 
-    function showStatus(message, type = 'info') {
-        const statusEl = document.getElementById('connectionStatusDash');
-        if (!statusEl) {
-            const header = document.querySelector('.main-header .admin-info');
-            if (header) {
-                const status = document.createElement('span');
-                status.id = 'connectionStatusDash';
-                status.style.cssText = `
-                    font-size: 12px;
-                    padding: 4px 12px;
-                    border-radius: 12px;
-                    font-weight: 600;
-                    margin-left: 10px;
-                `;
-                header.appendChild(status);
-            }
-        }
-        
-        const el = document.getElementById('connectionStatusDash');
+    function updateConnectionStatus(text, isConnected) {
+        const el = document.getElementById('connectionStatus');
         if (!el) return;
-        
-        const colors = {
-            success: '#27ae60',
-            warning: '#f39c12',
-            error: '#e74c3c',
-            info: '#3498db'
-        };
-        
-        el.textContent = message;
-        el.style.background = colors[type] || '#888';
-        el.style.color = 'white';
-        el.style.display = 'inline-block';
-        
-        clearTimeout(syncTimeout);
-        syncTimeout = setTimeout(() => {
-            if (el) el.style.display = 'none';
-        }, 3000);
+        el.textContent = text;
+        el.className = 'header-status' + (isConnected ? '' : ' disconnected');
+        clearTimeout(statusTimeout);
     }
 
     // ==========================================
-    // TOAST DASHBOARD
+    // GESTION DES ÉVÉNEMENTS SOCKET
     // ==========================================
 
-    function showDashboardToast(message, type = 'info') {
+    function handleNouvelleCommande(data) {
+        // Rafraîchir les stats et les commandes récentes
+        loadOverview();
+
+        // Toast
+        showToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
+
+        // Mettre à jour le badge de la sidebar
+        updateNavBadge('commandes');
+    }
+
+    function handleCommandeUpdate(data) {
+        // Rafraîchir les stats et les commandes récentes
+        loadOverview();
+
+        // Toast
+        const statusLabels = {
+            'en_attente': '⏳ En attente',
+            'accepter': '💳 Paiement requis',
+            'refuse': '❌ Refusée',
+            'annulee': '❌ Annulée',
+            'paiement_effectue': '💳 Payée',
+            'livraison_en_cours': '🚚 En cours',
+            'disponible': '📍 Disponible',
+            'recuperee': '✅ Récupérée'
+        };
+        showToast(`📦 Commande #${data.commandeId}: ${statusLabels[data.status] || data.status}`, 'info');
+    }
+
+    // ==========================================
+    // TOAST
+    // ==========================================
+
+    function showToast(message, type = 'info') {
         const colors = {
-            success: '#27ae60',
-            error: '#e74c3c',
-            warning: '#f39c12',
-            info: '#3498db'
+            'success': '#43a047',
+            'error': '#e53935',
+            'info': '#1a2a6c',
+            'warning': '#e67e22'
         };
 
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed;
-            bottom: 80px;
-            right: 20px;
+            bottom: 30px;
+            right: 30px;
             background: ${colors[type] || '#1a2a6c'};
             color: white;
-            padding: 12px 20px;
+            padding: 14px 24px;
             border-radius: 12px;
             font-weight: 600;
             font-size: 14px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.2);
             z-index: 999;
-            max-width: 350px;
+            max-width: 400px;
             animation: slideInRight 0.3s ease;
-            pointer-events: none;
             transition: opacity 0.3s;
         `;
         toast.textContent = message;
@@ -192,7 +186,28 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);
-        }, 3500);
+        }, 4000);
+    }
+
+    // ==========================================
+    // BADGE DE NAVIGATION
+    // ==========================================
+
+    function updateNavBadge(page) {
+        if (page === 'commandes') {
+            const badge = document.getElementById('navBadgeCommandes');
+            if (badge) {
+                const current = parseInt(badge.textContent) || 0;
+                badge.textContent = current + 1;
+            }
+        }
+    }
+
+    function resetNavBadge(page) {
+        if (page === 'commandes') {
+            const badge = document.getElementById('navBadgeCommandes');
+            if (badge) badge.textContent = '0';
+        }
     }
 
     // ==========================================
@@ -226,6 +241,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         pageTitle.textContent = pageTitles[pageId] || 'Dashboard';
 
+        // Reset badge si on va sur la page commandes
+        if (pageId === 'commandes') {
+            resetNavBadge('commandes');
+        }
+
+        // Charger les données de la page
         const loadFunction = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
         if (typeof loadFunction === 'function') {
             loadFunction();
@@ -270,11 +291,11 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminName');
         localStorage.removeItem('adminId');
-        window.location.href = '/admin/html/login.html';
+        window.location.href = '/admin/login';
     });
 
     // ==========================================
-    // VUE D'ENSEMBLE (OVERVIEW) - ULTRA RAPIDE
+    // VUE D'ENSEMBLE - LOAD
     // ==========================================
 
     let overviewInterval = null;
@@ -292,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('statCommandes').textContent = statsData.commandes || 0;
             document.getElementById('statClients').textContent = statsData.clients || 0;
 
+            // Tendances (simulées)
             const keys = ['products', 'sales', 'commandes', 'clients'];
             keys.forEach(key => {
                 const trend = document.getElementById('trend' + key.charAt(0).toUpperCase() + key.slice(1));
@@ -303,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             await loadRecentOrders();
-            
+
             const duration = Date.now() - startTime;
             console.log(`✅ Vue d'ensemble mise à jour en ${duration}ms`);
 
@@ -314,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadRecentOrders() {
         try {
-            const startTime = Date.now();
             const res = await fetch('/api/admin/commandes');
             const data = await res.json();
 
@@ -345,9 +366,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                     </tr>
                 `).join('');
-                
-                const duration = Date.now() - startTime;
-                console.log(`✅ Commandes récentes chargées en ${duration}ms`);
             } else {
                 tbody.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucune commande récente</td></tr>`;
                 if (count) count.textContent = '0';
@@ -363,13 +381,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startOverviewAutoRefresh() {
         if (overviewInterval) clearInterval(overviewInterval);
-        // ✅ Réduire l'intervalle à 15s pour plus de réactivité
         overviewInterval = setInterval(() => {
             const overviewSection = document.getElementById('page-overview');
             if (overviewSection && overviewSection.classList.contains('active')) {
                 loadOverview();
             }
-        }, 15000);
+        }, 30000);
     }
 
     function stopOverviewAutoRefresh() {
@@ -384,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.stopOverviewAutoRefresh = stopOverviewAutoRefresh;
 
     // ==========================================
-    // FONCTIONS POUR LES AUTRES ONGLETS
+    // AUTRES ONGLETS (placeholders)
     // ==========================================
 
     window.loadPayments = function() {
@@ -423,5 +440,6 @@ document.addEventListener('DOMContentLoaded', function() {
     startOverviewAutoRefresh();
     connectSocketIO();
 
-    console.log('✅ Admin dashboard initialisé avec Socket.IO Ultra Rapide');
+    console.log('✅ Admin dashboard initialisé');
+
 });
