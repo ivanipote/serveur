@@ -1,11 +1,178 @@
 // ==========================================
-// ONGLET : COMMANDES
+// ONGLET : COMMANDES (avec SSE)
 // ==========================================
 
 let allCommandes = [];
 let currentFilter = 'all';
 let searchTerm = '';
 let currentCommandeId = null;
+let sseConnection = null;
+let isSseConnected = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
+// ==========================================
+// SSE (Server-Sent Events)
+// ==========================================
+
+function connectSSE() {
+    if (sseConnection) {
+        sseConnection.close();
+        sseConnection = null;
+    }
+
+    console.log('🔌 Connexion SSE admin...');
+
+    try {
+        sseConnection = new EventSource('/api/sse/events');
+
+        sseConnection.onopen = function() {
+            console.log('✅ SSE admin connecté');
+            isSseConnected = true;
+            reconnectAttempts = 0;
+        };
+
+        sseConnection.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('📨 SSE admin reçu:', data);
+
+                if (data.type === 'commande-update') {
+                    handleCommandeUpdate(data.data);
+                } else if (data.type === 'ping') {
+                    // Ping de maintien de connexion
+                }
+            } catch (error) {
+                console.error('❌ Erreur parsing SSE:', error);
+            }
+        };
+
+        sseConnection.onerror = function(error) {
+            console.warn('⚠️ Erreur SSE admin:', error);
+            isSseConnected = false;
+            sseConnection.close();
+            sseConnection = null;
+
+            // Reconnexion automatique
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                reconnectAttempts++;
+                const delay = Math.min(1000 * reconnectAttempts, 30000);
+                console.log(`🔄 Reconnexion SSE dans ${delay}ms (tentative ${reconnectAttempts})`);
+                setTimeout(() => connectSSE(), delay);
+            } else {
+                console.warn('⚠️ Max reconnexions SSE atteint');
+            }
+        };
+
+    } catch (error) {
+        console.error('❌ Erreur connexion SSE:', error);
+        setTimeout(() => connectSSE(), 5000);
+    }
+}
+
+// ==========================================
+// GESTION DES MISES À JOUR SSE
+// ==========================================
+
+function handleCommandeUpdate(data) {
+    console.log('📦 Mise à jour commande:', data);
+
+    const { commandeId, status, userId, message } = data;
+
+    // 1. Mettre à jour la commande dans le tableau local
+    const existingIndex = allCommandes.findIndex(c => c.id === commandeId);
+
+    if (existingIndex !== -1) {
+        // ✅ Commande existante → mettre à jour
+        allCommandes[existingIndex].status = status;
+        console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
+    } else {
+        // ✅ Nouvelle commande → charger toutes les commandes
+        console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
+        loadCommandes();
+        return;
+    }
+
+    // 2. Re-rendre le tableau (si le filtre correspond)
+    const shouldRender = currentFilter === 'all' || currentFilter === status;
+    if (shouldRender) {
+        renderCommandesTable();
+    }
+
+    // 3. Mettre à jour le badge de filtre si nécessaire
+    updateFilterCounts();
+
+    // 4. Afficher un toast
+    showToast(`📦 Commande #${commandeId}: ${status}`, status);
+}
+
+// ==========================================
+// TOAST (notification visuelle)
+// ==========================================
+
+function showToast(message, status) {
+    const colors = {
+        'en_attente': '#f9a825',
+        'accepter': '#1e88e5',
+        'refuse': '#e53935',
+        'annulee': '#e53935',
+        'paiement_effectue': '#43a047',
+        'livraison_en_cours': '#00acc1',
+        'disponible': '#2e7d32',
+        'recuperee': '#1b5e20'
+    };
+
+    const bgColor = colors[status] || '#1a2a6c';
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: ${bgColor};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        z-index: 999;
+        max-width: 350px;
+        animation: slideInRight 0.3s ease;
+        pointer-events: none;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ==========================================
+// COMPTEUR DES FILTRES
+// ==========================================
+
+function updateFilterCounts() {
+    const filterButtons = document.querySelectorAll('#filterButtons .filter-btn');
+    filterButtons.forEach(btn => {
+        const filter = btn.dataset.filter;
+        const count = filter === 'all' 
+            ? allCommandes.length 
+            : allCommandes.filter(c => c.status === filter).length;
+        
+        // Ajouter le compteur dans le texte du bouton
+        const label = btn.textContent.split('(')[0].trim();
+        btn.textContent = `${label} (${count})`;
+    });
+}
+
+// ==========================================
+// CHARGER LES COMMANDES
+// ==========================================
 
 async function loadCommandes() {
     console.log('📋 Chargement des commandes...');
@@ -18,6 +185,7 @@ async function loadCommandes() {
             allCommandes = data;
             document.getElementById('commandesCount').textContent = data.length + ' commandes';
             renderCommandesTable();
+            updateFilterCounts();
             console.log(`✅ ${data.length} commandes chargées`);
         } else {
             document.getElementById('commandesList').innerHTML = `<tr><td colspan="7" class="empty-msg">Erreur de chargement</td></tr>`;
@@ -143,7 +311,7 @@ function openMaps(lat, lon, id) {
 }
 
 // ==========================================
-// BOUTON SYNC (CORRIGÉ)
+// BOUTON SYNC
 // ==========================================
 
 async function syncCommande(commandeId) {
@@ -183,7 +351,7 @@ async function syncCommande(commandeId) {
 }
 
 // ==========================================
-// OVERLAY STATUT (SÉCURISÉ)
+// OVERLAY STATUT (avec sécurisation)
 // ==========================================
 
 function openStatusOverlay(commandeId) {
@@ -195,7 +363,6 @@ function openStatusOverlay(commandeId) {
 
     const currentStatus = commande.status || 'en_attente';
     
-    // ✅ Déterminer les statuts disponibles selon le statut actuel
     let availableStatuses = [];
     const statusLabels = {
         'en_attente': '⏳ En attente',
@@ -207,7 +374,6 @@ function openStatusOverlay(commandeId) {
         'recuperee': '✅ Récupérée'
     };
     
-    // ✅ Si la commande est déjà payée ou plus, on cache les statuts précédents
     const isPaid = ['paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'].includes(currentStatus);
     
     if (currentStatus === 'en_attente') {
@@ -215,13 +381,12 @@ function openStatusOverlay(commandeId) {
     } else if (currentStatus === 'accepter') {
         availableStatuses = ['paiement_effectue', 'refuse'];
     } else if (currentStatus === 'paiement_effectue') {
-        availableStatuses = ['livraison_en_cours'];  // ✅ 'en_attente' et 'accepter' sont masqués
+        availableStatuses = ['livraison_en_cours'];
     } else if (currentStatus === 'livraison_en_cours') {
-        availableStatuses = ['disponible'];           // ✅ 'en_attente', 'accepter', 'paiement_effectue' sont masqués
+        availableStatuses = ['disponible'];
     } else if (currentStatus === 'disponible') {
-        availableStatuses = ['recuperee'];            // ✅ Seul 'recuperee' est disponible
+        availableStatuses = ['recuperee'];
     } else {
-        // Statuts finaux : plus d'actions
         alert('⚠️ Cette commande est dans un statut final. Aucune modification possible.');
         return;
     }
@@ -230,7 +395,6 @@ function openStatusOverlay(commandeId) {
     document.getElementById('statusCommandeId').textContent = commandeId;
     document.getElementById('statusClientInfo').textContent = 'Client: ' + commande.nom;
     
-    // ✅ Remplir le select avec les statuts disponibles uniquement
     const select = document.getElementById('statusSelect');
     select.innerHTML = '';
     
@@ -385,9 +549,16 @@ document.getElementById('closeDetailOverlay').addEventListener('click', function
 });
 
 // ==========================================
-// EXPOSER LA FONCTION
+// INITIALISATION
 // ==========================================
 
+// Charger les commandes
+loadCommandes();
+
+// Connecter SSE
+connectSSE();
+
+// Exposer la fonction pour le rafraîchissement
 window.loadCommandes = loadCommandes;
 
-console.log('✅ commandes.js chargé');
+console.log('✅ commandes.js chargé avec SSE');
