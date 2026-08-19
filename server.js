@@ -226,6 +226,64 @@ app.delete('/api/admin/products/:id', async (req, res) => {
     }
 });
 
+// ========================================================
+// 🆕 PUT /api/admin/products/:id (modifier un produit)
+// ========================================================
+
+app.put('/api/admin/products/:id', upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 }
+]), async (req, res) => {
+    const { id } = req.params;
+    const { name, price, quantity, description } = req.body;
+
+    console.log(`📥 Modification produit #${id}`);
+    console.log('📦 Body:', req.body);
+    console.log('📎 Fichiers:', req.files);
+
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Nom du produit requis.' });
+    }
+
+    const parsedPrice = parseInt(price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+        return res.status(400).json({ error: 'Prix valide requis.' });
+    }
+
+    try {
+        // Vérifier si le produit existe
+        const existing = await db.get('SELECT * FROM products WHERE id = $1', [id]);
+        if (!existing) {
+            return res.status(404).json({ error: 'Produit non trouvé.' });
+        }
+
+        // Récupérer les URLs des images (conserver les anciennes si non remplacées)
+        let image1 = existing.image1;
+        let image2 = existing.image2;
+
+        if (req.files && req.files['image1'] && req.files['image1'][0]) {
+            image1 = req.files['image1'][0].path;
+        }
+        if (req.files && req.files['image2'] && req.files['image2'][0]) {
+            image2 = req.files['image2'][0].path;
+        }
+
+        await db.query(
+            `UPDATE products 
+             SET name = $1, price = $2, quantity = $3, description = $4, image1 = $5, image2 = $6
+             WHERE id = $7`,
+            [name.trim(), parsedPrice, parseInt(quantity) || 0, description || '', image1, image2, id]
+        );
+
+        console.log(`✅ Produit #${id} mis à jour`);
+        res.json({ success: true, message: 'Produit mis à jour avec succès' });
+
+    } catch (err) {
+        console.error('❌ Erreur modification produit:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET /api/admin/stats
 app.get('/api/admin/stats', async (req, res) => {
     const stats = { products: 0, sales: 0, clients: 0, payments: 0, commandes: 0 };
@@ -445,7 +503,6 @@ app.post('/api/admin/notification/send', async (req, res) => {
 
 app.get('/api/admin/check-updates', async (req, res) => {
     try {
-        // 1. Récupérer le dernier commit depuis GitHub
         const repoUrl = 'https://api.github.com/repos/ivanipote/serveur/commits/main';
         const response = await fetch(repoUrl);
         
@@ -461,7 +518,6 @@ app.get('/api/admin/check-updates', async (req, res) => {
             url: data.html_url
         };
 
-        // 2. Vérifier si ce commit a déjà été notifié
         const existing = await db.get(
             'SELECT * FROM updates WHERE commit_sha = $1',
             [lastCommit.sha]
@@ -476,14 +532,12 @@ app.get('/api/admin/check-updates', async (req, res) => {
             });
         }
 
-        // 3. Enregistrer le commit dans la table updates
         await db.query(
             `INSERT INTO updates (commit_sha, commit_message, commit_date, commit_url)
              VALUES ($1, $2, $3, $4)`,
             [lastCommit.sha, lastCommit.message, lastCommit.date, lastCommit.url]
         );
 
-        // 4. Envoyer une notification à tous les utilisateurs
         const users = await db.all('SELECT id FROM users');
         let sentCount = 0;
 
@@ -1035,7 +1089,7 @@ app.put('/api/notifications/read/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// 🆕 PUT /api/notifications/read-all
+// PUT /api/notifications/read-all
 app.put('/api/notifications/read-all', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
