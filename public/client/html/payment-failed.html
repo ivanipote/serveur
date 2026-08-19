@@ -114,8 +114,8 @@
             justify-content: center;
         }
 
-        .btn-primary {
-            background: #2d7d46;
+        .btn-retry {
+            background: #e67e22;
             color: white;
             border: none;
             padding: 14px 32px;
@@ -130,8 +130,8 @@
             gap: 8px;
         }
 
-        .btn-primary:hover {
-            background: #1a5a33;
+        .btn-retry:hover {
+            background: #d35400;
             transform: scale(1.02);
         }
 
@@ -153,27 +153,6 @@
 
         .btn-secondary:hover {
             background: #d5d5e0;
-            transform: scale(1.02);
-        }
-
-        .btn-retry {
-            background: #e67e22;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-retry:hover {
-            background: #d35400;
             transform: scale(1.02);
         }
 
@@ -222,9 +201,8 @@
             .btn-actions {
                 flex-direction: column;
             }
-            .btn-primary,
-            .btn-secondary,
-            .btn-retry {
+            .btn-retry,
+            .btn-secondary {
                 width: 100%;
                 justify-content: center;
             }
@@ -280,9 +258,8 @@
             const errorContainer = document.getElementById('errorContainer');
             const successActions = document.getElementById('successActions');
 
-            // ✅ CLÉS API GENIUS PAY (sandbox)
-            const GENIUS_PUBLIC_KEY = 'sk_sandbox_XpcqcXI54Gj537UMCqPpqPq5NTyxQ6oV';
-            const GENIUS_SECRET_KEY = 'ss_sandbox_B2RCD03octNvZPUD4zjcmGUGKbxqzTRzKHH1qf6e8TnlEQzP';
+            // ✅ URL de notre API de paiement
+            const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
 
             async function handlePaymentFailed() {
                 try {
@@ -299,51 +276,36 @@
 
                     console.log('👤 Utilisateur authentifié:', authData.user);
 
-                    // 2. Récupérer le commande_id via l'API Genius Pay
+                    // 2. Récupérer le commande_id via NOTRE API
                     let commandeId = null;
 
                     if (reference) {
                         try {
-                            const geniusRes = await fetch(
-                                `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
-                                {
-                                    headers: {
-                                        'X-API-Key': GENIUS_PUBLIC_KEY,
-                                        'X-API-Secret': GENIUS_SECRET_KEY
-                                    }
+                            const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${reference}`);
+
+                            if (checkRes.ok) {
+                                const checkData = await checkRes.json();
+                                console.log('📊 Réponse check:', checkData);
+
+                                if (checkData.success && checkData.data) {
+                                    commandeId = checkData.data.commande_id ||
+                                                 checkData.data.metadata?.order_id ||
+                                                 null;
+                                    console.log('✅ Commande ID récupéré:', commandeId);
                                 }
-                            );
-
-                            const geniusData = await geniusRes.json();
-
-                            if (geniusData.success && geniusData.data) {
-                                commandeId = geniusData.data.metadata?.order_id || null;
-                                console.log('✅ Commande ID récupéré:', commandeId);
+                            } else {
+                                console.warn('⚠️ Erreur /api/payment/check:', checkRes.status);
                             }
-                        } catch (geniusError) {
-                            console.error('❌ Erreur récupération Genius Pay:', geniusError);
+                        } catch (checkError) {
+                            console.error('❌ Erreur récupération:', checkError);
                         }
                     }
 
-                    // 3. Si pas de commande_id via Genius, essayer de récupérer depuis la base
-                    if (!commandeId) {
-                        try {
-                            const payRes = await fetch('/api/payments/last-pending');
-                            const payData = await payRes.json();
-                            if (payData.success && payData.commande_id) {
-                                commandeId = payData.commande_id;
-                                console.log('✅ Commande ID récupéré depuis la base:', commandeId);
-                            }
-                        } catch (dbError) {
-                            console.error('❌ Erreur récupération base:', dbError);
-                        }
-                    }
-
-                    // 4. Si on a un commande_id, mettre à jour le statut
+                    // 3. Si on a un commande_id, mettre à jour le statut en "annulee"
                     if (commandeId) {
                         commandeIdEl.textContent = '#' + commandeId;
 
-                        const updateRes = await fetch('/api/payment/update-status', {
+                        const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
