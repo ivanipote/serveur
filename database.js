@@ -73,12 +73,14 @@ async function initializeDatabase() {
             )
         `);
 
-        // TABLE PAYMENTS
+        // ========================================================
+        // TABLE PAYMENTS (product_id NULLABLE)
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS payments (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
-                product_id INTEGER NOT NULL,
+                product_id INTEGER,            -- ← NULL autorisé
                 reference TEXT UNIQUE NOT NULL,
                 amount INTEGER NOT NULL,
                 status TEXT DEFAULT 'pending',
@@ -143,11 +145,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // ========================================================
-        // TABLE UPDATES (pour suivre les mises à jour)
-        // ========================================================
-
-        console.log('🔄 Création de la table updates...');
+        // TABLE UPDATES
         await client.query(`
             CREATE TABLE IF NOT EXISTS updates (
                 id SERIAL PRIMARY KEY,
@@ -158,13 +156,8 @@ async function initializeDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        console.log('✅ Table updates créée');
 
-        // ========================================================
-        // TABLE SESSION (pour connect-pg-simple) - CORRIGÉE
-        // ========================================================
-
-        console.log('🔄 Création de la table session...');
+        // TABLE SESSION
         await client.query(`
             CREATE TABLE IF NOT EXISTS "session" (
                 "sid" varchar NOT NULL COLLATE "default",
@@ -173,7 +166,6 @@ async function initializeDatabase() {
             )
         `);
 
-        // ✅ Vérifier si la clé primaire existe déjà avant de l'ajouter
         await client.query(`
             DO $$
             BEGIN
@@ -184,12 +176,8 @@ async function initializeDatabase() {
                 END IF;
             END $$;
         `);
-        console.log('✅ Table session créée');
 
-        // ========================================================
         // INDEX
-        // ========================================================
-
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_user_id ON commandes(user_id)`);
@@ -205,7 +193,7 @@ async function initializeDatabase() {
         console.log('   - products');
         console.log('   - users');
         console.log('   - panier');
-        console.log('   - payments');
+        console.log('   - payments (product_id NULL)');
         console.log('   - frais_livraison');
         console.log('   - commandes');
         console.log('   - messages');
@@ -222,12 +210,7 @@ async function initializeDatabase() {
     }
 }
 
-// Exécuter l'initialisation
 initializeDatabase().catch(console.error);
-
-// ========================================================
-// EXPORT
-// ========================================================
 
 module.exports = {
     pool,

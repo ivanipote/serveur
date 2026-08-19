@@ -34,7 +34,7 @@ console.log('🔑 Mode: SANDBOX');
 console.log('🔔 Webhook Secret:', WEBHOOK_SECRET ? '✅ Chargé' : '❌ Non');
 
 // ========================================================
-// ROUTE HEALTH (pour Render)
+// ROUTE HEALTH
 // ========================================================
 
 app.get('/health', (req, res) => {
@@ -86,7 +86,6 @@ app.post('/api/payment/create', async (req, res) => {
     try {
         const paymentRef = reference || `PAY-${commandeId}-${Date.now()}`;
 
-        // Récupérer l'user_id de la commande
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
 
@@ -98,7 +97,6 @@ app.post('/api/payment/create', async (req, res) => {
                 phone: cleanPhone
             },
             method: 'WAVE',
-            // ✅ URLs de retour vers Render
             successUrl: `https://nature-plus-client.onrender.com/payment-success?commande_id=${commandeId}`,
             errorUrl: `https://nature-plus-client.onrender.com/payment-failed?commande_id=${commandeId}`
         };
@@ -118,10 +116,11 @@ app.post('/api/payment/create', async (req, res) => {
         const geniusReference = paymentData.data?.reference || paymentData.reference || `GENUS_${Date.now()}`;
         const checkoutUrl = paymentData.data?.checkout_url || paymentData.checkout_url || null;
 
+        // ✅ product_id = NULL (paiement pour tout le panier)
         await db.query(
             `INSERT INTO payments (user_id, product_id, reference, genius_reference, amount, status, checkout_url, commande_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [userId, 0, paymentRef, geniusReference, amount, 'pending', checkoutUrl, commandeId]
+            [userId, null, paymentRef, geniusReference, amount, 'pending', checkoutUrl, commandeId]
         );
         console.log('✅ Payment enregistré');
 
@@ -148,7 +147,7 @@ app.post('/api/payment/create', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : METTRE À JOUR LE STATUT (depuis les pages de retour)
+// ROUTE : METTRE À JOUR LE STATUT
 // ========================================================
 
 app.post('/api/payment/update-status', async (req, res) => {
@@ -199,7 +198,7 @@ app.post('/api/payment/update-status', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : ANNULER UN PAIEMENT (manuel)
+// ROUTE : ANNULER UN PAIEMENT
 // ========================================================
 
 app.post('/api/payment/cancel', async (req, res) => {
@@ -241,7 +240,7 @@ app.post('/api/payment/cancel', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT (API)
+// ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT
 // ========================================================
 
 app.get('/api/payment/check/:reference', async (req, res) => {
@@ -330,7 +329,7 @@ app.post('/api/commande/restore/:id', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : WEBHOOK (CONFORME À LA DOC)
+// ROUTE : WEBHOOK
 // ========================================================
 
 app.post('/api/payment/webhook', (req, res) => {
@@ -439,7 +438,6 @@ async function handlePaymentSuccess(data) {
     }
 
     try {
-        // 1. Récupérer la commande
         const commande = await db.get('SELECT * FROM commandes WHERE id = $1', [orderId]);
 
         if (!commande) {
@@ -447,7 +445,6 @@ async function handlePaymentSuccess(data) {
             return;
         }
 
-        // 2. Récupérer le panier
         let panier = [];
         try {
             panier = JSON.parse(commande.panier);
@@ -456,12 +453,11 @@ async function handlePaymentSuccess(data) {
             return;
         }
 
-        // 3. Vérifier et déduire le stock pour chaque produit
+        // ✅ Vérifier et déduire le stock
         for (const item of panier) {
             const productId = item.product_id || item.id;
             const quantity = item.quantity || 1;
 
-            // Vérifier le stock actuel
             const product = await db.get('SELECT quantity FROM products WHERE id = $1', [productId]);
 
             if (!product) {
@@ -471,11 +467,9 @@ async function handlePaymentSuccess(data) {
 
             if (product.quantity < quantity) {
                 console.error(`❌ Stock insuffisant pour produit #${productId}: ${product.quantity} < ${quantity}`);
-                // Option: annuler la commande ou notifier l'admin
                 continue;
             }
 
-            // Déduire le stock
             await db.query(
                 'UPDATE products SET quantity = quantity - $1 WHERE id = $2',
                 [quantity, productId]
@@ -483,21 +477,18 @@ async function handlePaymentSuccess(data) {
             console.log(`✅ Stock déduit: produit #${productId} (-${quantity})`);
         }
 
-        // 4. Mettre à jour le paiement
         await db.query(
             `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
             ['success', reference]
         );
         console.log(`✅ Payment ${reference} : statut -> success`);
 
-        // 5. Mettre à jour la commande
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['payee', orderId]
         );
         console.log(`✅ Commande #${orderId} : statut -> payee`);
 
-        // 6. Créer une notification pour le client
         const user = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
         if (user) {
             await createNotification(
@@ -509,7 +500,6 @@ async function handlePaymentSuccess(data) {
             );
         }
 
-        // 7. Notifier l'admin (via console ou système)
         console.log(`📢 ADMIN: Paiement réussi pour la commande #${orderId} - Montant: ${amount} FCFA`);
 
     } catch (err) {
