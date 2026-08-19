@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ mescommandes.js chargé');
 
     // ==========================================
+    // URL DE L'API PAIEMENT (Render)
+    // ==========================================
+
+    const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
+
+    // ==========================================
     // RÉFÉRENCES DOM
     // ==========================================
 
@@ -265,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (port 3002)
+    // VÉRIFIER LE PAIEMENT (via Render)
     // ==========================================
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
@@ -283,11 +289,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         try {
-            const res = await fetch(`http://localhost:3002/api/payment/check/${refToCheck}`);
+            const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
             const data = await res.json();
 
             if (data.success && data.status === 'success') {
-                const updateRes = await fetch('http://localhost:3002/api/payment/update-status', {
+                const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ commandeId, status: 'payee' })
@@ -315,12 +321,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ANNULER LE PAIEMENT (port 3002)
+    // ANNULER LE PAIEMENT (via Render)
     // ==========================================
 
     async function cancelPayment(commandeId) {
         try {
-            const res = await fetch('http://localhost:3002/api/payment/cancel', {
+            const res = await fetch(`${PAYMENT_API_URL}/api/payment/cancel`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ commandeId })
@@ -334,12 +340,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Erreur annulation paiement:', error);
-            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur.');
+            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
     }
 
     // ==========================================
-    // ANNULER UNE COMMANDE (port 3001)
+    // ANNULER UNE COMMANDE
     // ==========================================
 
     async function cancelCommande(commandeId) {
@@ -362,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SUPPRIMER UNE COMMANDE (port 3001)
+    // SUPPRIMER UNE COMMANDE
     // ==========================================
 
     async function deleteCommande(commandeId) {
@@ -382,12 +388,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RESTAURER UNE COMMANDE (port 3002)
+    // RESTAURER UNE COMMANDE (via Render)
     // ==========================================
 
     async function restoreCommande(commandeId) {
         try {
-            const res = await fetch(`http://localhost:3002/api/commande/restore/${commandeId}`, { method: 'POST' });
+            const res = await fetch(`${PAYMENT_API_URL}/api/commande/restore/${commandeId}`, { method: 'POST' });
             const data = await res.json();
             if (res.ok) {
                 await showMessage('✅', 'Commande restaurée', 'La commande est de nouveau en attente.');
@@ -402,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // PAIEMENT - SERVEUR PAY (port 3002)
+    // PAIEMENT - SERVEUR PAY (Render)
     // ==========================================
 
     async function handlePayment(commandeId, amount, reference, phone) {
@@ -412,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const res = await fetch('http://localhost:3002/api/payment/create', {
+            const res = await fetch(`${PAYMENT_API_URL}/api/payment/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -566,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ===== ÉVÉNEMENTS =====
 
-        // Vérifier le paiement (port 3002)
+        // Vérifier le paiement (via Render)
         document.querySelectorAll('.btn-check-payment').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -577,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Annuler le paiement (port 3002)
+        // Annuler le paiement (via Render)
         document.querySelectorAll('.btn-cancel-payment').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -586,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Payer (port 3002)
+        // Payer (via Render)
         document.querySelectorAll('.btn-pay').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
@@ -597,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Restaurer (port 3002)
+        // Restaurer (via Render)
         document.querySelectorAll('.btn-restore').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -606,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Supprimer (port 3001)
+        // Supprimer
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -615,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Annuler (port 3001)
+        // Annuler
         document.querySelectorAll('.btn-cancel').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const id = parseInt(this.dataset.id);
@@ -624,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Détails (port 3001)
+        // Détails
         document.querySelectorAll('.btn-detail').forEach(btn => {
             btn.addEventListener('click', function() {
                 window.location.href = `/detailcom?id=${this.dataset.id}`;
