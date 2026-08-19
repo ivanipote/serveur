@@ -89,19 +89,28 @@ app.post('/api/payment/create', async (req, res) => {
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
 
+        // ✅ CORRECTION : success_url / error_url (avec underscore) + metadata
         const payload = {
             amount: amount,
             currency: 'XOF',
             description: description || `Commande Nature+ #${commandeId}`,
             customer: {
-                phone: cleanPhone
+                phone: cleanPhone,
+                name: commande?.nom || 'Client Nature+'
             },
-            method: 'WAVE',
-           successUrl: `https://nature-plus-client.onrender.com/payment-success`,
-errorUrl: `https://nature-plus-client.onrender.com/payment-failed`
+            // ✅ NE PAS spécifier payment_method → checkout GeniusPay
+            success_url: `https://nature-plus-client.onrender.com/payment-success`,
+            error_url: `https://nature-plus-client.onrender.com/payment-failed`,
+            metadata: {
+                order_id: commandeId,
+                user_id: userId,
+                source: 'nature_plus_app'
+            }
         };
 
         console.log('📤 Envoi à Genius Pay...');
+        console.log('📤 Payload:', JSON.stringify(payload, null, 2));
+
         const response = await axios.post(GENIUS_API_URL, payload, {
             headers: {
                 'X-API-Key': PUBLIC_KEY,
@@ -116,7 +125,6 @@ errorUrl: `https://nature-plus-client.onrender.com/payment-failed`
         const geniusReference = paymentData.data?.reference || paymentData.reference || `GENUS_${Date.now()}`;
         const checkoutUrl = paymentData.data?.checkout_url || paymentData.checkout_url || null;
 
-        // ✅ product_id = 1 (valeur valide pour contourner la contrainte NOT NULL)
         await db.query(
             `INSERT INTO payments (user_id, product_id, reference, genius_reference, amount, status, checkout_url, commande_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -240,33 +248,37 @@ app.post('/api/payment/cancel', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT
+// 🆕 ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT (améliorée)
 // ========================================================
 
 app.get('/api/payment/check/:reference', async (req, res) => {
     const { reference } = req.params;
 
+    console.log(`🔍 Vérification paiement référence: ${reference}`);
+
     if (!reference) {
         return res.status(400).json({ error: 'Référence requise.' });
     }
 
-    if (/^\d+$/.test(reference)) {
-        try {
-            const row = await db.get('SELECT * FROM payments WHERE commande_id = $1', [reference]);
-            if (!row) {
-                return res.json({ success: true, status: 'not_found' });
-            }
+    try {
+        // 1. Vérifier dans notre base
+        const row = await db.get(
+            'SELECT * FROM payments WHERE reference = $1 OR genius_reference = $1 OR commande_id = $1',
+            [reference]
+        );
+
+        if (row) {
+            console.log(`✅ Paiement trouvé dans la base: ${row.status}`);
             return res.json({
                 success: true,
                 status: row.status || 'pending',
-                source: 'database'
+                source: 'database',
+                data: row
             });
-        } catch (err) {
-            return res.status(500).json({ success: false, error: err.message });
         }
-    }
 
-    try {
+        // 2. Vérifier chez Genius Pay
+        console.log('🔍 Recherche chez Genius Pay...');
         const response = await axios.get(
             `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
             {
@@ -277,15 +289,29 @@ app.get('/api/payment/check/:reference', async (req, res) => {
             }
         );
 
-        const status = response.data?.data?.status || response.data?.status || 'unknown';
+        const paymentData = response.data?.data || response.data;
+        const status = paymentData?.status || 'unknown';
+
+        console.log(`📊 Statut Genius Pay: ${status}`);
 
         res.json({
             success: true,
             status: status,
-            data: response.data
+            source: 'geniuspay',
+            data: paymentData
         });
+
     } catch (error) {
         console.error('❌ Erreur vérification:', error.message);
+        
+        if (error.response?.status === 404) {
+            return res.json({ 
+                success: true, 
+                status: 'not_found',
+                message: 'Transaction non trouvée'
+            });
+        }
+
         res.status(500).json({
             success: false,
             error: error.message
