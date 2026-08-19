@@ -103,7 +103,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE COMMANDES
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS commandes (
                 id SERIAL PRIMARY KEY,
@@ -129,7 +131,9 @@ async function initializeDatabase() {
             )
         `);
 
-        // TABLE MESSAGES
+        // ========================================================
+        // TABLE MESSAGES (avec ON DELETE CASCADE)
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -141,7 +145,7 @@ async function initializeDatabase() {
                 is_read BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id),
-                FOREIGN KEY (commande_id) REFERENCES commandes(id)
+                FOREIGN KEY (commande_id) REFERENCES commandes(id) ON DELETE CASCADE
             )
         `);
 
@@ -196,7 +200,7 @@ async function initializeDatabase() {
         console.log('   - payments (product_id NULL)');
         console.log('   - frais_livraison');
         console.log('   - commandes');
-        console.log('   - messages');
+        console.log('   - messages (ON DELETE CASCADE)');
         console.log('   - updates');
         console.log('   - session');
         console.log('   - Index créés');
