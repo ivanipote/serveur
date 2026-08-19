@@ -144,7 +144,24 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // 🆕 TABLE SESSION (pour connect-pg-simple)
+        // 🆕 TABLE UPDATES (pour suivre les mises à jour)
+        // ========================================================
+
+        console.log('🔄 Création de la table updates...');
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS updates (
+                id SERIAL PRIMARY KEY,
+                commit_sha TEXT NOT NULL,
+                commit_message TEXT NOT NULL,
+                commit_date TEXT,
+                commit_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('✅ Table updates créée');
+
+        // ========================================================
+        // TABLE SESSION (pour connect-pg-simple)
         // ========================================================
 
         console.log('🔄 Création de la table session...');
@@ -175,16 +192,17 @@ async function initializeDatabase() {
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
-        console.log('   - admins (marchands)');
-        console.log('   - products (produits)');
-        console.log('   - users (clients)');
-        console.log('   - panier (panier client)');
-        console.log('   - payments (paiements)');
-        console.log('   - frais_livraison (communes et tarifs)');
-        console.log('   - commandes (commandes clients)');
-        console.log('   - messages (notifications clients)');
-        console.log('   - session (sessions PostgreSQL)');
-        console.log('   - Index créés pour optimiser les performances');
+        console.log('   - admins');
+        console.log('   - products');
+        console.log('   - users');
+        console.log('   - panier');
+        console.log('   - payments');
+        console.log('   - frais_livraison');
+        console.log('   - commandes');
+        console.log('   - messages');
+        console.log('   - updates (nouveau)');
+        console.log('   - session');
+        console.log('   - Index créés');
 
     } catch (error) {
         await client.query('ROLLBACK');
@@ -199,7 +217,7 @@ async function initializeDatabase() {
 initializeDatabase().catch(console.error);
 
 // ========================================================
-// EXPORT (avec méthodes compatibles)
+// EXPORT
 // ========================================================
 
 module.exports = {
