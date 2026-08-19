@@ -45,6 +45,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // TOAST
+    // ==========================================
+
+    function showToast(message, type = 'success') {
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#e67e22',
+            info: '#1a2a6c'
+        };
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${colors[type] || '#28a745'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 999;
+            text-align: center;
+            max-width: 90%;
+            animation: slideUp 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 2800);
+    }
+
+    // ==========================================
     // DATE RELATIVE
     // ==========================================
 
@@ -63,6 +102,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (diffDay === 1) return 'hier';
         if (diffDay < 7) return `il y a ${diffDay} jours`;
         return date.toLocaleDateString('fr-FR');
+    }
+
+    // ==========================================
+    // AVATAR PAR TYPE
+    // ==========================================
+
+    function getAvatarIcon(type) {
+        const icons = {
+            'commande': '📦',
+            'paiement': '💳',
+            'admin': '📢',
+            'systeme': '⚙️'
+        };
+        return icons[type] || '🌿';
     }
 
     // ==========================================
@@ -99,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (style carte 2)
+    // RENDRE LES NOTIFICATIONS
     // ==========================================
 
     function renderNotifications() {
@@ -119,7 +172,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         filtered.forEach(n => {
-            const isUnread = n.is_read === 0;
+            // 🔴 VÉRIFICATION : is_read doit être 0 ou 1
+            const isUnread = n.is_read === 0 || n.is_read === false;
             const typeClass = n.type || 'systeme';
             const typeLabels = {
                 'commande': '📦 Commande',
@@ -128,12 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 'systeme': '⚙️ Système'
             };
             const typeLabel = typeLabels[typeClass] || typeClass;
-
             const dateStr = timeAgo(n.created_at);
-
-            // Avatar: lettre ou icône
             const avatarIcon = getAvatarIcon(n.type);
 
+            // ✅ BOUTON "Marquer comme lu" : ACTIF si non lu
             let actionHtml = '';
             if (isUnread) {
                 actionHtml = `
@@ -170,20 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         mainContent.innerHTML = html;
         attachEvents();
-    }
-
-    // ==========================================
-    // AVATAR PAR TYPE
-    // ==========================================
-
-    function getAvatarIcon(type) {
-        const icons = {
-            'commande': '📦',
-            'paiement': '💳',
-            'admin': '📢',
-            'systeme': '⚙️'
-        };
-        return icons[type] || '🌿';
     }
 
     // ==========================================
@@ -250,11 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (notif) notif.is_read = 1;
                 renderNotifications();
                 updateBadge();
+                showToast('✅ Notification marquée comme lue');
             } else {
                 console.error('Erreur:', data);
+                showToast('❌ Erreur lors de la mise à jour', 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
+            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -278,11 +319,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderNotifications();
                     updateBadge();
                 }
+                showToast('🗑️ Notification supprimée');
             } else {
                 console.error('Erreur:', data);
+                showToast('❌ Erreur lors de la suppression', 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
+            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -320,31 +364,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TOUT MARQUER COMME LU
+    // TOUT MARQUER COMME LU (CORRIGÉ)
     // ==========================================
 
     readAllBtn.addEventListener('click', async function() {
         if (this.disabled) return;
 
-        const unreadCount = notifications.filter(n => n.is_read === 0).length;
+        const unreadCount = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+
         if (unreadCount === 0) {
+            showToast('✅ Toutes vos notifications sont déjà lues', 'info');
             return;
         }
 
         try {
             const res = await fetch('/api/notifications/read-all', {
-                method: 'PUT'
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
             });
             const data = await res.json();
+
             if (res.ok) {
                 notifications.forEach(n => n.is_read = 1);
                 renderNotifications();
                 updateBadge();
+                showToast(`✅ ${unreadCount} notification(s) marquée(s) comme lues`);
             } else {
                 console.error('Erreur:', data);
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
+            showToast('❌ Erreur de connexion', 'error');
         }
     });
 
