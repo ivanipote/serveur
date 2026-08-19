@@ -16,6 +16,99 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('adminName').textContent = '👤 ' + adminName;
 
     // ==========================================
+    // SOCKET.IO - Connexion
+    // ==========================================
+
+    let socket = null;
+    let isSocketConnected = false;
+
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        console.log('🔌 Connexion Socket.IO admin dashboard...');
+
+        try {
+            const adminId = localStorage.getItem('adminId') || '1';
+            
+            socket = io({
+                auth: {
+                    userId: parseInt(adminId),
+                    isAdmin: true
+                }
+            });
+
+            socket.on('connect', function() {
+                console.log('✅ Socket.IO admin dashboard connecté');
+                isSocketConnected = true;
+            });
+
+            socket.on('disconnect', function() {
+                console.log('❌ Socket.IO admin dashboard déconnecté');
+                isSocketConnected = false;
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectSocketIO();
+                    }
+                }, 3000);
+            });
+
+            socket.on('nouvelle-commande', function(data) {
+                console.log('🆕 Nouvelle commande (dashboard):', data);
+                // Rafraîchir les stats et les commandes récentes
+                loadOverview();
+                // Afficher une notification visuelle
+                showDashboardToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`);
+            });
+
+            socket.on('commande-update', function(data) {
+                console.log('📦 Commande mise à jour (dashboard):', data);
+                // Rafraîchir les stats et les commandes récentes
+                loadOverview();
+            });
+
+        } catch (error) {
+            console.error('❌ Erreur connexion Socket.IO:', error);
+            setTimeout(() => connectSocketIO(), 5000);
+        }
+    }
+
+    // ==========================================
+    // TOAST DASHBOARD
+    // ==========================================
+
+    function showDashboardToast(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: #1a2a6c;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 999;
+            max-width: 350px;
+            animation: slideInRight 0.3s ease;
+            pointer-events: none;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // ==========================================
     // NAVIGATION ENTRE ONGLETS
     // ==========================================
 
@@ -84,6 +177,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (socket) {
+            socket.disconnect();
+        }
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminName');
         localStorage.removeItem('adminId');
@@ -91,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // VUE D'ENSEMBLE (OVERVIEW) - COMPLÈTE
+    // VUE D'ENSEMBLE (OVERVIEW)
     // ==========================================
 
     let overviewInterval = null;
@@ -104,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const statsData = await statsRes.json();
 
             document.getElementById('statProducts').textContent = statsData.products || 0;
-            document.getElementById('statSales').textContent = (statsData.sales || 0) + ' FCFA';
+            document.getElementById('statSales').textContent = (statsData.sales || 0).toLocaleString() + ' FCFA';
             document.getElementById('statCommandes').textContent = statsData.commandes || 0;
             document.getElementById('statClients').textContent = statsData.clients || 0;
 
@@ -194,10 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.stopOverviewAutoRefresh = stopOverviewAutoRefresh;
 
     // ==========================================
-    // FONCTIONS POUR LES AUTRES ONGLETS (placeholders)
+    // FONCTIONS POUR LES AUTRES ONGLETS
     // ==========================================
-
-    // ⚠️ Commandes est géré par commandes.js (pas de placeholder ici)
 
     window.loadPayments = function() {
         console.log('💳 Onglet Paiements - À implémenter');
@@ -232,10 +326,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     showPage('overview');
+    startOverviewAutoRefresh();
+    connectSocketIO();
 
-    if (typeof startOverviewAutoRefresh === 'function') {
-        startOverviewAutoRefresh();
-    }
-
-    console.log('✅ Admin dashboard initialisé');
+    console.log('✅ Admin dashboard initialisé avec Socket.IO');
 });

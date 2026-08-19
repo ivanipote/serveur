@@ -1,78 +1,80 @@
 // ==========================================
-// ONGLET : COMMANDES (avec SSE)
+// ONGLET : COMMANDES (avec Socket.IO)
 // ==========================================
 
 let allCommandes = [];
 let currentFilter = 'all';
 let searchTerm = '';
 let currentCommandeId = null;
-let sseConnection = null;
-let isSseConnected = false;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 10;
+let socket = null;
+let isSocketConnected = false;
 
 // ==========================================
-// SSE (Server-Sent Events)
+// SOCKET.IO - Connexion
 // ==========================================
 
-function connectSSE() {
-    if (sseConnection) {
-        sseConnection.close();
-        sseConnection = null;
+function connectSocketIO() {
+    if (socket) {
+        socket.disconnect();
+        socket = null;
     }
 
-    console.log('🔌 Connexion SSE admin...');
+    console.log('🔌 Connexion Socket.IO admin...');
 
     try {
-        sseConnection = new EventSource('/api/sse/events');
+        const adminId = localStorage.getItem('adminId') || '1';
+        
+        socket = io({
+            auth: {
+                userId: parseInt(adminId),
+                isAdmin: true
+            }
+        });
 
-        sseConnection.onopen = function() {
-            console.log('✅ SSE admin connecté');
-            isSseConnected = true;
-            reconnectAttempts = 0;
-        };
+        socket.on('connect', function() {
+            console.log('✅ Socket.IO admin connecté');
+            isSocketConnected = true;
+        });
 
-        sseConnection.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                console.log('📨 SSE admin reçu:', data);
-
-                if (data.type === 'commande-update') {
-                    handleCommandeUpdate(data.data);
-                } else if (data.type === 'ping') {
-                    // Ping de maintien de connexion
+        socket.on('disconnect', function() {
+            console.log('❌ Socket.IO admin déconnecté');
+            isSocketConnected = false;
+            setTimeout(() => {
+                if (!isSocketConnected) {
+                    connectSocketIO();
                 }
-            } catch (error) {
-                console.error('❌ Erreur parsing SSE:', error);
-            }
-        };
+            }, 3000);
+        });
 
-        sseConnection.onerror = function(error) {
-            console.warn('⚠️ Erreur SSE admin:', error);
-            isSseConnected = false;
-            sseConnection.close();
-            sseConnection = null;
+        socket.on('nouvelle-commande', function(data) {
+            console.log('🆕 Nouvelle commande reçue:', data);
+            handleNouvelleCommande(data);
+        });
 
-            // Reconnexion automatique
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                reconnectAttempts++;
-                const delay = Math.min(1000 * reconnectAttempts, 30000);
-                console.log(`🔄 Reconnexion SSE dans ${delay}ms (tentative ${reconnectAttempts})`);
-                setTimeout(() => connectSSE(), delay);
-            } else {
-                console.warn('⚠️ Max reconnexions SSE atteint');
-            }
-        };
+        socket.on('commande-update', function(data) {
+            console.log('📦 Mise à jour commande reçue:', data);
+            handleCommandeUpdate(data);
+        });
 
     } catch (error) {
-        console.error('❌ Erreur connexion SSE:', error);
-        setTimeout(() => connectSSE(), 5000);
+        console.error('❌ Erreur connexion Socket.IO:', error);
+        setTimeout(() => connectSocketIO(), 5000);
     }
 }
 
 // ==========================================
-// GESTION DES MISES À JOUR SSE
+// GESTION DES ÉVÉNEMENTS
 // ==========================================
+
+function handleNouvelleCommande(data) {
+    console.log('🆕 Nouvelle commande:', data);
+    
+    // Recharger toutes les commandes pour avoir les données complètes
+    loadCommandes();
+    
+    // Afficher un toast
+    showToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
+}
 
 function handleCommandeUpdate(data) {
     console.log('📦 Mise à jour commande:', data);
@@ -83,26 +85,19 @@ function handleCommandeUpdate(data) {
     const existingIndex = allCommandes.findIndex(c => c.id === commandeId);
 
     if (existingIndex !== -1) {
-        // ✅ Commande existante → mettre à jour
         allCommandes[existingIndex].status = status;
         console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
     } else {
-        // ✅ Nouvelle commande → charger toutes les commandes
         console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
         loadCommandes();
         return;
     }
 
-    // 2. Re-rendre le tableau (si le filtre correspond)
-    const shouldRender = currentFilter === 'all' || currentFilter === status;
-    if (shouldRender) {
-        renderCommandesTable();
-    }
-
-    // 3. Mettre à jour le badge de filtre si nécessaire
+    // 2. Re-rendre le tableau
+    renderCommandesTable();
     updateFilterCounts();
 
-    // 4. Afficher un toast
+    // 3. Afficher un toast
     showToast(`📦 Commande #${commandeId}: ${status}`, status);
 }
 
@@ -119,7 +114,9 @@ function showToast(message, status) {
         'paiement_effectue': '#43a047',
         'livraison_en_cours': '#00acc1',
         'disponible': '#2e7d32',
-        'recuperee': '#1b5e20'
+        'recuperee': '#1b5e20',
+        'success': '#43a047',
+        'error': '#e53935'
     };
 
     const bgColor = colors[status] || '#1a2a6c';
@@ -164,7 +161,6 @@ function updateFilterCounts() {
             ? allCommandes.length 
             : allCommandes.filter(c => c.status === filter).length;
         
-        // Ajouter le compteur dans le texte du bouton
         const label = btn.textContent.split('(')[0].trim();
         btn.textContent = `${label} (${count})`;
     });
@@ -351,7 +347,7 @@ async function syncCommande(commandeId) {
 }
 
 // ==========================================
-// OVERLAY STATUT (avec sécurisation)
+// OVERLAY STATUT
 // ==========================================
 
 function openStatusOverlay(commandeId) {
@@ -373,8 +369,6 @@ function openStatusOverlay(commandeId) {
         'disponible': '📍 Disponible',
         'recuperee': '✅ Récupérée'
     };
-    
-    const isPaid = ['paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'].includes(currentStatus);
     
     if (currentStatus === 'en_attente') {
         availableStatuses = ['accepter', 'refuse'];
@@ -555,10 +549,14 @@ document.getElementById('closeDetailOverlay').addEventListener('click', function
 // Charger les commandes
 loadCommandes();
 
-// Connecter SSE
-connectSSE();
+// Connecter Socket.IO
+connectSocketIO();
 
-// Exposer la fonction pour le rafraîchissement
+// Exposer les fonctions
 window.loadCommandes = loadCommandes;
+window.openMaps = openMaps;
+window.syncCommande = syncCommande;
+window.openStatusOverlay = openStatusOverlay;
+window.openDetailOverlay = openDetailOverlay;
 
-console.log('✅ commandes.js chargé avec SSE');
+console.log('✅ commandes.js chargé avec Socket.IO');
