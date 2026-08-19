@@ -144,7 +144,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // 🆕 TABLE UPDATES (pour suivre les mises à jour)
+        // TABLE UPDATES (pour suivre les mises à jour)
         // ========================================================
 
         console.log('🔄 Création de la table updates...');
@@ -161,7 +161,7 @@ async function initializeDatabase() {
         console.log('✅ Table updates créée');
 
         // ========================================================
-        // TABLE SESSION (pour connect-pg-simple)
+        // TABLE SESSION (pour connect-pg-simple) - CORRIGÉE
         // ========================================================
 
         console.log('🔄 Création de la table session...');
@@ -172,8 +172,17 @@ async function initializeDatabase() {
                 "expire" timestamp(6) NOT NULL
             )
         `);
+
+        // ✅ Vérifier si la clé primaire existe déjà avant de l'ajouter
         await client.query(`
-            ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint WHERE conname = 'session_pkey'
+                ) THEN
+                    ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid");
+                END IF;
+            END $$;
         `);
         console.log('✅ Table session créée');
 
@@ -200,7 +209,7 @@ async function initializeDatabase() {
         console.log('   - frais_livraison');
         console.log('   - commandes');
         console.log('   - messages');
-        console.log('   - updates (nouveau)');
+        console.log('   - updates');
         console.log('   - session');
         console.log('   - Index créés');
 
@@ -227,4 +236,4 @@ module.exports = {
     all: (text, params) => pool.query(text, params).then(res => res.rows),
     run: (text, params) => pool.query(text, params),
     initialize: initializeDatabase
-};// Version avec table updates
+};
