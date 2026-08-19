@@ -44,6 +44,62 @@ app.use(session({
 }));
 
 // ========================================================
+// SSE (Server-Sent Events)
+// ========================================================
+
+let sseClients = [];
+
+app.get('/api/sse/events', (req, res) => {
+    // ✅ Vérifier l'authentification
+    if (!req.session.userId) {
+        res.status(401).json({ error: 'Non authentifié' });
+        return;
+    }
+
+    const userId = req.session.userId;
+
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+    });
+
+    // Envoyer un ping initial
+    res.write(`data: ${JSON.stringify({ type: 'ping', userId })}\n\n`);
+
+    const clientId = Date.now();
+    const client = { id: clientId, userId, res };
+    sseClients.push(client);
+    console.log(`✅ SSE client connecté: ${clientId} (user: ${userId})`);
+
+    req.on('close', () => {
+        sseClients = sseClients.filter(c => c.id !== clientId);
+        console.log(`❌ SSE client déconnecté: ${clientId} (user: ${userId})`);
+    });
+});
+
+function sendSSEEvent(eventType, data, targetUserId = null) {
+    const message = JSON.stringify({ type: eventType, data, timestamp: new Date().toISOString() });
+    console.log(`📤 SSE: ${eventType} -> ${sseClients.length} clients`);
+
+    sseClients.forEach(client => {
+        // Si targetUserId est spécifié, envoyer uniquement à cet utilisateur
+        if (targetUserId && client.userId !== targetUserId) {
+            return;
+        }
+        try {
+            client.res.write(`data: ${message}\n\n`);
+        } catch (error) {
+            console.error('❌ Erreur SSE:', error);
+        }
+    });
+}
+
+// Exposer la fonction globalement
+global.sendSSEEvent = sendSSEEvent;
+
+// ========================================================
 // MIDDLEWARE : AUTH
 // ========================================================
 
@@ -56,7 +112,7 @@ function isAuthenticated(req, res, next) {
 }
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION (MISE À JOUR)
+// FONCTION : CRÉER UNE NOTIFICATION
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
@@ -228,7 +284,7 @@ app.delete('/api/admin/products/:id', async (req, res) => {
     }
 });
 
-// PUT /api/admin/products/:id (modifier un produit)
+// PUT /api/admin/products/:id
 app.put('/api/admin/products/:id', upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 }
@@ -339,10 +395,7 @@ app.get('/api/admin/commandes', async (req, res) => {
     }
 });
 
-// ========================================================
-// 🆕 PUT /api/admin/commande/status (AVEC NOUVEAUX STATUTS + NOTIFICATIONS)
-// ========================================================
-
+// PUT /api/admin/commande/status
 app.put('/api/admin/commande/status', async (req, res) => {
     const { commandeId, status, causeRefus } = req.body;
 
@@ -352,7 +405,6 @@ app.put('/api/admin/commande/status', async (req, res) => {
         return res.status(400).json({ error: 'commandeId et status requis.' });
     }
 
-    // ✅ STATUTS AUTORISÉS
     const allowedStatus = [
         'en_attente', 'accepter', 'refuse', 'paiement_effectue',
         'livraison_en_cours', 'disponible', 'recuperee'
@@ -369,7 +421,6 @@ app.put('/api/admin/commande/status', async (req, res) => {
             return res.status(404).json({ error: 'Commande non trouvée.' });
         }
 
-        // ✅ NOTIFICATIONS PAR STATUT
         const statusMessages = {
             'accepter': { 
                 title: '💳 Paiement requis', 
@@ -412,7 +463,6 @@ app.put('/api/admin/commande/status', async (req, res) => {
             return res.status(404).json({ error: 'Commande non trouvée.' });
         }
 
-        // ✅ ENVOYER LA NOTIFICATION
         const title = statusMessages[status]?.title || `📋 Commande #${commandeId} mise à jour`;
         await createNotification(
             commande.user_id,
@@ -421,6 +471,16 @@ app.put('/api/admin/commande/status', async (req, res) => {
             title,
             content
         );
+
+        // ✅ Envoyer un événement SSE pour mettre à jour le client
+        if (global.sendSSEEvent) {
+            global.sendSSEEvent('commande-update', {
+                commandeId: parseInt(commandeId),
+                status: status,
+                userId: commande.user_id,
+                message: `Statut mis à jour : ${status}`
+            }, commande.user_id);
+        }
 
         res.json({ success: true, message: 'Statut mis à jour et notification envoyée' });
     } catch (err) {
