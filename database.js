@@ -73,25 +73,37 @@ async function initializeDatabase() {
             )
         `);
 
-        // ========================================================
-        // TABLE PAYMENTS (product_id NULL, SANS FK)
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS payments (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                product_id INTEGER,            -- NULL autorisé
-                reference TEXT UNIQUE NOT NULL,
-                amount INTEGER NOT NULL,
-                status TEXT DEFAULT 'pending',
-                checkout_url TEXT,
-                commande_id INTEGER,
-                genius_reference TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-                -- ✅ PAS DE FOREIGN KEY sur product_id
-            )
-        `);
+       // ========================================================
+// TABLE PAYMENTS
+// ========================================================
+await client.query(`
+    CREATE TABLE IF NOT EXISTS payments (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        product_id INTEGER,
+        reference TEXT UNIQUE NOT NULL,
+        amount INTEGER NOT NULL,
+        status TEXT DEFAULT 'pending',
+        checkout_url TEXT,
+        commande_id INTEGER,
+        genius_reference TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+`);
+
+// ✅ SUPPRIMER LA FK EXISTANTE
+await client.query(`
+    DO $$
+    BEGIN
+        IF EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'payments_product_id_fkey'
+        ) THEN
+            ALTER TABLE payments DROP CONSTRAINT payments_product_id_fkey;
+            RAISE NOTICE '✅ Contrainte payments_product_id_fkey supprimée';
+        END IF;
+    END $$;
+`);
 
         // TABLE FRAIS_LIVRAISON
         await client.query(`
