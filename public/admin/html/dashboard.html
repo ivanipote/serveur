@@ -11,7 +11,7 @@
 
     <div class="dashboard-container">
 
-        <!-- SIDEBAR -->
+        <!-- ===== SIDEBAR FIXE ===== -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <h2>🌿 <span>Nature+</span></h2>
@@ -22,25 +22,24 @@
                 <a href="#" class="active" data-page="overview">
                     <i class="fas fa-chart-pie"></i> Vue d'ensemble
                 </a>
+                <a href="#" data-page="commandes">
+                    <i class="fas fa-truck"></i> Commandes
+                </a>
+                <a href="#" data-page="payments">
+                    <i class="fas fa-credit-card"></i> Paiements
+                </a>
                 <a href="#" data-page="products">
                     <i class="fas fa-box"></i> Produits
                 </a>
                 <a href="#" data-page="add-product">
                     <i class="fas fa-plus-circle"></i> Ajouter un produit
                 </a>
-                <a href="#" data-page="commandes">
-                    <i class="fas fa-truck"></i> Commandes
+                <a href="#" data-page="clients">
+                    <i class="fas fa-users"></i> Clients
                 </a>
                 <a href="#" data-page="livraison">
                     <i class="fas fa-map-pin"></i> Frais de livraison
                 </a>
-                <a href="#" data-page="payments">
-                    <i class="fas fa-credit-card"></i> Paiements
-                </a>
-                <a href="#" data-page="clients">
-                    <i class="fas fa-users"></i> Clients
-                </a>
-                <!-- 🆕 Nouveaux onglets -->
                 <a href="#" data-page="send-message">
                     <i class="fas fa-paper-plane"></i> Envoyer un message
                 </a>
@@ -56,18 +55,22 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- ===== MAIN CONTENT ===== -->
         <main class="main-content">
 
+            <!-- HEADER -->
             <header class="main-header">
                 <h1 id="pageTitle">📊 Vue d'ensemble</h1>
                 <div class="admin-info">
                     <span id="adminName">👤 Admin</span>
+                    <button id="refreshPageBtn" class="btn-refresh-header" title="Rafraîchir">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
             </header>
 
             <!-- ========================================= -->
-            <!-- PAGE : VUE D'ENSEMBLE -->
+            <!-- SECTION : VUE D'ENSEMBLE                  -->
             <!-- ========================================= -->
             <section id="page-overview" class="page-section active">
                 <div class="stats-grid">
@@ -94,267 +97,98 @@
             </section>
 
             <!-- ========================================= -->
-            <!-- PAGE : PRODUITS (améliorée) -->
-            <!-- ========================================= -->
-            <section id="page-products" class="page-section">
-                <div class="section-header">
-                    <h2>📦 Liste des produits</h2>
-                    <div style="display:flex;gap:10px;">
-                        <input type="text" id="searchProduct" placeholder="🔍 Rechercher..." style="padding:8px 14px;border:2px solid #e8e8f0;border-radius:10px;font-size:14px;outline:none;">
-                        <button class="btn-add" onclick="showPage('add-product')">
-                            <i class="fas fa-plus"></i> Ajouter
-                        </button>
-                    </div>
-                </div>
-                <div id="productList" class="product-grid">
-                    <p class="empty-msg">Chargement des produits...</p>
-                </div>
-            </section>
-
-            <!-- ========================================= -->
-            <!-- PAGE : AJOUTER UN PRODUIT (améliorée) -->
-            <!-- ========================================= -->
-            <section id="page-add-product" class="page-section">
-                <h2>➕ Ajouter un produit</h2>
-                <form id="addProductForm" class="product-form" enctype="multipart/form-data">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nom du produit</label>
-                            <input type="text" id="productName" name="name" placeholder="Ex: Pack Premium" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Prix (FCFA)</label>
-                            <input type="number" id="productPrice" name="price" placeholder="200" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Quantité</label>
-                            <input type="number" id="productQty" name="quantity" placeholder="10">
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea id="productDesc" name="description" rows="3" placeholder="Description du produit..."></textarea>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Image 1</label>
-                            <input type="file" id="productImage1" name="image1" accept="image/*" required>
-                            <div class="image-preview" id="preview1"></div>
-                        </div>
-                        <div class="form-group">
-                            <label>Image 2</label>
-                            <input type="file" id="productImage2" name="image2" accept="image/*">
-                            <div class="image-preview" id="preview2"></div>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit">💾 Enregistrer</button>
-                    <div id="productMessage" class="message"></div>
-                </form>
-            </section>
-
-            <!-- ========================================= -->
-            <!-- PAGE : COMMANDES -->
+            <!-- SECTION : COMMANDES (PLACEHOLDER)         -->
             <!-- ========================================= -->
             <section id="page-commandes" class="page-section">
-                <div class="section-header">
-                    <h2>📋 Commandes clients</h2>
-                    <span class="badge-commandes" id="commandesCount">0 commandes</span>
-                </div>
-                <div class="filters-bar">
-                    <div class="filter-buttons" id="filterButtons">
-                        <button class="filter-btn active" data-filter="all">📋 Tous</button>
-                        <button class="filter-btn" data-filter="en_attente">⏳ En attente</button>
-                        <button class="filter-btn" data-filter="acceptee">✅ Acceptée</button>
-                        <button class="filter-btn" data-filter="pret_livraison">📦 Prêt</button>
-                        <button class="filter-btn" data-filter="livraison_en_cours">🚚 En cours</button>
-                        <button class="filter-btn" data-filter="votre_colis_est_la">📍 Arrivé</button>
-                        <button class="filter-btn" data-filter="payee">💳 Payée</button>
-                        <button class="filter-btn" data-filter="refusee">❌ Refusée</button>
-                        <button class="filter-btn" data-filter="annulee">❌ Annulée</button>
-                    </div>
-                    <div class="filter-search">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchCommande" placeholder="Rechercher (client, ID, référence...)">
-                        <span id="filterCount">0 commandes</span>
-                    </div>
-                </div>
-                <div id="commandesList" class="table-container">
-                    <p class="empty-msg">Chargement des commandes...</p>
+                <div class="placeholder-msg">
+                    <i class="fas fa-truck"></i>
+                    <h2>📋 Commandes</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- PAGE : FRAIS DE LIVRAISON -->
-            <!-- ========================================= -->
-            <section id="page-livraison" class="page-section">
-                <div class="section-header">
-                    <h2>📍 Frais de livraison</h2>
-                    <button class="btn-add" id="addCommuneBtn">
-                        <i class="fas fa-plus"></i> Ajouter une commune
-                    </button>
-                </div>
-                <div id="communeForm" class="commune-form" style="display:none;">
-                    <div class="form-row">
-                        <input type="text" id="communeName" placeholder="Nom de la commune (ex: Cocody)" required>
-                        <input type="number" id="communeTarif" placeholder="Tarif (FCFA)" required>
-                        <button id="saveCommuneBtn" class="btn-submit">💾 Enregistrer</button>
-                        <button id="cancelCommuneBtn" class="btn-cancel">Annuler</button>
-                    </div>
-                    <input type="hidden" id="editCommuneId" value="">
-                </div>
-                <div id="communesList" class="table-container">
-                    <p class="empty-msg">Chargement des communes...</p>
-                </div>
-            </section>
-
-            <!-- ========================================= -->
-            <!-- PAGE : PAIEMENTS -->
+            <!-- SECTION : PAIEMENTS (PLACEHOLDER)         -->
             <!-- ========================================= -->
             <section id="page-payments" class="page-section">
-                <h2>💳 Historique des paiements</h2>
-                <div id="paymentList">
-                    <p class="empty-msg">Chargement des paiements...</p>
+                <div class="placeholder-msg">
+                    <i class="fas fa-credit-card"></i>
+                    <h2>💳 Paiements</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- PAGE : CLIENTS -->
+            <!-- SECTION : PRODUITS (PLACEHOLDER)          -->
+            <!-- ========================================= -->
+            <section id="page-products" class="page-section">
+                <div class="placeholder-msg">
+                    <i class="fas fa-box"></i>
+                    <h2>📦 Produits</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- SECTION : AJOUTER PRODUIT (PLACEHOLDER)   -->
+            <!-- ========================================= -->
+            <section id="page-add-product" class="page-section">
+                <div class="placeholder-msg">
+                    <i class="fas fa-plus-circle"></i>
+                    <h2>➕ Ajouter un produit</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- SECTION : CLIENTS (PLACEHOLDER)           -->
             <!-- ========================================= -->
             <section id="page-clients" class="page-section">
-                <h2>👤 Liste des clients</h2>
-                <div id="clientList">
-                    <p class="empty-msg">Chargement des clients...</p>
+                <div class="placeholder-msg">
+                    <i class="fas fa-users"></i>
+                    <h2>👤 Clients</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- 🆕 PAGE : ENVOYER UN MESSAGE -->
+            <!-- SECTION : LIVRAISON (PLACEHOLDER)         -->
+            <!-- ========================================= -->
+            <section id="page-livraison" class="page-section">
+                <div class="placeholder-msg">
+                    <i class="fas fa-map-pin"></i>
+                    <h2>📍 Frais de livraison</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
+                </div>
+            </section>
+
+            <!-- ========================================= -->
+            <!-- SECTION : ENVOYER MESSAGE (PLACEHOLDER)   -->
             <!-- ========================================= -->
             <section id="page-send-message" class="page-section">
-                <h2>📨 Envoyer un message</h2>
-                <div class="send-message-container">
-                    <div class="form-group">
-                        <label>Destinataire</label>
-                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                            <select id="messageUserSelect" class="form-select" style="flex:1;min-width:200px;">
-                                <option value="">-- Sélectionner un client --</option>
-                            </select>
-                            <button id="sendToAllBtn" class="btn-send-all" style="background:#6C63FF;color:white;border:none;padding:10px 20px;border-radius:10px;font-weight:600;cursor:pointer;">
-                                <i class="fas fa-users"></i> Tous les clients
-                            </button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Titre</label>
-                        <input type="text" id="messageTitle" placeholder="Titre du message" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label>Contenu</label>
-                        <textarea id="messageContent" rows="5" placeholder="Votre message..." class="form-textarea"></textarea>
-                    </div>
-                    <button id="sendMessageBtn" class="btn-submit">📤 Envoyer le message</button>
-                    <div id="messageResult" class="message"></div>
+                <div class="placeholder-msg">
+                    <i class="fas fa-paper-plane"></i>
+                    <h2>📨 Envoyer un message</h2>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
                 </div>
             </section>
 
             <!-- ========================================= -->
-            <!-- 🆕 PAGE : MISES À JOUR -->
+            <!-- SECTION : MISES À JOUR (PLACEHOLDER)      -->
             <!-- ========================================= -->
             <section id="page-updates" class="page-section">
-                <div class="section-header">
+                <div class="placeholder-msg">
+                    <i class="fas fa-sync-alt"></i>
                     <h2>🔄 Mises à jour</h2>
-                    <button id="checkUpdatesBtn" class="btn-add">
-                        <i class="fas fa-sync-alt"></i> Vérifier
-                    </button>
-                </div>
-                <div id="updatesList" class="updates-container">
-                    <p class="empty-msg">Cliquez sur "Vérifier" pour voir les dernières mises à jour.</p>
+                    <p>Le contenu de cet onglet sera ajouté prochainement.</p>
                 </div>
             </section>
 
         </main>
     </div>
 
-    <!-- ===== OVERLAY DÉTAIL PRODUIT (avec modification) ===== -->
-    <div class="detail-overlay" id="productDetailOverlay">
-        <div class="detail-box product-detail-box">
-            <div class="box-header">
-                <h3>📦 Détail du produit</h3>
-                <button class="close-btn" id="closeProductDetail"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="detail-content" id="productDetailContent">
-                <!-- Rempli par JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== OVERLAY MODIFICATION PRODUIT ===== -->
-    <div class="detail-overlay" id="productEditOverlay">
-        <div class="detail-box product-edit-box">
-            <div class="box-header">
-                <h3>✏️ Modifier le produit</h3>
-                <button class="close-btn" id="closeProductEdit"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="detail-content" id="productEditContent">
-                <!-- Rempli par JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== OVERLAY DÉTAIL COMMANDE ===== -->
-    <div class="detail-overlay" id="detailOverlay">
-        <div class="detail-box">
-            <div class="box-header">
-                <h3>📦 Détail de la commande</h3>
-                <button class="close-btn" id="closeDetailOverlay">✕</button>
-            </div>
-            <div class="detail-content" id="detailContent">
-                <p style="color:#888;text-align:center;padding:20px;">Chargement...</p>
-            </div>
-            <div class="detail-actions" id="detailActions">
-                <!-- Les boutons seront injectés par JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== OVERLAY STATUT ===== -->
-    <div class="status-overlay" id="statusOverlay">
-        <div class="status-box">
-            <div class="box-header">
-                <h3>📋 Modifier le statut</h3>
-                <button class="close-btn" id="closeStatusOverlay">✕</button>
-            </div>
-            <div class="status-content">
-                <div class="form-group">
-                    <label>Commande #<span id="statusCommandeId">-</span></label>
-                    <p id="statusClientInfo" style="font-size:14px;color:#888;margin-bottom:12px;">Client: -</p>
-                </div>
-                <div class="form-group">
-                    <label>Statut</label>
-                    <select id="statusSelect">
-                        <option value="en_attente">⏳ En attente</option>
-                        <option value="acceptee">✅ Acceptée</option>
-                        <option value="refusee">❌ Refusée</option>
-                        <option value="pret_livraison">📦 Prêt pour livraison</option>
-                        <option value="livraison_en_cours">🚚 Livraison en cours</option>
-                        <option value="votre_colis_est_la">📍 Votre colis est là</option>
-                        <option value="payee">💳 Payée</option>
-                    </select>
-                </div>
-                <div class="form-group" id="causeRefusGroup" style="display:none;">
-                    <label>Cause du refus</label>
-                    <textarea id="causeRefus" placeholder="Expliquez la raison du refus..." rows="3"></textarea>
-                </div>
-                <div class="status-actions">
-                    <button class="btn-cancel" id="cancelStatusBtn">Annuler</button>
-                    <button class="btn-save" id="saveStatusBtn">💾 Enregistrer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- ===== SCRIPTS (chargés un par un) ===== -->
     <script src="/admin/js/dashboard.js"></script>
+    <!-- Les JS spécifiques seront ajoutés au fur et à mesure -->
 </body>
 </html>
