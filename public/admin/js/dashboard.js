@@ -1,10 +1,10 @@
 // ==========================================
-// DASHBOARD.JS - ADMIN
+// DASHBOARD.JS - ADMIN COMPLET
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ admin dashboard.js chargé');
+    console.log('✅ Admin dashboard chargé');
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -33,12 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateClock, 60000);
 
     // ==========================================
-    // SOCKET.IO - CONNEXION
+    // SOCKET.IO
     // ==========================================
 
     let socket = null;
     let isSocketConnected = false;
-    let statusTimeout = null;
 
     function connectSocketIO() {
         if (socket) {
@@ -46,152 +45,59 @@ document.addEventListener('DOMContentLoaded', function() {
             socket = null;
         }
 
-        console.log('🔌 Connexion Socket.IO admin...');
-
         try {
             const adminId = localStorage.getItem('adminId') || '1';
 
             socket = io({
-                auth: {
-                    userId: parseInt(adminId),
-                    isAdmin: true
-                },
+                auth: { userId: parseInt(adminId), isAdmin: true },
                 transports: ['websocket', 'polling'],
                 timeout: 5000,
                 reconnection: true,
                 reconnectionAttempts: 20,
                 reconnectionDelay: 500,
-                reconnectionDelayMax: 3000,
-                randomizationFactor: 0.3,
-                upgrade: true,
-                rememberUpgrade: true
+                reconnectionDelayMax: 3000
             });
 
             socket.on('connect', function() {
-                console.log('✅ Socket.IO admin connecté');
+                console.log('✅ Socket.IO connecté');
                 isSocketConnected = true;
                 updateConnectionStatus('● Connecté', true);
             });
 
-            socket.on('connect_error', function(error) {
-                console.error('❌ Erreur connexion:', error);
-                isSocketConnected = false;
-                updateConnectionStatus('● Déconnecté', false);
-            });
-
-            socket.on('disconnect', function(reason) {
-                console.log(`❌ Socket.IO déconnecté: ${reason}`);
+            socket.on('disconnect', function() {
                 isSocketConnected = false;
                 updateConnectionStatus('● Reconnexion...', false);
-                setTimeout(() => {
-                    if (!isSocketConnected) {
-                        connectSocketIO();
-                    }
-                }, 2000);
+                setTimeout(() => { if (!isSocketConnected) connectSocketIO(); }, 2000);
             });
 
             socket.on('nouvelle-commande', function(data) {
-                console.log('🆕 Nouvelle commande reçue:', data);
-                handleNouvelleCommande(data);
+                console.log('🆕 Nouvelle commande:', data);
+                loadOverview();
+                loadCommandes();
+                updateNavBadge('commandes');
+                showToast(`🆕 Nouvelle commande #${data.commandeId}`, 'success');
             });
 
             socket.on('commande-update', function(data) {
-                console.log('📦 Mise à jour commande reçue:', data);
-                handleCommandeUpdate(data);
+                console.log('📦 Mise à jour commande:', data);
+                loadOverview();
+                loadCommandes();
+                showToast(`📦 Commande #${data.commandeId} mise à jour`, 'info');
             });
 
         } catch (error) {
-            console.error('❌ Erreur connexion Socket.IO:', error);
-            setTimeout(() => connectSocketIO(), 3000);
+            console.error('❌ Socket.IO erreur:', error);
+            setTimeout(connectSocketIO, 3000);
         }
     }
 
-    // ==========================================
-    // STATUT CONNEXION
-    // ==========================================
-
-    function updateConnectionStatus(text, isConnected) {
+    function updateConnectionStatus(text, connected) {
         const el = document.getElementById('connectionStatus');
-        if (!el) return;
-        el.textContent = text;
-        el.className = 'header-status' + (isConnected ? '' : ' disconnected');
-        clearTimeout(statusTimeout);
+        if (el) {
+            el.textContent = text;
+            el.className = 'header-status' + (connected ? '' : ' disconnected');
+        }
     }
-
-    // ==========================================
-    // GESTION DES ÉVÉNEMENTS SOCKET
-    // ==========================================
-
-    function handleNouvelleCommande(data) {
-        // Rafraîchir les stats et les commandes récentes
-        loadOverview();
-
-        // Toast
-        showToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
-
-        // Mettre à jour le badge de la sidebar
-        updateNavBadge('commandes');
-    }
-
-    function handleCommandeUpdate(data) {
-        // Rafraîchir les stats et les commandes récentes
-        loadOverview();
-
-        // Toast
-        const statusLabels = {
-            'en_attente': '⏳ En attente',
-            'accepter': '💳 Paiement requis',
-            'refuse': '❌ Refusée',
-            'annulee': '❌ Annulée',
-            'paiement_effectue': '💳 Payée',
-            'livraison_en_cours': '🚚 En cours',
-            'disponible': '📍 Disponible',
-            'recuperee': '✅ Récupérée'
-        };
-        showToast(`📦 Commande #${data.commandeId}: ${statusLabels[data.status] || data.status}`, 'info');
-    }
-
-    // ==========================================
-    // TOAST
-    // ==========================================
-
-    function showToast(message, type = 'info') {
-        const colors = {
-            'success': '#43a047',
-            'error': '#e53935',
-            'info': '#1a2a6c',
-            'warning': '#e67e22'
-        };
-
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: ${colors[type] || '#1a2a6c'};
-            color: white;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            z-index: 999;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease;
-            transition: opacity 0.3s;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
-    }
-
-    // ==========================================
-    // BADGE DE NAVIGATION
-    // ==========================================
 
     function updateNavBadge(page) {
         if (page === 'commandes') {
@@ -203,15 +109,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function resetNavBadge(page) {
-        if (page === 'commandes') {
-            const badge = document.getElementById('navBadgeCommandes');
-            if (badge) badge.textContent = '0';
-        }
+    // ==========================================
+    // TOAST
+    // ==========================================
+
+    function showToast(message, type = 'info') {
+        const colors = { success: '#43a047', error: '#e53935', info: '#1a2a6c', warning: '#e67e22' };
+        const toast = document.createElement('div');
+        toast.className = 'toast ' + type;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed; bottom: 30px; right: 30px;
+            background: ${colors[type] || '#1a2a6c'};
+            color: white; padding: 14px 24px; border-radius: 12px;
+            font-weight: 600; font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 999; max-width: 400px;
+            animation: slideInRight 0.3s ease;
+            transition: opacity 0.3s;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
     }
 
     // ==========================================
-    // NAVIGATION ENTRE ONGLETS
+    // NAVIGATION
     // ==========================================
 
     const navLinks = document.querySelectorAll('.sidebar-nav a');
@@ -231,52 +153,39 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function showPage(pageId) {
-        navLinks.forEach(link => {
-            link.classList.toggle('active', link.dataset.page === pageId);
-        });
-
+        navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
         pages.forEach(p => p.classList.remove('active'));
         const target = document.getElementById('page-' + pageId);
         if (target) target.classList.add('active');
-
         pageTitle.textContent = pageTitles[pageId] || 'Dashboard';
 
-        // Reset badge si on va sur la page commandes
         if (pageId === 'commandes') {
-            resetNavBadge('commandes');
+            const badge = document.getElementById('navBadgeCommandes');
+            if (badge) badge.textContent = '0';
         }
 
-        // Charger les données de la page
-        const loadFunction = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
-        if (typeof loadFunction === 'function') {
-            loadFunction();
-        }
-
-        console.log(`📄 Page affichée: ${pageId}`);
+        const loadFn = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
+        if (typeof loadFn === 'function') loadFn();
     }
 
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const pageId = this.dataset.page;
-            showPage(pageId);
+            showPage(this.dataset.page);
         });
     });
 
     // ==========================================
-    // BOUTON RAFRAÎCHIR
+    // RAFRAÎCHIR
     // ==========================================
 
     document.getElementById('refreshPageBtn').addEventListener('click', function() {
-        const activePage = document.querySelector('.page-section.active');
-        if (activePage) {
-            const pageId = activePage.id.replace('page-', '');
-            const loadFunction = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
-            if (typeof loadFunction === 'function') {
-                loadFunction();
-            } else {
-                location.reload();
-            }
+        const active = document.querySelector('.page-section.active');
+        if (active) {
+            const pageId = active.id.replace('page-', '');
+            const fn = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
+            if (typeof fn === 'function') fn();
+            else location.reload();
         }
     });
 
@@ -285,60 +194,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     document.getElementById('logoutBtn').addEventListener('click', function() {
-        if (socket) {
-            socket.disconnect();
-        }
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminName');
-        localStorage.removeItem('adminId');
+        if (socket) socket.disconnect();
+        localStorage.clear();
         window.location.href = '/admin/login';
     });
 
     // ==========================================
-    // VUE D'ENSEMBLE - LOAD
+    // VUE D'ENSEMBLE
     // ==========================================
 
     let overviewInterval = null;
 
-    async function loadOverview() {
-        console.log('📊 Chargement de la vue d\'ensemble...');
-
+    window.loadOverview = async function() {
         try {
-            const startTime = Date.now();
-            const statsRes = await fetch('/api/admin/stats');
-            const statsData = await statsRes.json();
+            const res = await fetch('/api/admin/stats');
+            const data = await res.json();
 
-            document.getElementById('statProducts').textContent = statsData.products || 0;
-            document.getElementById('statSales').textContent = (statsData.sales || 0).toLocaleString() + ' FCFA';
-            document.getElementById('statCommandes').textContent = statsData.commandes || 0;
-            document.getElementById('statClients').textContent = statsData.clients || 0;
+            document.getElementById('statProducts').textContent = data.products || 0;
+            document.getElementById('statSales').textContent = (data.sales || 0).toLocaleString() + ' FCFA';
+            document.getElementById('statCommandes').textContent = data.commandes || 0;
+            document.getElementById('statClients').textContent = data.clients || 0;
 
-            // Tendances (simulées)
-            const keys = ['products', 'sales', 'commandes', 'clients'];
-            keys.forEach(key => {
+            ['products', 'sales', 'commandes', 'clients'].forEach(key => {
                 const trend = document.getElementById('trend' + key.charAt(0).toUpperCase() + key.slice(1));
                 if (trend) {
-                    const isUp = Math.random() > 0.3;
-                    trend.textContent = isUp ? `+${Math.floor(Math.random() * 20 + 1)}%` : `-${Math.floor(Math.random() * 10 + 1)}%`;
-                    trend.className = `stat-trend ${isUp ? 'up' : 'down'}`;
+                    const up = Math.random() > 0.3;
+                    trend.textContent = up ? `+${Math.floor(Math.random() * 20 + 1)}%` : `-${Math.floor(Math.random() * 10 + 1)}%`;
+                    trend.className = `stat-trend ${up ? 'up' : 'down'}`;
                 }
             });
 
             await loadRecentOrders();
-
-            const duration = Date.now() - startTime;
-            console.log(`✅ Vue d'ensemble mise à jour en ${duration}ms`);
-
-        } catch (error) {
-            console.error('❌ Erreur vue d\'ensemble:', error);
-        }
-    }
+        } catch (e) { console.error('Erreur overview:', e); }
+    };
 
     async function loadRecentOrders() {
         try {
             const res = await fetch('/api/admin/commandes');
             const data = await res.json();
-
             const tbody = document.getElementById('recentOrdersList');
             const count = document.getElementById('recentOrdersCount');
 
@@ -346,15 +239,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const recent = data.slice(0, 5);
                 if (count) count.textContent = recent.length;
 
-                const statusLabels = {
-                    'en_attente': '⏳ En attente',
-                    'accepter': '💳 Paiement requis',
-                    'refuse': '❌ Refusée',
-                    'annulee': '❌ Annulée',
-                    'paiement_effectue': '💳 Payée',
-                    'livraison_en_cours': '🚚 En cours',
-                    'disponible': '📍 Disponible',
-                    'recuperee': '✅ Récupérée'
+                const labels = {
+                    'en_attente': '⏳ En attente', 'accepter': '💳 Paiement requis',
+                    'refuse': '❌ Refusée', 'annulee': '❌ Annulée',
+                    'paiement_effectue': '💳 Payée', 'livraison_en_cours': '🚚 En cours',
+                    'disponible': '📍 Disponible', 'recuperee': '✅ Récupérée'
                 };
 
                 tbody.innerHTML = recent.map(c => `
@@ -362,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>#${c.id}</td>
                         <td>${c.nom}</td>
                         <td>${(c.total || 0).toLocaleString()} FCFA</td>
-                        <td><span class="status-badge ${c.status}">${statusLabels[c.status] || c.status}</span></td>
+                        <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
                         <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                     </tr>
                 `).join('');
@@ -370,75 +259,691 @@ document.addEventListener('DOMContentLoaded', function() {
                 tbody.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucune commande récente</td></tr>`;
                 if (count) count.textContent = '0';
             }
-        } catch (error) {
-            console.error('❌ Erreur commandes récentes:', error);
-            const tbody = document.getElementById('recentOrdersList');
-            if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="5" class="empty-msg">Erreur de chargement</td></tr>`;
-            }
-        }
+        } catch (e) { console.error('Erreur recent orders:', e); }
     }
 
     function startOverviewAutoRefresh() {
         if (overviewInterval) clearInterval(overviewInterval);
         overviewInterval = setInterval(() => {
-            const overviewSection = document.getElementById('page-overview');
-            if (overviewSection && overviewSection.classList.contains('active')) {
-                loadOverview();
-            }
+            if (document.getElementById('page-overview').classList.contains('active')) window.loadOverview();
         }, 30000);
     }
+    startOverviewAutoRefresh();
 
-    function stopOverviewAutoRefresh() {
-        if (overviewInterval) {
-            clearInterval(overviewInterval);
-            overviewInterval = null;
+    // ==========================================
+    // COMMANDES
+    // ==========================================
+
+    let allCommandes = [];
+    let currentFilter = 'all';
+    let searchTerm = '';
+    let currentCommandeId = null;
+
+    window.loadCommandes = async function() {
+        try {
+            const res = await fetch('/api/admin/commandes');
+            const data = await res.json();
+            if (res.ok) {
+                allCommandes = data;
+                document.getElementById('commandesCount').textContent = data.length + ' commandes';
+                renderCommandesTable();
+                updateFilterCounts();
+                updateCommandesBadge();
+            }
+        } catch (e) { console.error('Erreur commandes:', e); }
+    };
+
+    function updateCommandesBadge() {
+        const badge = document.getElementById('navBadgeCommandes');
+        if (badge) {
+            const count = allCommandes ? allCommandes.length : 0;
+            badge.textContent = count > 0 ? count : '0';
         }
     }
 
-    window.loadOverview = loadOverview;
-    window.startOverviewAutoRefresh = startOverviewAutoRefresh;
-    window.stopOverviewAutoRefresh = stopOverviewAutoRefresh;
+    function renderCommandesTable() {
+        const tbody = document.getElementById('commandesList');
+        const countEl = document.getElementById('filterCount');
+
+        let filtered = allCommandes;
+        if (currentFilter !== 'all') filtered = filtered.filter(c => c.status === currentFilter);
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(c =>
+                c.id.toString().includes(term) ||
+                (c.reference && c.reference.toLowerCase().includes(term)) ||
+                c.nom.toLowerCase().includes(term)
+            );
+        }
+
+        if (countEl) countEl.textContent = filtered.length + ' commandes';
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">Aucune commande trouvée.</td></tr>`;
+            return;
+        }
+
+        const labels = {
+            'en_attente': '⏳ En attente', 'accepter': '💳 Paiement requis',
+            'refuse': '❌ Refusée', 'annulee': '❌ Annulée',
+            'paiement_effectue': '💳 Payée', 'livraison_en_cours': '🚚 En cours',
+            'disponible': '📍 Disponible', 'recuperee': '✅ Récupérée'
+        };
+
+        tbody.innerHTML = filtered.map(c => {
+            const status = c.status || 'en_attente';
+            const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
+
+            return `
+                <tr data-id="${c.id}">
+                    <td>#${c.id}</td>
+                    <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
+                    <td>${c.nom}</td>
+                    <td>${(c.total || 0).toLocaleString()} FCFA</td>
+                    <td><span class="status-badge ${status}">${labels[status] || status}</span></td>
+                    <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td>
+                        <button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Maps"><i class="fas fa-map-marker-alt"></i></button>
+                        ${!isFinal ? `<button class="btn-action sync" onclick="syncCommande(${c.id})" title="Sync"><i class="fas fa-sync-alt"></i></button>` : ''}
+                        ${!isFinal ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Statut"><i class="fas fa-edit"></i></button>` : `<button class="btn-action status" style="opacity:0.4;cursor:not-allowed;" disabled><i class="fas fa-lock"></i></button>`}
+                        <button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Détails"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function updateFilterCounts() {
+        document.querySelectorAll('#filterButtons .filter-btn').forEach(btn => {
+            const filter = btn.dataset.filter;
+            const count = filter === 'all' ? allCommandes.length : allCommandes.filter(c => c.status === filter).length;
+            btn.textContent = btn.textContent.split('(')[0].trim() + ` (${count})`;
+        });
+    }
+
+    document.querySelectorAll('#filterButtons .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#filterButtons .filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            renderCommandesTable();
+        });
+    });
+
+    document.getElementById('searchCommande').addEventListener('input', function() {
+        searchTerm = this.value.trim();
+        renderCommandesTable();
+    });
+
+    document.getElementById('refreshCommandesBtn').addEventListener('click', window.loadCommandes);
+
+    window.openMaps = function(lat, lon, id) {
+        if (lat && lon) window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank');
+        else alert(`📍 Aucune position GPS pour la commande #${id}`);
+    };
+
+    window.syncCommande = async function(commandeId) {
+        try {
+            const res = await fetch(`https://nature-plus-pay.onrender.com/api/payment/check/${commandeId}`);
+            if (!res.ok) { showToast('⚠️ Service indisponible', 'warning'); return; }
+            const data = await res.json();
+            if (data.success && data.status === 'success') {
+                const updateRes = await fetch('https://nature-plus-pay.onrender.com/api/payment/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
+                });
+                if (updateRes.ok) { showToast('✅ Paiement synchronisé !', 'success'); window.loadCommandes(); }
+                else showToast('⚠️ Erreur mise à jour', 'warning');
+            } else if (data.status === 'pending') showToast('⏳ En attente...', 'info');
+            else if (data.status === 'not_found') showToast('ℹ️ Aucun paiement trouvé', 'info');
+            else showToast('ℹ️ Statut: ' + data.status, 'info');
+        } catch (e) { showToast('❌ Erreur synchronisation', 'error'); }
+    };
+
+    window.openStatusOverlay = function(commandeId) {
+        const commande = allCommandes.find(c => c.id === commandeId);
+        if (!commande) { alert('❌ Commande non trouvée'); return; }
+
+        const current = commande.status || 'en_attente';
+        const labels = {
+            'en_attente': '⏳ En attente', 'accepter': '💳 Paiement requis',
+            'refuse': '❌ Refusée', 'paiement_effectue': '💳 Payée',
+            'livraison_en_cours': '🚚 En cours', 'disponible': '📍 Disponible',
+            'recuperee': '✅ Récupérée'
+        };
+
+        let available = [];
+        if (current === 'en_attente') available = ['accepter', 'refuse'];
+        else if (current === 'accepter') available = ['paiement_effectue', 'refuse'];
+        else if (current === 'paiement_effectue') available = ['livraison_en_cours'];
+        else if (current === 'livraison_en_cours') available = ['disponible'];
+        else if (current === 'disponible') available = ['recuperee'];
+        else { alert('⚠️ Statut final'); return; }
+
+        currentCommandeId = commandeId;
+        document.getElementById('statusCommandeId').textContent = commandeId;
+        document.getElementById('statusClientInfo').textContent = 'Client: ' + commande.nom;
+
+        const select = document.getElementById('statusSelect');
+        select.innerHTML = '';
+        available.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = labels[s] || s;
+            select.appendChild(opt);
+        });
+
+        document.getElementById('causeRefusGroup').style.display = 'none';
+        document.getElementById('statusOverlay').classList.add('active');
+    };
+
+    document.getElementById('closeStatusOverlay').addEventListener('click', function() {
+        document.getElementById('statusOverlay').classList.remove('active');
+    });
+
+    document.getElementById('statusSelect').addEventListener('change', function() {
+        document.getElementById('causeRefusGroup').style.display = this.value === 'refuse' ? 'block' : 'none';
+    });
+
+    document.getElementById('saveStatusBtn').addEventListener('click', async function() {
+        const status = document.getElementById('statusSelect').value;
+        const cause = document.getElementById('causeRefus').value.trim();
+
+        if (status === 'refuse' && !cause) { alert('⚠️ Cause requise.'); return; }
+
+        try {
+            const res = await fetch('/api/admin/commande/status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ commandeId: currentCommandeId, status, causeRefus: cause || null })
+            });
+            if (res.ok) {
+                showToast('✅ Statut mis à jour !', 'success');
+                document.getElementById('statusOverlay').classList.remove('active');
+                window.loadCommandes();
+                window.loadOverview();
+            } else {
+                const data = await res.json();
+                showToast('❌ ' + data.error, 'error');
+            }
+        } catch (e) { showToast('❌ Erreur', 'error'); }
+    });
+
+    document.getElementById('cancelStatusBtn').addEventListener('click', function() {
+        document.getElementById('statusOverlay').classList.remove('active');
+    });
+
+    window.openDetailOverlay = async function(commandeId) {
+        const commande = allCommandes.find(c => c.id === commandeId);
+        if (!commande) { alert('❌ Commande non trouvée'); return; }
+
+        let panier = [];
+        try { panier = JSON.parse(commande.panier || '[]'); } catch (e) { panier = []; }
+
+        const labels = {
+            'en_attente': '⏳ En attente', 'accepter': '💳 Paiement requis',
+            'refuse': '❌ Refusée', 'annulee': '❌ Annulée',
+            'paiement_effectue': '💳 Payée', 'livraison_en_cours': '🚚 En cours',
+            'disponible': '📍 Disponible', 'recuperee': '✅ Récupérée'
+        };
+
+        const productsHtml = panier.map(p => `
+            <div class="product-item">
+                <span class="name">${p.name || 'Produit'}</span>
+                <span class="qty">× ${p.quantity || 1}</span>
+                <span class="price">${((p.price || 0) * (p.quantity || 1)).toLocaleString()} FCFA</span>
+            </div>
+        `).join('') || '<p style="color:#888;font-size:13px;">Aucun produit</p>';
+
+        const gpsHtml = (commande.latitude && commande.longitude) ?
+            `<a href="https://www.google.com/maps?q=${commande.latitude},${commande.longitude}" target="_blank" class="detail-gps-link"><i class="fas fa-map-marker-alt"></i> Voir sur Google Maps</a>` :
+            '<span style="color:#888;">Non renseigné</span>';
+
+        document.getElementById('detailContent').innerHTML = `
+            <div class="detail-section">
+                <div class="section-title">📋 Informations générales</div>
+                <div class="detail-row"><span class="label">ID</span><span class="value">#${commande.id}</span></div>
+                <div class="detail-row"><span class="label">Référence</span><span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span></div>
+                <div class="detail-row"><span class="label">Date</span><span class="value">${new Date(commande.created_at).toLocaleString()}</span></div>
+                <div class="detail-row"><span class="label">Statut</span><span class="value"><span class="status-badge ${commande.status}">${labels[commande.status] || commande.status}</span></span></div>
+                ${commande.cause_refus ? `<div class="detail-row"><span class="label">Cause refus</span><span class="value" style="color:#e74c3c;">${commande.cause_refus}</span></div>` : ''}
+            </div>
+            <div class="detail-section">
+                <div class="section-title">👤 Client</div>
+                <div class="detail-row"><span class="label">Nom</span><span class="value">${commande.nom}</span></div>
+                <div class="detail-row"><span class="label">Téléphone</span><span class="value">${commande.telephone || '-'}</span></div>
+                <div class="detail-row"><span class="label">Code secret</span><span class="value" style="letter-spacing:2px;color:#888;">${commande.code_login || '••••'}</span></div>
+            </div>
+            <div class="detail-section">
+                <div class="section-title">📍 Livraison</div>
+                <div class="detail-row"><span class="label">Option</span><span class="value">${commande.option === 'chezmoi' ? '📍 Chez moi' : '✏️ Adresse'}</span></div>
+                <div class="detail-row"><span class="label">Commune</span><span class="value">${commande.commune || '-'}</span></div>
+                <div class="detail-row"><span class="label">Quartier</span><span class="value">${commande.quartier || '-'}</span></div>
+                <div class="detail-row"><span class="label">Précision</span><span class="value">${commande.precision || '-'}</span></div>
+                <div class="detail-row"><span class="label">GPS</span><span class="value">${gpsHtml}</span></div>
+            </div>
+            <div class="detail-section">
+                <div class="section-title">📦 Produits</div>
+                <div class="detail-products">${productsHtml}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-total"><span>Total</span><span class="total-value">${(commande.total || 0).toLocaleString()} FCFA</span></div>
+                ${commande.frais_livraison ? `<div style="display:flex;justify-content:space-between;font-size:13px;color:#888;padding:4px 0;"><span>Frais de livraison</span><span>${commande.frais_livraison.toLocaleString()} FCFA</span></div>` : ''}
+            </div>
+        `;
+
+        document.getElementById('detailOverlay').classList.add('active');
+    };
+
+    document.getElementById('closeDetailOverlay').addEventListener('click', function() {
+        document.getElementById('detailOverlay').classList.remove('active');
+    });
 
     // ==========================================
-    // AUTRES ONGLETS (placeholders)
+    // PAIEMENTS
     // ==========================================
 
-    window.loadPayments = function() {
-        console.log('💳 Onglet Paiements - À implémenter');
+    window.loadPayments = async function() {
+        try {
+            const res = await fetch('/api/admin/payments');
+            const data = await res.json();
+            const tbody = document.getElementById('paymentsList');
+            document.getElementById('paymentsCount').textContent = data.length + ' transactions';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">Aucun paiement</td></tr>`;
+                return;
+            }
+
+            const statusLabels = { pending: '⏳ En attente', success: '✅ Réussi', failed: '❌ Échoué', canceled: '⏰ Annulé' };
+
+            tbody.innerHTML = data.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td style="font-size:12px;color:#888;">${p.reference || '-'}</td>
+                    <td>${(p.amount || 0).toLocaleString()} FCFA</td>
+                    <td><span class="status-badge ${p.status}">${statusLabels[p.status] || p.status}</span></td>
+                    <td>#${p.commande_id || '-'}</td>
+                    <td>${new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
+                </tr>
+            `).join('');
+        } catch (e) { console.error('Erreur paiements:', e); }
     };
 
-    window.loadProducts = function() {
-        console.log('📦 Onglet Produits - À implémenter');
+    document.getElementById('refreshPaymentsBtn').addEventListener('click', window.loadPayments);
+
+    // ==========================================
+    // PRODUITS
+    // ==========================================
+
+    window.loadProducts = async function() {
+        try {
+            const res = await fetch('/api/admin/products');
+            const data = await res.json();
+            const tbody = document.getElementById('productsList');
+            document.getElementById('productsCount').textContent = data.length + ' produits';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">Aucun produit</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(p => `
+                <tr data-id="${p.id}">
+                    <td>#${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${(p.price || 0).toLocaleString()} FCFA</td>
+                    <td>${p.quantity || 0}</td>
+                    <td>${p.image1 ? `<img src="${p.image1}" alt="${p.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">` : '-'}</td>
+                    <td>
+                        <button class="btn-action edit" onclick="editProduct(${p.id})" title="Modifier"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action delete" onclick="deleteProduct(${p.id})" title="Supprimer"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) { console.error('Erreur produits:', e); }
     };
 
-    window.loadAddProduct = function() {
-        console.log('➕ Onglet Ajouter produit - À implémenter');
+    window.deleteProduct = function(id) {
+        document.getElementById('confirmTitle').textContent = '🗑️ Supprimer le produit';
+        document.getElementById('confirmMessage').textContent = 'Êtes-vous sûr de vouloir supprimer ce produit ?';
+        document.getElementById('confirmOverlay').classList.add('active');
+
+        document.getElementById('confirmOk').onclick = async function() {
+            document.getElementById('confirmOverlay').classList.remove('active');
+            try {
+                const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('✅ Produit supprimé', 'success');
+                    window.loadProducts();
+                } else {
+                    showToast('❌ Erreur suppression', 'error');
+                }
+            } catch (e) { showToast('❌ Erreur', 'error'); }
+        };
     };
 
-    window.loadClients = function() {
-        console.log('👤 Onglet Clients - À implémenter');
+    document.getElementById('confirmCancel').addEventListener('click', function() {
+        document.getElementById('confirmOverlay').classList.remove('active');
+    });
+
+    document.getElementById('refreshProductsBtn').addEventListener('click', window.loadProducts);
+
+    // ==========================================
+    // AJOUTER PRODUIT
+    // ==========================================
+
+    document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitProductBtn');
+        const msg = document.getElementById('productFormMessage');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+        msg.className = 'form-message';
+        msg.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('name', document.getElementById('productName').value.trim());
+        formData.append('price', document.getElementById('productPrice').value);
+        formData.append('quantity', document.getElementById('productQuantity').value || 0);
+        formData.append('description', document.getElementById('productDescription').value.trim());
+
+        const image1 = document.getElementById('productImage1').files[0];
+        const image2 = document.getElementById('productImage2').files[0];
+        if (!image1) { showToast('⚠️ Image 1 requise', 'warning'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit'; return; }
+        formData.append('image1', image1);
+        if (image2) formData.append('image2', image2);
+
+        try {
+            const res = await fetch('/api/admin/products', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                msg.className = 'form-message success';
+                msg.textContent = '✅ Produit ajouté avec succès !';
+                msg.style.display = 'block';
+                this.reset();
+                window.loadProducts();
+                showToast('✅ Produit ajouté', 'success');
+            } else {
+                msg.className = 'form-message error';
+                msg.textContent = '❌ ' + (data.error || 'Erreur');
+                msg.style.display = 'block';
+            }
+        } catch (e) {
+            msg.className = 'form-message error';
+            msg.textContent = '❌ Erreur de connexion';
+            msg.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit';
+        }
+    });
+
+    // ==========================================
+    // CLIENTS
+    // ==========================================
+
+    window.loadClients = async function() {
+        try {
+            const res = await fetch('/api/admin/clients');
+            const data = await res.json();
+            const tbody = document.getElementById('clientsList');
+            document.getElementById('clientsCount').textContent = data.length + ' clients';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucun client</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(c => `
+                <tr>
+                    <td>#${c.id}</td>
+                    <td>${c.name}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                </tr>
+            `).join('');
+        } catch (e) { console.error('Erreur clients:', e); }
     };
 
-    window.loadLivraison = function() {
-        console.log('📍 Onglet Livraison - À implémenter');
+    document.getElementById('searchClient').addEventListener('input', function() {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('#clientsList tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
+    });
+
+    document.getElementById('refreshClientsBtn').addEventListener('click', window.loadClients);
+
+    // ==========================================
+    // FRAIS DE LIVRAISON
+    // ==========================================
+
+    window.loadLivraison = async function() {
+        try {
+            const res = await fetch('/api/admin/livraison');
+            const data = await res.json();
+            const tbody = document.getElementById('livraisonList');
+            document.getElementById('livraisonCount').textContent = data.length + ' communes';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">Aucune commune</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(c => `
+                <tr data-id="${c.id}">
+                    <td>#${c.id}</td>
+                    <td>${c.commune}</td>
+                    <td>${(c.tarif || 0).toLocaleString()} FCFA</td>
+                    <td>
+                        <button class="btn-action edit" onclick="editLivraison(${c.id}, '${c.commune}', ${c.tarif})" title="Modifier"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action delete" onclick="deleteLivraison(${c.id})" title="Supprimer"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) { console.error('Erreur livraison:', e); }
     };
 
-    window.loadSendMessage = function() {
-        console.log('📨 Onglet Envoyer message - À implémenter');
+    window.editLivraison = function(id, commune, tarif) {
+        document.getElementById('livraisonCommune').value = commune;
+        document.getElementById('livraisonTarif').value = tarif;
+        document.getElementById('addLivraisonBtn').dataset.editId = id;
+        document.getElementById('addLivraisonBtn').innerHTML = '<i class="fas fa-save"></i> Modifier';
     };
 
-    window.loadUpdates = function() {
-        console.log('🔄 Onglet Mises à jour - À implémenter');
+    window.deleteLivraison = function(id) {
+        document.getElementById('confirmTitle').textContent = '🗑️ Supprimer la commune';
+        document.getElementById('confirmMessage').textContent = 'Êtes-vous sûr de vouloir supprimer cette commune ?';
+        document.getElementById('confirmOverlay').classList.add('active');
+
+        document.getElementById('confirmOk').onclick = async function() {
+            document.getElementById('confirmOverlay').classList.remove('active');
+            try {
+                const res = await fetch(`/api/admin/livraison/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('✅ Commune supprimée', 'success');
+                    window.loadLivraison();
+                } else {
+                    showToast('❌ Erreur suppression', 'error');
+                }
+            } catch (e) { showToast('❌ Erreur', 'error'); }
+        };
     };
+
+    document.getElementById('addLivraisonBtn').addEventListener('click', async function() {
+        const commune = document.getElementById('livraisonCommune').value.trim();
+        const tarif = parseInt(document.getElementById('livraisonTarif').value);
+        const msg = document.getElementById('livraisonFormMessage');
+
+        if (!commune || !tarif) {
+            msg.className = 'form-message error';
+            msg.textContent = '⚠️ Remplissez tous les champs';
+            msg.style.display = 'block';
+            return;
+        }
+
+        const editId = this.dataset.editId;
+        const url = editId ? `/api/admin/livraison/${editId}` : '/api/admin/livraison';
+        const method = editId ? 'PUT' : 'POST';
+        const body = editId ? JSON.stringify({ tarif }) : JSON.stringify({ commune, tarif });
+
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body });
+            if (res.ok) {
+                showToast(editId ? '✅ Tarif modifié' : '✅ Commune ajoutée', 'success');
+                document.getElementById('livraisonCommune').value = '';
+                document.getElementById('livraisonTarif').value = '';
+                delete this.dataset.editId;
+                this.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter';
+                msg.className = 'form-message';
+                msg.style.display = 'none';
+                window.loadLivraison();
+            } else {
+                const data = await res.json();
+                msg.className = 'form-message error';
+                msg.textContent = '❌ ' + (data.error || 'Erreur');
+                msg.style.display = 'block';
+            }
+        } catch (e) {
+            msg.className = 'form-message error';
+            msg.textContent = '❌ Erreur de connexion';
+            msg.style.display = 'block';
+        }
+    });
+
+    document.getElementById('refreshLivraisonBtn').addEventListener('click', window.loadLivraison);
+
+    // ==========================================
+    // ENVOYER UN MESSAGE
+    // ==========================================
+
+    window.loadSendMessage = async function() {
+        try {
+            const res = await fetch('/api/admin/clients');
+            const data = await res.json();
+            const select = document.getElementById('messageUserId');
+            select.innerHTML = '<option value="all">📢 Tous les clients</option>';
+            data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.name} (${c.email})`;
+                select.appendChild(opt);
+            });
+        } catch (e) { console.error('Erreur chargement clients:', e); }
+    };
+
+    document.getElementById('sendMessageForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('sendMessageBtn');
+        const msg = document.getElementById('messageFormMessage');
+        const userId = document.getElementById('messageUserId').value;
+        const title = document.getElementById('messageTitle').value.trim();
+        const content = document.getElementById('messageContent').value.trim();
+
+        if (!title || !content) {
+            msg.className = 'form-message error';
+            msg.textContent = '⚠️ Titre et contenu requis';
+            msg.style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+
+        try {
+            const res = await fetch('/api/admin/notification/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, title, content })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                msg.className = 'form-message success';
+                msg.textContent = '✅ Message envoyé avec succès !';
+                msg.style.display = 'block';
+                this.reset();
+                showToast('✅ Message envoyé', 'success');
+            } else {
+                msg.className = 'form-message error';
+                msg.textContent = '❌ ' + (data.error || 'Erreur');
+                msg.style.display = 'block';
+            }
+        } catch (e) {
+            msg.className = 'form-message error';
+            msg.textContent = '❌ Erreur de connexion';
+            msg.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
+        }
+    });
+
+    // ==========================================
+    // MISES À JOUR
+    // ==========================================
+
+    window.loadUpdates = async function() {
+        try {
+            const res = await fetch('/api/admin/updates');
+            const data = await res.json();
+            const tbody = document.getElementById('updatesList');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">Aucune mise à jour</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(u => `
+                <tr>
+                    <td style="font-size:12px;color:#888;">${u.commit_sha ? u.commit_sha.substring(0, 7) : '-'}</td>
+                    <td>${u.commit_message || '-'}</td>
+                    <td>${u.commit_date ? new Date(u.commit_date).toLocaleDateString('fr-FR') : '-'}</td>
+                </tr>
+            `).join('');
+        } catch (e) { console.error('Erreur updates:', e); }
+    };
+
+    document.getElementById('checkUpdatesBtn').addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
+        try {
+            const res = await fetch('/api/admin/check-updates');
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.isNew ? '🔄 ' + data.message : '✅ Aucune mise à jour', data.isNew ? 'success' : 'info');
+                window.loadUpdates();
+            }
+        } catch (e) { showToast('❌ Erreur vérification', 'error'); }
+        finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-sync-alt"></i> Vérifier';
+        }
+    });
 
     // ==========================================
     // INITIALISATION
     // ==========================================
 
     showPage('overview');
-    startOverviewAutoRefresh();
     connectSocketIO();
+
+    // Charger tous les onglets en arrière-plan
+    window.loadOverview();
+    window.loadCommandes();
+    window.loadPayments();
+    window.loadProducts();
+    window.loadClients();
+    window.loadLivraison();
+    window.loadSendMessage();
+    window.loadUpdates();
 
     console.log('✅ Admin dashboard initialisé');
 
