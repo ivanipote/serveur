@@ -33,14 +33,8 @@
         }
 
         @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .icon-success {
@@ -109,9 +103,7 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
         .btn-actions {
@@ -178,6 +170,22 @@
             display: block;
         }
 
+        #loadingSpinner {
+            display: none;
+        }
+
+        #loadingSpinner.show {
+            display: block;
+        }
+
+        #successActions {
+            display: none;
+        }
+
+        #successActions.show {
+            display: block;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 30px 20px;
@@ -220,9 +228,9 @@
             <p style="font-size:13px;color:#888;margin-top:4px;">Vérifiez vos commandes dans votre espace client.</p>
         </div>
 
-        <div id="loadingSpinner" class="spinner"></div>
+        <div id="loadingSpinner" class="spinner show"></div>
 
-        <div id="successActions" style="display:none;">
+        <div id="successActions">
             <p style="color:#155724;font-weight:600;margin-top:4px;">✅ Mise à jour effectuée !</p>
         </div>
 
@@ -242,16 +250,17 @@
             console.log('✅ payment-success.html chargé');
 
             const urlParams = new URLSearchParams(window.location.search);
-            const commandeId = urlParams.get('commande_id');
+            const reference = urlParams.get('reference');
+            const status = urlParams.get('status');
 
             const commandeIdEl = document.getElementById('commandeId');
             const loadingSpinner = document.getElementById('loadingSpinner');
             const errorContainer = document.getElementById('errorContainer');
             const successActions = document.getElementById('successActions');
 
-            if (commandeId) {
-                commandeIdEl.textContent = '#' + commandeId;
-            }
+            // ✅ CLÉS API GENIUS PAY (sandbox)
+            const GENIUS_PUBLIC_KEY = 'sk_sandbox_XpcqcXI54Gj537UMCqPpqPq5NTyxQ6oV';
+            const GENIUS_SECRET_KEY = 'ss_sandbox_B2RCD03octNvZPUD4zjcmGUGKbxqzTRzKHH1qf6e8TnlEQzP';
 
             async function handlePaymentSuccess() {
                 try {
@@ -261,15 +270,58 @@
 
                     if (!authData.success) {
                         console.warn('⚠️ Non authentifié');
-                        loadingSpinner.style.display = 'none';
+                        loadingSpinner.classList.remove('show');
                         errorContainer.classList.add('show');
                         return;
                     }
 
                     console.log('👤 Utilisateur authentifié:', authData.user);
 
-                    // 2. Mettre à jour le statut
+                    // 2. Récupérer le commande_id via l'API Genius Pay
+                    let commandeId = null;
+
+                    if (reference) {
+                        try {
+                            const geniusRes = await fetch(
+                                `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
+                                {
+                                    headers: {
+                                        'X-API-Key': GENIUS_PUBLIC_KEY,
+                                        'X-API-Secret': GENIUS_SECRET_KEY
+                                    }
+                                }
+                            );
+
+                            const geniusData = await geniusRes.json();
+
+                            if (geniusData.success && geniusData.data) {
+                                commandeId = geniusData.data.metadata?.order_id || null;
+                                console.log('✅ Commande ID récupéré:', commandeId);
+                            }
+                        } catch (geniusError) {
+                            console.error('❌ Erreur récupération Genius Pay:', geniusError);
+                        }
+                    }
+
+                    // 3. Si pas de commande_id via Genius, essayer de récupérer depuis la base
+                    if (!commandeId) {
+                        try {
+                            // Chercher le dernier paiement en attente pour cet utilisateur
+                            const payRes = await fetch('/api/payments/last-pending');
+                            const payData = await payRes.json();
+                            if (payData.success && payData.commande_id) {
+                                commandeId = payData.commande_id;
+                                console.log('✅ Commande ID récupéré depuis la base:', commandeId);
+                            }
+                        } catch (dbError) {
+                            console.error('❌ Erreur récupération base:', dbError);
+                        }
+                    }
+
+                    // 4. Si on a un commande_id, mettre à jour le statut
                     if (commandeId) {
+                        commandeIdEl.textContent = '#' + commandeId;
+
                         const updateRes = await fetch('/api/payment/update-status', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -283,8 +335,8 @@
 
                         if (updateRes.ok) {
                             console.log('✅ Statut mis à jour:', updateData);
-                            loadingSpinner.style.display = 'none';
-                            successActions.style.display = 'block';
+                            loadingSpinner.classList.remove('show');
+                            successActions.classList.add('show');
 
                             // Envoyer une notification au client
                             try {
@@ -307,19 +359,19 @@
                             throw new Error(updateData.error || 'Erreur mise à jour');
                         }
                     } else {
-                        loadingSpinner.style.display = 'none';
+                        loadingSpinner.classList.remove('show');
                         errorContainer.classList.add('show');
-                        errorContainer.querySelector('p').textContent = 'Aucun ID de commande fourni.';
+                        errorContainer.querySelector('p').textContent = 'Impossible de retrouver votre commande. Contactez le support.';
                     }
 
                 } catch (error) {
                     console.error('❌ Erreur:', error);
-                    loadingSpinner.style.display = 'none';
+                    loadingSpinner.classList.remove('show');
                     errorContainer.classList.add('show');
                 }
             }
 
-            // Lancer le traitement après 1s pour laisser le temps à l'utilisateur de voir la page
+            // Lancer le traitement après 1s
             setTimeout(() => {
                 handlePaymentSuccess();
             }, 1000);
