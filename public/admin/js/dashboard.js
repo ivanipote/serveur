@@ -16,11 +16,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('adminName').textContent = '👤 ' + adminName;
 
     // ==========================================
-    // SOCKET.IO - Connexion
+    // SOCKET.IO - Connexion Ultra Rapide
     // ==========================================
 
     let socket = null;
     let isSocketConnected = false;
+    let lastEventTime = 0;
+    let syncTimeout = null;
 
     function connectSocketIO() {
         if (socket) {
@@ -28,64 +30,150 @@ document.addEventListener('DOMContentLoaded', function() {
             socket = null;
         }
 
-        console.log('🔌 Connexion Socket.IO admin dashboard...');
+        console.log('🔌 Connexion Socket.IO admin dashboard (ultra rapide)...');
 
         try {
             const adminId = localStorage.getItem('adminId') || '1';
-            
+            const connectStart = Date.now();
+
             socket = io({
                 auth: {
                     userId: parseInt(adminId),
                     isAdmin: true
-                }
+                },
+                // ✅ FORCER WEBSOCKET
+                transports: ['websocket', 'polling'],
+                timeout: 5000,
+                reconnection: true,
+                reconnectionAttempts: 20,
+                reconnectionDelay: 500,
+                reconnectionDelayMax: 3000,
+                randomizationFactor: 0.3,
+                upgrade: true,
+                rememberUpgrade: true
             });
 
             socket.on('connect', function() {
-                console.log('✅ Socket.IO admin dashboard connecté');
+                const duration = Date.now() - connectStart;
+                console.log(`✅ Socket.IO admin dashboard connecté en ${duration}ms`);
                 isSocketConnected = true;
+                showStatus(`✅ Connecté en ${duration}ms`, 'success');
             });
 
-            socket.on('disconnect', function() {
-                console.log('❌ Socket.IO admin dashboard déconnecté');
+            socket.on('connect_error', function(error) {
+                console.error('❌ Erreur connexion:', error);
                 isSocketConnected = false;
+                showStatus('⚠️ Connexion...', 'warning');
+            });
+
+            socket.on('disconnect', function(reason) {
+                console.log(`❌ Socket.IO déconnecté: ${reason}`);
+                isSocketConnected = false;
+                showStatus('⚠️ Reconnexion...', 'warning');
                 setTimeout(() => {
                     if (!isSocketConnected) {
                         connectSocketIO();
                     }
-                }, 3000);
+                }, 1000);
             });
 
+            // ✅ RECEPTION ULTRA RAPIDE
             socket.on('nouvelle-commande', function(data) {
-                console.log('🆕 Nouvelle commande (dashboard):', data);
-                // Rafraîchir les stats et les commandes récentes
+                const now = Date.now();
+                const latency = data._timestamp ? now - data._timestamp : 0;
+                console.log(`🆕 Nouvelle commande (dashboard) en ${latency}ms`);
+                
+                // Rafraîchir immédiatement
                 loadOverview();
-                // Afficher une notification visuelle
-                showDashboardToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`);
+                
+                // Toast avec latence
+                if (latency > 0) {
+                    showDashboardToast(`🆕 Commande #${data.commandeId} en ${latency}ms`, 'success');
+                } else {
+                    showDashboardToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
+                }
             });
 
             socket.on('commande-update', function(data) {
-                console.log('📦 Commande mise à jour (dashboard):', data);
-                // Rafraîchir les stats et les commandes récentes
+                const now = Date.now();
+                const latency = data._timestamp ? now - data._timestamp : 0;
+                console.log(`📦 Mise à jour (dashboard) en ${latency}ms`);
+                
+                // Rafraîchir immédiatement
                 loadOverview();
+                
+                if (latency > 0) {
+                    showDashboardToast(`📦 Mise à jour en ${latency}ms`, 'info');
+                }
             });
 
         } catch (error) {
             console.error('❌ Erreur connexion Socket.IO:', error);
-            setTimeout(() => connectSocketIO(), 5000);
+            setTimeout(() => connectSocketIO(), 2000);
         }
+    }
+
+    // ==========================================
+    // INDICATEUR DE STATUT
+    // ==========================================
+
+    function showStatus(message, type = 'info') {
+        const statusEl = document.getElementById('connectionStatusDash');
+        if (!statusEl) {
+            const header = document.querySelector('.main-header .admin-info');
+            if (header) {
+                const status = document.createElement('span');
+                status.id = 'connectionStatusDash';
+                status.style.cssText = `
+                    font-size: 12px;
+                    padding: 4px 12px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    margin-left: 10px;
+                `;
+                header.appendChild(status);
+            }
+        }
+        
+        const el = document.getElementById('connectionStatusDash');
+        if (!el) return;
+        
+        const colors = {
+            success: '#27ae60',
+            warning: '#f39c12',
+            error: '#e74c3c',
+            info: '#3498db'
+        };
+        
+        el.textContent = message;
+        el.style.background = colors[type] || '#888';
+        el.style.color = 'white';
+        el.style.display = 'inline-block';
+        
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => {
+            if (el) el.style.display = 'none';
+        }, 3000);
     }
 
     // ==========================================
     // TOAST DASHBOARD
     // ==========================================
 
-    function showDashboardToast(message) {
+    function showDashboardToast(message, type = 'info') {
+        const colors = {
+            success: '#27ae60',
+            error: '#e74c3c',
+            warning: '#f39c12',
+            info: '#3498db'
+        };
+
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed;
             bottom: 80px;
             right: 20px;
-            background: #1a2a6c;
+            background: ${colors[type] || '#1a2a6c'};
             color: white;
             padding: 12px 20px;
             border-radius: 12px;
@@ -96,16 +184,15 @@ document.addEventListener('DOMContentLoaded', function() {
             max-width: 350px;
             animation: slideInRight 0.3s ease;
             pointer-events: none;
+            transition: opacity 0.3s;
         `;
         toast.textContent = message;
         document.body.appendChild(toast);
 
         setTimeout(() => {
             toast.style.opacity = '0';
-            toast.style.transform = 'translateX(20px)';
-            toast.style.transition = 'all 0.3s ease';
             setTimeout(() => toast.remove(), 300);
-        }, 4000);
+        }, 3500);
     }
 
     // ==========================================
@@ -187,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // VUE D'ENSEMBLE (OVERVIEW)
+    // VUE D'ENSEMBLE (OVERVIEW) - ULTRA RAPIDE
     // ==========================================
 
     let overviewInterval = null;
@@ -196,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📊 Chargement de la vue d\'ensemble...');
 
         try {
+            const startTime = Date.now();
             const statsRes = await fetch('/api/admin/stats');
             const statsData = await statsRes.json();
 
@@ -215,8 +303,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             await loadRecentOrders();
-
-            console.log('✅ Vue d\'ensemble mise à jour');
+            
+            const duration = Date.now() - startTime;
+            console.log(`✅ Vue d'ensemble mise à jour en ${duration}ms`);
 
         } catch (error) {
             console.error('❌ Erreur vue d\'ensemble:', error);
@@ -225,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadRecentOrders() {
         try {
+            const startTime = Date.now();
             const res = await fetch('/api/admin/commandes');
             const data = await res.json();
 
@@ -255,6 +345,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                     </tr>
                 `).join('');
+                
+                const duration = Date.now() - startTime;
+                console.log(`✅ Commandes récentes chargées en ${duration}ms`);
             } else {
                 tbody.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucune commande récente</td></tr>`;
                 if (count) count.textContent = '0';
@@ -270,12 +363,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startOverviewAutoRefresh() {
         if (overviewInterval) clearInterval(overviewInterval);
+        // ✅ Réduire l'intervalle à 15s pour plus de réactivité
         overviewInterval = setInterval(() => {
             const overviewSection = document.getElementById('page-overview');
             if (overviewSection && overviewSection.classList.contains('active')) {
                 loadOverview();
             }
-        }, 30000);
+        }, 15000);
     }
 
     function stopOverviewAutoRefresh() {
@@ -329,5 +423,5 @@ document.addEventListener('DOMContentLoaded', function() {
     startOverviewAutoRefresh();
     connectSocketIO();
 
-    console.log('✅ Admin dashboard initialisé avec Socket.IO');
+    console.log('✅ Admin dashboard initialisé avec Socket.IO Ultra Rapide');
 });

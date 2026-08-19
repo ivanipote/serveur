@@ -1,5 +1,5 @@
 // ==========================================
-// ONGLET : COMMANDES (avec Socket.IO)
+// ONGLET : COMMANDES (Socket.IO Ultra Rapide)
 // ==========================================
 
 let allCommandes = [];
@@ -8,9 +8,11 @@ let searchTerm = '';
 let currentCommandeId = null;
 let socket = null;
 let isSocketConnected = false;
+let lastEventTime = 0;
+let syncTimeout = null;
 
 // ==========================================
-// SOCKET.IO - Connexion
+// SOCKET.IO - Connexion Ultra Rapide
 // ==========================================
 
 function connectSocketIO() {
@@ -19,47 +21,133 @@ function connectSocketIO() {
         socket = null;
     }
 
-    console.log('🔌 Connexion Socket.IO admin...');
+    console.log('🔌 Connexion Socket.IO admin (ultra rapide)...');
 
     try {
         const adminId = localStorage.getItem('adminId') || '1';
-        
+        const connectStart = Date.now();
+
         socket = io({
             auth: {
                 userId: parseInt(adminId),
                 isAdmin: true
-            }
+            },
+            // ✅ FORCER WEBSOCKET POUR RÉDUIRE LA LATENCE
+            transports: ['websocket', 'polling'],
+            timeout: 5000,
+            reconnection: true,
+            reconnectionAttempts: 20,
+            reconnectionDelay: 500,
+            reconnectionDelayMax: 3000,
+            randomizationFactor: 0.3,
+            // ✅ PRIORISER WEBSOCKET
+            upgrade: true,
+            rememberUpgrade: true
         });
 
         socket.on('connect', function() {
-            console.log('✅ Socket.IO admin connecté');
+            const duration = Date.now() - connectStart;
+            console.log(`✅ Socket.IO admin connecté en ${duration}ms`);
             isSocketConnected = true;
+            showStatus(`✅ Connecté en ${duration}ms`, 'success');
         });
 
-        socket.on('disconnect', function() {
-            console.log('❌ Socket.IO admin déconnecté');
+        socket.on('connect_error', function(error) {
+            console.error('❌ Erreur connexion:', error);
             isSocketConnected = false;
+            showStatus('⚠️ Connexion en cours...', 'warning');
+        });
+
+        socket.on('disconnect', function(reason) {
+            console.log(`❌ Socket.IO déconnecté: ${reason}`);
+            isSocketConnected = false;
+            showStatus('⚠️ Reconnexion...', 'warning');
             setTimeout(() => {
                 if (!isSocketConnected) {
                     connectSocketIO();
                 }
-            }, 3000);
+            }, 1000);
         });
 
+        // ✅ RECEPTION ULTRA RAPIDE
         socket.on('nouvelle-commande', function(data) {
-            console.log('🆕 Nouvelle commande reçue:', data);
+            const now = Date.now();
+            const latency = data._timestamp ? now - data._timestamp : 0;
+            console.log(`🆕 Nouvelle commande en ${latency}ms:`, data);
+            
+            if (latency > 0) {
+                showStatus(`📦 Nouvelle commande en ${latency}ms`, 'success');
+            }
+            
             handleNouvelleCommande(data);
         });
 
         socket.on('commande-update', function(data) {
-            console.log('📦 Mise à jour commande reçue:', data);
+            const now = Date.now();
+            const latency = data._timestamp ? now - data._timestamp : 0;
+            console.log(`📦 Mise à jour commande en ${latency}ms:`, data);
+            
+            if (latency > 0) {
+                showStatus(`📦 Mise à jour en ${latency}ms`, 'info');
+            }
+            
             handleCommandeUpdate(data);
+        });
+
+        // ✅ PING POUR SURVEILLER LA CONNEXION
+        socket.on('ping', function() {
+            console.log('📶 Ping reçu');
         });
 
     } catch (error) {
         console.error('❌ Erreur connexion Socket.IO:', error);
-        setTimeout(() => connectSocketIO(), 5000);
+        setTimeout(() => connectSocketIO(), 2000);
     }
+}
+
+// ==========================================
+// INDICATEUR DE STATUT
+// ==========================================
+
+function showStatus(message, type = 'info') {
+    const statusEl = document.getElementById('connectionStatus');
+    if (!statusEl) {
+        // Créer l'élément s'il n'existe pas
+        const header = document.querySelector('.main-header .admin-info');
+        if (header) {
+            const status = document.createElement('span');
+            status.id = 'connectionStatus';
+            status.style.cssText = `
+                font-size: 12px;
+                padding: 4px 12px;
+                border-radius: 12px;
+                font-weight: 600;
+                margin-left: 10px;
+            `;
+            header.appendChild(status);
+        }
+    }
+    
+    const el = document.getElementById('connectionStatus');
+    if (!el) return;
+    
+    const colors = {
+        success: '#27ae60',
+        warning: '#f39c12',
+        error: '#e74c3c',
+        info: '#3498db'
+    };
+    
+    el.textContent = message;
+    el.style.background = colors[type] || '#888';
+    el.style.color = 'white';
+    el.style.display = 'inline-block';
+    
+    // Disparaître après 3s
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => {
+        if (el) el.style.display = 'none';
+    }, 3000);
 }
 
 // ==========================================
@@ -69,11 +157,24 @@ function connectSocketIO() {
 function handleNouvelleCommande(data) {
     console.log('🆕 Nouvelle commande:', data);
     
-    // Recharger toutes les commandes pour avoir les données complètes
+    // Recharger immédiatement
     loadCommandes();
     
-    // Afficher un toast
+    // Toast instantané
     showToast(`🆕 Nouvelle commande #${data.commandeId} de ${data.nom}`, 'success');
+    
+    // Animation flash sur la ligne concernée
+    setTimeout(() => {
+        const rows = document.querySelectorAll('#commandesList tr');
+        if (rows.length > 0) {
+            const firstRow = rows[0];
+            firstRow.style.background = '#e8f5e9';
+            firstRow.style.transition = 'background 0.5s';
+            setTimeout(() => {
+                firstRow.style.background = '';
+            }, 1000);
+        }
+    }, 100);
 }
 
 function handleCommandeUpdate(data) {
@@ -81,28 +182,51 @@ function handleCommandeUpdate(data) {
 
     const { commandeId, status, userId, message } = data;
 
-    // 1. Mettre à jour la commande dans le tableau local
+    // 1. Mettre à jour dans le tableau local
     const existingIndex = allCommandes.findIndex(c => c.id === commandeId);
 
     if (existingIndex !== -1) {
+        const oldStatus = allCommandes[existingIndex].status;
         allCommandes[existingIndex].status = status;
-        console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
+        console.log(`✅ Commande #${commandeId}: ${oldStatus} → ${status}`);
     } else {
         console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
         loadCommandes();
         return;
     }
 
-    // 2. Re-rendre le tableau
+    // 2. Re-rendre immédiatement
     renderCommandesTable();
     updateFilterCounts();
 
-    // 3. Afficher un toast
-    showToast(`📦 Commande #${commandeId}: ${status}`, status);
+    // 3. Toast
+    const statusLabels = {
+        'en_attente': '⏳ En attente',
+        'accepter': '💳 Paiement requis',
+        'refuse': '❌ Refusée',
+        'annulee': '❌ Annulée',
+        'paiement_effectue': '💳 Payée',
+        'livraison_en_cours': '🚚 En cours',
+        'disponible': '📍 Disponible',
+        'recuperee': '✅ Récupérée'
+    };
+    showToast(`📦 Commande #${commandeId}: ${statusLabels[status] || status}`, status);
+    
+    // 4. Animation flash sur la ligne
+    setTimeout(() => {
+        const row = document.querySelector(`#commandesList tr[data-id="${commandeId}"]`);
+        if (row) {
+            row.style.background = '#fff3cd';
+            row.style.transition = 'background 0.5s';
+            setTimeout(() => {
+                row.style.background = '';
+            }, 1000);
+        }
+    }, 100);
 }
 
 // ==========================================
-// TOAST (notification visuelle)
+// TOAST
 // ==========================================
 
 function showToast(message, status) {
@@ -116,7 +240,8 @@ function showToast(message, status) {
         'disponible': '#2e7d32',
         'recuperee': '#1b5e20',
         'success': '#43a047',
-        'error': '#e53935'
+        'error': '#e53935',
+        'info': '#3498db'
     };
 
     const bgColor = colors[status] || '#1a2a6c';
@@ -137,14 +262,13 @@ function showToast(message, status) {
         max-width: 350px;
         animation: slideInRight 0.3s ease;
         pointer-events: none;
+        transition: opacity 0.3s;
     `;
     toast.textContent = message;
     document.body.appendChild(toast);
 
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(20px)';
-        toast.style.transition = 'all 0.3s ease';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
@@ -160,7 +284,6 @@ function updateFilterCounts() {
         const count = filter === 'all' 
             ? allCommandes.length 
             : allCommandes.filter(c => c.status === filter).length;
-        
         const label = btn.textContent.split('(')[0].trim();
         btn.textContent = `${label} (${count})`;
     });
@@ -174,6 +297,7 @@ async function loadCommandes() {
     console.log('📋 Chargement des commandes...');
 
     try {
+        const startTime = Date.now();
         const res = await fetch('/api/admin/commandes');
         const data = await res.json();
 
@@ -182,7 +306,8 @@ async function loadCommandes() {
             document.getElementById('commandesCount').textContent = data.length + ' commandes';
             renderCommandesTable();
             updateFilterCounts();
-            console.log(`✅ ${data.length} commandes chargées`);
+            const duration = Date.now() - startTime;
+            console.log(`✅ ${data.length} commandes chargées en ${duration}ms`);
         } else {
             document.getElementById('commandesList').innerHTML = `<tr><td colspan="7" class="empty-msg">Erreur de chargement</td></tr>`;
         }
@@ -193,7 +318,7 @@ async function loadCommandes() {
 }
 
 // ==========================================
-// RENDU DU TABLEAU
+// RENDU DU TABLEAU AVEC data-id
 // ==========================================
 
 function renderCommandesTable() {
@@ -241,7 +366,7 @@ function renderCommandesTable() {
         const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
 
         return `
-            <tr>
+            <tr data-id="${c.id}">
                 <td>#${c.id}</td>
                 <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
                 <td>${c.nom}</td>
@@ -312,6 +437,7 @@ function openMaps(lat, lon, id) {
 
 async function syncCommande(commandeId) {
     try {
+        const startTime = Date.now();
         const res = await fetch(`https://nature-plus-pay.onrender.com/api/payment/check/${commandeId}`);
         
         if (!res.ok) {
@@ -320,6 +446,8 @@ async function syncCommande(commandeId) {
         }
 
         const data = await res.json();
+        const duration = Date.now() - startTime;
+        console.log(`🔍 Sync ${commandeId} en ${duration}ms:`, data);
 
         if (data.success && data.status === 'success') {
             const updateRes = await fetch('https://nature-plus-pay.onrender.com/api/payment/update-status', {
@@ -328,21 +456,21 @@ async function syncCommande(commandeId) {
                 body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
             });
             if (updateRes.ok) {
-                alert('✅ Paiement synchronisé !');
+                showToast('✅ Paiement synchronisé !', 'success');
                 loadCommandes();
             } else {
-                alert('⚠️ Erreur lors de la mise à jour');
+                showToast('⚠️ Erreur lors de la mise à jour', 'error');
             }
         } else if (data.status === 'pending') {
-            alert('⏳ Paiement en attente...');
+            showToast('⏳ Paiement en attente...', 'info');
         } else if (data.status === 'not_found') {
-            alert('ℹ️ Aucun paiement trouvé pour cette commande');
+            showToast('ℹ️ Aucun paiement trouvé', 'info');
         } else {
-            alert('ℹ️ Statut: ' + (data.status || 'inconnu'));
+            showToast('ℹ️ Statut: ' + (data.status || 'inconnu'), 'info');
         }
     } catch (error) {
         console.error('Erreur sync:', error);
-        alert('❌ Erreur de synchronisation');
+        showToast('❌ Erreur de synchronisation', 'error');
     }
 }
 
@@ -381,7 +509,7 @@ function openStatusOverlay(commandeId) {
     } else if (currentStatus === 'disponible') {
         availableStatuses = ['recuperee'];
     } else {
-        alert('⚠️ Cette commande est dans un statut final. Aucune modification possible.');
+        alert('⚠️ Cette commande est dans un statut final.');
         return;
     }
 
@@ -421,23 +549,27 @@ document.getElementById('saveStatusBtn').addEventListener('click', async functio
     }
 
     try {
+        const startTime = Date.now();
         const res = await fetch('/api/admin/commande/status', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ commandeId: currentCommandeId, status, causeRefus: cause || null })
         });
 
+        const duration = Date.now() - startTime;
+        console.log(`📤 Statut mis à jour en ${duration}ms`);
+
         if (res.ok) {
-            alert('✅ Statut mis à jour !');
+            showToast('✅ Statut mis à jour !', 'success');
             document.getElementById('statusOverlay').classList.remove('active');
             loadCommandes();
         } else {
             const data = await res.json();
-            alert('❌ ' + (data.error || 'Erreur'));
+            showToast('❌ ' + (data.error || 'Erreur'), 'error');
         }
     } catch (error) {
         console.error('Erreur:', error);
-        alert('❌ Erreur de connexion');
+        showToast('❌ Erreur de connexion', 'error');
     }
 });
 
@@ -534,7 +666,7 @@ async function openDetailOverlay(commandeId) {
 
     } catch (error) {
         console.error('Erreur détail:', error);
-        alert('❌ Erreur de chargement du détail');
+        showToast('❌ Erreur de chargement du détail', 'error');
     }
 }
 
@@ -559,4 +691,4 @@ window.syncCommande = syncCommande;
 window.openStatusOverlay = openStatusOverlay;
 window.openDetailOverlay = openDetailOverlay;
 
-console.log('✅ commandes.js chargé avec Socket.IO');
+console.log('✅ commandes.js chargé avec Socket.IO Ultra Rapide');
