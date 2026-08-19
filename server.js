@@ -1,4 +1,8 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const Redis = require('ioredis');
+const { createAdapter } = require('@socket.io/redis-adapter');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
@@ -9,7 +13,68 @@ const db = require('./database');
 const { upload } = require('./config/cloudinary');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const server = http.createServer(app);
+const PORT = process.env.PORT || 3000;
+
+// ========================================================
+// REDIS - Connexion
+// ========================================================
+
+const redisClient = new Redis(process.env.REDIS_URL, {
+    tls: {},
+    retryStrategy: (times) => Math.min(times * 50, 2000)
+});
+
+redisClient.on('connect', () => console.log('✅ Redis connecté'));
+redisClient.on('error', (err) => console.error('❌ Redis erreur:', err));
+
+const pubClient = redisClient.duplicate();
+const subClient = redisClient.duplicate();
+
+// ========================================================
+// SOCKET.IO
+// ========================================================
+
+const io = new Server(server, {
+    cors: {
+        origin: ['https://nature-plus-client.onrender.com', 'http://localhost:3000'],
+        credentials: true
+    },
+    adapter: createAdapter(pubClient, subClient)
+});
+
+io.use((socket, next) => {
+    const userId = socket.handshake.auth.userId;
+    const isAdmin = socket.handshake.auth.isAdmin || false;
+
+    if (userId) {
+        socket.userId = userId;
+        socket.isAdmin = isAdmin;
+        next();
+    } else {
+        next(new Error('Authentication required'));
+    }
+});
+
+io.on('connection', (socket) => {
+    const userId = socket.userId;
+    const isAdmin = socket.isAdmin;
+
+    socket.join(`user_${userId}`);
+
+    if (isAdmin) {
+        socket.join('admin');
+        console.log(`✅ Admin ${userId} connecté via Socket.IO`);
+    } else {
+        console.log(`✅ Client ${userId} connecté via Socket.IO`);
+    }
+
+    socket.on('disconnect', () => {
+        console.log(`❌ Déconnecté: ${userId}`);
+    });
+});
+
+global.io = io;
 
 // ========================================================
 // MIDDLEWARE
@@ -42,62 +107,6 @@ app.use(session({
         sameSite: 'lax'
     }
 }));
-
-// ========================================================
-// SSE (Server-Sent Events)
-// ========================================================
-
-let sseClients = [];
-
-app.get('/api/sse/events', (req, res) => {
-    // ✅ Vérifier l'authentification
-    if (!req.session.userId) {
-        res.status(401).json({ error: 'Non authentifié' });
-        return;
-    }
-
-    const userId = req.session.userId;
-
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*'
-    });
-
-    // Envoyer un ping initial
-    res.write(`data: ${JSON.stringify({ type: 'ping', userId })}\n\n`);
-
-    const clientId = Date.now();
-    const client = { id: clientId, userId, res };
-    sseClients.push(client);
-    console.log(`✅ SSE client connecté: ${clientId} (user: ${userId})`);
-
-    req.on('close', () => {
-        sseClients = sseClients.filter(c => c.id !== clientId);
-        console.log(`❌ SSE client déconnecté: ${clientId} (user: ${userId})`);
-    });
-});
-
-function sendSSEEvent(eventType, data, targetUserId = null) {
-    const message = JSON.stringify({ type: eventType, data, timestamp: new Date().toISOString() });
-    console.log(`📤 SSE: ${eventType} -> ${sseClients.length} clients`);
-
-    sseClients.forEach(client => {
-        // Si targetUserId est spécifié, envoyer uniquement à cet utilisateur
-        if (targetUserId && client.userId !== targetUserId) {
-            return;
-        }
-        try {
-            client.res.write(`data: ${message}\n\n`);
-        } catch (error) {
-            console.error('❌ Erreur SSE:', error);
-        }
-    });
-}
-
-// Exposer la fonction globalement
-global.sendSSEEvent = sendSSEEvent;
 
 // ========================================================
 // MIDDLEWARE : AUTH
@@ -142,7 +151,6 @@ app.get('/health', (req, res) => {
 // ROUTES ADMIN
 // ========================================================
 
-// GET /api/admin/products
 app.get('/api/admin/products', async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM products ORDER BY created_at DESC');
@@ -153,7 +161,6 @@ app.get('/api/admin/products', async (req, res) => {
     }
 });
 
-// POST /api/admin/register
 app.post('/api/admin/register', async (req, res) => {
     const { merchantName, email, password, contact, logo } = req.body;
 
@@ -191,7 +198,6 @@ app.post('/api/admin/register', async (req, res) => {
     }
 });
 
-// POST /api/admin/login
 app.post('/api/admin/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -227,15 +233,10 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-// POST /api/admin/products (avec Cloudinary)
 app.post('/api/admin/products', upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 }
 ]), async (req, res) => {
-    console.log('📥 Ajout produit reçu');
-    console.log('📦 Body:', req.body);
-    console.log('📎 Fichiers:', req.files);
-
     const { name, price, quantity, description } = req.body;
 
     if (!name || name.trim() === '') {
@@ -269,7 +270,6 @@ app.post('/api/admin/products', upload.fields([
     }
 });
 
-// DELETE /api/admin/products/:id
 app.delete('/api/admin/products/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -284,15 +284,12 @@ app.delete('/api/admin/products/:id', async (req, res) => {
     }
 });
 
-// PUT /api/admin/products/:id
 app.put('/api/admin/products/:id', upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 }
 ]), async (req, res) => {
     const { id } = req.params;
     const { name, price, quantity, description } = req.body;
-
-    console.log(`📥 Modification produit #${id}`);
 
     if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Nom du produit requis.' });
@@ -326,16 +323,13 @@ app.put('/api/admin/products/:id', upload.fields([
             [name.trim(), parsedPrice, parseInt(quantity) || 0, description || '', image1, image2, id]
         );
 
-        console.log(`✅ Produit #${id} mis à jour`);
         res.json({ success: true, message: 'Produit mis à jour avec succès' });
-
     } catch (err) {
         console.error('❌ Erreur modification produit:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// GET /api/admin/stats
 app.get('/api/admin/stats', async (req, res) => {
     const stats = { products: 0, sales: 0, clients: 0, payments: 0, commandes: 0 };
 
@@ -362,7 +356,6 @@ app.get('/api/admin/stats', async (req, res) => {
     }
 });
 
-// GET /api/admin/payments
 app.get('/api/admin/payments', async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM payments ORDER BY created_at DESC');
@@ -373,7 +366,6 @@ app.get('/api/admin/payments', async (req, res) => {
     }
 });
 
-// GET /api/admin/clients
 app.get('/api/admin/clients', async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM users ORDER BY created_at DESC');
@@ -384,7 +376,6 @@ app.get('/api/admin/clients', async (req, res) => {
     }
 });
 
-// GET /api/admin/commandes
 app.get('/api/admin/commandes', async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM commandes ORDER BY created_at DESC');
@@ -395,11 +386,8 @@ app.get('/api/admin/commandes', async (req, res) => {
     }
 });
 
-// PUT /api/admin/commande/status
 app.put('/api/admin/commande/status', async (req, res) => {
     const { commandeId, status, causeRefus } = req.body;
-
-    console.log(`📥 Mise à jour statut commande #${commandeId} → ${status}`);
 
     if (!commandeId || !status) {
         return res.status(400).json({ error: 'commandeId et status requis.' });
@@ -422,25 +410,25 @@ app.put('/api/admin/commande/status', async (req, res) => {
         }
 
         const statusMessages = {
-            'accepter': { 
-                title: '💳 Paiement requis', 
-                content: `Votre commande #${commandeId} a été acceptée. Veuillez procéder au paiement.` 
+            'accepter': {
+                title: '💳 Paiement requis',
+                content: `Votre commande #${commandeId} a été acceptée. Veuillez procéder au paiement.`
             },
-            'refuse': { 
-                title: '❌ Commande refusée', 
-                content: `Votre commande #${commandeId} a été refusée. Motif : ${causeRefus || 'Non précisé'}` 
+            'refuse': {
+                title: '❌ Commande refusée',
+                content: `Votre commande #${commandeId} a été refusée. Motif : ${causeRefus || 'Non précisé'}`
             },
-            'livraison_en_cours': { 
-                title: '🚚 Livraison en cours', 
-                content: `Votre commande #${commandeId} est en cours de livraison.` 
+            'livraison_en_cours': {
+                title: '🚚 Livraison en cours',
+                content: `Votre commande #${commandeId} est en cours de livraison.`
             },
-            'disponible': { 
-                title: '📍 Commande disponible', 
-                content: `Votre commande #${commandeId} est disponible à la récupération.` 
+            'disponible': {
+                title: '📍 Commande disponible',
+                content: `Votre commande #${commandeId} est disponible à la récupération.`
             },
-            'recuperee': { 
-                title: '✅ Commande récupérée', 
-                content: `Merci ! Votre commande #${commandeId} a été récupérée avec succès.` 
+            'recuperee': {
+                title: '✅ Commande récupérée',
+                content: `Merci ! Votre commande #${commandeId} a été récupérée avec succès.`
             }
         };
 
@@ -472,15 +460,13 @@ app.put('/api/admin/commande/status', async (req, res) => {
             content
         );
 
-        // ✅ Envoyer un événement SSE pour mettre à jour le client
-        if (global.sendSSEEvent) {
-            global.sendSSEEvent('commande-update', {
-                commandeId: parseInt(commandeId),
-                status: status,
-                userId: commande.user_id,
-                message: `Statut mis à jour : ${status}`
-            }, commande.user_id);
-        }
+        // ✅ Socket.IO - Mise à jour temps réel
+        global.io.to(`user_${commande.user_id}`).emit('commande-update', {
+            commandeId: parseInt(commandeId),
+            status: status,
+            userId: commande.user_id,
+            message: `Statut mis à jour : ${status}`
+        });
 
         res.json({ success: true, message: 'Statut mis à jour et notification envoyée' });
     } catch (err) {
@@ -489,7 +475,6 @@ app.put('/api/admin/commande/status', async (req, res) => {
     }
 });
 
-// GET /api/admin/livraison
 app.get('/api/admin/livraison', async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM frais_livraison ORDER BY commune ASC');
@@ -500,7 +485,6 @@ app.get('/api/admin/livraison', async (req, res) => {
     }
 });
 
-// POST /api/admin/livraison
 app.post('/api/admin/livraison', async (req, res) => {
     const { commune, tarif } = req.body;
 
@@ -520,7 +504,6 @@ app.post('/api/admin/livraison', async (req, res) => {
     }
 });
 
-// PUT /api/admin/livraison/:id
 app.put('/api/admin/livraison/:id', async (req, res) => {
     const { id } = req.params;
     const { tarif } = req.body;
@@ -541,7 +524,6 @@ app.put('/api/admin/livraison/:id', async (req, res) => {
     }
 });
 
-// DELETE /api/admin/livraison/:id
 app.delete('/api/admin/livraison/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -557,7 +539,6 @@ app.delete('/api/admin/livraison/:id', async (req, res) => {
     }
 });
 
-// POST /api/admin/notification/send
 app.post('/api/admin/notification/send', async (req, res) => {
     const { userId, title, content } = req.body;
 
@@ -579,12 +560,11 @@ app.post('/api/admin/notification/send', async (req, res) => {
     }
 });
 
-// GET /api/admin/check-updates
 app.get('/api/admin/check-updates', async (req, res) => {
     try {
         const repoUrl = 'https://api.github.com/repos/ivanipote/serveur/commits/main';
         const response = await fetch(repoUrl);
-        
+
         if (!response.ok) {
             return res.status(500).json({ error: 'Erreur lors de la récupération du dernier commit' });
         }
@@ -640,7 +620,6 @@ app.get('/api/admin/check-updates', async (req, res) => {
             message: `Nouvelle mise à jour détectée : ${lastCommit.message}`,
             commit: lastCommit
         });
-
     } catch (error) {
         console.error('❌ Erreur check-updates:', error);
         res.status(500).json({ error: error.message });
@@ -718,8 +697,6 @@ app.post('/api/client/login', async (req, res) => {
                 return res.status(500).json({ error: 'Erreur lors de la sauvegarde de la session.' });
             }
 
-            console.log('✅ Session sauvegardée pour userId:', user.id);
-
             res.json({
                 success: true,
                 message: 'Connexion réussie',
@@ -731,7 +708,6 @@ app.post('/api/client/login', async (req, res) => {
                 }
             });
         });
-
     } catch (error) {
         console.error('❌ Erreur connexion client:', error);
         res.status(500).json({ error: 'Erreur lors de la connexion.' });
@@ -961,7 +937,7 @@ app.post('/api/panier/update', isAuthenticated, async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : CRÉER UNE COMMANDE (AVEC SSE)
+// ROUTES COMMANDES
 // ========================================================
 
 app.post('/api/commande/create', isAuthenticated, async (req, res) => {
@@ -1001,16 +977,15 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
                 option, commune, frais_livraison, quartier, precision, latitude, longitude, status
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id`,
             [
-                finalRef, userId, panier, total, nom, telephone, codeLogin, 
-                option, commune || null, fraisLivraison || 0, 
-                quartier || null, precision || null, latitude || null, longitude || null, 
+                finalRef, userId, panier, total, nom, telephone, codeLogin,
+                option, commune || null, fraisLivraison || 0,
+                quartier || null, precision || null, latitude || null, longitude || null,
                 'en_attente'
             ]
         );
 
         const commandeId = result.rows[0].id;
 
-        // ✅ Notification au client
         await createNotification(
             userId,
             commandeId,
@@ -1019,17 +994,15 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
             `Votre commande #${commandeId} (${finalRef}) a été créée avec succès.`
         );
 
-        // ✅ ENVOI SSE - Nouvelle commande (pour admin)
-        if (global.sendSSEEvent) {
-            global.sendSSEEvent('nouvelle-commande', {
-                commandeId: commandeId,
-                userId: userId,
-                nom: nom,
-                total: total,
-                reference: finalRef,
-                message: `🆕 Nouvelle commande #${commandeId} de ${nom}`
-            });
-        }
+        // ✅ Socket.IO - Nouvelle commande (admins)
+        global.io.to('admin').emit('nouvelle-commande', {
+            commandeId: commandeId,
+            userId: userId,
+            nom: nom,
+            total: total,
+            reference: finalRef,
+            message: `🆕 Nouvelle commande #${commandeId} de ${nom}`
+        });
 
         res.json({
             success: true,
@@ -1037,7 +1010,6 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
             reference: finalRef,
             message: 'Commande créée avec succès'
         });
-
     } catch (err) {
         console.error('❌ Erreur DB:', err);
         res.status(500).json({ error: err.message });
@@ -1171,10 +1143,10 @@ app.put('/api/notifications/read-all', isAuthenticated, async (req, res) => {
             'UPDATE messages SET is_read = $1 WHERE user_id = $2',
             [true, userId]
         );
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Toutes les notifications marquées comme lues',
-            count: result.rowCount 
+            count: result.rowCount
         });
     } catch (err) {
         console.error('❌ Erreur:', err);
@@ -1201,7 +1173,6 @@ app.delete('/api/notifications/delete/:id', isAuthenticated, async (req, res) =>
     }
 });
 
-// POST /api/notifications/create
 app.post('/api/notifications/create', isAuthenticated, async (req, res) => {
     const { userId, commandeId, type, title, content } = req.body;
 
@@ -1407,9 +1378,9 @@ app.get('/admin/dashboard', (req, res) => {
 // DÉMARRAGE
 // ========================================================
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`========================================`);
-    console.log(`🚀 SERVEUR CLIENT - Nature+ (Pages)`);
+    console.log(`🚀 SERVEUR CLIENT - Nature+ (Socket.IO + Redis)`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`📍 http://localhost:${PORT}`);
     console.log(`========================================`);
