@@ -53,14 +53,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
     let isGpsResolved = false;
 
-    // Coordonnées de l'entreprise (point de départ)
+    // Coordonnées de l'entreprise
     const ENTREPRISE_COORDS = {
         lat: 5.3720557,
         lon: -3.9561231
     };
 
     // ==========================================
-    // VÉRIFICATION CONNEXION (via session)
+    // VÉRIFICATION CONNEXION
     // ==========================================
 
     async function checkAuth() {
@@ -69,6 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 currentUser = data.user;
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
+                localStorage.setItem('userEmail', data.user.email);
+                localStorage.setItem('userPhone', data.user.phone);
                 console.log('👤 Utilisateur connecté:', currentUser);
                 return true;
             } else {
@@ -112,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TOGGLE CODE (Afficher/Masquer)
+    // TOGGLE CODE
     // ==========================================
 
     document.querySelectorAll('.toggle-code-btn').forEach(btn => {
@@ -135,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CODE BOXES (4 cases)
+    // CODE BOXES
     // ==========================================
 
     function initCodeBoxes(containerId) {
@@ -248,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // PRÉ-REMPLISSAGE DES CHAMPS
+    // PRÉ-REMPLISSAGE
     // ==========================================
 
     function prefillUserData() {
@@ -266,11 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CALCUL DE LA DISTANCE (Haversine)
+    // CALCUL DE LA DISTANCE
     // ==========================================
 
     function calculerDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Rayon de la Terre en km
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -281,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // GÉOLOCALISATION OBLIGATOIRE
+    // GÉOLOCALISATION
     // ==========================================
 
     function showPositionOverlay(message) {
@@ -352,25 +356,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const quartier = addr.neighbourhood || addr.suburb || addr.quarter || '';
                 const rue = addr.road || addr.pedestrian || '';
 
-                // Remplir les champs "Chez moi"
                 gpsAdresse.value = displayName;
                 gpsCommune.value = commune;
                 gpsQuartier.value = quartier;
                 gpsRue.value = rue;
-
-                // Remplir les champs "Adresse"
                 gpsAdresseAdresse.value = displayName;
 
-                // Calculer la distance
                 const distance = calculerDistance(
                     ENTREPRISE_COORDS.lat, ENTREPRISE_COORDS.lon,
                     lat, lon
                 );
                 distanceEstimee.value = distance.toFixed(2) + ' km';
 
-                // ==========================================
-                // ✅ RÈGLE DE FRAIS DE LIVRAISON (Chez moi)
-                // ==========================================
                 let fraisCalcules = 0;
                 if (distance >= 1.5) {
                     fraisCalcules = 140;
@@ -378,14 +375,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     fraisCalcules = 0;
                 }
 
-                // Appliquer les frais
                 fraisActuels = fraisCalcules;
                 console.log(`📍 Distance: ${distance.toFixed(2)} km → Frais: ${fraisActuels} FCFA`);
 
-                // Afficher les frais dans le footer
                 updateFooter();
 
-                // Afficher un message si la livraison est gratuite
                 if (fraisActuels === 0) {
                     gpsStatus.textContent = '✅ Livraison GRATUITE (moins de 1.5 km)';
                     gpsStatus.className = 'gps-status success';
@@ -402,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RÉCUPÉRER LES FRAIS PAR COMMUNE (pour option Adresse)
+    // FRAIS PAR COMMUNE
     // ==========================================
 
     async function getFraisByCommune(communeName) {
@@ -609,18 +603,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CONFIRMER (Affiche le récapitulatif)
+    // CONFIRMER LA COMMANDE
     // ==========================================
 
     confirmerBtn.addEventListener('click', function() {
-        // Vérifier que le GPS est résolu pour l'option "Chez moi"
         if (optionActive === 'chezmoi' && !isGpsResolved) {
             showMessage('⚠️', 'Position requise', 'Veuillez autoriser la géolocalisation pour la livraison à domicile.');
             getLocation();
             return;
         }
 
-        // Vérifier les champs pour l'option "Adresse"
         if (optionActive === 'adresse') {
             const lieu = document.getElementById('lieuLivraison').value.trim();
             if (!lieu) {
@@ -634,7 +626,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Vérifier le code secret
         const codeContainer = optionActive === 'chezmoi' ? 'codeBoxesChezMoi' : 'codeBoxesAdresse';
         const codeLogin = getCodeFromBoxes(codeContainer);
 
@@ -644,7 +635,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Vérifier le nom et téléphone
         const nom = optionActive === 'chezmoi' ? document.getElementById('nomComplet').value.trim() : document.getElementById('nomCompletAdresse').value.trim();
         const telephone = optionActive === 'chezmoi' ? document.getElementById('telephone').value.trim() : document.getElementById('telephoneAdresse').value.trim();
 
@@ -658,21 +648,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Vérifier le code
         verifyCode(codeLogin).then(result => {
             if (!result.success) {
                 setCodeBoxesError(codeContainer);
                 showMessage('❌', 'Code incorrect', 'Le code secret est incorrect.');
                 return;
             }
-
-            // Tout est bon → afficher le récapitulatif
             showRecapOverlay();
         });
     });
 
     // ==========================================
-    // CONFIRMER LA COMMANDE (depuis le récapitulatif)
+    // CONFIRMER LA COMMANDE (Récapitulatif)
     // ==========================================
 
     recapConfirmBtn.addEventListener('click', async function() {
@@ -758,7 +745,6 @@ document.addEventListener('DOMContentLoaded', function() {
             prefillUserData();
             await loadPanier();
 
-            // Démarrer la géolocalisation automatiquement
             setTimeout(() => {
                 getLocation();
             }, 1000);

@@ -47,15 +47,135 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentAmount = 0;
     let currentReference = '';
     let currentUser = null;
+    let socket = null;
+    let isSocketConnected = false;
+
+    // ==========================================
+    // SOCKET.IO - Connexion
+    // ==========================================
+
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        console.log('🔌 Connexion Socket.IO client (mescommandes)...');
+
+        try {
+            const userId = localStorage.getItem('userId') || '1';
+
+            socket = io({
+                auth: {
+                    userId: parseInt(userId),
+                    isAdmin: false
+                }
+            });
+
+            socket.on('connect', function() {
+                console.log('✅ Socket.IO client mescommandes connecté');
+                isSocketConnected = true;
+            });
+
+            socket.on('disconnect', function() {
+                console.log('❌ Socket.IO client mescommandes déconnecté');
+                isSocketConnected = false;
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectSocketIO();
+                    }
+                }, 3000);
+            });
+
+            socket.on('commande-update', function(data) {
+                console.log('📦 Mise à jour commande reçue (client):', data);
+                handleCommandeUpdate(data);
+            });
+
+            socket.on('notification', function(data) {
+                console.log('🔔 Notification reçue (client):', data);
+                showToast(data.message || 'Nouvelle notification', 'info');
+            });
+
+        } catch (error) {
+            console.error('❌ Erreur connexion Socket.IO:', error);
+            setTimeout(() => connectSocketIO(), 5000);
+        }
+    }
+
+    // ==========================================
+    // GESTION DES MISES À JOUR
+    // ==========================================
+
+    function handleCommandeUpdate(data) {
+        console.log('📦 Mise à jour commande (client):', data);
+
+        const { commandeId, status, userId, message } = data;
+
+        // Vérifier si la commande appartient à l'utilisateur connecté
+        const userIdLocal = parseInt(localStorage.getItem('userId') || '0');
+        if (userId && userId !== userIdLocal) {
+            console.log('⏭️ Commande pour un autre utilisateur, ignorée');
+            return;
+        }
+
+        // 1. Mettre à jour dans le tableau local
+        const existingIndex = commandes.findIndex(c => c.id === commandeId);
+
+        if (existingIndex !== -1) {
+            commandes[existingIndex].status = status;
+            console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
+            renderCommandes();
+        } else {
+            console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
+            loadCommandes();
+            return;
+        }
+
+        // 2. Mettre à jour le badge
+        if (badgeTotal) {
+            badgeTotal.textContent = commandes.length;
+        }
+
+        // 3. Toast
+        const statusMessages = {
+            'en_attente': '⏳ En attente',
+            'accepter': '💳 Paiement requis',
+            'refuse': '❌ Refusée',
+            'annulee': '❌ Annulée',
+            'paiement_effectue': '💳 Payée',
+            'livraison_en_cours': '🚚 En cours',
+            'disponible': '📍 Disponible',
+            'recuperee': '✅ Récupérée'
+        };
+        showToast(`📦 Commande #${commandeId}: ${statusMessages[status] || status}`, status);
+    }
 
     // ==========================================
     // TOAST
     // ==========================================
 
     function showToast(message, type = 'info') {
+        const colors = {
+            'success': '#28a745',
+            'error': '#dc3545',
+            'warning': '#e67e22',
+            'info': '#1a2a6c',
+            'en_attente': '#f9a825',
+            'accepter': '#1e88e5',
+            'refuse': '#e53935',
+            'annulee': '#e53935',
+            'paiement_effectue': '#43a047',
+            'livraison_en_cours': '#00acc1',
+            'disponible': '#2e7d32',
+            'recuperee': '#1b5e20'
+        };
+
+        const bgColor = colors[type] || colors.info;
+
         const toast = document.createElement('div');
         toast.style.cssText = `
-            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#1a2a6c'};
+            background: ${bgColor};
             color: white;
             padding: 12px 24px;
             border-radius: 12px;
@@ -88,6 +208,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 currentUser = data.user;
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
+                localStorage.setItem('userEmail', data.user.email);
+                localStorage.setItem('userPhone', data.user.phone);
                 console.log('👤 Utilisateur connecté:', currentUser);
                 return true;
             }
@@ -260,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (via Render) - CORRIGÉ
+    // VÉRIFIER LE PAIEMENT
     // ==========================================
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
@@ -277,12 +401,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         try {
-            // ✅ Appel vers nature-plus-pay
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
-            
+
             if (!res.ok) {
                 if (res.status === 500) {
-                    showToast('⚠️ Le service de paiement est temporairement indisponible', 'error');
+                    showToast('⚠️ Service de paiement temporairement indisponible', 'error');
                 } else {
                     showToast('⚠️ Erreur lors de la vérification', 'error');
                 }
@@ -294,7 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (data.success && data.status === 'success') {
-                // ✅ CORRECTION : Appel vers nature-plus-pay
                 const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -325,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ANNULER LE PAIEMENT (via Render)
+    // ANNULER LE PAIEMENT
     // ==========================================
 
     async function cancelPayment(commandeId) {
@@ -393,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RESTAURER UNE COMMANDE (via Render)
+    // RESTAURER UNE COMMANDE
     // ==========================================
 
     async function restoreCommande(commandeId) {
@@ -413,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // PAIEMENT - SERVEUR PAY (Render)
+    // PAIEMENT
     // ==========================================
 
     async function handlePayment(commandeId, amount, reference, phone) {
@@ -665,6 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
             await loadCommandes();
+            connectSocketIO();
             console.log('✅ Initialisation terminée');
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation:', error);
