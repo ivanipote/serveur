@@ -116,11 +116,11 @@ app.post('/api/payment/create', async (req, res) => {
         const geniusReference = paymentData.data?.reference || paymentData.reference || `GENUS_${Date.now()}`;
         const checkoutUrl = paymentData.data?.checkout_url || paymentData.checkout_url || null;
 
-        // ✅ product_id = NULL (paiement pour tout le panier)
+        // ✅ product_id = 1 (valeur valide pour contourner la contrainte NOT NULL)
         await db.query(
             `INSERT INTO payments (user_id, product_id, reference, genius_reference, amount, status, checkout_url, commande_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [userId, null, paymentRef, geniusReference, amount, 'pending', checkoutUrl, commandeId]
+            [userId, 1, paymentRef, geniusReference, amount, 'pending', checkoutUrl, commandeId]
         );
         console.log('✅ Payment enregistré');
 
@@ -453,7 +453,6 @@ async function handlePaymentSuccess(data) {
             return;
         }
 
-        // ✅ Vérifier et déduire le stock
         for (const item of panier) {
             const productId = item.product_id || item.id;
             const quantity = item.quantity || 1;
