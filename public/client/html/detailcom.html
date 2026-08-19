@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail de la commande | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 76px;
+            padding-bottom: 30px;
+        }
+
+        /* ===== HEADER ===== */
+        .detail-header {
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: #e8e8f0;
+            border: none;
+            color: #1a1a2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .detail-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+        }
+
+        /* ===== CONTENU ===== */
+        .detail-main {
+            flex: 1;
+            padding: 16px 20px 20px 20px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ===== CARTE DÉTAIL ===== */
+        .detail-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 20px 18px 20px;
+            border: 1px solid #e8ecf4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 16px;
+        }
+
+        .detail-card .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .detail-card .section-title i {
+            color: #888;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #f5f5fa;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row .label {
+            color: #888;
+        }
+
+        .detail-row .value {
+            color: #1a1a2e;
+            font-weight: 500;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+
+        .detail-row .value .status-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .detail-row .value .status-badge.en_attente { background: #fff3cd; color: #856404; }
+        .detail-row .value .status-badge.accepter { background: #cce5ff; color: #004085; }
+        .detail-row .value .status-badge.paiement_en_cours { background: #ffe0b2; color: #e67e22; }
+        .detail-row .value .status-badge.paiement_effectue { background: #c3e6cb; color: #0b5e2e; }
+        .detail-row .value .status-badge.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
+        .detail-row .value .status-badge.disponible { background: #d4edda; color: #155724; }
+        .detail-row .value .status-badge.recuperee { background: #a5d6a7; color: #1b5e20; }
+        .detail-row .value .status-badge.refuse { background: #f8d7da; color: #721c24; }
+        .detail-row .value .status-badge.annulee { background: #f8d7da; color: #721c24; }
+
+        .detail-gps-link {
+            color: #1e88e5;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .detail-gps-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== PRODUITS ===== */
+        .detail-products {
+            background: #f8f9fc;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 4px;
+        }
+
+        .detail-products .product-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .detail-products .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-products .product-item .name {
+            color: #1a1a2e;
+            flex: 1;
+        }
+
+        .detail-products .product-item .qty {
+            color: #888;
+            margin: 0 12px;
+        }
+
+        .detail-products .product-item .price {
+            color: #2d7d46;
+            font-weight: 600;
+        }
+
+        /* ===== TOTAL ===== */
+        .detail-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0 4px 0;
+            border-top: 2px solid #2d7d46;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-top: 6px;
+        }
+
+        .detail-total .total-value {
+            color: #2d7d46;
+        }
+
+        .detail-frais {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #888;
+            padding: 4px 0;
+        }
+
+        /* ===== CHARGEMENT ===== */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .loading-state i {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== ERREUR ===== */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .error-state i {
+            font-size: 48px;
+            color: #ddd;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .error-state h3 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .error-state .btn-back-home {
+            display: inline-block;
+            margin-top: 16px;
+            background: #2d7d46;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .error-state .btn-back-home:hover {
+            background: #1a5a33;
+        }
+
+        /* ========================================== */
+        /* RESPONSIVE                                 */
+        /* ========================================== */
+
+        @media (max-width: 600px) {
+            body { padding-top: 68px; }
+            .detail-header { padding: 10px 14px; gap: 10px; }
+            .back-btn { width: 36px; height: 36px; font-size: 16px; }
+            .detail-title { font-size: 16px; }
+            .detail-main { padding: 12px 14px; }
+            .detail-card { padding: 16px 16px 14px 16px; border-radius: 16px; }
+            .detail-row { font-size: 13px; padding: 5px 0; }
+            .detail-row .value { max-width: 55%; }
+            .detail-products .product-item { font-size: 13px; }
+            .detail-total { font-size: 16px; }
+        }
+
+        @media (max-width: 400px) {
+            .detail-header { padding: 8px 10px; gap: 8px; }
+            .back-btn { width: 32px; height: 32px; font-size: 14px; }
+            .detail-title { font-size: 14px; }
+            .detail-card { padding: 12px 12px 10px 12px; border-radius: 14px; }
+            .detail-row { font-size: 12px; }
+            .detail-row .value { max-width: 50%; }
+            .detail-products .product-item { font-size: 12px; }
+            .detail-total { font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="detail-header">
+        <button class="back-btn" onclick="window.location.href='/mescommandes'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="detail-title">📦 Détail de la commande</span>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <main class="detail-main" id="detailMain">
+        <div id="loadingState" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Chargement du détail...</p>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ detailcom.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const mainContent = document.getElementById('detailMain');
+            const loadingState = document.getElementById('loadingState');
+
+            // ==========================================
+            // RÉCUPÉRER L'ID DE LA COMMANDE
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const commandeId = urlParams.get('id');
+
+            if (!commandeId) {
+                loadingState.style.display = 'none';
+                mainContent.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Commande non trouvée</h3>
+                        <p>Aucune commande spécifiée.</p>
+                        <a href="/mescommandes" class="btn-back-home">📋 Voir mes commandes</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // ==========================================
+            // CHARGER LE DÉTAIL
+            // ==========================================
+
+            async function loadDetail() {
+                try {
+                    const res = await fetch('/api/commandes');
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        throw new Error('Erreur chargement');
+                    }
+
+                    const commande = data.find(c => c.id == commandeId);
+
+                    if (!commande) {
+                        loadingState.style.display = 'none';
+                        mainContent.innerHTML = `
+                            <div class="error-state">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <h3>Commande introuvable</h3>
+                                <p>La commande #${commandeId} n'existe pas ou ne vous appartient pas.</p>
+                                <a href="/mescommandes" class="btn-back-home">📋 Voir mes commandes</a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    loadingState.style.display = 'none';
+                    renderDetail(commande);
+
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    loadingState.style.display = 'none';
+                    mainContent.innerHTML = `
+                        <div class="error-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Erreur de chargement</h3>
+                            <p>Impossible de charger les détails de la commande.</p>
+                            <a href="/mescommandes" class="btn-back-home">📋 Voir mes commandes</a>
+                        </div>
+                    `;
+                }
+            }
+
+            // ==========================================
+            // AFFICHER LE DÉTAIL
+            // ==========================================
+
+            function renderDetail(commande) {
+                const statusLabels = {
+                    'en_attente': { label: '⏳ En attente', class: 'en_attente' },
+                    'accepter': { label: '💳 Paiement requis', class: 'accepter' },
+                    'paiement_en_cours': { label: '⏳ En cours...', class: 'paiement_en_cours' },
+                    'paiement_effectue': { label: '💳 Payée', class: 'paiement_effectue' },
+                    'livraison_en_cours': { label: '🚚 En livraison', class: 'livraison_en_cours' },
+                    'disponible': { label: '📍 Disponible', class: 'disponible' },
+                    'recuperee': { label: '✅ Récupérée', class: 'recuperee' },
+                    'refuse': { label: '❌ Refusée', class: 'refuse' },
+                    'annulee': { label: '❌ Annulée', class: 'annulee' }
+                };
+
+                const statusInfo = statusLabels[commande.status] || { label: commande.status, class: 'en_attente' };
+
+                let panier = [];
+                try {
+                    panier = JSON.parse(commande.panier || '[]');
+                } catch (e) {
+                    panier = [];
+                }
+
+                const date = new Date(commande.created_at);
+                const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+                let productsHtml = '';
+                let sousTotal = 0;
+
+                if (panier.length > 0) {
+                    panier.forEach(p => {
+                        const price = p.price || 0;
+                        const qty = p.quantity || 1;
+                        const totalLigne = price * qty;
+                        sousTotal += totalLigne;
+                        productsHtml += `
+                            <div class="product-item">
+                                <span class="name">${p.name || 'Produit'}</span>
+                                <span class="qty">× ${qty}</span>
+                                <span class="price">${totalLigne.toLocaleString()} FCFA</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    productsHtml = '<p style="color:#888;font-size:13px;padding:4px 0;">Aucun produit</p>';
+                }
+
+                const total = commande.total || sousTotal + (commande.frais_livraison || 0);
+
+                const gpsHtml = (commande.latitude && commande.longitude) ?
+                    `<a href="https://www.google.com/maps?q=${commande.latitude},${commande.longitude}" target="_blank" class="detail-gps-link">
+                        <i class="fas fa-map-marker-alt"></i> Voir sur Google Maps
+                    </a>` :
+                    '<span style="color:#888;">Non renseigné</span>';
+
+                const livraisonLabel = commande.option === 'chezmoi' ? '📍 Chez moi' : '✏️ Adresse';
+
+                mainContent.innerHTML = `
+                    <!-- CARTE 1 : INFOS GÉNÉRALES -->
+                    <div class="detail-card">
+                        <div class="section-title"><i class="fas fa-info-circle"></i> Informations générales</div>
+                        <div class="detail-row">
+                            <span class="label">ID</span>
+                            <span class="value">#${commande.id}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Référence</span>
+                            <span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Date</span>
+                            <span class="value">${dateStr}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Statut</span>
+                            <span class="value"><span class="status-badge ${statusInfo.class}">${statusInfo.label}</span></span>
+                        </div>
+                        ${commande.cause_refus ? `
+                            <div class="detail-row">
+                                <span class="label">Cause</span>
+                                <span class="value" style="color:#e74c3c;">${commande.cause_refus}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- CARTE 2 : CLIENT -->
+                    <div class="detail-card">
+                        <div class="section-title"><i class="fas fa-user"></i> Client</div>
+                        <div class="detail-row">
+                            <span class="label">Nom</span>
+                            <span class="value">${commande.nom}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Téléphone</span>
+                            <span class="value">${commande.telephone || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Code secret</span>
+                            <span class="value" style="letter-spacing:2px;color:#888;">${commande.code_login || '••••'}</span>
+                        </div>
+                    </div>
+
+                    <!-- CARTE 3 : LIVRAISON -->
+                    <div class="detail-card">
+                        <div class="section-title"><i class="fas fa-map-pin"></i> Livraison</div>
+                        <div class="detail-row">
+                            <span class="label">Option</span>
+                            <span class="value">${livraisonLabel}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Commune</span>
+                            <span class="value">${commande.commune || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Quartier</span>
+                            <span class="value">${commande.quartier || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Précision</span>
+                            <span class="value">${commande.precision || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">GPS</span>
+                            <span class="value">${gpsHtml}</span>
+                        </div>
+                    </div>
+
+                    <!-- CARTE 4 : PRODUITS -->
+                    <div class="detail-card">
+                        <div class="section-title"><i class="fas fa-box"></i> Produits</div>
+                        <div class="detail-products">
+                            ${productsHtml}
+                        </div>
+                        <div class="detail-frais">
+                            <span>Sous-total</span>
+                            <span>${sousTotal.toLocaleString()} FCFA</span>
+                        </div>
+                        ${commande.frais_livraison ? `
+                            <div class="detail-frais">
+                                <span>Frais de livraison</span>
+                                <span>${commande.frais_livraison.toLocaleString()} FCFA</span>
+                            </div>
+                        ` : ''}
+                        <div class="detail-total">
+                            <span>TOTAL</span>
+                            <span class="total-value">${total.toLocaleString()} FCFA</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadDetail();
+
+        });
+    </script>
+
+</body>
+</html>
