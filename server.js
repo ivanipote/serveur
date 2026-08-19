@@ -56,7 +56,7 @@ function isAuthenticated(req, res, next) {
 }
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION
+// FONCTION : CRÉER UNE NOTIFICATION (MISE À JOUR)
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
@@ -67,13 +67,15 @@ async function createNotification(userId, commandeId, type, title, content) {
             [userId, commandeId, type, title, content, false]
         );
         console.log(`✅ Notification créée pour user ${userId}: ${title}`);
+        return true;
     } catch (err) {
         console.error('❌ Erreur création notification:', err);
+        return false;
     }
 }
 
 // ========================================================
-// ROUTE HEALTH (pour Render)
+// ROUTE HEALTH
 // ========================================================
 
 app.get('/health', (req, res) => {
@@ -226,10 +228,7 @@ app.delete('/api/admin/products/:id', async (req, res) => {
     }
 });
 
-// ========================================================
-// 🆕 PUT /api/admin/products/:id (modifier un produit)
-// ========================================================
-
+// PUT /api/admin/products/:id (modifier un produit)
 app.put('/api/admin/products/:id', upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 }
@@ -238,8 +237,6 @@ app.put('/api/admin/products/:id', upload.fields([
     const { name, price, quantity, description } = req.body;
 
     console.log(`📥 Modification produit #${id}`);
-    console.log('📦 Body:', req.body);
-    console.log('📎 Fichiers:', req.files);
 
     if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Nom du produit requis.' });
@@ -251,13 +248,11 @@ app.put('/api/admin/products/:id', upload.fields([
     }
 
     try {
-        // Vérifier si le produit existe
         const existing = await db.get('SELECT * FROM products WHERE id = $1', [id]);
         if (!existing) {
             return res.status(404).json({ error: 'Produit non trouvé.' });
         }
 
-        // Récupérer les URLs des images (conserver les anciennes si non remplacées)
         let image1 = existing.image1;
         let image2 = existing.image2;
 
@@ -344,12 +339,27 @@ app.get('/api/admin/commandes', async (req, res) => {
     }
 });
 
-// PUT /api/admin/commande/status
+// ========================================================
+// 🆕 PUT /api/admin/commande/status (AVEC NOUVEAUX STATUTS + NOTIFICATIONS)
+// ========================================================
+
 app.put('/api/admin/commande/status', async (req, res) => {
     const { commandeId, status, causeRefus } = req.body;
 
+    console.log(`📥 Mise à jour statut commande #${commandeId} → ${status}`);
+
     if (!commandeId || !status) {
         return res.status(400).json({ error: 'commandeId et status requis.' });
+    }
+
+    // ✅ STATUTS AUTORISÉS
+    const allowedStatus = [
+        'en_attente', 'accepter', 'refuse', 'paiement_effectue',
+        'livraison_en_cours', 'disponible', 'recuperee'
+    ];
+
+    if (!allowedStatus.includes(status)) {
+        return res.status(400).json({ error: 'Statut invalide.' });
     }
 
     try {
@@ -359,25 +369,39 @@ app.put('/api/admin/commande/status', async (req, res) => {
             return res.status(404).json({ error: 'Commande non trouvée.' });
         }
 
+        // ✅ NOTIFICATIONS PAR STATUT
         const statusMessages = {
-            'en_attente': { title: '⏳ Commande en attente', content: `Votre commande #${commandeId} est en attente de validation.` },
-            'acceptee': { title: '✅ Commande acceptée', content: `Votre commande #${commandeId} a été acceptée et va être préparée.` },
-            'refusee': { title: '❌ Commande refusée', content: `Votre commande #${commandeId} a été refusée. Motif : ${causeRefus || 'Non précisé'}` },
-            'pret_livraison': { title: '📦 Commande prête', content: `Votre commande #${commandeId} est prête pour la livraison.` },
-            'livraison_en_cours': { title: '🚚 Livraison en cours', content: `Votre commande #${commandeId} est en cours de livraison.` },
-            'votre_colis_est_la': { title: '📍 Votre colis est arrivé', content: `Votre colis #${commandeId} est arrivé à destination !` },
-            'payee': { title: '💳 Commande payée', content: `Le paiement de la commande #${commandeId} a été confirmé.` }
+            'accepter': { 
+                title: '💳 Paiement requis', 
+                content: `Votre commande #${commandeId} a été acceptée. Veuillez procéder au paiement.` 
+            },
+            'refuse': { 
+                title: '❌ Commande refusée', 
+                content: `Votre commande #${commandeId} a été refusée. Motif : ${causeRefus || 'Non précisé'}` 
+            },
+            'livraison_en_cours': { 
+                title: '🚚 Livraison en cours', 
+                content: `Votre commande #${commandeId} est en cours de livraison.` 
+            },
+            'disponible': { 
+                title: '📍 Commande disponible', 
+                content: `Votre commande #${commandeId} est disponible à la récupération.` 
+            },
+            'recuperee': { 
+                title: '✅ Commande récupérée', 
+                content: `Merci ! Votre commande #${commandeId} a été récupérée avec succès.` 
+            }
         };
 
         let content = statusMessages[status]?.content || `Statut mis à jour : ${status}`;
-        if (status === 'refusee' && causeRefus) {
+        if (status === 'refuse' && causeRefus) {
             content = `Votre commande #${commandeId} a été refusée. Motif : ${causeRefus}`;
         }
 
         let query = 'UPDATE commandes SET status = $1 WHERE id = $2';
         let params = [status, commandeId];
 
-        if (status === 'refusee' && causeRefus) {
+        if (status === 'refuse' && causeRefus) {
             query = 'UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3';
             params = [status, causeRefus, commandeId];
         }
@@ -388,6 +412,7 @@ app.put('/api/admin/commande/status', async (req, res) => {
             return res.status(404).json({ error: 'Commande non trouvée.' });
         }
 
+        // ✅ ENVOYER LA NOTIFICATION
         const title = statusMessages[status]?.title || `📋 Commande #${commandeId} mise à jour`;
         await createNotification(
             commande.user_id,
@@ -472,10 +497,7 @@ app.delete('/api/admin/livraison/:id', async (req, res) => {
     }
 });
 
-// ========================================================
-// 🆕 ROUTE ADMIN : ENVOYER UNE NOTIFICATION
-// ========================================================
-
+// POST /api/admin/notification/send
 app.post('/api/admin/notification/send', async (req, res) => {
     const { userId, title, content } = req.body;
 
@@ -497,10 +519,7 @@ app.post('/api/admin/notification/send', async (req, res) => {
     }
 });
 
-// ========================================================
-// 🆕 ROUTE ADMIN : VÉRIFIER LES MISES À JOUR (GitHub)
-// ========================================================
-
+// GET /api/admin/check-updates
 app.get('/api/admin/check-updates', async (req, res) => {
     try {
         const repoUrl = 'https://api.github.com/repos/ivanipote/serveur/commits/main';
@@ -572,7 +591,6 @@ app.get('/api/admin/check-updates', async (req, res) => {
 // ROUTES CLIENT - AUTH
 // ========================================================
 
-// POST /api/client/register
 app.post('/api/client/register', async (req, res) => {
     const { name, email, phone, password } = req.body;
 
@@ -610,7 +628,6 @@ app.post('/api/client/register', async (req, res) => {
     }
 });
 
-// POST /api/client/login
 app.post('/api/client/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -661,7 +678,6 @@ app.post('/api/client/login', async (req, res) => {
     }
 });
 
-// POST /api/client/logout
 app.post('/api/client/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -672,7 +688,6 @@ app.post('/api/client/logout', (req, res) => {
     });
 });
 
-// GET /api/client/me
 app.get('/api/client/me', isAuthenticated, (req, res) => {
     res.json({
         success: true,
@@ -685,7 +700,6 @@ app.get('/api/client/me', isAuthenticated, (req, res) => {
     });
 });
 
-// GET /api/client/user/:id
 app.get('/api/client/user/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
 
@@ -705,7 +719,6 @@ app.get('/api/client/user/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// POST /api/client/verify-code
 app.post('/api/client/verify-code', isAuthenticated, async (req, res) => {
     const { code } = req.body;
     const userId = req.session.userId;
@@ -766,7 +779,6 @@ app.get('/api/livraison/communes', async (req, res) => {
 // ROUTES PANIER
 // ========================================================
 
-// POST /api/panier/add
 app.post('/api/panier/add', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { productId, quantity = 1 } = req.body;
@@ -797,7 +809,6 @@ app.post('/api/panier/add', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /api/panier
 app.get('/api/panier', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -817,7 +828,6 @@ app.get('/api/panier', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /api/panier/count
 app.get('/api/panier/count', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -830,7 +840,6 @@ app.get('/api/panier/count', isAuthenticated, async (req, res) => {
     }
 });
 
-// DELETE /api/panier/remove
 app.delete('/api/panier/remove', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { productId } = req.body;
@@ -854,7 +863,6 @@ app.delete('/api/panier/remove', isAuthenticated, async (req, res) => {
     }
 });
 
-// DELETE /api/panier/clear
 app.delete('/api/panier/clear', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -867,7 +875,6 @@ app.delete('/api/panier/clear', isAuthenticated, async (req, res) => {
     }
 });
 
-// POST /api/panier/update
 app.post('/api/panier/update', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { productId, quantity } = req.body;
@@ -897,7 +904,6 @@ app.post('/api/panier/update', isAuthenticated, async (req, res) => {
 // ROUTES COMMANDES
 // ========================================================
 
-// POST /api/commande/create
 app.post('/api/commande/create', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { panier, total, nom, telephone, codeLogin, option, commune, fraisLivraison, quartier, precision, latitude, longitude } = req.body;
@@ -964,7 +970,6 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /api/commandes
 app.get('/api/commandes', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -980,7 +985,6 @@ app.get('/api/commandes', isAuthenticated, async (req, res) => {
     }
 });
 
-// POST /api/commande/cancel
 app.post('/api/commande/cancel', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { commandeId } = req.body;
@@ -1003,7 +1007,6 @@ app.post('/api/commande/cancel', isAuthenticated, async (req, res) => {
     }
 });
 
-// DELETE /api/commande/delete/:id
 app.delete('/api/commande/delete/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const userId = req.session.userId;
@@ -1014,7 +1017,7 @@ app.delete('/api/commande/delete/:id', isAuthenticated, async (req, res) => {
             return res.status(404).json({ error: 'Commande non trouvée.' });
         }
 
-        if (row.status !== 'refusee' && row.status !== 'annulee') {
+        if (row.status !== 'refuse' && row.status !== 'annulee') {
             return res.status(400).json({ error: 'Cette commande ne peut pas être supprimée.' });
         }
 
@@ -1030,7 +1033,6 @@ app.delete('/api/commande/delete/:id', isAuthenticated, async (req, res) => {
 // ROUTES NOTIFICATIONS
 // ========================================================
 
-// GET /api/notifications
 app.get('/api/notifications', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -1053,7 +1055,6 @@ app.get('/api/notifications', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /api/notifications/count
 app.get('/api/notifications/count', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -1069,7 +1070,6 @@ app.get('/api/notifications/count', isAuthenticated, async (req, res) => {
     }
 });
 
-// PUT /api/notifications/read/:id
 app.put('/api/notifications/read/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const userId = req.session.userId;
@@ -1089,7 +1089,6 @@ app.put('/api/notifications/read/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// PUT /api/notifications/read-all
 app.put('/api/notifications/read-all', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -1109,7 +1108,6 @@ app.put('/api/notifications/read-all', isAuthenticated, async (req, res) => {
     }
 });
 
-// DELETE /api/notifications/delete/:id
 app.delete('/api/notifications/delete/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const userId = req.session.userId;
@@ -1129,11 +1127,31 @@ app.delete('/api/notifications/delete/:id', isAuthenticated, async (req, res) =>
     }
 });
 
+// POST /api/notifications/create
+app.post('/api/notifications/create', isAuthenticated, async (req, res) => {
+    const { userId, commandeId, type, title, content } = req.body;
+
+    if (!userId || !title || !content) {
+        return res.status(400).json({ error: 'userId, title et content requis.' });
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [userId, commandeId, type, title, content, false]
+        );
+        res.json({ success: true, message: 'Notification créée' });
+    } catch (err) {
+        console.error('❌ Erreur:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ========================================================
 // ROUTES PROFIL
 // ========================================================
 
-// POST /api/client/update-name
 app.post('/api/client/update-name', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { name } = req.body;
@@ -1155,7 +1173,6 @@ app.post('/api/client/update-name', isAuthenticated, async (req, res) => {
     }
 });
 
-// POST /api/client/update-email
 app.post('/api/client/update-email', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { email } = req.body;
@@ -1181,7 +1198,6 @@ app.post('/api/client/update-email', isAuthenticated, async (req, res) => {
     }
 });
 
-// POST /api/client/update-phone
 app.post('/api/client/update-phone', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { phone } = req.body;
@@ -1208,7 +1224,6 @@ app.post('/api/client/update-phone', isAuthenticated, async (req, res) => {
     }
 });
 
-// POST /api/client/update-password
 app.post('/api/client/update-password', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { password } = req.body;
@@ -1286,6 +1301,14 @@ app.get('/notification', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'notification.html'));
 });
 
+app.get('/payment-success', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-success.html'));
+});
+
+app.get('/payment-failed', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-failed.html'));
+});
+
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
@@ -1306,49 +1329,6 @@ app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashboard.html'));
 });
 
-// ========================================================
-// ROUTES PAGES (ADMIN) - déjà existant
-// ========================================================
-
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
-});
-
-app.get('/admin/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
-});
-
-app.get('/admin/register', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'register.html'));
-});
-
-app.get('/admin/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashboard.html'));
-});
-
-// ========================================================
-// 🆕 ROUTES PAIEMENT (pages de retour)
-// ========================================================
-
-app.get('/payment-success', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-success.html'));
-});
-
-app.get('/payment-failed', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-failed.html'));
-});
-
-// ========================================================
-// DÉMARRAGE
-// ========================================================
-
-app.listen(PORT, () => {
-    console.log(`========================================`);
-    console.log(`🚀 SERVEUR CLIENT - Nature+ (Pages)`);
-    console.log(`📍 Port: ${PORT}`);
-    console.log(`📍 http://localhost:${PORT}`);
-    console.log(`========================================`);
-});
 // ========================================================
 // DÉMARRAGE
 // ========================================================
