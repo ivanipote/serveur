@@ -20,12 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let userId = null;
     let currentFilter = 'all';
     let deleteTargetId = null;
-    let socket = null;
-    let isSocketConnected = false;
-    let isLoading = false; // ✅ Empêcher les appels simultanés
+    let syncInterval = null;
+    let isSyncing = false;
 
     // ==========================================
-    // TOAST (notification visuelle)
+    // TOAST
     // ==========================================
 
     function showToast(message, type = 'success') {
@@ -66,59 +65,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO - Connexion
+    // SYNC EN PERMANENCE (toutes les 5 secondes)
     // ==========================================
 
-    function connectSocketIO() {
-        if (socket) {
-            socket.disconnect();
-            socket = null;
+    function startSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
         }
 
-        console.log('🔌 Connexion Socket.IO client (notification)...');
+        console.log('🔄 Sync notifications démarré (toutes les 5s)');
 
-        try {
-            const userIdLocal = localStorage.getItem('userId') || '1';
+        // Premier chargement immédiat
+        loadNotifications();
 
-            socket = io({
-                auth: {
-                    userId: parseInt(userIdLocal),
-                    isAdmin: false
-                }
-            });
+        // Puis toutes les 5 secondes
+        syncInterval = setInterval(() => {
+            if (!isSyncing) {
+                loadNotifications();
+            }
+        }, 5000);
+    }
 
-            socket.on('connect', function() {
-                console.log('✅ Socket.IO client notification connecté');
-                isSocketConnected = true;
-            });
-
-            socket.on('disconnect', function() {
-                console.log('❌ Socket.IO client notification déconnecté');
-                isSocketConnected = false;
-                setTimeout(() => {
-                    if (!isSocketConnected) {
-                        connectSocketIO();
-                    }
-                }, 3000);
-            });
-
-            // ✅ ÉCOUTER LES NOTIFICATIONS EN TEMPS RÉEL
-            socket.on('notification', function(data) {
-                console.log('🔔 Notification reçue (client):', data);
-                
-                // 1. Afficher le toast
-                showToast(data.message || 'Nouvelle notification', 'info');
-                
-                // 2. Recharger les notifications (forcer le rafraîchissement)
-                loadNotifications(true); // ✅ FORCER le rechargement
-                
-                // 3. Mettre à jour le badge
-                updateBadge();
-            });
-
-        } catch (error) {
-            console.error('❌ Erreur connexion Socket.IO:', error);
-            setTimeout(() => connectSocketIO(), 5000);
+    function stopSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            syncInterval = null;
+            console.log('⏹️ Sync notifications arrêté');
         }
     }
 
@@ -147,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // DATE RELATIVE (AFFICHE L'HEURE RÉELLE)
+    // DATE RELATIVE
     // ==========================================
 
     function timeAgo(dateString) {
@@ -230,60 +202,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS (CORRIGÉ)
+    // CHARGER LES NOTIFICATIONS (SIMPLIFIÉ)
     // ==========================================
 
-    async function loadNotifications(force = false) {
-        // ✅ Éviter les appels simultanés
-        if (isLoading && !force) {
-            console.log('⏳ Chargement déjà en cours, ignoré');
-            return;
-        }
-
-        isLoading = true;
-
-        if (skeletonLoader) skeletonLoader.style.display = 'flex';
-        if (mainContent) mainContent.innerHTML = '';
+    async function loadNotifications() {
+        if (isSyncing) return;
+        isSyncing = true;
 
         try {
             const res = await fetch('/api/notifications');
             const data = await res.json();
 
-            if (res.ok && data.notifications && data.notifications.length > 0) {
-                // ✅ MISE À JOUR DU TABLEAU
+            if (res.ok && data.notifications) {
                 notifications = data.notifications;
-                notifBadge.textContent = data.count;
+                notifBadge.textContent = data.count || 0;
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
-                
-                // ✅ FORCER LE RENDU AVEC LES NOUVELLES DONNÉES
                 renderNotifications();
-                
-                console.log(`✅ ${notifications.length} notifications chargées`);
-            } else if (res.ok && (!data.notifications || data.notifications.length === 0)) {
+            } else {
                 notifications = [];
                 notifBadge.textContent = '0';
                 notifBadge.className = 'badge-count zero';
                 renderEmpty();
-            } else {
-                renderEmpty();
             }
         } catch (error) {
             console.error('❌ Erreur:', error);
-            renderEmpty();
         } finally {
-            if (skeletonLoader) skeletonLoader.style.display = 'none';
-            isLoading = false;
+            isSyncing = false;
         }
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (CORRIGÉ)
+    // RENDRE LES NOTIFICATIONS (SIMPLIFIÉ)
     // ==========================================
 
     function renderNotifications() {
         if (!mainContent) return;
 
-        // ✅ Si pas de notifications, afficher vide
         if (!notifications || notifications.length === 0) {
             renderEmpty('Aucune notification');
             return;
@@ -402,7 +356,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res.ok) {
                 const notif = notifications.find(n => n.id == id);
                 if (notif) notif.is_read = 1;
-                // ✅ Rendre avec les données mises à jour
                 renderNotifications();
                 updateBadge();
             } else {
@@ -544,8 +497,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            await loadNotifications();
-            connectSocketIO();
+            // Démarrer la sync en permanence
+            startSync();
+
             console.log('✅ Initialisation terminée');
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation:', error);
