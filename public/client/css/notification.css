@@ -681,3 +681,77 @@ input, textarea {
 .btn-sync.paused .fa-sync-alt {
     animation: none;
 }
+/* ========================================== */
+/* HEADER - TITRE VERT                         */
+/* ========================================== */
+
+.header-title-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+
+.header-title-wrapper .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    background: #e8f5ec;
+    padding: 6px 18px;
+    border-radius: 30px;
+    border: 2px solid #2d7d46;
+}
+
+/* ========================================== */
+/* BOUTON SYNC                                */
+/* ========================================== */
+
+.btn-sync {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 50%;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.btn-sync:hover {
+    background: #f0f2f5;
+    color: #1a2a6c;
+}
+
+.btn-sync .sync-status {
+    font-size: 10px;
+    transition: all 0.3s;
+}
+
+.btn-sync .sync-status.active {
+    color: #27ae60;
+}
+
+.btn-sync .sync-status.paused {
+    color: #e74c3c;
+}
+
+.btn-sync .fa-sync-alt {
+    transition: transform 0.3s;
+}
+
+.btn-sync.active .fa-sync-alt {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.btn-sync.paused .fa-sync-alt {
+    animation: none;
+}
