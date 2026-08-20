@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérifier paiement Genius Pay</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-size: 22px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+        .sub {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e8e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus {
+            border-color: #2d7d46;
+        }
+        .input-group button {
+            padding: 12px 28px;
+            background: #2d7d46;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .input-group button:hover {
+            background: #1a5a33;
+            transform: scale(1.02);
+        }
+        .input-group button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e8ecf4;
+            display: none;
+        }
+        .result.visible { display: block; }
+        .result .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .result .row:last-child { border-bottom: none; }
+        .result .label { color: #888; font-weight: 500; }
+        .result .value { font-weight: 600; color: #1a1a2e; word-break: break-all; text-align: right; max-width: 60%; }
+        .result .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .status-badge.success { background: #d4edda; color: #155724; }
+        .status-badge.pending { background: #fff3cd; color: #856404; }
+        .status-badge.failed { background: #f8d7da; color: #721c24; }
+        .status-badge.cancelled { background: #f8d7da; color: #721c24; }
+        .status-badge.refunded { background: #d1ecf1; color: #0c5460; }
+        .error-msg {
+            color: #e74c3c;
+            padding: 12px;
+            background: #fef0f0;
+            border-radius: 12px;
+            margin-top: 12px;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        .loading.visible { display: block; }
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e8e8f0;
+            border-top-color: #2d7d46;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 8px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .examples {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 8px;
+        }
+        .examples span {
+            background: #f0f2f5;
+            padding: 2px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .examples span:hover {
+            background: #e0e4ec;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px; }
+            .input-group { flex-direction: column; }
+            .input-group button { width: 100%; }
+            .result .row { flex-direction: column; align-items: flex-start; gap: 2px; }
+            .result .value { max-width: 100%; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔍 Vérifier un paiement Genius Pay</h1>
+    <p class="sub">Entre une référence Genius Pay pour obtenir toutes les informations</p>
+
+    <div class="input-group">
+        <input type="text" id="refInput" placeholder="Ex: MTX-28KMZTQBZQ" />
+        <button id="checkBtn">Vérifier</button>
+    </div>
+
+    <div class="examples">
+        📋 Exemples : 
+        <span onclick="document.getElementById('refInput').value='MTX-28KMZTQBZQ'">MTX-28KMZTQBZQ</span> |
+        <span onclick="document.getElementById('refInput').value='MTX-HIKHUL7S8R'">MTX-HIKHUL7S8R</span> |
+        <span onclick="document.getElementById('refInput').value='MTX-CNX5JVBFDB'">MTX-CNX5JVBFDB</span>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Vérification en cours...</p>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="result" id="result">
+        <div class="row"><span class="label">Référence</span><span class="value" id="rRef">-</span></div>
+        <div class="row"><span class="label">Statut</span><span class="value"><span class="status-badge" id="rStatus">-</span></span></div>
+        <div class="row"><span class="label">Montant</span><span class="value" id="rAmount">-</span></div>
+        <div class="row"><span class="label">Devise</span><span class="value" id="rCurrency">-</span></div>
+        <div class="row"><span class="label">Client</span><span class="value" id="rCustomer">-</span></div>
+        <div class="row"><span class="label">Téléphone</span><span class="value" id="rPhone">-</span></div>
+        <div class="row"><span class="label">Email</span><span class="value" id="rEmail">-</span></div>
+        <div class="row"><span class="label">Gateway</span><span class="value" id="rGateway">-</span></div>
+        <div class="row"><span class="label">Environnement</span><span class="value" id="rEnv">-</span></div>
+        <div class="row"><span class="label">Date d'expiration</span><span class="value" id="rExpires">-</span></div>
+        <div class="row"><span class="label">Checkout URL</span><span class="value" id="rCheckout">-</span></div>
+        <div class="row" style="border-top: 2px solid #2d7d46; margin-top: 8px; padding-top: 10px;">
+            <span class="label">📦 Commande associée</span>
+            <span class="value" id="rCommande">-</span>
+        </div>
+        <div class="row"><span class="label">📅 Créé le</span><span class="value" id="rCreated">-</span></div>
+        <div class="row"><span class="label">🔗 Lien</span><span class="value"><a href="#" id="rLink" target="_blank">Ouvrir</a></span></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const refInput = document.getElementById('refInput');
+        const checkBtn = document.getElementById('checkBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // Références des éléments de résultat
+        const rRef = document.getElementById('rRef');
+        const rStatus = document.getElementById('rStatus');
+        const rAmount = document.getElementById('rAmount');
+        const rCurrency = document.getElementById('rCurrency');
+        const rCustomer = document.getElementById('rCustomer');
+        const rPhone = document.getElementById('rPhone');
+        const rEmail = document.getElementById('rEmail');
+        const rGateway = document.getElementById('rGateway');
+        const rEnv = document.getElementById('rEnv');
+        const rExpires = document.getElementById('rExpires');
+        const rCheckout = document.getElementById('rCheckout');
+        const rCommande = document.getElementById('rCommande');
+        const rCreated = document.getElementById('rCreated');
+        const rLink = document.getElementById('rLink');
+
+        const statusLabels = {
+            'success': { label: '✅ Réussi', class: 'success' },
+            'pending': { label: '⏳ En attente', class: 'pending' },
+            'failed': { label: '❌ Échoué', class: 'failed' },
+            'cancelled': { label: '⏰ Annulé', class: 'cancelled' },
+            'refunded': { label: '🔄 Remboursé', class: 'refunded' },
+            'expired': { label: '⏳ Expiré', class: 'failed' }
+        };
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.className = 'error-msg visible';
+            result.className = 'result';
+            loading.className = 'loading';
+        }
+
+        function hideError() {
+            errorMsg.className = 'error-msg';
+        }
+
+        function setStatusBadge(status) {
+            const info = statusLabels[status] || { label: status || 'Inconnu', class: 'pending' };
+            rStatus.textContent = info.label;
+            rStatus.className = 'status-badge ' + info.class;
+        }
+
+        async function checkPayment() {
+            const ref = refInput.value.trim();
+            if (!ref) {
+                showError('⚠️ Veuillez entrer une référence Genius Pay.');
+                return;
+            }
+
+            hideError();
+            loading.className = 'loading visible';
+            result.className = 'result';
+            checkBtn.disabled = true;
+            checkBtn.textContent = '⏳ Vérification...';
+
+            try {
+                const res = await fetch(`/api/payment/check/${ref}`);
+                const data = await res.json();
+
+                loading.className = 'loading';
+
+                if (!res.ok || !data.success) {
+                    showError('❌ ' + (data.error || 'Erreur lors de la vérification.'));
+                    checkBtn.disabled = false;
+                    checkBtn.textContent = 'Vérifier';
+                    return;
+                }
+
+                if (data.status === 'not_found') {
+                    showError('❌ Aucun paiement trouvé pour la référence : ' + ref);
+                    checkBtn.disabled = false;
+                    checkBtn.textContent = 'Vérifier';
+                    return;
+                }
+
+                // Récupérer les données
+                const payment = data.data || {};
+
+                rRef.textContent = payment.reference || ref;
+                setStatusBadge(payment.status || data.status || 'pending');
+                rAmount.textContent = payment.amount ? payment.amount.toLocaleString() + ' FCFA' : '-';
+                rCurrency.textContent = payment.currency || 'XOF';
+                rCustomer.textContent = payment.customer?.name || payment.customer_name || '-';
+                rPhone.textContent = payment.customer?.phone || payment.customer_phone || '-';
+                rEmail.textContent = payment.customer?.email || payment.customer_email || '-';
+                rGateway.textContent = payment.payment_method || payment.gateway || payment.provider || '-';
+                rEnv.textContent = payment.environment || 'live';
+                rExpires.textContent = payment.expires_at ? new Date(payment.expires_at).toLocaleString() : '-';
+                rCheckout.textContent = payment.checkout_url || payment.payment_url || '-';
+                rCheckout.style.wordBreak = 'break-all';
+                rCheckout.style.fontSize = '12px';
+                rCheckout.style.color = '#2563eb';
+
+                // Commande associée (metadata)
+                const orderId = payment.metadata?.order_id || payment.metadata?.commande_id || payment.commande_id;
+                rCommande.textContent = orderId ? '#' + orderId : '-';
+
+                rCreated.textContent = payment.created_at ? new Date(payment.created_at).toLocaleString() : '-';
+
+                // Lien vers le checkout
+                const checkoutUrl = payment.checkout_url || payment.payment_url || '#';
+                rLink.href = checkoutUrl;
+                rLink.textContent = checkoutUrl !== '#' ? '🔗 Ouvrir' : '-';
+
+                result.className = 'result visible';
+
+            } catch (error) {
+                loading.className = 'loading';
+                showError('❌ Erreur de connexion : ' + error.message);
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Vérifier';
+            }
+        }
+
+        checkBtn.addEventListener('click', checkPayment);
+
+        refInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                checkPayment();
+            }
+        });
+
+        // Pré-remplir avec une référence d'exemple
+        if (!refInput.value) {
+            refInput.value = 'MTX-28KMZTQBZQ';
+        }
+
+    });
+</script>
+
+</body>
+</html>
