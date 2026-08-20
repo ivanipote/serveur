@@ -116,10 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleCommandeUpdate(data);
             });
 
-            socket.on('notification', function(data) {
-                // Pas de toast
-            });
-
         } catch (error) {
             setTimeout(() => connectSocketIO(), 5000);
         }
@@ -318,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
-        const btn = document.querySelector(`.btn-sync[data-id="${commandeId}"]`);
+        const btn = document.querySelector(`.btn-sync-commande[data-id="${commandeId}"]`);
         if (!btn) return;
 
         const refToCheck = geniusReference || reference;
@@ -472,26 +468,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getStatusHistory(commande) {
-        const statusHistory = {
-            'en_attente': { label: 'En attente', class: 'en_attente' },
-            'accepter': { label: 'Paiement requis', class: 'accepter' },
-            'paiement_en_cours': { label: 'En cours...', class: 'paiement_en_cours' },
-            'paiement_effectue': { label: 'Payée', class: 'paiement_effectue' },
-            'livraison_en_cours': { label: 'En livraison', class: 'livraison_en_cours' },
-            'disponible': { label: 'Disponible', class: 'disponible' },
-            'recuperee': { label: 'Récupérée', class: 'recuperee' },
-            'refuse': { label: 'Refusée', class: 'refuse' },
-            'annulee': { label: 'Annulée', class: 'annulee' }
-        };
-
         const order = ['en_attente', 'accepter', 'paiement_en_cours', 'paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'];
         const current = commande.status || 'en_attente';
 
         if (current === 'en_attente') {
-            return {
-                old: null,
-                current: statusHistory[current]
-            };
+            return { old: null, current: current };
         }
 
         const currentIndex = order.indexOf(current);
@@ -499,20 +480,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         for (let i = currentIndex - 1; i >= 0; i--) {
             const candidate = order[i];
-            if (candidate && statusHistory[candidate]) {
-                oldStatus = statusHistory[candidate];
+            if (candidate) {
+                oldStatus = candidate;
                 break;
             }
         }
 
-        if (!oldStatus && current === 'accepter') {
-            oldStatus = statusHistory['en_attente'];
-        }
-
-        return {
-            old: oldStatus,
-            current: statusHistory[current] || { label: current, class: 'en_attente' }
-        };
+        return { old: oldStatus, current: current };
     }
 
     function renderCommandes() {
@@ -540,6 +514,18 @@ document.addEventListener('DOMContentLoaded', function() {
             'annulee': { label: 'Commande annulée', icon: '❌', class: 'annulee' }
         };
 
+        const statusColors = {
+            'en_attente': 'en_attente',
+            'accepter': 'accepter',
+            'paiement_en_cours': 'paiement_en_cours',
+            'paiement_effectue': 'paiement_effectue',
+            'livraison_en_cours': 'livraison_en_cours',
+            'disponible': 'disponible',
+            'recuperee': 'recuperee',
+            'refuse': 'refuse',
+            'annulee': 'annulee'
+        };
+
         let html = '';
 
         commandes.forEach((c) => {
@@ -559,15 +545,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const refDisplay = c.reference || `NAT-${c.id}`;
 
             let statusTransitionHtml = '';
+
             if (history.old) {
+                const oldLabel = statusLabels[history.old]?.label || history.old;
+                const newLabel = statusInfo.label;
                 statusTransitionHtml = `
-                    <span class="old-status">${history.old.label}</span>
+                    <span class="old-status">${oldLabel}</span>
                     <span class="arrow">→</span>
-                    <span class="new-status ${history.current.class}">${statusInfo.icon} ${history.current.label}</span>
+                    <span class="new-status ${statusColors[history.current]}">${statusInfo.icon} ${newLabel}</span>
                 `;
             } else {
                 statusTransitionHtml = `
-                    <span class="new-status ${history.current.class}">${statusInfo.icon} ${history.current.label}</span>
+                    <span class="new-status ${statusColors[history.current]}">${statusInfo.icon} ${statusInfo.label}</span>
                 `;
             }
 
@@ -579,7 +568,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="date">${dateStr}</span>
                     <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
                     <div class="status-transition">${statusTransitionHtml}</div>
-                    ${c.cause_refus ? `<div class="commande-cause">❌ ${c.cause_refus}</div>` : ''}
                     <div class="actions">
                         ${isPaymentInProgress ? `
                             <button class="btn btn-cancel-pay" data-id="${c.id}">
@@ -607,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                         ` : ''}
                         ${showSync ? `
-                            <button class="btn-sync" data-id="${c.id}" data-ref="${c.reference || c.id}" data-genius="${c.genius_reference || ''}" title="Vérifier le paiement">
+                            <button class="btn-sync-commande" data-id="${c.id}" data-ref="${c.reference || c.id}" data-genius="${c.genius_reference || ''}" title="Vérifier le paiement">
                                 <i class="fas fa-sync-alt"></i> Sync
                             </button>
                         ` : ''}
@@ -621,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         mainContent.innerHTML = html;
 
-        document.querySelectorAll('.btn-sync').forEach(btn => {
+        document.querySelectorAll('.btn-sync-commande').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const id = parseInt(this.dataset.id);

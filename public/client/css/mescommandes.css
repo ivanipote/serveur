@@ -70,73 +70,52 @@ body {
 }
 
 .btn-sync {
-    background: #e8f5ec;
-    border: 2px solid #2d7d46;
-    color: #2d7d46;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 16px;
     cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 50%;
+    transition: all 0.3s;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: all 0.3s;
-    position: relative;
+    gap: 4px;
     flex-shrink: 0;
 }
 
 .btn-sync:hover {
-    background: #d4edda;
-    transform: scale(1.05);
-}
-
-.btn-sync.active {
-    background: #2d7d46;
-    color: white;
-    border-color: #2d7d46;
-}
-
-.btn-sync.active:hover {
-    background: #1a5a33;
-}
-
-.btn-sync.paused {
-    background: #fef0f0;
-    border-color: #e74c3c;
-    color: #e74c3c;
-}
-
-.btn-sync.paused:hover {
-    background: #fde8e8;
+    background: #f0f2f5;
+    color: #1a2a6c;
 }
 
 .btn-sync .sync-status {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    font-size: 12px;
-    background: white;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #2d7d46;
-    color: #2d7d46;
+    font-size: 10px;
+    transition: all 0.3s;
 }
 
-.btn-sync.active .sync-status {
-    border-color: white;
-    color: white;
-    background: #2d7d46;
+.btn-sync .sync-status.active {
+    color: #27ae60;
 }
 
-.btn-sync.paused .sync-status {
-    border-color: #e74c3c;
+.btn-sync .sync-status.paused {
     color: #e74c3c;
-    background: white;
+}
+
+.btn-sync .fa-sync-alt {
+    transition: transform 0.3s;
+}
+
+.btn-sync.active .fa-sync-alt {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.btn-sync.paused .fa-sync-alt {
+    animation: none;
 }
 
 .main-content {
@@ -268,15 +247,6 @@ body {
 .commande-card .status-transition .new-status.refuse { color: #721c24; }
 .commande-card .status-transition .new-status.annulee { color: #721c24; }
 
-.commande-card .commande-cause {
-    font-size: 12px;
-    color: #e74c3c;
-    margin: 4px 0 6px 0;
-    padding: 4px 10px;
-    background: #fef0f0;
-    border-radius: 8px;
-}
-
 .commande-card .actions {
     display: flex;
     gap: 8px;
@@ -352,7 +322,7 @@ body {
 .btn-restore { background: #1a2a6c; color: white; }
 .btn-restore:hover { background: #0d1b4a; }
 
-.btn-sync {
+.btn-sync-commande {
     background: none;
     border: 1px solid #e0e0e8;
     color: #888;
@@ -369,7 +339,7 @@ body {
     min-height: 36px;
 }
 
-.btn-sync:hover {
+.btn-sync-commande:hover {
     border-color: #2d7d46;
     color: #2d7d46;
     background: #e8f5ec;
@@ -616,15 +586,14 @@ body {
     .back-btn { width: 36px; height: 36px; font-size: 16px; }
     .page-title { font-size: 15px; }
     .badge-total { font-size: 11px; padding: 3px 10px; }
-    .btn-sync { width: 38px; height: 38px; font-size: 14px; }
-    .btn-sync .sync-status { font-size: 10px; width: 16px; height: 16px; }
+    .btn-sync { font-size: 14px; padding: 4px 8px; }
     .main-content { padding: 12px; }
     .commande-card { padding: 16px 14px 12px 14px; }
     .commande-card .total { font-size: 20px; }
     .commande-card .badge-top { font-size: 11px; padding: 3px 12px; top: 12px; right: 12px; }
     .commande-card .actions .btn { font-size: 11px; padding: 5px 12px; height: 32px; min-height: 32px; }
     .commande-card .actions .btn-icon-only { height: 32px; min-height: 32px; width: 32px; font-size: 13px; }
-    .commande-card .actions .btn-sync { height: 32px; min-height: 32px; font-size: 11px; padding: 4px 12px; }
+    .commande-card .actions .btn-sync-commande { height: 32px; min-height: 32px; font-size: 11px; padding: 4px 12px; }
     .payment-box { padding: 24px 18px 20px 18px; }
     .payment-box h3 { font-size: 18px; }
     .payment-actions { flex-direction: column; }
@@ -637,5 +606,5 @@ body {
     .commande-card .actions { flex-wrap: wrap; justify-content: center; }
     .commande-card .actions .btn { font-size: 10px; padding: 4px 10px; height: 30px; min-height: 30px; }
     .page-header { gap: 6px; }
-    .btn-sync { width: 34px; height: 34px; font-size: 12px; }
+    .btn-sync { font-size: 12px; padding: 3px 6px; }
 }
