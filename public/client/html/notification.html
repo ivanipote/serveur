@@ -16,6 +16,10 @@
         </button>
         <span class="notif-title">🔔 Notifications</span>
         <span class="badge-count" id="notifBadge">0</span>
+        <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
+            <i class="fas fa-sync-alt"></i>
+            <span class="sync-status" id="syncStatus">●</span>
+        </button>
         <button class="btn-read-all" id="readAllBtn">
             <i class="fas fa-check-double"></i> Tout lu
         </button>
@@ -58,6 +62,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/notification.js"></script>
 </body>
 </html>
