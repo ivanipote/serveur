@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let syncInterval = null;
     let isSyncing = false;
     let isSyncActive = true;
+    let isFirstLoad = true; // ✅ Premier chargement
+    let hasNewNotification = false; // ✅ Nouvelle notification reçue
 
     // ==========================================
     // TOAST
@@ -166,15 +168,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
+            // ✅ ÉCOUTER LES NOTIFICATIONS EN TEMPS RÉEL
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
                 
+                // 1. Afficher le toast
                 showToast(data.message || 'Nouvelle notification', 'info');
                 
-                if (isSyncActive) {
-                    loadNotifications();
-                }
+                // 2. Marquer qu'on a une nouvelle notification
+                hasNewNotification = true;
                 
+                // 3. Recharger avec skeleton
+                loadNotifications(true);
+                
+                // 4. Mettre à jour le badge
                 updateBadge();
             });
 
@@ -292,14 +299,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS
+    // CHARGER LES NOTIFICATIONS (AVEC SKELETON OPTIONNEL)
     // ==========================================
 
-    async function loadNotifications() {
+    async function loadNotifications(showSkeleton = false) {
         if (isSyncing) return;
         isSyncing = true;
 
         try {
+            // ✅ Afficher le skeleton UNIQUEMENT si :
+            // - C'est le premier chargement (isFirstLoad)
+            // - OU une nouvelle notification vient d'arriver (hasNewNotification)
+            if (isFirstLoad || showSkeleton || hasNewNotification) {
+                if (skeletonLoader) skeletonLoader.style.display = 'flex';
+                if (mainContent) mainContent.innerHTML = '';
+                hasNewNotification = false; // ✅ Réinitialiser après affichage
+            }
+
             const res = await fetch('/api/notifications');
             const data = await res.json();
 
@@ -307,16 +323,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifications = data.notifications;
                 notifBadge.textContent = data.count || 0;
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
+                isFirstLoad = false;
                 renderNotifications();
             } else {
                 notifications = [];
                 notifBadge.textContent = '0';
                 notifBadge.className = 'badge-count zero';
+                isFirstLoad = false;
                 renderEmpty();
             }
         } catch (error) {
             console.error('❌ Erreur:', error);
+            isFirstLoad = false;
+            renderEmpty();
         } finally {
+            if (skeletonLoader) skeletonLoader.style.display = 'none';
             isSyncing = false;
         }
     }
