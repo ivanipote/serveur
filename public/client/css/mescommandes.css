@@ -2,6 +2,21 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+}
+
+button, a, .btn, .clickable {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+input, textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
 }
 
 body {
@@ -54,10 +69,10 @@ body {
 
 .page-title {
     flex: 1;
-    text-align: center;
     font-size: 18px;
     font-weight: 700;
     color: #1a1a2e;
+    text-align: center;
 }
 
 .badge-total {
@@ -176,6 +191,13 @@ body {
 .commande-card .badge-top.recuperee { background: #a5d6a7; color: #1b5e20; }
 .commande-card .badge-top.refuse { background: #f8d7da; color: #721c24; }
 .commande-card .badge-top.annulee { background: #f8d7da; color: #721c24; }
+.commande-card .badge-top.pending { background: #fff3cd; color: #856404; }
+.commande-card .badge-top.processing { background: #ffe0b2; color: #e67e22; }
+.commande-card .badge-top.success { background: #c3e6cb; color: #0b5e2e; }
+.commande-card .badge-top.failed { background: #f8d7da; color: #721c24; }
+.commande-card .badge-top.cancelled { background: #f8d7da; color: #721c24; }
+.commande-card .badge-top.expired { background: #f8d7da; color: #721c24; }
+.commande-card .badge-top.refunded { background: #d1ecf1; color: #0c5460; }
 
 .commande-card.status-en_attente { background: #fffde7; }
 .commande-card.status-accepter { background: #e3f2fd; }
@@ -186,6 +208,13 @@ body {
 .commande-card.status-recuperee { background: #c8e6c9; }
 .commande-card.status-refuse { background: #ffebee; }
 .commande-card.status-annulee { background: #ffebee; }
+.commande-card.status-pending { background: #fffde7; }
+.commande-card.status-processing { background: #fff3e0; }
+.commande-card.status-success { background: #e8f5e9; }
+.commande-card.status-failed { background: #ffebee; }
+.commande-card.status-cancelled { background: #ffebee; }
+.commande-card.status-expired { background: #ffebee; }
+.commande-card.status-refunded { background: #e0f7fa; }
 
 .commande-card .id {
     font-size: 15px;
@@ -247,6 +276,26 @@ body {
 .commande-card .status-transition .new-status.recuperee { color: #1b5e20; }
 .commande-card .status-transition .new-status.refuse { color: #721c24; }
 .commande-card .status-transition .new-status.annulee { color: #721c24; }
+.commande-card .status-transition .new-status.pending { color: #856404; }
+.commande-card .status-transition .new-status.processing { color: #e67e22; }
+.commande-card .status-transition .new-status.success { color: #0b5e2e; }
+.commande-card .status-transition .new-status.failed { color: #721c24; }
+.commande-card .status-transition .new-status.cancelled { color: #721c24; }
+.commande-card .status-transition .new-status.expired { color: #721c24; }
+.commande-card .status-transition .new-status.refunded { color: #0c5460; }
+
+.commande-card .action-hint {
+    font-size: 13px;
+    color: #555;
+    font-weight: 500;
+    margin: 2px 0 6px 0;
+    padding: 6px 12px;
+    background: #f8f9fc;
+    border-radius: 8px;
+    border: 1px solid #f0f2f5;
+    display: inline-block;
+    align-self: flex-start;
+}
 
 .commande-card .actions {
     display: flex;
@@ -260,68 +309,56 @@ body {
 }
 
 .commande-card .actions .btn {
-    padding: 6px 16px;
+    padding: 8px 20px;
     border: none;
     border-radius: 50px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     white-space: nowrap;
-    height: 36px;
-    min-height: 36px;
+    height: 40px;
+    min-height: 40px;
 }
 
 .commande-card .actions .btn:hover {
     transform: scale(1.04);
 }
 
+.commande-card .actions .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-pay {
     background: linear-gradient(135deg, #2d7d46, #1a5a33);
     color: white;
 }
-.btn-pay:hover { background: linear-gradient(135deg, #1a5a33, #0d3d22); }
 
-.btn-cancel { background: #e67e22; color: white; }
-.btn-cancel:hover { background: #d35400; }
-
-.btn-cancel-pay { background: #e74c3c; color: white; }
-.btn-cancel-pay:hover { background: #c0392b; }
-
-.btn-delete { background: #e74c3c; color: white; }
-.btn-delete:hover { background: #c0392b; }
-
-.btn-detail { background: #e8e8f0; color: #1a1a2e; }
-.btn-detail:hover { background: #d5d5e0; }
-
-.btn-restore { background: #1a2a6c; color: white; }
-.btn-restore:hover { background: #0d1b4a; }
-
-.btn-sync-commande {
-    background: none;
-    border: 1px solid #e0e0e8;
-    color: #888;
-    padding: 6px 14px;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 36px;
-    min-height: 36px;
+.btn-pay:hover {
+    background: linear-gradient(135deg, #1a5a33, #0d3d22);
 }
 
-.btn-sync-commande:hover {
-    border-color: #2d7d46;
-    color: #2d7d46;
-    background: #e8f5ec;
-    transform: rotate(180deg);
+.btn-continue {
+    background: #e67e22;
+    color: white;
+}
+
+.btn-continue:hover {
+    background: #d35400;
+}
+
+.btn-detail {
+    background: #e8e8f0;
+    color: #1a1a2e;
+}
+
+.btn-detail:hover {
+    background: #d5d5e0;
 }
 
 .confirm-overlay {
@@ -569,8 +606,8 @@ body {
     .commande-card { padding: 16px 14px 12px 14px; }
     .commande-card .total { font-size: 20px; }
     .commande-card .badge-top { font-size: 11px; padding: 3px 12px; top: 12px; right: 12px; }
-    .commande-card .actions .btn { font-size: 11px; padding: 5px 12px; height: 32px; min-height: 32px; }
-    .commande-card .actions .btn-sync-commande { height: 32px; min-height: 32px; font-size: 11px; padding: 4px 12px; }
+    .commande-card .actions .btn { font-size: 12px; padding: 6px 14px; height: 36px; min-height: 36px; }
+    .commande-card .action-hint { font-size: 12px; padding: 4px 10px; }
     .payment-box { padding: 24px 18px 20px 18px; }
     .payment-box h3 { font-size: 18px; }
     .payment-actions { flex-direction: column; }
@@ -581,24 +618,7 @@ body {
 
 @media (max-width: 400px) {
     .commande-card .actions { flex-wrap: wrap; justify-content: center; }
-    .commande-card .actions .btn { font-size: 10px; padding: 4px 10px; height: 30px; min-height: 30px; }
+    .commande-card .actions .btn { font-size: 11px; padding: 4px 12px; height: 32px; min-height: 32px; }
     .page-header { gap: 6px; }
     .btn-sync { font-size: 12px; padding: 3px 6px; }
-}
-* {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
-
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
 }

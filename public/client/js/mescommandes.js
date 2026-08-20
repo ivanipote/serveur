@@ -313,128 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return [];
     }
 
-    async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
-        const btn = document.querySelector(`.btn-sync-commande[data-id="${commandeId}"]`);
-        if (!btn) return;
-
-        const refToCheck = geniusReference || reference;
-        if (!refToCheck || /^\d+$/.test(refToCheck)) {
-            await showMessage('ℹ️', 'Information', 'Aucune référence de paiement disponible pour cette commande.');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-        try {
-            const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
-
-            if (!res.ok) {
-                await showMessage('⚠️', 'Service indisponible', 'Le service de paiement est temporairement indisponible.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-                return;
-            }
-
-            const data = await res.json();
-
-            if (data.success && data.status === 'success') {
-                const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
-                });
-                if (updateRes.ok) {
-                    await loadCommandes();
-                    await showMessage('✅', 'Paiement confirmé', 'Le paiement a été confirmé avec succès.');
-                } else {
-                    await showMessage('⚠️', 'Mise à jour', 'Mise à jour du statut en cours...');
-                }
-            } else if (data.status === 'pending') {
-                await showMessage('⏳', 'En attente', 'Le paiement est toujours en attente.');
-            } else if (data.status === 'not_found') {
-                await showMessage('ℹ️', 'Non trouvé', 'Aucun paiement trouvé pour cette commande.');
-            } else {
-                await showMessage('ℹ️', 'Statut', 'Statut: ' + (data.status || 'inconnu'));
-            }
-        } catch (error) {
-            await showMessage('❌', 'Erreur', 'Erreur lors de la vérification.');
-        } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-            }
-        }
-    }
-
-    async function cancelPayment(commandeId) {
-        try {
-            const res = await fetch(`${PAYMENT_API_URL}/api/payment/cancel`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ commandeId })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                await showMessage('✅', 'Paiement annulé', 'Le paiement a été annulé avec succès.');
-                await loadCommandes();
-            } else {
-                await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
-            }
-        } catch (error) {
-            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
-        }
-    }
-
-    async function cancelCommande(commandeId) {
-        try {
-            const res = await fetch('/api/commande/cancel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ commandeId })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                await loadCommandes();
-                await showMessage('✅', 'Commande annulée', 'La commande a été annulée avec succès.');
-            } else {
-                await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
-            }
-        } catch (error) {
-            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur.');
-        }
-    }
-
-    async function deleteCommande(commandeId) {
-        try {
-            const res = await fetch(`/api/commande/delete/${commandeId}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (res.ok) {
-                await showMessage('✅', 'Commande supprimée', 'La commande a été supprimée avec succès.');
-                await loadCommandes();
-            } else {
-                await showMessage('❌', 'Erreur', data.error || 'Impossible de supprimer.');
-            }
-        } catch (error) {
-            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur.');
-        }
-    }
-
-    async function restoreCommande(commandeId) {
-        try {
-            const res = await fetch(`${PAYMENT_API_URL}/api/commande/restore/${commandeId}`, { method: 'POST' });
-            const data = await res.json();
-            if (res.ok) {
-                await showMessage('✅', 'Commande restaurée', 'La commande est de nouveau en attente.');
-                await loadCommandes();
-            } else {
-                await showMessage('❌', 'Erreur', data.error || 'Impossible de restaurer.');
-            }
-        } catch (error) {
-            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
-        }
-    }
-
     async function handlePayment(commandeId, amount, reference, phone) {
         if (!phone) {
             await showMessage('📱', 'Numéro manquant', 'Veuillez renseigner votre numéro Wave dans votre profil.');
@@ -468,25 +346,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getStatusHistory(commande) {
-        const order = ['en_attente', 'accepter', 'paiement_en_cours', 'paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'];
-        const current = commande.status || 'en_attente';
-
-        if (current === 'en_attente') {
-            return { old: null, current: current };
+        const geniusStatus = commande.genius_status || commande.status || 'en_attente';
+        const allStatuses = ['en_attente', 'accepter', 'paiement_en_cours', 'pending', 'processing', 'paiement_effectue', 'success', 'failed', 'cancelled', 'expired', 'refunded', 'livraison_en_cours', 'disponible', 'recuperee', 'annulee', 'refuse'];
+        
+        if (geniusStatus === 'en_attente' || geniusStatus === 'accepter') {
+            return { old: null, current: geniusStatus };
         }
 
-        const currentIndex = order.indexOf(current);
+        const currentIndex = allStatuses.indexOf(geniusStatus);
         let oldStatus = null;
 
         for (let i = currentIndex - 1; i >= 0; i--) {
-            const candidate = order[i];
-            if (candidate) {
+            const candidate = allStatuses[i];
+            if (candidate && commandes.some(c => c.status === candidate || c.genius_status === candidate)) {
                 oldStatus = candidate;
                 break;
             }
         }
 
-        return { old: oldStatus, current: current };
+        if (!oldStatus && geniusStatus !== 'en_attente') {
+            oldStatus = 'en_attente';
+        }
+
+        return { old: oldStatus, current: geniusStatus };
     }
 
     function renderCommandes() {
@@ -503,42 +385,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const statusLabels = {
-            'en_attente': { label: 'En attente de validation', icon: '⏳', class: 'en_attente' },
-            'accepter': { label: 'Effectuer le paiement', icon: '💳', class: 'accepter' },
-            'paiement_en_cours': { label: 'Paiement en cours...', icon: '⏳', class: 'paiement_en_cours' },
-            'paiement_effectue': { label: 'Payée — En préparation', icon: '✅', class: 'paiement_effectue' },
-            'livraison_en_cours': { label: 'En cours de livraison', icon: '🚚', class: 'livraison_en_cours' },
-            'disponible': { label: 'Commande disponible', icon: '📍', class: 'disponible' },
-            'recuperee': { label: 'Commande récupérée !', icon: '✅', class: 'recuperee' },
-            'refuse': { label: 'Commande refusée', icon: '❌', class: 'refuse' },
-            'annulee': { label: 'Commande annulée', icon: '❌', class: 'annulee' }
+            'en_attente': { label: 'En attente', icon: '⏳', class: 'en_attente' },
+            'accepter': { label: 'Paiement requis', icon: '💳', class: 'accepter' },
+            'paiement_en_cours': { label: 'En cours...', icon: '⏳', class: 'paiement_en_cours' },
+            'pending': { label: 'pending', icon: '⏳', class: 'pending' },
+            'processing': { label: 'processing', icon: '⏳', class: 'processing' },
+            'paiement_effectue': { label: 'Payée', icon: '✅', class: 'paiement_effectue' },
+            'success': { label: 'success', icon: '✅', class: 'success' },
+            'failed': { label: 'failed', icon: '❌', class: 'failed' },
+            'cancelled': { label: 'cancelled', icon: '⏰', class: 'cancelled' },
+            'expired': { label: 'expired', icon: '⏳', class: 'expired' },
+            'refunded': { label: 'refunded', icon: '🔄', class: 'refunded' },
+            'livraison_en_cours': { label: 'En livraison', icon: '🚚', class: 'livraison_en_cours' },
+            'disponible': { label: 'Disponible', icon: '📍', class: 'disponible' },
+            'recuperee': { label: 'Récupérée', icon: '✅', class: 'recuperee' },
+            'annulee': { label: 'Annulée', icon: '❌', class: 'annulee' },
+            'refuse': { label: 'Refusée', icon: '❌', class: 'refuse' }
         };
 
         const statusColors = {
             'en_attente': 'en_attente',
             'accepter': 'accepter',
             'paiement_en_cours': 'paiement_en_cours',
+            'pending': 'pending',
+            'processing': 'processing',
             'paiement_effectue': 'paiement_effectue',
+            'success': 'success',
+            'failed': 'failed',
+            'cancelled': 'cancelled',
+            'expired': 'expired',
+            'refunded': 'refunded',
             'livraison_en_cours': 'livraison_en_cours',
             'disponible': 'disponible',
             'recuperee': 'recuperee',
-            'refuse': 'refuse',
-            'annulee': 'annulee'
+            'annulee': 'annulee',
+            'refuse': 'refuse'
         };
 
         let html = '';
 
         commandes.forEach((c) => {
-            const statusClass = c.status || 'en_attente';
-            const statusInfo = statusLabels[statusClass] || { label: statusClass, icon: '📋', class: 'en_attente' };
+            const statusKey = c.genius_status || c.status || 'en_attente';
+            const statusInfo = statusLabels[statusKey] || { label: statusKey, icon: '📋', class: 'en_attente' };
             const history = getStatusHistory(c);
 
             const isPayable = c.status === 'accepter';
-            const isDeletable = c.status === 'refuse' || c.status === 'annulee';
-            const isCancellable = c.status === 'en_attente';
-            const isRestorable = c.status === 'annulee';
-            const isPaymentInProgress = c.status === 'paiement_en_cours';
-            const showSync = c.status === 'paiement_en_cours' || c.status === 'paiement_effectue';
+            const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
+            const showContinue = isPaymentInProgress || c.status === 'pending' || c.status === 'processing';
+            const isTerminal = ['success', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'annulee', 'refuse', 'livraison_en_cours', 'disponible', 'recuperee'].includes(c.status) || 
+                              ['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.genius_status);
 
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -546,57 +441,67 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let statusTransitionHtml = '';
 
-            if (history.old) {
+            if (history.old && history.old !== history.current) {
                 const oldLabel = statusLabels[history.old]?.label || history.old;
                 const newLabel = statusInfo.label;
                 statusTransitionHtml = `
                     <span class="old-status">${oldLabel}</span>
                     <span class="arrow">→</span>
-                    <span class="new-status ${statusColors[history.current]}">${statusInfo.icon} ${newLabel}</span>
+                    <span class="new-status ${statusColors[history.current] || 'en_attente'}">${statusInfo.icon} ${newLabel}</span>
                 `;
             } else {
                 statusTransitionHtml = `
-                    <span class="new-status ${statusColors[history.current]}">${statusInfo.icon} ${statusInfo.label}</span>
+                    <span class="new-status ${statusColors[history.current] || 'en_attente'}">${statusInfo.icon} ${statusInfo.label}</span>
                 `;
             }
 
+            let actionHint = '';
+            if (isPayable) {
+                actionHint = '💳 Cliquez sur Payer pour effectuer le paiement';
+            } else if (showContinue) {
+                actionHint = '⏳ Paiement en cours... Continuez pour finaliser';
+            } else if (c.status === 'en_attente') {
+                actionHint = '⏳ En attente de validation';
+            } else if (c.status === 'paiement_effectue') {
+                actionHint = '✅ Commande en préparation';
+            } else if (c.status === 'livraison_en_cours') {
+                actionHint = '🚚 Votre commande est en route';
+            } else if (c.status === 'disponible') {
+                actionHint = '📍 Votre commande vous attend';
+            } else if (c.status === 'recuperee') {
+                actionHint = '✅ Merci pour votre commande !';
+            } else if (c.status === 'annulee' || c.status === 'refuse') {
+                actionHint = '❌ Commande annulée';
+            } else if (c.status === 'success') {
+                actionHint = '✅ Paiement réussi';
+            } else if (c.status === 'failed') {
+                actionHint = '❌ Paiement échoué';
+            } else if (c.status === 'cancelled') {
+                actionHint = '⏰ Paiement annulé';
+            } else if (c.status === 'expired') {
+                actionHint = '⏳ Paiement expiré';
+            } else if (c.status === 'refunded') {
+                actionHint = '🔄 Remboursé';
+            }
+
             html += `
-                <div class="commande-card status-${statusClass}">
+                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'}">
                     <span class="badge-top ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span>
                     <div class="id">#${c.id}</div>
                     <span class="ref">${refDisplay}</span>
                     <span class="date">${dateStr}</span>
                     <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
                     <div class="status-transition">${statusTransitionHtml}</div>
+                    ${actionHint ? `<div class="action-hint">${actionHint}</div>` : ''}
                     <div class="actions">
-                        ${isPaymentInProgress ? `
-                            <button class="btn btn-cancel-pay" data-id="${c.id}">
-                                <i class="fas fa-times-circle"></i> Annuler paiement
-                            </button>
-                        ` : ''}
                         ${isPayable ? `
                             <button class="btn btn-pay" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
                                 <i class="fas fa-credit-card"></i> Payer
                             </button>
                         ` : ''}
-                        ${isRestorable ? `
-                            <button class="btn btn-restore" data-id="${c.id}">
-                                <i class="fas fa-undo"></i> Restaurer
-                            </button>
-                        ` : ''}
-                        ${isDeletable ? `
-                            <button class="btn btn-delete" data-id="${c.id}">
-                                <i class="fas fa-trash-alt"></i> Supprimer
-                            </button>
-                        ` : ''}
-                        ${isCancellable ? `
-                            <button class="btn btn-cancel" data-id="${c.id}">
-                                <i class="fas fa-times-circle"></i> Annuler
-                            </button>
-                        ` : ''}
-                        ${showSync ? `
-                            <button class="btn-sync-commande" data-id="${c.id}" data-ref="${c.reference || c.id}" data-genius="${c.genius_reference || ''}" title="Vérifier le paiement">
-                                <i class="fas fa-sync-alt"></i> Sync
+                        ${showContinue && !isTerminal ? `
+                            <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}">
+                                <i class="fas fa-arrow-right"></i> Continuer
                             </button>
                         ` : ''}
                         <button class="btn btn-detail" data-id="${c.id}">
@@ -609,24 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         mainContent.innerHTML = html;
 
-        document.querySelectorAll('.btn-sync-commande').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.id);
-                const ref = this.dataset.ref;
-                const geniusRef = this.dataset.genius || '';
-                checkPaymentWithGenius(id, ref, geniusRef);
-            });
-        });
-
-        document.querySelectorAll('.btn-cancel-pay').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const id = parseInt(this.dataset.id);
-                const result = await showConfirm('❌', 'Annuler le paiement', 'Êtes-vous sûr de vouloir annuler ce paiement ?');
-                if (result.confirmed) await cancelPayment(id);
-            });
-        });
-
         document.querySelectorAll('.btn-pay').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
@@ -637,27 +524,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        document.querySelectorAll('.btn-restore').forEach(btn => {
-            btn.addEventListener('click', async function() {
+        document.querySelectorAll('.btn-continue').forEach(btn => {
+            btn.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
-                const result = await showConfirm('🔄', 'Restaurer la commande', 'Voulez-vous restaurer cette commande ?');
-                if (result.confirmed) await restoreCommande(id);
-            });
-        });
-
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const id = parseInt(this.dataset.id);
-                const result = await showConfirm('🗑️', 'Supprimer la commande', 'Cette action est définitive.');
-                if (result.confirmed) await deleteCommande(id);
-            });
-        });
-
-        document.querySelectorAll('.btn-cancel').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const id = parseInt(this.dataset.id);
-                const result = await showConfirm('⚠️', 'Annuler la commande', 'Êtes-vous sûr de vouloir annuler cette commande ?');
-                if (result.confirmed) await cancelCommande(id);
+                const total = parseInt(this.dataset.total);
+                const ref = this.dataset.ref;
+                const phone = currentUser?.phone || localStorage.getItem('userPhone');
+                openPaymentOverlay(id, total, phone, ref);
             });
         });
 
