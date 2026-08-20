@@ -197,6 +197,8 @@
 </div>
 
 <script>
+    const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
+
     document.addEventListener('DOMContentLoaded', function() {
 
         const refInput = document.getElementById('refInput');
@@ -205,7 +207,6 @@
         const result = document.getElementById('result');
         const errorMsg = document.getElementById('errorMsg');
 
-        // Références des éléments de résultat
         const rRef = document.getElementById('rRef');
         const rStatus = document.getElementById('rStatus');
         const rAmount = document.getElementById('rAmount');
@@ -261,7 +262,7 @@
             checkBtn.textContent = '⏳ Vérification...';
 
             try {
-                const res = await fetch(`/api/payment/check/${ref}`);
+                const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${ref}`);
                 const data = await res.json();
 
                 loading.className = 'loading';
@@ -280,7 +281,6 @@
                     return;
                 }
 
-                // Récupérer les données
                 const payment = data.data || {};
 
                 rRef.textContent = payment.reference || ref;
@@ -298,13 +298,11 @@
                 rCheckout.style.fontSize = '12px';
                 rCheckout.style.color = '#2563eb';
 
-                // Commande associée (metadata)
                 const orderId = payment.metadata?.order_id || payment.metadata?.commande_id || payment.commande_id;
                 rCommande.textContent = orderId ? '#' + orderId : '-';
 
                 rCreated.textContent = payment.created_at ? new Date(payment.created_at).toLocaleString() : '-';
 
-                // Lien vers le checkout
                 const checkoutUrl = payment.checkout_url || payment.payment_url || '#';
                 rLink.href = checkoutUrl;
                 rLink.textContent = checkoutUrl !== '#' ? '🔗 Ouvrir' : '-';
@@ -328,13 +326,11 @@
             }
         });
 
-        // Pré-remplir avec une référence d'exemple
         if (!refInput.value) {
             refInput.value = 'MTX-28KMZTQBZQ';
         }
 
     });
 </script>
-
 </body>
 </html>
