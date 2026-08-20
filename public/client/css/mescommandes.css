@@ -585,3 +585,20 @@ body {
     .page-header { gap: 6px; }
     .btn-sync { font-size: 12px; padding: 3px 6px; }
 }
+* {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+}
+
+button, a, .btn, .clickable {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+input, textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
