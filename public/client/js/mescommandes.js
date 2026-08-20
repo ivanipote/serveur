@@ -1,25 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ mescommandes.js chargé');
-
-    // ==========================================
-    // URL DE L'API PAIEMENT (Render)
-    // ==========================================
-
     const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
-
-    // ==========================================
-    // RÉFÉRENCES DOM
-    // ==========================================
 
     const mainContent = document.getElementById('mainContent');
     const loadingState = document.getElementById('loadingState');
     const badgeTotal = document.getElementById('badgeTotal');
-    const toastContainer = document.getElementById('toastContainer');
     const syncBtn = document.getElementById('syncBtn');
     const syncStatus = document.getElementById('syncStatus');
 
-    // Overlays
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmIcon = document.getElementById('confirmIcon');
     const confirmTitle = document.getElementById('confirmTitle');
@@ -39,10 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelPaymentBtn = document.getElementById('cancelPaymentBtn');
     const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
 
-    // ==========================================
-    // ÉTAT
-    // ==========================================
-
     let commandes = [];
     let currentCommandeId = null;
     let currentAmount = 0;
@@ -54,10 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let isSyncing = false;
     let isSyncActive = true;
     let isFirstLoad = true;
-
-    // ==========================================
-    // BOUTON SYNC - GESTION
-    // ==========================================
 
     function updateSyncUI() {
         if (isSyncActive) {
@@ -84,21 +64,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ==========================================
-    // SYNC EN PERMANENCE
-    // ==========================================
-
     function startSync() {
         if (syncInterval) {
             clearInterval(syncInterval);
         }
-
-        console.log('🔄 Sync commandes démarré (toutes les 5s)');
-
-        // Premier chargement immédiat
         loadCommandes();
-
-        // Puis toutes les 5 secondes
         syncInterval = setInterval(() => {
             if (!isSyncing && isSyncActive) {
                 loadCommandes();
@@ -110,21 +80,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (syncInterval) {
             clearInterval(syncInterval);
             syncInterval = null;
-            console.log('⏹️ Sync commandes arrêté');
         }
     }
-
-    // ==========================================
-    // SOCKET.IO - Connexion
-    // ==========================================
 
     function connectSocketIO() {
         if (socket) {
             socket.disconnect();
             socket = null;
         }
-
-        console.log('🔌 Connexion Socket.IO client (mescommandes)...');
 
         try {
             const userId = localStorage.getItem('userId') || '1';
@@ -137,12 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             socket.on('connect', function() {
-                console.log('✅ Socket.IO client mescommandes connecté');
                 isSocketConnected = true;
             });
 
             socket.on('disconnect', function() {
-                console.log('❌ Socket.IO client mescommandes déconnecté');
                 isSocketConnected = false;
                 setTimeout(() => {
                     if (!isSocketConnected) {
@@ -152,47 +113,32 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             socket.on('commande-update', function(data) {
-                console.log('📦 Mise à jour commande reçue (client):', data);
                 handleCommandeUpdate(data);
             });
 
             socket.on('notification', function(data) {
-                console.log('🔔 Notification reçue (client):', data);
-                showToast(data.message || 'Nouvelle notification', 'info');
+                // Pas de toast
             });
 
         } catch (error) {
-            console.error('❌ Erreur connexion Socket.IO:', error);
             setTimeout(() => connectSocketIO(), 5000);
         }
     }
 
-    // ==========================================
-    // GESTION DES MISES À JOUR
-    // ==========================================
-
     function handleCommandeUpdate(data) {
-        console.log('📦 Mise à jour commande (client):', data);
-
-        const { commandeId, status, userId, message } = data;
+        const { commandeId, status, userId } = data;
 
         const userIdLocal = parseInt(localStorage.getItem('userId') || '0');
         if (userId && userId !== userIdLocal) {
-            console.log('⏭️ Commande pour un autre utilisateur, ignorée');
             return;
         }
 
-        // ✅ Mettre à jour dans le tableau local
         const existingIndex = commandes.findIndex(c => c.id === commandeId);
 
         if (existingIndex !== -1) {
             commandes[existingIndex].status = status;
-            console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
-            
-            // ✅ Re-rendre uniquement les cartes (pas toute la page)
             renderCommandes();
         } else {
-            console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
             loadCommandes();
             return;
         }
@@ -200,102 +146,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (badgeTotal) {
             badgeTotal.textContent = commandes.length;
         }
-
-        // ✅ Toast
-        const statusMessages = {
-            'en_attente': '⏳ En attente',
-            'accepter': '💳 Paiement requis',
-            'refuse': '❌ Refusée',
-            'annulee': '❌ Annulée',
-            'paiement_effectue': '💳 Payée',
-            'livraison_en_cours': '🚚 En cours',
-            'disponible': '📍 Disponible',
-            'recuperee': '✅ Récupérée'
-        };
-        showToast(`📦 Commande #${commandeId}: ${statusMessages[status] || status}`, status);
     }
 
-    // ==========================================
-    // TOAST
-    // ==========================================
-
-    function showToast(message, type = 'info') {
-        const colors = {
-            'success': '#28a745',
-            'error': '#dc3545',
-            'warning': '#e67e22',
-            'info': '#1a2a6c',
-            'en_attente': '#f9a825',
-            'accepter': '#1e88e5',
-            'refuse': '#e53935',
-            'annulee': '#e53935',
-            'paiement_effectue': '#43a047',
-            'livraison_en_cours': '#00acc1',
-            'disponible': '#2e7d32',
-            'recuperee': '#1b5e20'
-        };
-
-        const bgColor = colors[type] || colors.info;
-
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            background: ${bgColor};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 15px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s ease;
-            pointer-events: auto;
-            max-width: 90%;
-            text-align: center;
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 999;
-        `;
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.transition = 'all 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+    function showMessage(icon, title, text) {
+        messageIcon.textContent = icon;
+        messageTitle.textContent = title;
+        messageText.textContent = text;
+        messageOverlay.classList.add('active');
     }
 
-    // ==========================================
-    // AUTHENTIFICATION
-    // ==========================================
-
-    async function checkAuth() {
-        try {
-            const res = await fetch('/api/client/me');
-            const data = await res.json();
-            if (data.success) {
-                currentUser = data.user;
-                localStorage.setItem('userId', data.user.id);
-                localStorage.setItem('userName', data.user.name);
-                localStorage.setItem('userEmail', data.user.email);
-                localStorage.setItem('userPhone', data.user.phone);
-                console.log('👤 Utilisateur connecté:', currentUser);
-                return true;
-            }
-            window.location.href = '/login';
-            return false;
-        } catch (error) {
-            console.error('❌ Erreur vérification auth:', error);
-            window.location.href = '/login';
-            return false;
-        }
+    function hideMessage() {
+        messageOverlay.classList.remove('active');
     }
 
-    // ==========================================
-    // OVERLAYS
-    // ==========================================
+    messageBtn.addEventListener('click', hideMessage);
+    messageOverlay.addEventListener('click', function(e) {
+        if (e.target === messageOverlay) hideMessage();
+    });
 
     function showConfirm(icon, title, message) {
         return new Promise((resolve) => {
@@ -318,25 +185,6 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmOverlay.addEventListener('click', function(e) {
         if (e.target === confirmOverlay) {
             confirmOverlay.classList.remove('active');
-        }
-    });
-
-    function showMessage(icon, title, text) {
-        return new Promise((resolve) => {
-            messageIcon.textContent = icon;
-            messageTitle.textContent = title;
-            messageText.textContent = text;
-            messageOverlay.classList.add('active');
-            messageBtn.onclick = function() {
-                messageOverlay.classList.remove('active');
-                resolve();
-            };
-        });
-    }
-
-    messageOverlay.addEventListener('click', function(e) {
-        if (e.target === messageOverlay) {
-            messageOverlay.classList.remove('active');
         }
     });
 
@@ -370,14 +218,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ==========================================
-    // CHARGER LES COMMANDES (AVEC PREMIER CHARGEMENT)
-    // ==========================================
+    async function checkAuth() {
+        try {
+            const res = await fetch('/api/client/me');
+            const data = await res.json();
+            if (data.success) {
+                currentUser = data.user;
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
+                localStorage.setItem('userEmail', data.user.email);
+                localStorage.setItem('userPhone', data.user.phone);
+                return true;
+            }
+            window.location.href = '/login';
+            return false;
+        } catch (error) {
+            window.location.href = '/login';
+            return false;
+        }
+    }
 
     async function loadCommandes() {
-        console.log('📥 Chargement des commandes...');
-        
-        // ✅ Afficher le loader uniquement au premier chargement
         if (isFirstLoad && loadingState) {
             loadingState.style.display = 'block';
         }
@@ -413,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
         } catch (error) {
-            console.error('❌ Erreur:', error);
             isFirstLoad = false;
             mainContent.innerHTML = `
                 <div class="empty-state">
@@ -426,10 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loadingState) loadingState.style.display = 'none';
         }
     }
-
-    // ==========================================
-    // EXTRAIRE LES PRODUITS
-    // ==========================================
 
     function extractProducts(panierData) {
         if (!panierData) return [];
@@ -461,17 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return [];
     }
 
-    // ==========================================
-    // VÉRIFIER LE PAIEMENT
-    // ==========================================
-
     async function checkPaymentWithGenius(commandeId, reference, geniusReference) {
         const btn = document.querySelector(`.btn-sync[data-id="${commandeId}"]`);
         if (!btn) return;
 
         const refToCheck = geniusReference || reference;
         if (!refToCheck || /^\d+$/.test(refToCheck)) {
-            showToast('ℹ️ Aucune référence de paiement disponible', 'info');
+            await showMessage('ℹ️', 'Information', 'Aucune référence de paiement disponible pour cette commande.');
             return;
         }
 
@@ -482,11 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/check/${refToCheck}`);
 
             if (!res.ok) {
-                if (res.status === 500) {
-                    showToast('⚠️ Service de paiement temporairement indisponible', 'error');
-                } else {
-                    showToast('⚠️ Erreur lors de la vérification', 'error');
-                }
+                await showMessage('⚠️', 'Service indisponible', 'Le service de paiement est temporairement indisponible.');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
                 return;
@@ -502,20 +350,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (updateRes.ok) {
                     await loadCommandes();
-                    showToast('✅ Paiement confirmé !', 'success');
+                    await showMessage('✅', 'Paiement confirmé', 'Le paiement a été confirmé avec succès.');
                 } else {
-                    showToast('⚠️ Mise à jour en cours...', 'info');
+                    await showMessage('⚠️', 'Mise à jour', 'Mise à jour du statut en cours...');
                 }
             } else if (data.status === 'pending') {
-                showToast('⏳ Paiement en attente...', 'info');
+                await showMessage('⏳', 'En attente', 'Le paiement est toujours en attente.');
             } else if (data.status === 'not_found') {
-                showToast('ℹ️ Aucun paiement trouvé pour cette commande', 'info');
+                await showMessage('ℹ️', 'Non trouvé', 'Aucun paiement trouvé pour cette commande.');
             } else {
-                showToast('❌ Statut: ' + (data.status || 'inconnu'), 'error');
+                await showMessage('ℹ️', 'Statut', 'Statut: ' + (data.status || 'inconnu'));
             }
         } catch (error) {
-            console.error('Erreur vérification:', error);
-            showToast('❌ Erreur de vérification', 'error');
+            await showMessage('❌', 'Erreur', 'Erreur lors de la vérification.');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -523,10 +370,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    // ==========================================
-    // ANNULER LE PAIEMENT
-    // ==========================================
 
     async function cancelPayment(commandeId) {
         try {
@@ -543,14 +386,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
             }
         } catch (error) {
-            console.error('Erreur annulation paiement:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
     }
-
-    // ==========================================
-    // ANNULER UNE COMMANDE
-    // ==========================================
 
     async function cancelCommande(commandeId) {
         try {
@@ -562,19 +400,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (res.ok) {
                 await loadCommandes();
-                showToast('✅ Commande annulée', 'success');
+                await showMessage('✅', 'Commande annulée', 'La commande a été annulée avec succès.');
             } else {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
             }
         } catch (error) {
-            console.error('Erreur annulation:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur.');
         }
     }
-
-    // ==========================================
-    // SUPPRIMER UNE COMMANDE
-    // ==========================================
 
     async function deleteCommande(commandeId) {
         try {
@@ -587,14 +420,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible de supprimer.');
             }
         } catch (error) {
-            console.error('Erreur suppression:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur.');
         }
     }
-
-    // ==========================================
-    // RESTAURER UNE COMMANDE
-    // ==========================================
 
     async function restoreCommande(commandeId) {
         try {
@@ -607,14 +435,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible de restaurer.');
             }
         } catch (error) {
-            console.error('Erreur restauration:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
     }
-
-    // ==========================================
-    // PAIEMENT
-    // ==========================================
 
     async function handlePayment(commandeId, amount, reference, phone) {
         if (!phone) {
@@ -644,18 +467,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible de créer le paiement.');
             }
         } catch (error) {
-            console.error('Erreur paiement:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
     }
 
-    // ==========================================
-    // RENDU DES COMMANDES (Modèle 5)
-    // ==========================================
+    function getStatusHistory(commande) {
+        const statusHistory = {
+            'en_attente': { label: 'En attente', class: 'en_attente' },
+            'accepter': { label: 'Paiement requis', class: 'accepter' },
+            'paiement_en_cours': { label: 'En cours...', class: 'paiement_en_cours' },
+            'paiement_effectue': { label: 'Payée', class: 'paiement_effectue' },
+            'livraison_en_cours': { label: 'En livraison', class: 'livraison_en_cours' },
+            'disponible': { label: 'Disponible', class: 'disponible' },
+            'recuperee': { label: 'Récupérée', class: 'recuperee' },
+            'refuse': { label: 'Refusée', class: 'refuse' },
+            'annulee': { label: 'Annulée', class: 'annulee' }
+        };
+
+        const order = ['en_attente', 'accepter', 'paiement_en_cours', 'paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee'];
+        const current = commande.status || 'en_attente';
+
+        if (current === 'en_attente') {
+            return {
+                old: null,
+                current: statusHistory[current]
+            };
+        }
+
+        const currentIndex = order.indexOf(current);
+        let oldStatus = null;
+
+        for (let i = currentIndex - 1; i >= 0; i--) {
+            const candidate = order[i];
+            if (candidate && statusHistory[candidate]) {
+                oldStatus = statusHistory[candidate];
+                break;
+            }
+        }
+
+        if (!oldStatus && current === 'accepter') {
+            oldStatus = statusHistory['en_attente'];
+        }
+
+        return {
+            old: oldStatus,
+            current: statusHistory[current] || { label: current, class: 'en_attente' }
+        };
+    }
 
     function renderCommandes() {
-        console.log('🎨 Rendu des commandes, nombre:', commandes.length);
-
         if (commandes.length === 0) {
             mainContent.innerHTML = `
                 <div class="empty-state">
@@ -685,6 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
         commandes.forEach((c) => {
             const statusClass = c.status || 'en_attente';
             const statusInfo = statusLabels[statusClass] || { label: statusClass, icon: '📋', class: 'en_attente' };
+            const history = getStatusHistory(c);
 
             const isPayable = c.status === 'accepter';
             const isDeletable = c.status === 'refuse' || c.status === 'annulee';
@@ -697,6 +558,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
 
+            let statusTransitionHtml = '';
+            if (history.old) {
+                statusTransitionHtml = `
+                    <span class="old-status">${history.old.label}</span>
+                    <span class="arrow">→</span>
+                    <span class="new-status ${history.current.class}">${statusInfo.icon} ${history.current.label}</span>
+                `;
+            } else {
+                statusTransitionHtml = `
+                    <span class="new-status ${history.current.class}">${statusInfo.icon} ${history.current.label}</span>
+                `;
+            }
+
             html += `
                 <div class="commande-card status-${statusClass}">
                     <span class="badge-top ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span>
@@ -704,7 +578,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="ref">${refDisplay}</span>
                     <span class="date">${dateStr}</span>
                     <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
-                    <div class="status-text"><span class="status-icon">${statusInfo.icon}</span> ${statusInfo.label}</div>
+                    <div class="status-transition">${statusTransitionHtml}</div>
+                    ${c.cause_refus ? `<div class="commande-cause">❌ ${c.cause_refus}</div>` : ''}
                     <div class="actions">
                         ${isPaymentInProgress ? `
                             <button class="btn btn-cancel-pay" data-id="${c.id}">
@@ -745,8 +620,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         mainContent.innerHTML = html;
-
-        // ===== ÉVÉNEMENTS =====
 
         document.querySelectorAll('.btn-sync').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -807,29 +680,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ==========================================
-    // INITIALISATION
-    // ==========================================
-
     (async function init() {
         try {
-            console.log('🚀 Initialisation de mescommandes...');
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            // ✅ Démarrer la sync
             isSyncActive = true;
             updateSyncUI();
 
-            // ✅ Connecter Socket.IO
             connectSocketIO();
 
-            // ✅ Premier chargement
             await loadCommandes();
 
-            console.log('✅ Initialisation terminée');
         } catch (error) {
-            console.error('❌ Erreur lors de l\'initialisation:', error);
+            // Silencieux
         }
     })();
 

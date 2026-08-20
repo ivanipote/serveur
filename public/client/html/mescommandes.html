@@ -9,22 +9,18 @@
 </head>
 <body>
 
-    <!-- HEADER -->
     <header class="page-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <div class="header-title-wrapper">
-            <span class="page-title">📋 Mes commandes</span>
-            <span class="badge-total" id="badgeTotal">0</span>
-        </div>
-        <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
+        <span class="page-title">📋 Mes commandes</span>
+        <span class="badge-total" id="badgeTotal">0</span>
+        <button class="btn-sync" id="syncBtn" title="Synchronisation">
             <i class="fas fa-sync-alt"></i>
             <span class="sync-status" id="syncStatus">●</span>
         </button>
     </header>
 
-    <!-- CONTENU PRINCIPAL -->
     <main class="main-content" id="mainContent">
         <div class="loading-state" id="loadingState">
             <i class="fas fa-spinner fa-spin"></i>
@@ -32,7 +28,6 @@
         </div>
     </main>
 
-    <!-- OVERLAYS -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
             <div class="confirm-icon" id="confirmIcon">⚠️</div>
@@ -78,9 +73,6 @@
             </div>
         </div>
     </div>
-
-    <!-- TOAST -->
-    <div id="toastContainer" style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;"></div>
 
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/mescommandes.js"></script>

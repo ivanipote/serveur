@@ -14,13 +14,13 @@ body {
     padding-bottom: 20px;
 }
 
-/* ===== HEADER ===== */
 .page-header {
     background: white;
     padding: 12px 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     flex-shrink: 0;
     border-bottom-left-radius: 20px;
@@ -54,7 +54,6 @@ body {
 }
 
 .page-title {
-    flex: 1;
     font-size: 18px;
     font-weight: 700;
     color: #1a1a2e;
@@ -70,38 +69,76 @@ body {
     flex-shrink: 0;
 }
 
-.btn-refresh {
-    background: #2d7d46;
-    color: white;
-    border: none;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
+.btn-sync {
+    background: #e8f5ec;
+    border: 2px solid #2d7d46;
+    color: #2d7d46;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
+    position: relative;
     flex-shrink: 0;
 }
 
-.btn-refresh:hover {
+.btn-sync:hover {
+    background: #d4edda;
+    transform: scale(1.05);
+}
+
+.btn-sync.active {
+    background: #2d7d46;
+    color: white;
+    border-color: #2d7d46;
+}
+
+.btn-sync.active:hover {
     background: #1a5a33;
-    transform: scale(1.02);
 }
 
-.btn-refresh:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+.btn-sync.paused {
+    background: #fef0f0;
+    border-color: #e74c3c;
+    color: #e74c3c;
 }
 
-.btn-refresh .fa-spinner {
-    animation: spin 0.8s linear infinite;
+.btn-sync.paused:hover {
+    background: #fde8e8;
 }
 
-/* ===== MAIN ===== */
+.btn-sync .sync-status {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 12px;
+    background: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #2d7d46;
+    color: #2d7d46;
+}
+
+.btn-sync.active .sync-status {
+    border-color: white;
+    color: white;
+    background: #2d7d46;
+}
+
+.btn-sync.paused .sync-status {
+    border-color: #e74c3c;
+    color: #e74c3c;
+    background: white;
+}
+
 .main-content {
     flex: 1;
     padding: 20px;
@@ -121,10 +158,6 @@ body {
     margin-bottom: 12px;
 }
 
-/* ========================================== */
-/* MODÈLE 5 : Carte arrondie (style badge)    */
-/* ========================================== */
-
 .commande-card {
     background: white;
     border-radius: 20px;
@@ -143,7 +176,6 @@ body {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* --- Badge en haut à droite --- */
 .commande-card .badge-top {
     position: absolute;
     top: 14px;
@@ -155,7 +187,6 @@ body {
     letter-spacing: 0.3px;
 }
 
-/* --- Couleurs des badges --- */
 .commande-card .badge-top.en_attente { background: #fff3cd; color: #856404; }
 .commande-card .badge-top.accepter { background: #cce5ff; color: #004085; }
 .commande-card .badge-top.paiement_en_cours { background: #ffe0b2; color: #e67e22; }
@@ -164,8 +195,8 @@ body {
 .commande-card .badge-top.disponible { background: #d4edda; color: #155724; }
 .commande-card .badge-top.recuperee { background: #a5d6a7; color: #1b5e20; }
 .commande-card .badge-top.refuse { background: #f8d7da; color: #721c24; }
+.commande-card .badge-top.annulee { background: #f8d7da; color: #721c24; }
 
-/* --- Couleurs de fond par statut (optionnel) --- */
 .commande-card.status-en_attente { background: #fffde7; }
 .commande-card.status-accepter { background: #e3f2fd; }
 .commande-card.status-paiement_en_cours { background: #fff3e0; }
@@ -176,7 +207,6 @@ body {
 .commande-card.status-refuse { background: #ffebee; }
 .commande-card.status-annulee { background: #ffebee; }
 
-/* --- Contenu --- */
 .commande-card .id {
     font-size: 15px;
     font-weight: 700;
@@ -203,22 +233,41 @@ body {
     margin: 6px 0 2px 0;
 }
 
-/* --- Statut en dessous du prix --- */
-.commande-card .status-text {
-    font-size: 13px;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 4px;
+.commande-card .status-transition {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 4px 0 6px 0;
+    flex-wrap: wrap;
 }
 
-.commande-card .status-text .status-icon {
+.commande-card .status-transition .old-status {
+    color: #aaa;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.commande-card .status-transition .arrow {
+    color: #888;
     font-size: 16px;
 }
 
-/* --- Cause refus --- */
+.commande-card .status-transition .new-status {
+    font-weight: 700;
+}
+
+.commande-card .status-transition .new-status.en_attente { color: #856404; }
+.commande-card .status-transition .new-status.accepter { color: #004085; }
+.commande-card .status-transition .new-status.paiement_en_cours { color: #e67e22; }
+.commande-card .status-transition .new-status.paiement_effectue { color: #0b5e2e; }
+.commande-card .status-transition .new-status.livraison_en_cours { color: #0c5460; }
+.commande-card .status-transition .new-status.disponible { color: #155724; }
+.commande-card .status-transition .new-status.recuperee { color: #1b5e20; }
+.commande-card .status-transition .new-status.refuse { color: #721c24; }
+.commande-card .status-transition .new-status.annulee { color: #721c24; }
+
 .commande-card .commande-cause {
     font-size: 12px;
     color: #e74c3c;
@@ -228,7 +277,6 @@ body {
     border-radius: 8px;
 }
 
-/* --- Footer : actions (boutons) --- */
 .commande-card .actions {
     display: flex;
     gap: 8px;
@@ -283,7 +331,6 @@ body {
     transform: rotate(180deg);
 }
 
-/* --- Types de boutons --- */
 .btn-pay {
     background: linear-gradient(135deg, #2d7d46, #1a5a33);
     color: white;
@@ -328,10 +375,6 @@ body {
     background: #e8f5ec;
     transform: rotate(180deg);
 }
-
-/* ========================================== */
-/* OVERLAYS                                   */
-/* ========================================== */
 
 .confirm-overlay {
     position: fixed;
@@ -534,10 +577,6 @@ body {
     box-shadow: 0 8px 30px rgba(45,125,70,0.25);
 }
 
-/* ========================================== */
-/* EMPTY STATE                                */
-/* ========================================== */
-
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -561,10 +600,6 @@ body {
 
 .empty-state .btn-shop:hover { background: #1a5a33; }
 
-/* ========================================== */
-/* ANIMATIONS                                 */
-/* ========================================== */
-
 @keyframes scaleIn {
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -575,26 +610,14 @@ body {
     to { opacity: 1; }
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ========================================== */
-/* RESPONSIVE                                 */
-/* ========================================== */
-
 @media (max-width: 600px) {
     body { padding-top: 68px; }
-    .page-header { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
+    .page-header { padding: 10px 14px; gap: 8px; flex-wrap: nowrap; }
     .back-btn { width: 36px; height: 36px; font-size: 16px; }
     .page-title { font-size: 15px; }
     .badge-total { font-size: 11px; padding: 3px 10px; }
-    .btn-refresh { font-size: 11px; padding: 4px 12px; }
+    .btn-sync { width: 38px; height: 38px; font-size: 14px; }
+    .btn-sync .sync-status { font-size: 10px; width: 16px; height: 16px; }
     .main-content { padding: 12px; }
     .commande-card { padding: 16px 14px 12px 14px; }
     .commande-card .total { font-size: 20px; }
@@ -607,34 +630,12 @@ body {
     .payment-actions { flex-direction: column; }
     .payment-actions .btn-cancel-payment,
     .payment-actions .btn-confirm-payment { padding: 12px; font-size: 14px; }
+    .commande-card .status-transition { font-size: 12px; }
 }
 
 @media (max-width: 400px) {
     .commande-card .actions { flex-wrap: wrap; justify-content: center; }
     .commande-card .actions .btn { font-size: 10px; padding: 4px 10px; height: 30px; min-height: 30px; }
     .page-header { gap: 6px; }
-    .btn-refresh { font-size: 10px; padding: 3px 10px; }
-}
-/* ========================================== */
-/* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC   */
-/* ========================================== */
-
-* {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
-
-/* Pour les éléments cliquables (boutons, liens) */
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-/* Si tu veux garder la sélection de texte sur certains éléments */
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
+    .btn-sync { width: 34px; height: 34px; font-size: 12px; }
 }
