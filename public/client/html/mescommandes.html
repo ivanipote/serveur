@@ -14,10 +14,13 @@
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="page-title">📋 Mes commandes</span>
-        <span class="badge-total" id="badgeTotal">0</span>
-        <button id="refreshStatusBtn" class="btn-refresh" title="Rafraîchir les statuts">
-            <i class="fas fa-sync-alt"></i> Rafraîchir
+        <div class="header-title-wrapper">
+            <span class="page-title">📋 Mes commandes</span>
+            <span class="badge-total" id="badgeTotal">0</span>
+        </div>
+        <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
+            <i class="fas fa-sync-alt"></i>
+            <span class="sync-status" id="syncStatus">●</span>
         </button>
     </header>
 
@@ -29,7 +32,7 @@
         </div>
     </main>
 
-    <!-- OVERLAY CONFIRMATION -->
+    <!-- OVERLAYS -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
             <div class="confirm-icon" id="confirmIcon">⚠️</div>
@@ -42,7 +45,6 @@
         </div>
     </div>
 
-    <!-- OVERLAY MESSAGE -->
     <div class="message-overlay" id="messageOverlay">
         <div class="message-box">
             <div class="message-icon" id="messageIcon">⚠️</div>
@@ -52,7 +54,6 @@
         </div>
     </div>
 
-    <!-- OVERLAY PAIEMENT -->
     <div class="payment-overlay" id="paymentOverlay">
         <div class="payment-box">
             <div class="payment-icon">💳</div>
@@ -81,6 +82,7 @@
     <!-- TOAST -->
     <div id="toastContainer" style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;"></div>
 
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/mescommandes.js"></script>
 </body>
 </html>
