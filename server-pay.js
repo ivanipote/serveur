@@ -707,10 +707,15 @@ async function handlePaymentRefunded(data) {
 // DÉMARRAGE
 // ========================================================
 
-app.listen(PORT, () => {
+// ========================================================
+// DÉMARRAGE
+// ========================================================
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`========================================`);
     console.log(`🚀 SERVEUR PAIEMENT - Nature+ (LIVE ✅)`);
     console.log(`📍 Port: ${PORT}`);
+    console.log(`📍 Host: 0.0.0.0`);
     console.log(`📍 http://localhost:${PORT}`);
     console.log(`📍 Socket.IO: port 3003`);
     console.log(`========================================`);
