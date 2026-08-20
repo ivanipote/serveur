@@ -10,6 +10,16 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
         }
 
         body {
@@ -19,7 +29,7 @@
             display: flex;
             flex-direction: column;
             padding-top: 76px;
-            overflow: hidden;
+            padding-bottom: 20px;
         }
 
         .info-header {
@@ -137,29 +147,25 @@
         .info-main {
             flex: 1;
             padding: 8px 16px 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 0;
         }
 
         .product-image-container {
             width: 100%;
-            height: 100%;
-            max-height: calc(100vh - 76px - 120px - 260px);
-            min-height: 150px;
             border-radius: 20px;
             overflow: hidden;
             background: #f0f2f5;
             position: relative;
             box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            aspect-ratio: 4/3;
+            max-height: 60vh;
         }
 
         .product-image-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             display: block;
+            background: white;
         }
 
         .image-nav {
@@ -216,8 +222,7 @@
             padding: 24px 24px 32px 24px;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
             flex-shrink: 0;
-            position: relative;
-            z-index: 50;
+            margin-top: 8px;
         }
 
         .footer-content {
@@ -379,7 +384,7 @@
             .nature-message p { font-size: 13px; }
             .nature-message .merci { font-size: 14px; }
             .info-main { padding: 6px 12px 10px 12px; }
-            .product-image-container { max-height: calc(100vh - 68px - 110px - 220px); min-height: 120px; border-radius: 16px; }
+            .product-image-container { border-radius: 16px; max-height: 50vh; }
             .image-nav { width: 30px; height: 30px; font-size: 13px; }
             .image-nav.prev { left: 6px; }
             .image-nav.next { right: 6px; }
@@ -396,7 +401,7 @@
         }
 
         @media (max-width: 400px) {
-            .product-image-container { min-height: 100px; }
+            .product-image-container { max-height: 40vh; }
             .nature-message p { font-size: 12px; }
             .nature-message .merci { font-size: 13px; }
             .info-footer { border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 14px 12px 24px 12px; }
@@ -407,23 +412,6 @@
             .quantity-selector .qty-btn { width: 30px; height: 30px; font-size: 14px; }
             .quantity-selector .qty-value { font-size: 18px; min-width: 26px; }
         }
-        * {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
-
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-}
     </style>
 </head>
 <body>
@@ -445,7 +433,7 @@ input, textarea {
         <p class="merci">Merci d'utiliser <strong>Nature+</strong></p>
     </div>
 
-    <main class="info-main" id="infoMain">
+    <main class="info-main">
         <div class="product-image-container" id="imageContainer">
             <img id="productImage" src="https://via.placeholder.com/800x600" alt="Produit">
             <button class="image-nav prev hidden" id="prevBtn">
@@ -460,7 +448,7 @@ input, textarea {
         </div>
     </main>
 
-    <footer class="info-footer" id="infoFooter">
+    <footer class="info-footer">
         <div class="footer-content">
             <div class="product-name" id="productName">Nom du produit</div>
             <div class="product-price" id="productPrice">0 FCFA</div>
@@ -483,8 +471,6 @@ input, textarea {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
-            console.log('✅ infoproduit.js chargé');
 
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
