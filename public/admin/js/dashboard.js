@@ -1,14 +1,6 @@
-// ==========================================
-// DASHBOARD.JS - ADMIN COMPLET
-// ==========================================
-
 document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ Admin dashboard chargé');
-
-    // ==========================================
-    // VÉRIFICATION CONNEXION
-    // ==========================================
 
     const adminToken = localStorage.getItem('adminToken');
     if (!adminToken) {
@@ -18,10 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const adminName = localStorage.getItem('adminName') || 'Admin';
     document.getElementById('adminName').textContent = adminName;
-
-    // ==========================================
-    // HORLOGE
-    // ==========================================
 
     function updateClock() {
         const now = new Date();
@@ -59,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             socket.on('connect', function() {
-                console.log('✅ Socket.IO connecté');
+                console.log('✅ Socket.IO admin connecté');
                 isSocketConnected = true;
                 updateConnectionStatus('● Connecté', true);
             });
@@ -67,7 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
             socket.on('disconnect', function() {
                 isSocketConnected = false;
                 updateConnectionStatus('● Reconnexion...', false);
-                setTimeout(() => { if (!isSocketConnected) connectSocketIO(); }, 2000);
+                setTimeout(() => {
+                    if (!isSocketConnected) connectSocketIO();
+                }, 2000);
             });
 
             socket.on('nouvelle-commande', function(data) {
@@ -114,7 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function showToast(message, type = 'info') {
-        const colors = { success: '#43a047', error: '#e53935', info: '#1a2a6c', warning: '#e67e22' };
+        const colors = {
+            success: '#43a047',
+            error: '#e53935',
+            info: '#1a2a6c',
+            warning: '#e67e22'
+        };
         const toast = document.createElement('div');
         toast.className = 'toast ' + type;
         toast.textContent = message;
@@ -129,7 +124,10 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: opacity 0.3s;
         `;
         document.body.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
 
     // ==========================================
@@ -175,10 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ==========================================
-    // RAFRAÎCHIR
-    // ==========================================
-
     document.getElementById('refreshPageBtn').addEventListener('click', function() {
         const active = document.querySelector('.page-section.active');
         if (active) {
@@ -189,15 +183,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ==========================================
-    // DÉCONNEXION
-    // ==========================================
-
     document.getElementById('logoutBtn').addEventListener('click', function() {
         if (socket) socket.disconnect();
         localStorage.clear();
         window.location.href = '/admin/login';
     });
+
+    // ==========================================
+    // SYNC AUTO - EN ARRIÈRE-PLAN
+    // ==========================================
+
+    let syncInterval = null;
+    let isSyncing = false;
+
+    function startAutoSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+        }
+
+        console.log('🔄 Sync admin démarré (toutes les 10s)');
+
+        syncInterval = setInterval(() => {
+            if (!isSyncing) {
+                const activePage = document.querySelector('.page-section.active');
+                if (activePage) {
+                    const pageId = activePage.id.replace('page-', '');
+                    const fn = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
+                    if (typeof fn === 'function' && pageId !== 'add-product' && pageId !== 'send-message') {
+                        fn();
+                    }
+                }
+            }
+        }, 10000);
+    }
+
+    function stopAutoSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            syncInterval = null;
+            console.log('⏹️ Sync admin arrêté');
+        }
+    }
 
     // ==========================================
     // VUE D'ENSEMBLE
@@ -330,6 +356,17 @@ document.addEventListener('DOMContentLoaded', function() {
             'disponible': '📍 Disponible', 'recuperee': '✅ Récupérée'
         };
 
+        const statusColors = {
+            'en_attente': 'en_attente',
+            'accepter': 'accepter',
+            'refuse': 'refuse',
+            'annulee': 'annulee',
+            'paiement_effectue': 'paiement_effectue',
+            'livraison_en_cours': 'livraison_en_cours',
+            'disponible': 'disponible',
+            'recuperee': 'recuperee'
+        };
+
         tbody.innerHTML = filtered.map(c => {
             const status = c.status || 'en_attente';
             const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
@@ -340,11 +377,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
                     <td>${c.nom}</td>
                     <td>${(c.total || 0).toLocaleString()} FCFA</td>
-                    <td><span class="status-badge ${status}">${labels[status] || status}</span></td>
+                    <td><span class="status-badge ${statusColors[status] || 'en_attente'}">${labels[status] || status}</span></td>
                     <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                     <td>
                         <button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Maps"><i class="fas fa-map-marker-alt"></i></button>
-                        ${!isFinal ? `<button class="btn-action sync" onclick="syncCommande(${c.id})" title="Sync"><i class="fas fa-sync-alt"></i></button>` : ''}
                         ${!isFinal ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Statut"><i class="fas fa-edit"></i></button>` : `<button class="btn-action status" style="opacity:0.4;cursor:not-allowed;" disabled><i class="fas fa-lock"></i></button>`}
                         <button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Détails"><i class="fas fa-eye"></i></button>
                     </td>
@@ -380,25 +416,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openMaps = function(lat, lon, id) {
         if (lat && lon) window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank');
         else alert(`📍 Aucune position GPS pour la commande #${id}`);
-    };
-
-    window.syncCommande = async function(commandeId) {
-        try {
-            const res = await fetch(`https://nature-plus-pay.onrender.com/api/payment/check/${commandeId}`);
-            if (!res.ok) { showToast('⚠️ Service indisponible', 'warning'); return; }
-            const data = await res.json();
-            if (data.success && data.status === 'success') {
-                const updateRes = await fetch('https://nature-plus-pay.onrender.com/api/payment/update-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ commandeId, status: 'paiement_effectue' })
-                });
-                if (updateRes.ok) { showToast('✅ Paiement synchronisé !', 'success'); window.loadCommandes(); }
-                else showToast('⚠️ Erreur mise à jour', 'warning');
-            } else if (data.status === 'pending') showToast('⏳ En attente...', 'info');
-            else if (data.status === 'not_found') showToast('ℹ️ Aucun paiement trouvé', 'info');
-            else showToast('ℹ️ Statut: ' + data.status, 'info');
-        } catch (e) { showToast('❌ Erreur synchronisation', 'error'); }
     };
 
     window.openStatusOverlay = function(commandeId) {
@@ -556,7 +573,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const statusLabels = { pending: '⏳ En attente', success: '✅ Réussi', failed: '❌ Échoué', canceled: '⏰ Annulé' };
+            const statusLabels = {
+                pending: '⏳ En attente',
+                success: '✅ Réussi',
+                failed: '❌ Échoué',
+                canceled: '⏰ Annulé',
+                cancelled: '⏰ Annulé',
+                processing: '⏳ En cours',
+                expired: '⏳ Expiré',
+                refunded: '🔄 Remboursé'
+            };
 
             tbody.innerHTML = data.map(p => `
                 <tr>
@@ -603,6 +629,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>
             `).join('');
         } catch (e) { console.error('Erreur produits:', e); }
+    };
+
+    window.editProduct = function(id) {
+        // Rediriger vers la page d'ajout avec l'ID
+        showPage('add-product');
+        // On peut charger les données du produit pour les pré-remplir
+        document.getElementById('productName').value = '';
+        document.getElementById('productPrice').value = '';
+        document.getElementById('productQuantity').value = '';
+        document.getElementById('productDescription').value = '';
+        document.querySelector('form').dataset.editId = id;
+        document.getElementById('submitProductBtn').textContent = 'Modifier le produit';
     };
 
     window.deleteProduct = function(id) {
@@ -934,8 +972,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     showPage('overview');
     connectSocketIO();
+    startAutoSync();
 
-    // Charger tous les onglets en arrière-plan
     window.loadOverview();
     window.loadCommandes();
     window.loadPayments();
@@ -945,6 +983,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadSendMessage();
     window.loadUpdates();
 
-    console.log('✅ Admin dashboard initialisé');
+    console.log('✅ Admin dashboard initialisé avec sync auto');
 
 });
