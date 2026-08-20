@@ -24,6 +24,47 @@ document.addEventListener('DOMContentLoaded', function() {
     let isSocketConnected = false;
 
     // ==========================================
+    // TOAST (notification visuelle)
+    // ==========================================
+
+    function showToast(message, type = 'success') {
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#e67e22',
+            info: '#1a2a6c'
+        };
+        
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${colors[type] || '#28a745'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 999;
+            text-align: center;
+            max-width: 90%;
+            animation: slideUp 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // ==========================================
     // SOCKET.IO - Connexion
     // ==========================================
 
@@ -60,9 +101,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
+            // ✅ ÉCOUTER LES NOTIFICATIONS EN TEMPS RÉEL
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
+                
+                // 1. Afficher le toast
+                showToast(data.message || 'Nouvelle notification', 'info');
+                
+                // 2. Recharger les notifications (même si on est sur la page)
                 loadNotifications();
+                
+                // 3. Mettre à jour le badge
+                updateBadge();
             });
 
         } catch (error) {
@@ -108,28 +158,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const diffHour = Math.floor(diffMin / 60);
         const diffDay = Math.floor(diffHour / 24);
 
-        // Moins d'1 minute
         if (diffSec < 60) return 'À l\'instant';
-        
-        // Moins d'1 heure
         if (diffMin < 60) return `Il y a ${diffMin} min`;
-        
-        // Aujourd'hui (moins de 24h) → afficher l'heure
         if (diffHour < 24) {
             const heures = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `Aujourd'hui ${heures}:${minutes}`;
         }
-        
-        // Moins de 7 jours → afficher le jour + heure
         if (diffDay < 7) {
             const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             const heures = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${jours[date.getDay()]} ${heures}:${minutes}`;
         }
-        
-        // Plus de 7 jours → date complète
         return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     }
 
@@ -420,7 +461,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const unreadCount = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
 
-        if (unreadCount === 0) return;
+        if (unreadCount === 0) {
+            showToast('✅ Toutes vos notifications sont déjà lues', 'info');
+            return;
+        }
 
         try {
             const res = await fetch('/api/notifications/read-all', {
@@ -433,11 +477,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifications.forEach(n => n.is_read = 1);
                 renderNotifications();
                 updateBadge();
+                showToast(`✅ ${unreadCount} notification(s) marquée(s) comme lues`, 'success');
             } else {
                 console.error('Erreur:', data);
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         } catch (error) {
             console.error('Erreur:', error);
+            showToast('❌ Erreur de connexion', 'error');
         }
     });
 
