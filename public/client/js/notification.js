@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const notifBadge = document.getElementById('notifBadge');
     const readAllBtn = document.getElementById('readAllBtn');
     const filterButtons = document.querySelectorAll('.filter-btn');
+    const syncBtn = document.getElementById('syncBtn');
+    const syncStatus = document.getElementById('syncStatus');
 
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
@@ -22,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let deleteTargetId = null;
     let syncInterval = null;
     let isSyncing = false;
+    let isSyncActive = true;
 
     // ==========================================
     // TOAST
@@ -65,7 +68,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SYNC EN PERMANENCE (toutes les 5 secondes)
+    // BOUTON SYNC - GESTION
+    // ==========================================
+
+    function updateSyncUI() {
+        if (isSyncActive) {
+            syncBtn.classList.add('active');
+            syncBtn.classList.remove('paused');
+            syncStatus.textContent = '●';
+            syncStatus.className = 'sync-status active';
+            syncBtn.title = 'Synchronisation active - Cliquer pour mettre en pause';
+            startSync();
+        } else {
+            syncBtn.classList.remove('active');
+            syncBtn.classList.add('paused');
+            syncStatus.textContent = '○';
+            syncStatus.className = 'sync-status paused';
+            syncBtn.title = 'Synchronisation en pause - Cliquer pour reprendre';
+            stopSync();
+        }
+    }
+
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function() {
+            isSyncActive = !isSyncActive;
+            updateSyncUI();
+        });
+    }
+
+    // ==========================================
+    // SYNC EN PERMANENCE
     // ==========================================
 
     function startSync() {
@@ -80,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Puis toutes les 5 secondes
         syncInterval = setInterval(() => {
-            if (!isSyncing) {
+            if (!isSyncing && isSyncActive) {
                 loadNotifications();
             }
         }, 5000);
@@ -91,6 +123,64 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(syncInterval);
             syncInterval = null;
             console.log('⏹️ Sync notifications arrêté');
+        }
+    }
+
+    // ==========================================
+    // SOCKET.IO - Connexion
+    // ==========================================
+
+    let socket = null;
+    let isSocketConnected = false;
+
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        console.log('🔌 Connexion Socket.IO client (notification)...');
+
+        try {
+            const userIdLocal = localStorage.getItem('userId') || '1';
+
+            socket = io({
+                auth: {
+                    userId: parseInt(userIdLocal),
+                    isAdmin: false
+                }
+            });
+
+            socket.on('connect', function() {
+                console.log('✅ Socket.IO client notification connecté');
+                isSocketConnected = true;
+            });
+
+            socket.on('disconnect', function() {
+                console.log('❌ Socket.IO client notification déconnecté');
+                isSocketConnected = false;
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectSocketIO();
+                    }
+                }, 3000);
+            });
+
+            socket.on('notification', function(data) {
+                console.log('🔔 Notification reçue (client):', data);
+                
+                showToast(data.message || 'Nouvelle notification', 'info');
+                
+                if (isSyncActive) {
+                    loadNotifications();
+                }
+                
+                updateBadge();
+            });
+
+        } catch (error) {
+            console.error('❌ Erreur connexion Socket.IO:', error);
+            setTimeout(() => connectSocketIO(), 5000);
         }
     }
 
@@ -202,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS (SIMPLIFIÉ)
+    // CHARGER LES NOTIFICATIONS
     // ==========================================
 
     async function loadNotifications() {
@@ -232,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (SIMPLIFIÉ)
+    // RENDRE LES NOTIFICATIONS
     // ==========================================
 
     function renderNotifications() {
@@ -497,8 +587,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            // Démarrer la sync en permanence
-            startSync();
+            // ✅ Démarrer la sync
+            isSyncActive = true;
+            updateSyncUI();
+
+            // ✅ Connecter Socket.IO
+            connectSocketIO();
+
+            // ✅ Premier chargement
+            await loadNotifications();
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
