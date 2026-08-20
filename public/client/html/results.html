@@ -290,6 +290,23 @@
         @media (max-width: 400px) {
             .product-grid { grid-template-columns: 1fr; }
         }
+        * {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+}
+
+button, a, .btn, .clickable {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+input, textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
     </style>
 </head>
 <body>
