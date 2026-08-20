@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let deleteTargetId = null;
     let socket = null;
     let isSocketConnected = false;
+    let isLoading = false; // ✅ Empêcher les appels simultanés
 
     // ==========================================
     // TOAST (notification visuelle)
@@ -108,8 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 1. Afficher le toast
                 showToast(data.message || 'Nouvelle notification', 'info');
                 
-                // 2. Recharger les notifications (même si on est sur la page)
-                loadNotifications();
+                // 2. Recharger les notifications (forcer le rafraîchissement)
+                loadNotifications(true); // ✅ FORCER le rechargement
                 
                 // 3. Mettre à jour le badge
                 updateBadge();
@@ -229,10 +230,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS
+    // CHARGER LES NOTIFICATIONS (CORRIGÉ)
     // ==========================================
 
-    async function loadNotifications() {
+    async function loadNotifications(force = false) {
+        // ✅ Éviter les appels simultanés
+        if (isLoading && !force) {
+            console.log('⏳ Chargement déjà en cours, ignoré');
+            return;
+        }
+
+        isLoading = true;
+
         if (skeletonLoader) skeletonLoader.style.display = 'flex';
         if (mainContent) mainContent.innerHTML = '';
 
@@ -241,10 +250,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (res.ok && data.notifications && data.notifications.length > 0) {
+                // ✅ MISE À JOUR DU TABLEAU
                 notifications = data.notifications;
                 notifBadge.textContent = data.count;
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
+                
+                // ✅ FORCER LE RENDU AVEC LES NOUVELLES DONNÉES
                 renderNotifications();
+                
+                console.log(`✅ ${notifications.length} notifications chargées`);
             } else if (res.ok && (!data.notifications || data.notifications.length === 0)) {
                 notifications = [];
                 notifBadge.textContent = '0';
@@ -258,15 +272,22 @@ document.addEventListener('DOMContentLoaded', function() {
             renderEmpty();
         } finally {
             if (skeletonLoader) skeletonLoader.style.display = 'none';
+            isLoading = false;
         }
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS
+    // RENDRE LES NOTIFICATIONS (CORRIGÉ)
     // ==========================================
 
     function renderNotifications() {
         if (!mainContent) return;
+
+        // ✅ Si pas de notifications, afficher vide
+        if (!notifications || notifications.length === 0) {
+            renderEmpty('Aucune notification');
+            return;
+        }
 
         let filtered = notifications;
 
@@ -369,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // MARQUER COMME LU (SANS TOAST)
+    // MARQUER COMME LU
     // ==========================================
 
     async function markAsRead(id) {
@@ -381,6 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res.ok) {
                 const notif = notifications.find(n => n.id == id);
                 if (notif) notif.is_read = 1;
+                // ✅ Rendre avec les données mises à jour
                 renderNotifications();
                 updateBadge();
             } else {
@@ -453,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TOUT MARQUER COMME LU (SANS TOAST)
+    // TOUT MARQUER COMME LU
     // ==========================================
 
     readAllBtn.addEventListener('click', async function() {
