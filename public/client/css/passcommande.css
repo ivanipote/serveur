@@ -944,3 +944,26 @@ body {
     .commande-footer .footer-content { padding: 10px 12px; }
     .commande-footer .btn-confirmer { font-size: 15px; padding: 12px; }
 }
+/* ========================================== */
+/* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC   */
+/* ========================================== */
+
+* {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+}
+
+/* Pour les éléments cliquables (boutons, liens) */
+button, a, .btn, .clickable {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+/* Si tu veux garder la sélection de texte sur certains éléments */
+input, textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
