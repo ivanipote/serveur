@@ -327,10 +327,23 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             function(error) {
                 console.error('Erreur GPS:', error.message);
-                positionMessage.textContent = '❌ ' + error.message + '. Veuillez réessayer ou entrer votre adresse manuellement.';
-                retryPositionBtn.style.display = 'block';
-                gpsStatus.textContent = '❌ Position non disponible';
+                hidePositionOverlay();
+                gpsStatus.textContent = '❌ Erreur de localisation';
                 gpsStatus.className = 'gps-status error';
+
+                // ✅ Vider les champs GPS pour que l'utilisateur les remplisse manuellement
+                gpsAdresse.value = '';
+                gpsCommune.value = '';
+                gpsQuartier.value = '';
+                gpsRue.value = '';
+                gpsAdresseAdresse.value = '';
+                distanceEstimee.value = 'Non calculée';
+
+                // ✅ Afficher un message à l'utilisateur
+                showMessage('📍', 'Localisation non disponible', 'Veuillez entrer manuellement votre adresse de livraison.');
+
+                // ✅ Mettre à jour le statut GPS
+                isGpsResolved = false;
             }, {
                 enableHighAccuracy: true,
                 timeout: 15000,
