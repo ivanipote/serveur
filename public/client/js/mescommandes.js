@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainContent = document.getElementById('mainContent');
     const loadingState = document.getElementById('loadingState');
     const badgeTotal = document.getElementById('badgeTotal');
-    const refreshBtn = document.getElementById('refreshStatusBtn');
     const toastContainer = document.getElementById('toastContainer');
+    const syncBtn = document.getElementById('syncBtn');
+    const syncStatus = document.getElementById('syncStatus');
 
     // Overlays
     const confirmOverlay = document.getElementById('confirmOverlay');
@@ -49,6 +50,69 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
     let socket = null;
     let isSocketConnected = false;
+    let syncInterval = null;
+    let isSyncing = false;
+    let isSyncActive = true;
+    let isFirstLoad = true;
+
+    // ==========================================
+    // BOUTON SYNC - GESTION
+    // ==========================================
+
+    function updateSyncUI() {
+        if (isSyncActive) {
+            syncBtn.classList.add('active');
+            syncBtn.classList.remove('paused');
+            syncStatus.textContent = '●';
+            syncStatus.className = 'sync-status active';
+            syncBtn.title = 'Synchronisation active - Cliquer pour mettre en pause';
+            startSync();
+        } else {
+            syncBtn.classList.remove('active');
+            syncBtn.classList.add('paused');
+            syncStatus.textContent = '○';
+            syncStatus.className = 'sync-status paused';
+            syncBtn.title = 'Synchronisation en pause - Cliquer pour reprendre';
+            stopSync();
+        }
+    }
+
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function() {
+            isSyncActive = !isSyncActive;
+            updateSyncUI();
+        });
+    }
+
+    // ==========================================
+    // SYNC EN PERMANENCE
+    // ==========================================
+
+    function startSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+        }
+
+        console.log('🔄 Sync commandes démarré (toutes les 5s)');
+
+        // Premier chargement immédiat
+        loadCommandes();
+
+        // Puis toutes les 5 secondes
+        syncInterval = setInterval(() => {
+            if (!isSyncing && isSyncActive) {
+                loadCommandes();
+            }
+        }, 5000);
+    }
+
+    function stopSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            syncInterval = null;
+            console.log('⏹️ Sync commandes arrêté');
+        }
+    }
 
     // ==========================================
     // SOCKET.IO - Connexion
@@ -94,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
+                showToast(data.message || 'Nouvelle notification', 'info');
             });
 
         } catch (error) {
@@ -117,11 +182,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // ✅ Mettre à jour dans le tableau local
         const existingIndex = commandes.findIndex(c => c.id === commandeId);
 
         if (existingIndex !== -1) {
             commandes[existingIndex].status = status;
             console.log(`✅ Commande #${commandeId} mise à jour: ${status}`);
+            
+            // ✅ Re-rendre uniquement les cartes (pas toute la page)
             renderCommandes();
         } else {
             console.log(`🆕 Nouvelle commande #${commandeId}, rechargement...`);
@@ -132,6 +200,71 @@ document.addEventListener('DOMContentLoaded', function() {
         if (badgeTotal) {
             badgeTotal.textContent = commandes.length;
         }
+
+        // ✅ Toast
+        const statusMessages = {
+            'en_attente': '⏳ En attente',
+            'accepter': '💳 Paiement requis',
+            'refuse': '❌ Refusée',
+            'annulee': '❌ Annulée',
+            'paiement_effectue': '💳 Payée',
+            'livraison_en_cours': '🚚 En cours',
+            'disponible': '📍 Disponible',
+            'recuperee': '✅ Récupérée'
+        };
+        showToast(`📦 Commande #${commandeId}: ${statusMessages[status] || status}`, status);
+    }
+
+    // ==========================================
+    // TOAST
+    // ==========================================
+
+    function showToast(message, type = 'info') {
+        const colors = {
+            'success': '#28a745',
+            'error': '#dc3545',
+            'warning': '#e67e22',
+            'info': '#1a2a6c',
+            'en_attente': '#f9a825',
+            'accepter': '#1e88e5',
+            'refuse': '#e53935',
+            'annulee': '#e53935',
+            'paiement_effectue': '#43a047',
+            'livraison_en_cours': '#00acc1',
+            'disponible': '#2e7d32',
+            'recuperee': '#1b5e20'
+        };
+
+        const bgColor = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            background: ${bgColor};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90%;
+            text-align: center;
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+        `;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
     // ==========================================
@@ -238,12 +371,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES COMMANDES
+    // CHARGER LES COMMANDES (AVEC PREMIER CHARGEMENT)
     // ==========================================
 
     async function loadCommandes() {
         console.log('📥 Chargement des commandes...');
-        if (loadingState) loadingState.style.display = 'block';
+        
+        // ✅ Afficher le loader uniquement au premier chargement
+        if (isFirstLoad && loadingState) {
+            loadingState.style.display = 'block';
+        }
 
         try {
             const res = await fetch('/api/commandes');
@@ -252,8 +389,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res.ok && data.length > 0) {
                 commandes = data;
                 if (badgeTotal) badgeTotal.textContent = data.length;
+                isFirstLoad = false;
                 renderCommandes();
             } else if (res.ok && data.length === 0) {
+                commandes = [];
+                isFirstLoad = false;
                 mainContent.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-shopping-bag"></i>
@@ -263,6 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
             } else {
+                isFirstLoad = false;
                 mainContent.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-circle"></i>
@@ -273,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('❌ Erreur:', error);
+            isFirstLoad = false;
             mainContent.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-circle"></i>
@@ -286,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // EXTRAIRE LES PRODUITS (utilisé pour le détail)
+    // EXTRAIRE LES PRODUITS
     // ==========================================
 
     function extractProducts(panierData) {
@@ -329,6 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const refToCheck = geniusReference || reference;
         if (!refToCheck || /^\d+$/.test(refToCheck)) {
+            showToast('ℹ️ Aucune référence de paiement disponible', 'info');
             return;
         }
 
@@ -340,9 +483,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!res.ok) {
                 if (res.status === 500) {
-                    console.warn('⚠️ Service de paiement temporairement indisponible');
+                    showToast('⚠️ Service de paiement temporairement indisponible', 'error');
                 } else {
-                    console.warn('⚠️ Erreur lors de la vérification');
+                    showToast('⚠️ Erreur lors de la vérification', 'error');
                 }
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
@@ -359,18 +502,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (updateRes.ok) {
                     await loadCommandes();
+                    showToast('✅ Paiement confirmé !', 'success');
                 } else {
-                    console.warn('⚠️ Mise à jour en cours...');
+                    showToast('⚠️ Mise à jour en cours...', 'info');
                 }
             } else if (data.status === 'pending') {
-                console.log('⏳ Paiement en attente...');
+                showToast('⏳ Paiement en attente...', 'info');
             } else if (data.status === 'not_found') {
-                console.log('ℹ️ Aucun paiement trouvé pour cette commande');
+                showToast('ℹ️ Aucun paiement trouvé pour cette commande', 'info');
             } else {
-                console.log('❌ Statut: ' + (data.status || 'inconnu'));
+                showToast('❌ Statut: ' + (data.status || 'inconnu'), 'error');
             }
         } catch (error) {
             console.error('Erreur vérification:', error);
+            showToast('❌ Erreur de vérification', 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -417,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (res.ok) {
                 await loadCommandes();
+                showToast('✅ Commande annulée', 'success');
             } else {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible d\'annuler.');
             }
@@ -504,35 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // BOUTON RAFRAÎCHIR
-    // ==========================================
-
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', async function() {
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rafraîchissement...';
-
-            try {
-                await loadCommandes();
-                const paymentInProgress = commandes.filter(c => c.status === 'paiement_en_cours');
-                if (paymentInProgress.length > 0) {
-                    for (const commande of paymentInProgress) {
-                        const ref = commande.reference || commande.id;
-                        const geniusRef = commande.genius_reference || '';
-                        await checkPaymentWithGenius(commande.id, ref, geniusRef);
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Erreur rafraîchissement:', error);
-            } finally {
-                this.disabled = false;
-                this.innerHTML = '<i class="fas fa-sync-alt"></i> Rafraîchir';
-            }
-        });
-    }
-
-    // ==========================================
-    // RENDU DES COMMANDES (Modèle 5 - sans cause_refus)
+    // RENDU DES COMMANDES (Modèle 5)
     // ==========================================
 
     function renderCommandes() {
@@ -698,8 +816,17 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Initialisation de mescommandes...');
             const isAuth = await checkAuth();
             if (!isAuth) return;
-            await loadCommandes();
+
+            // ✅ Démarrer la sync
+            isSyncActive = true;
+            updateSyncUI();
+
+            // ✅ Connecter Socket.IO
             connectSocketIO();
+
+            // ✅ Premier chargement
+            await loadCommandes();
+
             console.log('✅ Initialisation terminée');
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation:', error);
