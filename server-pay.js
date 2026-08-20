@@ -83,7 +83,7 @@ app.get('/health', (req, res) => {
 });
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION
+// FONCTION : CRÉER UNE NOTIFICATION (ENRICHIE)
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
@@ -98,6 +98,96 @@ async function createNotification(userId, commandeId, type, title, content) {
     } catch (err) {
         console.error('❌ Erreur création notification:', err);
         return false;
+    }
+}
+
+// ========================================================
+// FONCTION : METTRE À JOUR LE STATUT GENIUS PAY
+// ========================================================
+
+async function updateGeniusStatus(geniusRef, status, paymentData) {
+    try {
+        await db.query(
+            `UPDATE payments SET 
+                genius_status = $1,
+                status = CASE 
+                    WHEN $1 = 'success' THEN 'success'
+                    WHEN $1 IN ('failed', 'cancelled', 'expired', 'refunded') THEN $1
+                    ELSE 'pending'
+                END,
+                updated_at = NOW()
+             WHERE genius_reference = $2`,
+            [status, geniusRef]
+        );
+
+        // Récupérer le commande_id
+        const payment = await db.get(
+            `SELECT commande_id FROM payments WHERE genius_reference = $1`,
+            [geniusRef]
+        );
+
+        if (!payment) return null;
+
+        // Mettre à jour la commande selon le statut
+        let commandeStatus = null;
+        let notificationTitle = '';
+        let notificationContent = '';
+        let notificationType = 'paiement';
+
+        if (status === 'success') {
+            commandeStatus = 'paiement_effectue';
+            notificationTitle = '💳 Paiement réussi';
+            notificationContent = `Votre commande #${payment.commande_id} a été soldée avec succès. Montant: ${paymentData?.amount || ''} FCFA. Réf. Genius Pay: ${geniusRef || '-'}`;
+        } else if (status === 'failed') {
+            commandeStatus = 'annulee';
+            notificationTitle = '❌ Paiement échoué';
+            notificationContent = `Le paiement de votre commande #${payment.commande_id} a échoué. Montant: ${paymentData?.amount || ''} FCFA. Réf. Genius Pay: ${geniusRef || '-'}`;
+        } else if (status === 'cancelled') {
+            commandeStatus = 'annulee';
+            notificationTitle = '⏰ Paiement annulé';
+            notificationContent = `Le paiement de votre commande #${payment.commande_id} a été annulé. Montant: ${paymentData?.amount || ''} FCFA.`;
+        } else if (status === 'expired') {
+            commandeStatus = 'annulee';
+            notificationTitle = '⏳ Paiement expiré';
+            notificationContent = `Le paiement de votre commande #${payment.commande_id} a expiré. Vous pouvez réessayer.`;
+        } else if (status === 'refunded') {
+            commandeStatus = 'annulee';
+            notificationTitle = '🔄 Remboursement effectué';
+            notificationContent = `Le remboursement de votre commande #${payment.commande_id} a été effectué. Montant: ${paymentData?.amount || ''} FCFA.`;
+        }
+
+        if (commandeStatus) {
+            await db.query(
+                `UPDATE commandes SET status = $1 WHERE id = $2`,
+                [commandeStatus, payment.commande_id]
+            );
+            console.log(`✅ Commande #${payment.commande_id} : statut -> ${commandeStatus}`);
+
+            const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [payment.commande_id]);
+            if (commande) {
+                await createNotification(
+                    commande.user_id,
+                    payment.commande_id,
+                    notificationType,
+                    notificationTitle,
+                    notificationContent
+                );
+            }
+
+            // Socket.IO - Mise à jour temps réel
+            socket.emit('commande-update', {
+                commandeId: parseInt(payment.commande_id),
+                status: commandeStatus,
+                userId: commande?.user_id,
+                message: `Statut mis à jour : ${commandeStatus}`
+            });
+        }
+
+        return payment.commande_id;
+
+    } catch (error) {
+        console.error('❌ Erreur mise à jour statut Genius Pay:', error);
+        return null;
     }
 }
 
@@ -127,15 +217,17 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
-        const paymentRef = `PAY-${commandeId}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
 
+        // ✅ Utiliser la référence de la commande comme référence de paiement
+        const paymentRef = reference || `NAT-${Date.now()}`;
+
         const payload = {
             amount: amount,
             currency: 'XOF',
+            reference: paymentRef,
             description: description || `Commande Nature+ #${commandeId}`,
             customer: {
                 phone: cleanPhone,
@@ -146,7 +238,8 @@ app.post('/api/payment/create', async (req, res) => {
             metadata: {
                 order_id: commandeId,
                 user_id: userId,
-                source: 'nature_plus_app'
+                source: 'nature_plus_app',
+                commande_ref: paymentRef
             }
         };
 
@@ -166,11 +259,23 @@ app.post('/api/payment/create', async (req, res) => {
         const paymentData = response.data;
         const geniusReference = paymentData.data?.reference || paymentData.reference || `GENUS_${Date.now()}`;
         const checkoutUrl = paymentData.data?.checkout_url || paymentData.checkout_url || null;
+        const geniusStatus = paymentData.data?.status || 'pending';
+        const expiresAt = paymentData.data?.expires_at || null;
+        const gateway = paymentData.data?.payment_method || paymentData.data?.gateway || paymentData.data?.provider || null;
+        const environment = paymentData.data?.environment || 'live';
 
         await db.query(
-            `INSERT INTO payments (user_id, product_id, reference, genius_reference, amount, status, checkout_url, commande_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [userId, 1, paymentRef, geniusReference, amount, 'pending', checkoutUrl, commandeId]
+            `INSERT INTO payments (
+                user_id, product_id, reference, genius_reference, amount, 
+                status, genius_status, checkout_url, commande_id,
+                customer_name, customer_phone, gateway, environment, expires_at,
+                created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())`,
+            [
+                userId, 1, paymentRef, geniusReference, amount,
+                'pending', geniusStatus, checkoutUrl, commandeId,
+                customerName, cleanPhone, gateway, environment, expiresAt
+            ]
         );
         console.log('✅ Payment enregistré');
 
@@ -184,6 +289,7 @@ app.post('/api/payment/create', async (req, res) => {
             checkout_url: checkoutUrl,
             reference: paymentRef,
             genius_reference: geniusReference,
+            genius_status: geniusStatus,
             message: 'Paiement créé avec succès'
         });
 
@@ -263,55 +369,6 @@ app.post('/api/payment/update-status', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : ANNULER UN PAIEMENT
-// ========================================================
-
-app.post('/api/payment/cancel', async (req, res) => {
-    const { commandeId } = req.body;
-
-    try {
-        const row = await db.get('SELECT status, user_id FROM commandes WHERE id = $1', [commandeId]);
-
-        if (!row) {
-            return res.status(404).json({ error: 'Commande non trouvée.' });
-        }
-        if (row.status !== 'paiement_en_cours') {
-            return res.status(400).json({ error: 'Cette commande ne peut pas être annulée.' });
-        }
-
-        await db.query(
-            `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
-            ['annulee', 'Annulé par le client', commandeId]
-        );
-
-        await db.query(
-            `UPDATE payments SET status = $1 WHERE commande_id = $2`,
-            ['canceled', commandeId]
-        );
-
-        await createNotification(
-            row.user_id,
-            commandeId,
-            'paiement',
-            '❌ Paiement annulé',
-            `Vous avez annulé le paiement pour la commande #${commandeId}.`
-        );
-
-        socket.emit('commande-update', {
-            commandeId: parseInt(commandeId),
-            status: 'annulee',
-            userId: row.user_id,
-            message: `Paiement annulé pour la commande #${commandeId}`
-        });
-
-        res.json({ success: true, message: 'Paiement annulé avec succès' });
-    } catch (err) {
-        console.error('❌ Erreur:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ========================================================
 // ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT
 // ========================================================
 
@@ -336,10 +393,10 @@ app.get('/api/payment/check/:reference', async (req, res) => {
         }
 
         if (row) {
-            console.log(`✅ Paiement trouvé dans la base: ${row.status}`);
+            console.log(`✅ Paiement trouvé dans la base: ${row.genius_status || row.status}`);
             return res.json({
                 success: true,
-                status: row.status || 'pending',
+                status: row.genius_status || row.status || 'pending',
                 source: 'database',
                 data: row
             });
@@ -348,7 +405,7 @@ app.get('/api/payment/check/:reference', async (req, res) => {
         try {
             console.log('🔍 Recherche chez Genius Pay (LIVE)...');
             const response = await axios.get(
-                `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
+                `${GENIUS_API_URL}/${reference}`,
                 {
                     headers: {
                         'X-API-Key': PUBLIC_KEY,
@@ -361,6 +418,19 @@ app.get('/api/payment/check/:reference', async (req, res) => {
             const status = paymentData?.status || 'unknown';
 
             console.log(`📊 Statut Genius Pay: ${status}`);
+
+            // ✅ Mettre à jour la base si on a un paiement
+            if (row) {
+                await db.query(
+                    `UPDATE payments SET genius_status = $1, updated_at = NOW() WHERE id = $2`,
+                    [status, row.id]
+                );
+
+                // Mettre à jour la commande si statut final
+                if (['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(status)) {
+                    await updateGeniusStatus(row.genius_reference || reference, status, paymentData);
+                }
+            }
 
             return res.json({
                 success: true,
@@ -403,7 +473,7 @@ app.get('/api/payment/genius-check/:reference', async (req, res) => {
 
     try {
         const response = await axios.get(
-            `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
+            `${GENIUS_API_URL}/${reference}`,
             {
                 headers: {
                     'X-API-Key': PUBLIC_KEY,
@@ -590,66 +660,35 @@ async function handlePaymentSuccess(data) {
             return;
         }
 
-        let panier = [];
-        try {
-            panier = JSON.parse(commande.panier);
-        } catch (e) {
-            console.error('❌ Erreur parsing panier:', e);
-            return;
-        }
-
-        for (const item of panier) {
-            const productId = item.product_id || item.id;
-            const quantity = item.quantity || 1;
-
-            const product = await db.get('SELECT quantity FROM products WHERE id = $1', [productId]);
-
-            if (!product) {
-                console.error(`❌ Produit #${productId} non trouvé`);
-                continue;
-            }
-
-            if (product.quantity < quantity) {
-                console.error(`❌ Stock insuffisant pour produit #${productId}: ${product.quantity} < ${quantity}`);
-                continue;
-            }
-
-            await db.query(
-                'UPDATE products SET quantity = quantity - $1 WHERE id = $2',
-                [quantity, productId]
-            );
-            console.log(`✅ Stock déduit: produit #${productId} (-${quantity})`);
-        }
-
+        // ✅ Mise à jour du statut dans payments
         await db.query(
-            `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
-            ['success', reference]
+            `UPDATE payments SET genius_status = 'success', status = 'success', updated_at = NOW() WHERE genius_reference = $1 OR reference = $1`,
+            [reference]
         );
-        console.log(`✅ Payment ${reference} : statut -> success`);
 
+        // ✅ Mise à jour de la commande
         await db.query(
-            `UPDATE commandes SET status = $1 WHERE id = $2`,
-            ['paiement_effectue', orderId]
+            `UPDATE commandes SET status = 'paiement_effectue' WHERE id = $1`,
+            [orderId]
         );
         console.log(`✅ Commande #${orderId} : statut -> paiement_effectue`);
 
-        const user = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
-        if (user) {
-            await createNotification(
-                user.user_id,
-                orderId,
-                'paiement',
-                '💳 Paiement effectué',
-                `Votre paiement pour la commande #${orderId} a été confirmé. Commande en préparation.`
-            );
+        // ✅ Notification enrichie
+        await createNotification(
+            commande.user_id,
+            orderId,
+            'paiement',
+            '💳 Paiement réussi',
+            `Votre commande #${orderId} (${commande.reference}) a été soldée avec succès. Montant: ${amount} FCFA. Réf. Genius Pay: ${reference}`
+        );
 
-            socket.emit('commande-update', {
-                commandeId: parseInt(orderId),
-                status: 'paiement_effectue',
-                userId: user.user_id,
-                message: 'Paiement effectué, commande en préparation'
-            });
-        }
+        // ✅ Socket.IO
+        socket.emit('commande-update', {
+            commandeId: parseInt(orderId),
+            status: 'paiement_effectue',
+            userId: commande.user_id,
+            message: 'Paiement réussi ✅'
+        });
 
         console.log(`📢 ADMIN: Paiement réussi pour la commande #${orderId} - Montant: ${amount} FCFA`);
 
@@ -667,26 +706,41 @@ async function handlePaymentFailed(data) {
     if (!orderId) return;
 
     try {
-        await db.query(
-            `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
-            ['failed', reference]
-        );
-
-        await db.query(
-            `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
-            ['refuse', 'Paiement échoué', orderId]
-        );
-
-        const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
-        if (commande) {
-            await createNotification(
-                commande.user_id,
-                orderId,
-                'paiement',
-                '❌ Paiement échoué',
-                `Le paiement pour la commande #${orderId} a échoué. Veuillez réessayer.`
-            );
+        const commande = await db.get('SELECT user_id, reference FROM commandes WHERE id = $1', [orderId]);
+        if (!commande) {
+            console.error(`❌ Commande #${orderId} non trouvée`);
+            return;
         }
+
+        await db.query(
+            `UPDATE payments SET genius_status = 'failed', status = 'failed', updated_at = NOW() WHERE genius_reference = $1 OR reference = $1`,
+            [reference]
+        );
+
+        await db.query(
+            `UPDATE commandes SET status = 'annulee', cause_refus = 'Paiement échoué' WHERE id = $1`,
+            [orderId]
+        );
+
+        const paymentData = await db.get(
+            `SELECT amount FROM payments WHERE genius_reference = $1 OR reference = $1`,
+            [reference]
+        );
+
+        await createNotification(
+            commande.user_id,
+            orderId,
+            'paiement',
+            '❌ Paiement échoué',
+            `Le paiement de votre commande #${orderId} (${commande.reference}) a échoué. Montant: ${paymentData?.amount || ''} FCFA. Réf. Genius Pay: ${reference}`
+        );
+
+        socket.emit('commande-update', {
+            commandeId: parseInt(orderId),
+            status: 'annulee',
+            userId: commande.user_id,
+            message: 'Paiement échoué ❌'
+        });
 
         console.log(`📢 ADMIN: Paiement échoué pour la commande #${orderId}`);
 
@@ -704,15 +758,38 @@ async function handlePaymentCancelled(data) {
     if (!orderId) return;
 
     try {
+        const commande = await db.get('SELECT user_id, reference FROM commandes WHERE id = $1', [orderId]);
+        if (!commande) return;
+
         await db.query(
-            `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
-            ['canceled', reference]
+            `UPDATE payments SET genius_status = 'cancelled', status = 'cancelled', updated_at = NOW() WHERE genius_reference = $1 OR reference = $1`,
+            [reference]
         );
 
         await db.query(
-            `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
-            ['annulee', 'Paiement annulé', orderId]
+            `UPDATE commandes SET status = 'annulee', cause_refus = 'Paiement annulé' WHERE id = $1`,
+            [orderId]
         );
+
+        const paymentData = await db.get(
+            `SELECT amount FROM payments WHERE genius_reference = $1 OR reference = $1`,
+            [reference]
+        );
+
+        await createNotification(
+            commande.user_id,
+            orderId,
+            'paiement',
+            '⏰ Paiement annulé',
+            `Le paiement de votre commande #${orderId} (${commande.reference}) a été annulé. Montant: ${paymentData?.amount || ''} FCFA.`
+        );
+
+        socket.emit('commande-update', {
+            commandeId: parseInt(orderId),
+            status: 'annulee',
+            userId: commande.user_id,
+            message: 'Paiement annulé ⏰'
+        });
 
         console.log(`📢 ADMIN: Paiement annulé pour la commande #${orderId}`);
 
@@ -731,21 +808,33 @@ async function handlePaymentRefunded(data) {
     if (!orderId) return;
 
     try {
+        const commande = await db.get('SELECT user_id, reference FROM commandes WHERE id = $1', [orderId]);
+        if (!commande) return;
+
         await db.query(
-            `UPDATE payments SET status = $1 WHERE genius_reference = $2 OR reference = $2`,
-            ['refunded', reference]
+            `UPDATE payments SET genius_status = 'refunded', status = 'refunded', updated_at = NOW() WHERE genius_reference = $1 OR reference = $1`,
+            [reference]
         );
 
-        const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [orderId]);
-        if (commande) {
-            await createNotification(
-                commande.user_id,
-                orderId,
-                'paiement',
-                '🔄 Remboursement effectué',
-                `Le remboursement de ${amount ? amount.toLocaleString() + ' FCFA' : ''} pour la commande #${orderId} a été effectué.`
-            );
-        }
+        await db.query(
+            `UPDATE commandes SET status = 'annulee', cause_refus = 'Remboursement effectué' WHERE id = $1`,
+            [orderId]
+        );
+
+        await createNotification(
+            commande.user_id,
+            orderId,
+            'paiement',
+            '🔄 Remboursement effectué',
+            `Le remboursement de votre commande #${orderId} (${commande.reference}) a été effectué. Montant: ${amount || ''} FCFA.`
+        );
+
+        socket.emit('commande-update', {
+            commandeId: parseInt(orderId),
+            status: 'annulee',
+            userId: commande.user_id,
+            message: 'Remboursement effectué 🔄'
+        });
 
         console.log(`📢 ADMIN: Remboursement effectué pour la commande #${orderId}`);
 

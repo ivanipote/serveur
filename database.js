@@ -73,37 +73,46 @@ async function initializeDatabase() {
             )
         `);
 
-       // ========================================================
-// TABLE PAYMENTS
-// ========================================================
-await client.query(`
-    CREATE TABLE IF NOT EXISTS payments (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        product_id INTEGER,
-        reference TEXT UNIQUE NOT NULL,
-        amount INTEGER NOT NULL,
-        status TEXT DEFAULT 'pending',
-        checkout_url TEXT,
-        commande_id INTEGER,
-        genius_reference TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-`);
+        // ========================================================
+        // TABLE PAYMENTS - MISE À JOUR
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS payments (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                product_id INTEGER,
+                reference TEXT UNIQUE NOT NULL,
+                genius_reference TEXT,
+                amount INTEGER NOT NULL,
+                status TEXT DEFAULT 'pending',
+                genius_status TEXT,
+                checkout_url TEXT,
+                payment_url TEXT,
+                commande_id INTEGER,
+                customer_name TEXT,
+                customer_phone TEXT,
+                customer_email TEXT,
+                gateway TEXT,
+                environment TEXT DEFAULT 'live',
+                expires_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
 
-// ✅ SUPPRIMER LA FK EXISTANTE
-await client.query(`
-    DO $$
-    BEGIN
-        IF EXISTS (
-            SELECT 1 FROM pg_constraint WHERE conname = 'payments_product_id_fkey'
-        ) THEN
-            ALTER TABLE payments DROP CONSTRAINT payments_product_id_fkey;
-            RAISE NOTICE '✅ Contrainte payments_product_id_fkey supprimée';
-        END IF;
-    END $$;
-`);
+        // ✅ SUPPRIMER LA FK EXISTANTE
+        await client.query(`
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM pg_constraint WHERE conname = 'payments_product_id_fkey'
+                ) THEN
+                    ALTER TABLE payments DROP CONSTRAINT payments_product_id_fkey;
+                    RAISE NOTICE '✅ Contrainte payments_product_id_fkey supprimée';
+                END IF;
+            END $$;
+        `);
 
         // TABLE FRAIS_LIVRAISON
         await client.query(`
@@ -197,6 +206,8 @@ await client.query(`
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_reference ON commandes(reference)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_commande_id ON payments(commande_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_reference ON payments(reference)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_genius_status ON payments(genius_status)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_expires_at ON payments(expires_at)`);
 
         await client.query('COMMIT');
 
@@ -205,7 +216,7 @@ await client.query(`
         console.log('   - products');
         console.log('   - users');
         console.log('   - panier');
-        console.log('   - payments (product_id NULL, sans FK)');
+        console.log('   - payments (avec genius_status, expires_at, updated_at)');
         console.log('   - frais_livraison');
         console.log('   - commandes');
         console.log('   - messages (ON DELETE CASCADE)');
