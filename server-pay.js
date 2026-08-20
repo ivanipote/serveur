@@ -56,10 +56,11 @@ socket.on('connection', (sock) => {
 });
 
 // ========================================================
-// MIDDLEWARE
+// MIDDLEWARE - CORS
 // ========================================================
 
 app.use(express.json());
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -261,43 +262,6 @@ app.post('/api/payment/update-status', async (req, res) => {
     }
 });
 
-// ✅ Route pour interroger UNIQUEMENT Genius Pay (pas notre base)
-app.get('/api/payment/genius-check/:reference', async (req, res) => {
-    const { reference } = req.params;
-
-    try {
-        const response = await axios.get(
-            `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
-            {
-                headers: {
-                    'X-API-Key': PUBLIC_KEY,
-                    'X-API-Secret': SECRET_KEY
-                }
-            }
-        );
-
-        res.json({
-            success: true,
-            source: 'geniuspay',
-            data: response.data?.data || response.data
-        });
-
-    } catch (error) {
-        if (error.response?.status === 404) {
-            res.json({
-                success: true,
-                status: 'not_found',
-                message: 'Transaction non trouvée sur Genius Pay'
-            });
-        } else {
-            res.status(500).json({
-                success: false,
-                error: error.message
-            });
-        }
-    }
-});
-
 // ========================================================
 // ROUTE : ANNULER UN PAIEMENT
 // ========================================================
@@ -421,6 +385,56 @@ app.get('/api/payment/check/:reference', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// ========================================================
+// ROUTE : VÉRIFIER UNIQUEMENT SUR GENIUS PAY (pas base)
+// ========================================================
+
+app.get('/api/payment/genius-check/:reference', async (req, res) => {
+    const { reference } = req.params;
+
+    console.log(`🔍 Vérification directe Genius Pay: ${reference}`);
+
+    if (!reference) {
+        return res.status(400).json({ error: 'Référence requise.' });
+    }
+
+    try {
+        const response = await axios.get(
+            `https://geniuspay.ci/api/v1/merchant/payments/${reference}`,
+            {
+                headers: {
+                    'X-API-Key': PUBLIC_KEY,
+                    'X-API-Secret': SECRET_KEY
+                }
+            }
+        );
+
+        console.log(`✅ Données récupérées depuis Genius Pay pour ${reference}`);
+
+        res.json({
+            success: true,
+            source: 'geniuspay',
+            data: response.data?.data || response.data
+        });
+
+    } catch (error) {
+        console.error(`❌ Erreur Genius Pay pour ${reference}:`, error.message);
+
+        if (error.response?.status === 404) {
+            res.json({
+                success: true,
+                status: 'not_found',
+                message: 'Transaction non trouvée sur Genius Pay'
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
     }
 });
 
@@ -739,10 +753,6 @@ async function handlePaymentRefunded(data) {
         console.error('❌ Erreur traitement payment.refunded:', err);
     }
 }
-
-// ========================================================
-// DÉMARRAGE
-// ========================================================
 
 // ========================================================
 // DÉMARRAGE
