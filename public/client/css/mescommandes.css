@@ -20,7 +20,6 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 12px;
     flex-shrink: 0;
     border-bottom-left-radius: 20px;
@@ -54,6 +53,8 @@ body {
 }
 
 .page-title {
+    flex: 1;
+    text-align: center;
     font-size: 18px;
     font-weight: 700;
     color: #1a1a2e;
@@ -276,29 +277,6 @@ body {
 
 .commande-card .actions .btn:hover {
     transform: scale(1.04);
-}
-
-.commande-card .actions .btn-icon-only {
-    background: none;
-    border: none;
-    color: #aaa;
-    font-size: 15px;
-    cursor: pointer;
-    padding: 0 10px;
-    border-radius: 50%;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 36px;
-    min-height: 36px;
-    width: 36px;
-}
-
-.commande-card .actions .btn-icon-only:hover {
-    color: #2d7d46;
-    background: #e8f5ec;
-    transform: rotate(180deg);
 }
 
 .btn-pay {
@@ -592,7 +570,6 @@ body {
     .commande-card .total { font-size: 20px; }
     .commande-card .badge-top { font-size: 11px; padding: 3px 12px; top: 12px; right: 12px; }
     .commande-card .actions .btn { font-size: 11px; padding: 5px 12px; height: 32px; min-height: 32px; }
-    .commande-card .actions .btn-icon-only { height: 32px; min-height: 32px; width: 32px; font-size: 13px; }
     .commande-card .actions .btn-sync-commande { height: 32px; min-height: 32px; font-size: 11px; padding: 4px 12px; }
     .payment-box { padding: 24px 18px 20px 18px; }
     .payment-box h3 { font-size: 18px; }
