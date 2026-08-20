@@ -1295,7 +1295,7 @@ app.post('/api/client/update-password', isAuthenticated, async (req, res) => {
 // ========================================================
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'mescommandes.html'));
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'dashboard.html'));
 });
 
 app.get('/login', (req, res) => {
