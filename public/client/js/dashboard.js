@@ -30,6 +30,36 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
     let isAuthenticated = false;
 
+    // ✅ SYNC EN ARRIÈRE-PLAN (toutes les 10s)
+    let syncInterval = null;
+    let isSyncing = false;
+
+    // ==========================================
+    // SYNC EN PERMANENCE (toutes les 10s)
+    // ==========================================
+
+    function startSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+        }
+
+        console.log('🔄 Sync dashboard démarré (toutes les 10s)');
+
+        syncInterval = setInterval(() => {
+            if (!isSyncing) {
+                loadBadges();
+            }
+        }, 10000);
+    }
+
+    function stopSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            syncInterval = null;
+            console.log('⏹️ Sync dashboard arrêté');
+        }
+    }
+
     // ==========================================
     // VÉRIFICATION CONNEXION
     // ==========================================
@@ -150,8 +180,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // BADGES
+    // BADGES (avec cache pour éviter clignotement)
     // ==========================================
+
+    let lastBadgeData = {
+        commandes: null,
+        notifs: null,
+        cart: null
+    };
 
     async function loadBadges() {
         if (!isAuthenticated) {
@@ -164,37 +200,118 @@ document.addEventListener('DOMContentLoaded', function() {
                     const count = data.count || 0;
                     cartBadge.textContent = count;
                     cartBadge.style.display = count > 0 ? 'flex' : 'none';
+                    lastBadgeData.cart = count;
                 }
             } catch (e) { /* ignore */ }
             return;
         }
 
+        isSyncing = true;
+
         try {
+            // ✅ Commandes
             const res1 = await fetch('/api/commandes');
             const data1 = await res1.json();
             if (res1.ok && commandeBadge) {
                 const count = data1.length || 0;
-                commandeBadge.textContent = count;
-                commandeBadge.style.display = count > 0 ? 'flex' : 'none';
+                if (lastBadgeData.commandes !== count) {
+                    commandeBadge.textContent = count;
+                    commandeBadge.style.display = count > 0 ? 'flex' : 'none';
+                    lastBadgeData.commandes = count;
+                }
             }
 
+            // ✅ Notifications
             const res2 = await fetch('/api/notifications/count');
             const data2 = await res2.json();
             if (res2.ok && notifBadge) {
                 const count = data2.count || 0;
-                notifBadge.textContent = count;
-                notifBadge.style.display = count > 0 ? 'flex' : 'none';
+                if (lastBadgeData.notifs !== count) {
+                    notifBadge.textContent = count;
+                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
+                    lastBadgeData.notifs = count;
+                }
             }
 
+            // ✅ Panier
             const res3 = await fetch('/api/panier/count');
             const data3 = await res3.json();
             if (res3.ok && cartBadge) {
                 const count = data3.count || 0;
-                cartBadge.textContent = count;
-                cartBadge.style.display = count > 0 ? 'flex' : 'none';
+                if (lastBadgeData.cart !== count) {
+                    cartBadge.textContent = count;
+                    cartBadge.style.display = count > 0 ? 'flex' : 'none';
+                    lastBadgeData.cart = count;
+                }
             }
         } catch (error) {
             console.error('❌ Erreur badges:', error);
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    // ==========================================
+    // SOCKET.IO - Écouter les mises à jour
+    // ==========================================
+
+    let socket = null;
+    let isSocketConnected = false;
+
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        console.log('🔌 Connexion Socket.IO client (dashboard)...');
+
+        try {
+            const userIdLocal = localStorage.getItem('userId') || '1';
+
+            socket = io({
+                auth: {
+                    userId: parseInt(userIdLocal),
+                    isAdmin: false
+                }
+            });
+
+            socket.on('connect', function() {
+                console.log('✅ Socket.IO client dashboard connecté');
+                isSocketConnected = true;
+            });
+
+            socket.on('disconnect', function() {
+                console.log('❌ Socket.IO client dashboard déconnecté');
+                isSocketConnected = false;
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectSocketIO();
+                    }
+                }, 3000);
+            });
+
+            // ✅ Nouvelle commande → mettre à jour le badge commandes
+            socket.on('nouvelle-commande', function(data) {
+                console.log('🆕 Nouvelle commande (dashboard):', data);
+                loadBadges();
+            });
+
+            // ✅ Mise à jour commande → mettre à jour les badges
+            socket.on('commande-update', function(data) {
+                console.log('📦 Mise à jour commande (dashboard):', data);
+                loadBadges();
+            });
+
+            // ✅ Nouvelle notification → mettre à jour le badge notifications
+            socket.on('notification', function(data) {
+                console.log('🔔 Notification (dashboard):', data);
+                loadBadges();
+            });
+
+        } catch (error) {
+            console.error('❌ Erreur connexion Socket.IO:', error);
+            setTimeout(() => connectSocketIO(), 5000);
         }
     }
 
@@ -270,7 +387,6 @@ document.addEventListener('DOMContentLoaded', function() {
             track.appendChild(item);
         });
 
-        // Clic sur l'image → change l'image (si plusieurs)
         document.querySelectorAll('.carousel-item img').forEach(img => {
             img.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -284,7 +400,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const index = images.indexOf(currentImg);
                         const nextIndex = (index + 1) % images.length;
                         this.src = images[nextIndex];
-                        // Mettre à jour l'image de fond du détail
                         detailBg.style.backgroundImage = `url(${images[nextIndex]})`;
                     }
                 }
@@ -428,7 +543,11 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadProducts();
             await loadBadges();
 
-            setInterval(() => loadBadges(), 30000);
+            // ✅ Démarrer la sync en arrière-plan
+            startSync();
+
+            // ✅ Connecter Socket.IO
+            connectSocketIO();
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
