@@ -1,3 +1,6 @@
+// ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
+process.env.TZ = 'Africa/Abidjan';
+
 const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
