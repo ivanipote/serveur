@@ -1334,6 +1334,10 @@ app.get('/payment-failed', (req, res) => {
 // ROUTES PAGES (ADMIN)
 // ========================================================
 
+// ========================================================
+// ROUTES PAGES (ADMIN)
+// ========================================================
+
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
 });
@@ -1350,6 +1354,9 @@ app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashboard.html'));
 });
 
+app.get('/admin/dashwave', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashwave.html'));
+});
 // ========================================================
 // DÉMARRAGE
 // ========================================================
