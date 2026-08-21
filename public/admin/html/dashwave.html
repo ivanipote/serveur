@@ -25,8 +25,11 @@
             <span class="solde-value" id="soldeValue">0 FCFA</span>
         </div>
         <div class="header-right">
+            <a href="/admin/stats.html" class="btn-header stats-btn">
+                <i class="fas fa-chart-bar"></i> Stats
+            </a>
             <a href="https://business.wave.com/home" target="_blank" class="btn-header wave-btn">
-                <i class="fas fa-external-link-alt"></i> Wave Business
+                <i class="fas fa-external-link-alt"></i> Wave
             </a>
             <a href="/admin/dashboard" class="btn-header">
                 <i class="fas fa-chart-pie"></i> Admin
@@ -45,7 +48,6 @@
 
         <!-- ===== SIDEBAR ===== -->
         <aside class="sidebar-wave">
-            <!-- Recherche -->
             <div class="search-area">
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
@@ -53,7 +55,6 @@
                 </div>
             </div>
 
-            <!-- Liste des demandes -->
             <div class="requests-list" id="requestsList">
                 <!-- Les demandes seront injectées par JS -->
                 <div class="loading-state">
@@ -62,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Sidebar Footer -->
             <div class="sidebar-footer">
                 <button class="btn-footer wave-link" onclick="window.open('https://business.wave.com/home','_blank')">
                     <img src="/client/images/wave-logo.png" alt="Wave" class="footer-wave-icon" />
@@ -75,86 +75,153 @@
         </aside>
 
         <!-- ===== MAIN ===== -->
-        <main class="main-wave" id="mainWave">
+        <main class="main-wave status-pending" id="mainWave">
 
-            <!-- ===== STATUT CARD ===== -->
-            <div class="status-card" id="statusCard">
-                <div class="status-left">
-                    <span class="status-icon" id="statusIcon">⏳</span>
-                    <div>
-                        <div class="status-text" id="statusText">Sélectionnez une demande</div>
-                        <div class="status-sub" id="statusSub">Choisissez une demande dans la sidebar</div>
+            <!-- ===== STATS PAR DÉFAUT ===== -->
+            <div class="stats-default" id="statsDefault">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-box"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Produits</span>
+                            <span class="stat-value" id="statProducts">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Ventes</span>
+                            <span class="stat-value" id="statSales">0 FCFA</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Commandes</span>
+                            <span class="stat-value" id="statCommandes">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Clients</span>
+                            <span class="stat-value" id="statClients">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fas fa-credit-card"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Paiements</span>
+                            <span class="stat-value" id="statPayments">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon wave"><i class="fas fa-water"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Demandes Wave</span>
+                            <span class="stat-value" id="statWave">0</span>
+                        </div>
                     </div>
                 </div>
-                <div class="status-actions" id="statusActions">
-                    <button class="btn-status success-btn" id="successBtn" disabled>
-                        <i class="fas fa-check"></i> Success
-                    </button>
-                    <button class="btn-status refuse-btn" id="refuseBtn" disabled>
-                        <i class="fas fa-times"></i> Refuser
-                    </button>
+
+                <div class="recent-orders">
+                    <div class="section-header">
+                        <h3>📋 Dernières commandes</h3>
+                        <span class="badge-count" id="recentCount">0</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Client</th>
+                                    <th>Total</th>
+                                    <th>Statut</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersList">
+                                <tr><td colspan="5" class="empty-msg">Aucune commande récente</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- ===== INFO GRID ===== -->
-            <div class="info-grid" id="infoGrid">
+            <!-- ===== DÉTAIL DEMANDE ===== -->
+            <div class="detail-request" id="detailRequest" style="display:none;">
 
-                <!-- Téléphone -->
-                <div class="info-card">
-                    <span class="card-label"><i class="fas fa-phone"></i> Téléphone</span>
-                    <div class="card-value" id="infoPhone">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                <!-- Rectangle 1 : User Profil -->
+                <div class="profile-rect">
+                    <div class="profile-item">
+                        <i class="fas fa-user"></i>
+                        <span class="label">Nom :</span>
+                        <span class="value" id="pName">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="profile-item">
+                        <i class="fas fa-phone"></i>
+                        <span class="label">Téléphone :</span>
+                        <span class="value" id="pPhone">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="profile-item">
+                        <i class="fas fa-envelope"></i>
+                        <span class="label">Email :</span>
+                        <span class="value" id="pEmail">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="profile-item">
+                        <i class="fas fa-lock"></i>
+                        <span class="label">Code login :</span>
+                        <span class="value code" id="pCode">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
                 </div>
 
-                <!-- Code login -->
-                <div class="info-card">
-                    <span class="card-label"><i class="fas fa-lock"></i> Code login</span>
-                    <div class="card-value" id="infoCode">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                <!-- Rectangle 2 : Vérification Info -->
+                <div class="verif-rect">
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-receipt"></i> ID Transaction Wave</div>
+                        <div class="verif-value wave-id" id="vWaveId">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-money-bill-wave"></i> Montant</div>
+                        <div class="verif-value montant" id="vMontant">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-calendar"></i> Date de la demande</div>
+                        <div class="verif-value date" id="vDate">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-hashtag"></i> Réf. commande</div>
+                        <div class="verif-value ref" id="vRef">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
                 </div>
 
-                <!-- Montant -->
-                <div class="info-card">
-                    <span class="card-label"><i class="fas fa-money-bill-wave"></i> Montant</span>
-                    <div class="card-value" id="infoMontant">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                <!-- Rectangle 3 : Statut -->
+                <div class="status-rect" id="statusRect">
+                    <div class="status-left">
+                        <span class="status-icon" id="sIcon">⏳</span>
+                        <div>
+                            <div class="status-text" id="sText">En attente de vérification</div>
+                            <div class="status-sub" id="sSub">Sélectionnez une demande</div>
+                        </div>
+                    </div>
+                    <div class="status-actions" id="statusActions">
+                        <button class="btn-status success-btn" id="successBtn" disabled>
+                            <i class="fas fa-check"></i> Success
+                        </button>
+                        <button class="btn-status refuse-btn" id="refuseBtn" disabled>
+                            <i class="fas fa-times"></i> Refuser
+                        </button>
+                    </div>
                 </div>
 
-                <!-- ID Wave -->
-                <div class="info-card">
-                    <span class="card-label"><i class="fas fa-receipt"></i> ID Wave</span>
-                    <div class="card-value" id="infoWaveId">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
-                </div>
-
-                <!-- Date -->
-                <div class="info-card">
-                    <span class="card-label"><i class="fas fa-calendar"></i> Date de la demande</span>
-                    <div class="card-value" id="infoDate">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
-                </div>
-
-                <!-- Référence commande -->
-                <div class="info-card">
-                    <span class="card-label"><i class="fas fa-hashtag"></i> Réf. commande</span>
-                    <div class="card-value" id="infoRef">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
-                </div>
-
-                <!-- Client -->
-                <div class="info-card" style="grid-column: span 3;">
-                    <span class="card-label"><i class="fas fa-user"></i> Client</span>
-                    <div class="card-value text" id="infoClient" style="font-size:18px;">-</div>
-                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
-                </div>
-
-            </div>
-
-            <!-- ===== EMPTY STATE ===== -->
-            <div class="empty-state" id="emptyState" style="display:none;">
-                <i class="fas fa-inbox"></i>
-                <h3>Aucune demande Wave</h3>
-                <p>Les demandes de vérification apparaîtront ici.</p>
             </div>
 
         </main>

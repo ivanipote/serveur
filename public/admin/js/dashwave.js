@@ -12,17 +12,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const requestsList = document.getElementById('requestsList');
     const loadingState = requestsList.querySelector('.loading-state');
 
-    const infoPhone = document.getElementById('infoPhone');
-    const infoCode = document.getElementById('infoCode');
-    const infoMontant = document.getElementById('infoMontant');
-    const infoWaveId = document.getElementById('infoWaveId');
-    const infoDate = document.getElementById('infoDate');
-    const infoRef = document.getElementById('infoRef');
-    const infoClient = document.getElementById('infoClient');
+    const soldeValue = document.getElementById('soldeValue');
+    const syncBtn = document.getElementById('syncBtn');
+    const syncStatus = document.getElementById('syncStatus');
 
-    const statusIcon = document.getElementById('statusIcon');
-    const statusText = document.getElementById('statusText');
-    const statusSub = document.getElementById('statusSub');
+    // Stats
+    const statProducts = document.getElementById('statProducts');
+    const statSales = document.getElementById('statSales');
+    const statCommandes = document.getElementById('statCommandes');
+    const statClients = document.getElementById('statClients');
+    const statPayments = document.getElementById('statPayments');
+    const statWave = document.getElementById('statWave');
+    const recentOrdersList = document.getElementById('recentOrdersList');
+    const recentCount = document.getElementById('recentCount');
+
+    // Détail
+    const detailRequest = document.getElementById('detailRequest');
+    const statsDefault = document.getElementById('statsDefault');
+
+    const pName = document.getElementById('pName');
+    const pPhone = document.getElementById('pPhone');
+    const pEmail = document.getElementById('pEmail');
+    const pCode = document.getElementById('pCode');
+
+    const vWaveId = document.getElementById('vWaveId');
+    const vMontant = document.getElementById('vMontant');
+    const vDate = document.getElementById('vDate');
+    const vRef = document.getElementById('vRef');
+
+    const sIcon = document.getElementById('sIcon');
+    const sText = document.getElementById('sText');
+    const sSub = document.getElementById('sSub');
+    const statusRect = document.getElementById('statusRect');
     const successBtn = document.getElementById('successBtn');
     const refuseBtn = document.getElementById('refuseBtn');
 
@@ -31,11 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const refuseConfirm = document.getElementById('refuseConfirm');
     const refuseCause = document.getElementById('refuseCause');
 
-    const copyBtns = document.querySelectorAll('.copy-btn');
-    const emptyState = document.getElementById('emptyState');
-    const soldeValue = document.getElementById('soldeValue');
-    const syncBtn = document.getElementById('syncBtn');
-    const syncStatus = document.getElementById('syncStatus');
+    // Mini copy buttons
+    const copyBtnsMini = document.querySelectorAll('.copy-btn-mini');
 
     // ==========================================
     // ÉTAT
@@ -59,11 +77,11 @@ document.addEventListener('DOMContentLoaded', function() {
             warning: '#B45309'
         };
 
-        const container = document.querySelector('.toast-container');
+        let container = document.querySelector('.toast-container');
         if (!container) {
-            const newContainer = document.createElement('div');
-            newContainer.className = 'toast-container';
-            document.body.appendChild(newContainer);
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
         }
 
         const toast = document.createElement('div');
@@ -82,8 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
             pointer-events: auto;
         `;
 
-        const containerEl = document.querySelector('.toast-container');
-        containerEl.appendChild(toast);
+        container.appendChild(toast);
 
         setTimeout(() => {
             toast.style.opacity = '0';
@@ -121,7 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 requests = [];
                 renderEmpty();
-                emptyState.style.display = 'block';
                 showToast('Aucune demande Wave en attente', 'info');
             }
 
@@ -149,41 +165,33 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        let html = '';
-        const statusLabels = {
-            'pending': { label: '⏳ En attente', class: 'pending' },
-            'success': { label: '✅ Succès', class: 'success' },
-            'refused': { label: '❌ Refusée', class: 'refused' }
-        };
+        // Séparer pending et done
+        const pending = requestsData.filter(r => r.status === 'pending');
+        const done = requestsData.filter(r => r.status !== 'pending');
 
-        // Trier : pending d'abord, puis par date (plus récent en premier)
-        const sorted = [...requestsData].sort((a, b) => {
-            if (a.status === 'pending' && b.status !== 'pending') return -1;
-            if (a.status !== 'pending' && b.status === 'pending') return 1;
-            return new Date(b.created_at) - new Date(a.created_at);
+        // Trier : pending par date (plus récent en premier), done par date (plus récent en premier)
+        pending.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        done.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        let html = '';
+
+        // Pending
+        pending.forEach(r => {
+            html += renderItem(r, false);
         });
 
-        sorted.forEach(r => {
-            const statusInfo = statusLabels[r.status] || statusLabels.pending;
-            const isDone = r.status !== 'pending';
-            const date = new Date(r.created_at);
-            const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            const clientName = r.client_name || r.user_name || 'Client inconnu';
-
+        // Séparateur si done existe
+        if (done.length > 0) {
             html += `
-                <div class="request-item ${isDone ? 'done' : ''} ${currentRequestId === r.id ? 'active' : ''}" data-id="${r.id}">
-                    <span class="status-dot ${r.status}"></span>
-                    <div class="item-info">
-                        <div class="name">${clientName}</div>
-                        <span class="ref">#${r.commande_id} · ${r.reference || '-'}</span>
-                        <div class="phone">📱 ${r.telephone || '-'}</div>
-                    </div>
-                    <div class="item-right">
-                        <span class="status-badge ${r.status}">${statusInfo.label}</span>
-                        <span class="time">${dateStr}</span>
-                    </div>
+                <div class="separator">
+                    <span>─── Historique ───</span>
                 </div>
             `;
+        }
+
+        // Done (grisé)
+        done.forEach(r => {
+            html += renderItem(r, true);
         });
 
         requestsList.innerHTML = html;
@@ -197,9 +205,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ==========================================
-    // RENDER EMPTY
-    // ==========================================
+    function renderItem(r, isDone) {
+        const statusLabels = {
+            'pending': { label: '⏳ En attente', class: 'pending' },
+            'success': { label: '✅ Succès', class: 'success' },
+            'refused': { label: '❌ Refusée', class: 'refused' }
+        };
+        const statusInfo = statusLabels[r.status] || statusLabels.pending;
+        const date = new Date(r.created_at);
+        const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const clientName = r.client_name || r.user_name || 'Client inconnu';
+
+        return `
+            <div class="request-item ${isDone ? 'done' : ''} ${currentRequestId === r.id ? 'active' : ''}" data-id="${r.id}">
+                <span class="status-dot ${r.status}"></span>
+                <div class="item-info">
+                    <div class="name">${clientName}</div>
+                    <span class="ref">#${r.commande_id} · ${r.reference || '-'}</span>
+                    <div class="phone">📱 ${r.telephone || '-'}</div>
+                </div>
+                <div class="item-right">
+                    <span class="status-badge ${r.status}">${statusInfo.label}</span>
+                    <span class="time">${dateStr}</span>
+                </div>
+            </div>
+        `;
+    }
 
     function renderEmpty() {
         requestsList.innerHTML = `
@@ -224,43 +255,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
         currentRequestId = requestId;
 
-        // Mettre à jour les cartes
-        infoPhone.textContent = data.telephone || '-';
-        infoPhone.className = 'card-value' + (data.telephone ? '' : ' empty');
+        // Afficher le détail, masquer les stats
+        statsDefault.style.display = 'none';
+        detailRequest.style.display = 'block';
+        detailRequest.classList.add('active');
 
-        infoCode.textContent = data.code_login || '••••';
-        infoCode.className = 'card-value' + (data.code_login ? '' : ' empty');
+        // Mettre à jour le fond du main
+        const mainWave = document.getElementById('mainWave');
+        mainWave.className = 'main-wave status-' + data.status;
+
+        // 1. Profil
+        const clientName = data.client_name || data.user_name || 'Client inconnu';
+        pName.textContent = clientName;
+        pName.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = clientName;
+
+        pPhone.textContent = data.telephone || '-';
+        pPhone.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.telephone || '';
+
+        pEmail.textContent = data.email || '-';
+        pEmail.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.email || '';
+
+        pCode.textContent = data.code_login || '••••';
+        pCode.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.code_login || '';
+
+        // 2. Vérification Info
+        vWaveId.textContent = data.wave_id || '-';
+        vWaveId.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.wave_id || '';
 
         const montant = data.total || data.montant || 0;
-        infoMontant.textContent = montant ? montant.toLocaleString() + ' FCFA' : '-';
-        infoMontant.className = 'card-value' + (montant ? '' : ' empty');
-
-        infoWaveId.textContent = data.wave_id || '-';
-        infoWaveId.className = 'card-value' + (data.wave_id ? '' : ' empty');
+        vMontant.textContent = montant ? montant.toLocaleString() + ' FCFA' : '-';
+        vMontant.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = montant ? montant.toString() : '';
 
         const date = new Date(data.created_at);
         const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        infoDate.textContent = dateStr || '-';
-        infoDate.className = 'card-value' + (dateStr ? '' : ' empty');
+        vDate.textContent = dateStr || '-';
+        vDate.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = dateStr || '';
 
-        infoRef.textContent = data.reference || '-';
-        infoRef.className = 'card-value' + (data.reference ? '' : ' empty');
+        vRef.textContent = data.reference || '-';
+        vRef.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.reference || '';
 
-        const clientName = data.client_name || data.user_name || 'Client inconnu';
-        infoClient.textContent = '👤 ' + clientName;
-        infoClient.className = 'card-value text';
-
-        // Mettre à jour les boutons copier
-        document.querySelectorAll('.info-card .copy-btn').forEach(btn => {
-            const card = btn.closest('.info-card');
-            const valueEl = card.querySelector('.card-value');
-            if (valueEl) {
-                const text = valueEl.textContent.replace('👤 ', '').trim();
-                btn.dataset.copy = text;
-            }
-        });
-
-        // Mettre à jour le statut
+        // 3. Statut
         const statusLabels = {
             'pending': { icon: '⏳', text: 'En attente de vérification', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
             'success': { icon: '✅', text: 'Paiement vérifié avec succès', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
@@ -268,14 +302,20 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         const info = statusLabels[data.status] || statusLabels.pending;
-        statusIcon.textContent = info.icon;
-        statusText.textContent = info.text;
-        statusSub.textContent = info.sub;
+        sIcon.textContent = info.icon;
+        sText.textContent = info.text;
+        sSub.textContent = info.sub;
 
-        // Activer/désactiver les boutons
-        const isPending = data.status === 'pending';
-        successBtn.disabled = !isPending || isProcessing;
-        refuseBtn.disabled = !isPending || isProcessing;
+        // Afficher/masquer le rectangle statut
+        if (data.status === 'pending') {
+            statusRect.classList.remove('hidden');
+            successBtn.disabled = false;
+            refuseBtn.disabled = false;
+        } else {
+            statusRect.classList.add('hidden');
+            successBtn.disabled = true;
+            refuseBtn.disabled = true;
+        }
 
         // Mettre à jour l'item actif dans la sidebar
         document.querySelectorAll('.request-item').forEach(item => {
@@ -284,9 +324,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.classList.add('active');
             }
         });
+    }
 
-        // Masquer l'empty state
-        emptyState.style.display = 'none';
+    // ==========================================
+    // CHARGER LES STATS
+    // ==========================================
+
+    async function loadStats() {
+        try {
+            const res = await fetch('/api/admin/stats');
+            const data = await res.json();
+
+            if (res.ok) {
+                statProducts.textContent = data.products || 0;
+                statSales.textContent = (data.sales || 0).toLocaleString() + ' FCFA';
+                statCommandes.textContent = data.commandes || 0;
+                statClients.textContent = data.clients || 0;
+                statPayments.textContent = data.payments || 0;
+                statWave.textContent = requests.filter(r => r.status === 'pending').length || 0;
+            }
+
+            // Charger les commandes récentes
+            const res2 = await fetch('/api/admin/commandes');
+            const data2 = await res2.json();
+
+            if (res2.ok && data2.length > 0) {
+                const recent = data2.slice(0, 5);
+                recentCount.textContent = recent.length;
+
+                const labels = {
+                    'en_attente': '⏳ En attente',
+                    'accepter': '💳 Paiement requis',
+                    'paiement_effectue': '✅ Payée',
+                    'livraison_en_cours': '🚚 En cours',
+                    'disponible': '📍 Disponible',
+                    'recuperee': '✅ Récupérée',
+                    'refuse': '❌ Refusée',
+                    'annulee': '❌ Annulée'
+                };
+
+                const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+                recentOrdersList.innerHTML = recent.map(c => `
+                    <tr>
+                        <td>#${c.id}</td>
+                        <td>${c.nom}</td>
+                        <td>${(c.total || 0).toLocaleString()} FCFA</td>
+                        <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
+                        <td>${new Date(c.created_at).toLocaleDateString('fr-FR', dateOptions)}</td>
+                    </tr>
+                `).join('');
+            } else {
+                recentOrdersList.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucune commande récente</td></tr>`;
+                recentCount.textContent = '0';
+            }
+        } catch (error) {
+            console.error('Erreur stats:', error);
+        }
     }
 
     // ==========================================
@@ -320,11 +414,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // BOUTONS COPY
+    // BOUTONS COPY MINI
     // ==========================================
 
-    copyBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+    copyBtnsMini.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
             const text = this.dataset.copy || '';
             if (text && text !== '-') {
                 navigator.clipboard.writeText(text).then(() => {
@@ -393,6 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderRequests(requests);
                 displayDetail(data.id);
                 updateSolde();
+                loadStats();
                 showToast(`✅ Paiement confirmé pour la commande #${data.commande_id}`, 'success');
             } else {
                 showToast('❌ ' + (result.error || 'Erreur'), 'error');
@@ -464,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderRequests(requests);
                 displayDetail(data.id);
                 updateSolde();
+                loadStats();
                 refuseOverlay.classList.remove('active');
                 refuseCause.value = '';
                 showToast(`❌ Paiement refusé pour la commande #${data.commande_id}`, 'error');
@@ -502,6 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             await loadRequests();
+            await loadStats();
             showToast('🔄 Synchronisation terminée', 'success');
         } catch (error) {
             showToast('❌ Erreur de synchronisation', 'error');
@@ -558,11 +656,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('🔔 Nouvelle demande Wave:', data);
                 showToast(`🔔 Nouvelle demande de ${data.client}`, 'info');
                 loadRequests();
+                loadStats();
             });
 
             socket.on('commande-update', function(data) {
                 console.log('📦 Commande mise à jour:', data);
                 loadRequests();
+                loadStats();
             });
 
         } catch (error) {
@@ -586,12 +686,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         await loadRequests();
+        await loadStats();
         connectSocketIO();
 
         // Sync auto toutes les 30 secondes
         setInterval(() => {
             if (!isSyncing) {
                 loadRequests();
+                loadStats();
             }
         }, 30000);
 
@@ -604,6 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.dashwave = {
         loadRequests,
+        loadStats,
         requests,
         currentRequestId,
         displayDetail
