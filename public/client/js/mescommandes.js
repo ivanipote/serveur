@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isSyncing = false;
     let isSyncActive = true;
     let isFirstLoad = true;
+    let timerIntervals = {};
 
     function updateSyncUI() {
         if (isSyncActive) {
@@ -313,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return [];
     }
 
-    // ✅ FONCTION HANDLEPAYMENT CORRIGÉE
     async function handlePayment(commandeId, amount, reference, phone) {
         if (!phone) {
             await showMessage('📱', 'Numéro manquant', 'Veuillez renseigner votre numéro Wave dans votre profil.');
@@ -321,16 +321,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // ✅ 1. Vérifier si un paiement existe déjà pour cette commande
             const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${commandeId}`);
             const checkData = await checkRes.json();
 
-            // ✅ 2. Si paiement existe déjà, utiliser le checkout_url existant
             if (checkData.success && checkData.data) {
                 const existingCheckoutUrl = checkData.data.checkout_url;
-                const existingRef = checkData.data.reference || reference;
-                
-                // ✅ Si le checkout_url existe déjà, l'ouvrir directement
                 if (existingCheckoutUrl && existingCheckoutUrl !== 'null' && existingCheckoutUrl !== '') {
                     window.open(existingCheckoutUrl, '_blank');
                     setTimeout(() => loadCommandes(), 500);
@@ -338,7 +333,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // ✅ 3. Sinon, créer un nouveau paiement
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -363,6 +357,46 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Erreur paiement:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
+    }
+
+    // ✅ TIMER FONCTION
+    function startTimer(commandeId, createdAt) {
+        if (timerIntervals[commandeId]) {
+            clearInterval(timerIntervals[commandeId]);
+        }
+
+        const createdDate = new Date(createdAt);
+        const expiryTime = createdDate.getTime() + 3 * 60 * 1000; // 3 minutes
+
+        function updateTimer() {
+            const now = Date.now();
+            const diff = expiryTime - now;
+
+            const timerElement = document.getElementById(`timer-${commandeId}`);
+            const statusElement = document.getElementById(`status-${commandeId}`);
+
+            if (!timerElement || !statusElement) return;
+
+            if (diff <= 0) {
+                timerElement.textContent = '⏳ Expiré';
+                timerElement.className = 'timer expired';
+                statusElement.textContent = 'expired';
+                clearInterval(timerIntervals[commandeId]);
+                delete timerIntervals[commandeId];
+                return;
+            }
+
+            const minutes = Math.floor(diff / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            const displayMinutes = String(minutes).padStart(2, '0');
+            const displaySeconds = String(seconds).padStart(2, '0');
+
+            timerElement.textContent = `⏳ ${displayMinutes}:${displaySeconds}`;
+            timerElement.className = 'timer';
+        }
+
+        updateTimer();
+        timerIntervals[commandeId] = setInterval(updateTimer, 1000);
     }
 
     function getStatusHistory(commande) {
@@ -454,10 +488,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const showContinue = isPaymentInProgress || c.status === 'pending' || c.status === 'processing';
             const isTerminal = ['success', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'annulee', 'refuse', 'livraison_en_cours', 'disponible', 'recuperee'].includes(c.status) || 
                               ['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.genius_status);
+            const isExpired = statusKey === 'expired' || (c.status === 'pending' && new Date(c.created_at).getTime() + 3 * 60 * 1000 < Date.now());
 
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
+
+            // ✅ Timer pour paiement en cours (pending/processing)
+            let timerHtml = '';
+            if (c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') {
+                const createdDate = new Date(c.created_at);
+                const expiryTime = createdDate.getTime() + 3 * 60 * 1000;
+                const now = Date.now();
+                const diff = expiryTime - now;
+
+                if (diff > 0) {
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    const displayMinutes = String(minutes).padStart(2, '0');
+                    const displaySeconds = String(seconds).padStart(2, '0');
+                    timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${displayMinutes}:${displaySeconds}</div>`;
+                } else {
+                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
+                }
+            }
 
             let statusTransitionHtml = '';
 
@@ -478,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let actionHint = '';
             if (isPayable) {
                 actionHint = '💳 Cliquez sur Payer pour effectuer le paiement';
-            } else if (showContinue) {
+            } else if (showContinue && !isExpired) {
                 actionHint = '⏳ Paiement en cours... Continuez pour finaliser';
             } else if (c.status === 'en_attente') {
                 actionHint = '⏳ En attente de validation';
@@ -498,20 +552,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 actionHint = '❌ Paiement échoué';
             } else if (c.status === 'cancelled') {
                 actionHint = '⏰ Paiement annulé';
-            } else if (c.status === 'expired') {
-                actionHint = '⏳ Paiement expiré';
-            } else if (c.status === 'refunded') {
-                actionHint = '🔄 Remboursé';
+            } else if (isExpired || statusKey === 'expired') {
+                actionHint = '⏳ Paiement expiré - Veuillez passer une nouvelle commande';
             }
 
             html += `
-                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'}">
+                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'} ${isExpired ? 'expired' : ''}">
                     <span class="badge-top ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span>
                     <div class="id">#${c.id}</div>
                     <span class="ref">${refDisplay}</span>
                     <span class="date">${dateStr}</span>
                     <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
                     <div class="status-transition">${statusTransitionHtml}</div>
+                    ${timerHtml}
                     ${actionHint ? `<div class="action-hint">${actionHint}</div>` : ''}
                     <div class="actions">
                         ${isPayable ? `
@@ -519,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-credit-card"></i> Payer
                             </button>
                         ` : ''}
-                        ${showContinue && !isTerminal ? `
+                        ${showContinue && !isExpired && !isTerminal ? `
                             <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}">
                                 <i class="fas fa-arrow-right"></i> Continuer
                             </button>
@@ -533,6 +586,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         mainContent.innerHTML = html;
+
+        // ✅ Démarrer les timers
+        commandes.forEach((c) => {
+            if (c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') {
+                startTimer(c.id, c.created_at);
+            }
+        });
 
         document.querySelectorAll('.btn-pay').forEach(btn => {
             btn.addEventListener('click', function() {
