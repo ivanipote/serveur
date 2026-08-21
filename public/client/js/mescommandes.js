@@ -40,6 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let isFirstLoad = true;
     let timerIntervals = {};
 
+    // ✅ 20 MINUTES
+    const TIMEOUT_MINUTES = 20;
+    const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
+
     function updateSyncUI() {
         if (isSyncActive) {
             syncBtn.classList.add('active');
@@ -328,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const existingCheckoutUrl = checkData.data.checkout_url;
                 if (existingCheckoutUrl && existingCheckoutUrl !== 'null' && existingCheckoutUrl !== '') {
                     window.open(existingCheckoutUrl, '_blank');
-                    setTimeout(() => loadCommandes(), 500);
                     return;
                 }
             }
@@ -349,7 +352,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (res.ok && data.success && data.checkout_url) {
                 window.open(data.checkout_url, '_blank');
-                setTimeout(() => loadCommandes(), 500);
             } else {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible de créer le paiement.');
             }
@@ -359,28 +361,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ✅ TIMER FONCTION
-    function startTimer(commandeId, createdAt) {
+    function startTimer(commandeId, paymentCreatedAt) {
         if (timerIntervals[commandeId]) {
             clearInterval(timerIntervals[commandeId]);
         }
 
-        const createdDate = new Date(createdAt);
-        const expiryTime = createdDate.getTime() + 3 * 60 * 1000; // 3 minutes
+        // ✅ Utiliser la date du paiement, pas la commande
+        const createdDate = new Date(paymentCreatedAt);
+        const expiryTime = createdDate.getTime() + TIMEOUT_MS;
 
         function updateTimer() {
             const now = Date.now();
             const diff = expiryTime - now;
 
             const timerElement = document.getElementById(`timer-${commandeId}`);
-            const statusElement = document.getElementById(`status-${commandeId}`);
 
-            if (!timerElement || !statusElement) return;
+            if (!timerElement) return;
 
             if (diff <= 0) {
                 timerElement.textContent = '⏳ Expiré';
                 timerElement.className = 'timer expired';
-                statusElement.textContent = 'expired';
                 clearInterval(timerIntervals[commandeId]);
                 delete timerIntervals[commandeId];
                 return;
@@ -400,29 +400,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getStatusHistory(commande) {
-        const geniusStatus = commande.genius_status || commande.status || 'en_attente';
-        const allStatuses = ['en_attente', 'accepter', 'paiement_en_cours', 'pending', 'processing', 'paiement_effectue', 'success', 'failed', 'cancelled', 'expired', 'refunded', 'livraison_en_cours', 'disponible', 'recuperee', 'annulee', 'refuse'];
+        // ✅ Utiliser genius_status si disponible, sinon status
+        const currentStatus = commande.genius_status || commande.status || 'en_attente';
         
-        if (geniusStatus === 'en_attente' || geniusStatus === 'accepter') {
-            return { old: null, current: geniusStatus };
+        // ✅ Ordre logique des statuts
+        const statusFlow = [
+            'en_attente', 'accepter', 
+            'pending', 'processing', 
+            'paiement_effectue', 'success',
+            'failed', 'cancelled', 'expired', 'refunded',
+            'livraison_en_cours', 'disponible', 'recuperee', 'annulee', 'refuse'
+        ];
+
+        // ✅ Si statut actuel est le premier de la liste, pas d'historique
+        if (currentStatus === 'en_attente' || currentStatus === 'accepter') {
+            return { old: null, current: currentStatus };
         }
 
-        const currentIndex = allStatuses.indexOf(geniusStatus);
+        const currentIndex = statusFlow.indexOf(currentStatus);
         let oldStatus = null;
 
-        for (let i = currentIndex - 1; i >= 0; i--) {
-            const candidate = allStatuses[i];
-            if (candidate && commandes.some(c => c.status === candidate || c.genius_status === candidate)) {
-                oldStatus = candidate;
-                break;
+        // ✅ Trouver le statut précédent dans le flux
+        if (currentIndex > 0) {
+            // Chercher le dernier statut valide avant le statut actuel
+            for (let i = currentIndex - 1; i >= 0; i--) {
+                const candidate = statusFlow[i];
+                // Vérifier si ce statut apparaît dans la commande ou dans l'historique
+                if (candidate === commande.status || candidate === commande.genius_status) {
+                    oldStatus = candidate;
+                    break;
+                }
+            }
+            
+            // ✅ Fallback : si pas trouvé, utiliser "en_attente" comme ancien statut
+            if (!oldStatus && currentStatus !== 'en_attente') {
+                oldStatus = 'en_attente';
             }
         }
 
-        if (!oldStatus && geniusStatus !== 'en_attente') {
-            oldStatus = 'en_attente';
-        }
-
-        return { old: oldStatus, current: geniusStatus };
+        return { old: oldStatus, current: currentStatus };
     }
 
     function renderCommandes() {
@@ -479,26 +495,33 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         commandes.forEach((c) => {
+            // ✅ Utiliser genius_status comme statut principal
             const statusKey = c.genius_status || c.status || 'en_attente';
             const statusInfo = statusLabels[statusKey] || { label: statusKey, icon: '📋', class: 'en_attente' };
             const history = getStatusHistory(c);
 
+            // ✅ Vérifier si paiement est expiré (20 min)
+            const paymentDate = c.payment_created_at || c.created_at;
+            const isExpired = statusKey === 'expired' || 
+                              (c.status === 'paiement_en_cours' && 
+                               new Date(paymentDate).getTime() + TIMEOUT_MS < Date.now());
+
+            // ✅ Actions disponibles
             const isPayable = c.status === 'accepter';
             const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
-            const showContinue = isPaymentInProgress || c.status === 'pending' || c.status === 'processing';
+            const showContinue = isPaymentInProgress && !isExpired;
             const isTerminal = ['success', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'annulee', 'refuse', 'livraison_en_cours', 'disponible', 'recuperee'].includes(c.status) || 
                               ['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.genius_status);
-            const isExpired = statusKey === 'expired' || (c.status === 'pending' && new Date(c.created_at).getTime() + 3 * 60 * 1000 < Date.now());
 
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
 
-            // ✅ Timer pour paiement en cours (pending/processing)
+            // ✅ Timer
             let timerHtml = '';
-            if (c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') {
-                const createdDate = new Date(c.created_at);
-                const expiryTime = createdDate.getTime() + 3 * 60 * 1000;
+            if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && !isExpired) {
+                const paymentDateObj = new Date(paymentDate);
+                const expiryTime = paymentDateObj.getTime() + TIMEOUT_MS;
                 const now = Date.now();
                 const diff = expiryTime - now;
 
@@ -511,10 +534,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
                 }
+            } else if (isExpired) {
+                timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
             }
 
+            // ✅ Historique des statuts
             let statusTransitionHtml = '';
-
             if (history.old && history.old !== history.current) {
                 const oldLabel = statusLabels[history.old]?.label || history.old;
                 const newLabel = statusInfo.label;
@@ -529,10 +554,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
+            // ✅ Message d'action
             let actionHint = '';
             if (isPayable) {
                 actionHint = '💳 Cliquez sur Payer pour effectuer le paiement';
-            } else if (showContinue && !isExpired) {
+            } else if (showContinue) {
                 actionHint = '⏳ Paiement en cours... Continuez pour finaliser';
             } else if (c.status === 'en_attente') {
                 actionHint = '⏳ En attente de validation';
@@ -589,8 +615,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ✅ Démarrer les timers
         commandes.forEach((c) => {
-            if (c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') {
-                startTimer(c.id, c.created_at);
+            if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && 
+                !(c.genius_status === 'expired' || new Date(c.payment_created_at || c.created_at).getTime() + TIMEOUT_MS < Date.now())) {
+                startTimer(c.id, c.payment_created_at || c.created_at);
             }
         });
 
