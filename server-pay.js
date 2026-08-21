@@ -240,24 +240,23 @@ app.post('/api/payment/create', async (req, res) => {
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['paiement_en_cours', commandeId]
         );
+// ✅ NOTIFICATION : Paiement initié (via createNotification)
+await createNotification(
+    userId,
+    commandeId,
+    'paiement',
+    '📥 Paiement initié',
+    `Votre paiement pour la commande #${commandeId} a été initié. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
+);
 
-        // ✅ NOTIFICATION : Paiement initié
-        await createNotification(
-            userId,
-            commandeId,
-            'paiement',
-            '📥 Paiement initié',
-            `Votre paiement pour la commande #${commandeId} a été initié. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
-        );
-
-        // ✅ NOTIFICATION : Paiement en cours (via Socket.IO)
-        global.io.to(`user_${userId}`).emit('notification', {
-            title: '⏳ Paiement en cours',
-            content: `Votre paiement pour la commande #${commandeId} est en cours de traitement. Veuillez vérifier votre téléphone Wave.`,
-            type: 'paiement',
-            commandeId: commandeId
-        });
-
+// ✅ NOTIFICATION : Paiement en cours (via socket directement)
+socket.emit('notification', {
+    title: '⏳ Paiement en cours',
+    content: `Votre paiement pour la commande #${commandeId} est en cours de traitement. Veuillez vérifier votre téléphone Wave.`,
+    type: 'paiement',
+    commandeId: commandeId,
+    userId: userId
+});
         res.json({
             success: true,
             checkout_url: checkoutUrl,
