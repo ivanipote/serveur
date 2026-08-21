@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusSpinner = document.getElementById('statusSpinner');
     const verifyErrorMsg = document.getElementById('verifyErrorMessage');
 
-    const WAVE_API_URL = 'https://nature-plus-wave.onrender.com';
+    // ✅ URL CORRECTE DU SERVEUR WAVE
+    const WAVE_API_URL = 'https://server-wave-js.onrender.com';
 
     let commandeId = null;
     let commandeData = null;
@@ -288,15 +289,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const v = data.verification;
 
                 if (v.status === 'pending') {
-                    // Demande en cours
                     showVerificationStatus('pending', '🔍 Vérification en cours... Attendez la confirmation de l\'admin.');
                     verifyBtn.disabled = true;
                 } else if (v.status === 'success') {
-                    // Déjà vérifié avec succès
                     showVerificationStatus('success', '✅ Paiement déjà vérifié avec succès !');
                     verifyBtn.disabled = true;
                 } else if (v.status === 'refused') {
-                    // Refusé avec cause
                     showVerificationStatus('error', `❌ Paiement refusé : ${v.cause || 'Motif non précisé'}`);
                     verifyBtn.disabled = true;
                 }
@@ -592,11 +590,9 @@ document.addEventListener('DOMContentLoaded', function() {
             hideVerifyOverlay();
 
             if (data.success) {
-                // ✅ Demande envoyée avec succès
                 showVerificationStatus('pending', '🔍 Vérification en cours... Vous serez informé dès que l\'admin aura confirmé. Durée estimée : 1-10 min.');
                 verifyBtn.style.display = 'none';
 
-                // Notification visuelle
                 showError('✅ Demande envoyée avec succès ! Vous recevrez une notification.', 'verifier');
                 setTimeout(() => {
                     hideError('verifier');
