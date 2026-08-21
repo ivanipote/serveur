@@ -32,7 +32,7 @@ const subClient = redisClient.duplicate();
 
 const socket = new Server({
     cors: {
-        origin: ['https://nature-plus-client.onrender.com', 'http://localhost:3000'],
+        origin: ['https://nature-plus-client.onrender.com', 'http://localhost:3000', 'http://localhost:3001'],
         credentials: true
     },
     adapter: createAdapter(pubClient, subClient)
@@ -48,15 +48,35 @@ socket.on('connection', (sock) => {
 });
 
 // ========================================================
-// MIDDLEWARE - CORS
+// MIDDLEWARE - JSON
 // ========================================================
 
 app.use(express.json());
 
+// ========================================================
+// MIDDLEWARE - CORS COMPLET
+// ========================================================
+
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    const allowedOrigins = [
+        'https://nature-plus-client.onrender.com',
+        'https://nature-plus-pay.onrender.com',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -530,6 +550,13 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log(`📍 ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`========================================`);
 
-    // Créer la table si elle n'existe pas
-    await createWaveTable();
+    // Créer la table si elle n'existe pas (non bloquant)
+    setTimeout(async () => {
+        try {
+            await createWaveTable();
+            console.log('✅ Table wave_verifications vérifiée');
+        } catch (error) {
+            console.error('⚠️ Erreur création table (non bloquante):', error.message);
+        }
+    }, 2000);
 });
