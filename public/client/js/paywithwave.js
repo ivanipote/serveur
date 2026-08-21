@@ -192,20 +192,24 @@ document.addEventListener('DOMContentLoaded', function() {
             panier = [];
         }
 
-        const total = commande.total || 0;
-
-        let productsHtml = '';
+        // Calculer le total des produits
+        let totalProduits = 0;
+        let produitsHtml = '';
         if (panier.length > 0) {
             panier.forEach(p => {
-                productsHtml += `
+                const prix = p.price || 0;
+                const qte = p.quantity || 1;
+                const totalLigne = prix * qte;
+                totalProduits += totalLigne;
+                produitsHtml += `
                     <div class="recap-item">
-                        <span class="label">${p.name || 'Produit'} × ${p.quantity || 1}</span>
-                        <span class="value">${((p.price || 0) * (p.quantity || 1)).toLocaleString()} FCFA</span>
+                        <span class="label">${p.name || 'Produit'} × ${qte}</span>
+                        <span class="value">${totalLigne.toLocaleString()} FCFA</span>
                     </div>
                 `;
             });
         } else {
-            productsHtml = `
+            produitsHtml = `
                 <div class="recap-item">
                     <span class="label">Aucun produit</span>
                     <span class="value">-</span>
@@ -213,6 +217,25 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
+        // Récupérer les frais de livraison
+        const fraisLivraison = commande.frais_livraison || 0;
+
+        // Prix brut = total produits + frais livraison
+        const prixBrut = totalProduits + fraisLivraison;
+
+        // ✅ CALCUL DES FRAIS GENIUS PAY
+        const fraisWave = prixBrut * 0.015;           // 1.5%
+        const fraisGeniusPay = 100 + (prixBrut * 0.01); // 100 + 1%
+        const totalFrais = fraisWave + fraisGeniusPay;
+
+        // ✅ MONTANT QUE LE CLIENT PAIE SUR WAVE
+        const montantWave = Math.ceil(prixBrut - totalFrais);
+
+        // Stocker le montant Wave pour le lien
+        commandeData.montantWave = montantWave;
+        commandeData.prixBrut = prixBrut;
+
+        // Affichage
         const clientInfo = `
             <div class="recap-item">
                 <span class="label">👤 Client</span>
@@ -226,16 +249,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="label">📋 Référence</span>
                 <span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span>
             </div>
-        `;
-
-        recapContent.innerHTML = `
-            ${clientInfo}
-            <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f2f5;">
-                ${productsHtml}
+            <div class="recap-item" style="border-bottom: 2px solid #1a2a6c; padding-bottom: 8px; margin-bottom: 4px;">
+                <span class="label" style="font-weight:700;">📦 Total produits</span>
+                <span class="value" style="font-weight:700;">${totalProduits.toLocaleString()} FCFA</span>
+            </div>
+            ${fraisLivraison > 0 ? `
+                <div class="recap-item">
+                    <span class="label">🚚 Frais de livraison</span>
+                    <span class="value">${fraisLivraison.toLocaleString()} FCFA</span>
+                </div>
+            ` : ''}
+            <div class="recap-item" style="border-bottom: 2px solid #f0f2f5; padding-bottom: 8px;">
+                <span class="label" style="font-weight:700;">💰 Prix brut</span>
+                <span class="value" style="font-weight:700;">${prixBrut.toLocaleString()} FCFA</span>
+            </div>
+            <div class="recap-item" style="color:#888; font-size:13px;">
+                <span class="label">📉 Frais Wave (1.5%)</span>
+                <span class="value" style="color:#888;">- ${fraisWave.toFixed(0)} FCFA</span>
+            </div>
+            <div class="recap-item" style="color:#888; font-size:13px;">
+                <span class="label">📉 Frais GeniusPay (100+1%)</span>
+                <span class="value" style="color:#888;">- ${fraisGeniusPay.toFixed(0)} FCFA</span>
+            </div>
+            <div class="recap-item" style="border-top: 2px solid #1a2a6c; padding-top: 8px; margin-top: 4px;">
+                <span class="label" style="font-weight:700; color:#1a2a6c;">💳 Montant Wave</span>
+                <span class="value" style="font-weight:700; color:#1a2a6c; font-size:20px;">${montantWave.toLocaleString()} FCFA</span>
             </div>
         `;
 
-        totalAmount.textContent = total.toLocaleString() + ' FCFA';
+        recapContent.innerHTML = clientInfo;
+        totalAmount.textContent = montantWave.toLocaleString() + ' FCFA';
     }
 
     // ==========================================
@@ -311,63 +354,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Code valide → lancer le paiement
-        const phone = currentUser?.phone || localStorage.getItem('userPhone');
+        const montantWave = commandeData?.montantWave || 0;
 
-        if (!phone) {
-            showError('📱 Numéro de téléphone manquant. Veuillez le renseigner dans votre profil.');
-            return;
-        }
-
-        const amount = commandeData?.total || 0;
-
-        if (amount <= 0) {
+        if (montantWave <= 0) {
             showError('⚠️ Montant invalide.');
             return;
         }
 
+        // ✅ CONSTRUIRE LE LIEN WAVE AVEC LE MONTANT CALCULÉ
+        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
+
         showLoading();
 
-        try {
-            // Vérifier si un paiement existe déjà
-            const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${commandeId}`);
-            const checkData = await checkRes.json();
-
-            if (checkData.success && checkData.data) {
-                const existingCheckoutUrl = checkData.data.checkout_url;
-                if (existingCheckoutUrl && existingCheckoutUrl !== 'null' && existingCheckoutUrl !== '') {
-                    hideLoading();
-                    window.open(existingCheckoutUrl, '_blank');
-                    return;
-                }
-            }
-
-            // Créer un nouveau paiement
-            const res = await fetch(`${PAYMENT_API_URL}/api/payment/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    commandeId: parseInt(commandeId),
-                    reference: commandeData?.reference || `NAT-${commandeId}`,
-                    amount: amount,
-                    phone: phone,
-                    description: `Commande Nature+ #${commandeId}`
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok && data.success && data.checkout_url) {
-                hideLoading();
-                window.open(data.checkout_url, '_blank');
-            } else {
-                hideLoading();
-                showError('❌ ' + (data.error || 'Impossible de créer le paiement.'));
-            }
-        } catch (error) {
-            console.error('Erreur paiement:', error);
+        // Rediriger vers Wave après un court délai
+        setTimeout(() => {
             hideLoading();
-            showError('❌ Erreur de connexion au serveur de paiement.');
-        }
+            window.open(waveLink, '_blank');
+        }, 1500);
     });
 
     // ==========================================
