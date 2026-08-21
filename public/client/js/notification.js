@@ -2,10 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ notification.js chargé');
 
-    // ==========================================
-    // RÉFÉRENCES
-    // ==========================================
-
     const mainContent = document.getElementById('notifList');
     const skeletonLoader = document.getElementById('skeletonLoader');
     const notifBadge = document.getElementById('notifBadge');
@@ -25,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let syncInterval = null;
     let isSyncing = false;
     let isSyncActive = true;
-    let isFirstLoad = true; // ✅ Premier chargement
-    let hasNewNotification = false; // ✅ Nouvelle notification reçue
+    let isFirstLoad = true;
+    let hasNewNotification = false;
 
     // ==========================================
     // TOAST
@@ -109,10 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('🔄 Sync notifications démarré (toutes les 5s)');
 
-        // Premier chargement immédiat
         loadNotifications();
 
-        // Puis toutes les 5 secondes
         syncInterval = setInterval(() => {
             if (!isSyncing && isSyncActive) {
                 loadNotifications();
@@ -173,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('🔔 Notification reçue (client):', data);
                 
                 // 1. Afficher le toast
-                showToast(data.message || 'Nouvelle notification', 'info');
+                showToast(data.title || 'Nouvelle notification', 'info');
                 
                 // 2. Marquer qu'on a une nouvelle notification
                 hasNewNotification = true;
@@ -307,13 +301,10 @@ document.addEventListener('DOMContentLoaded', function() {
         isSyncing = true;
 
         try {
-            // ✅ Afficher le skeleton UNIQUEMENT si :
-            // - C'est le premier chargement (isFirstLoad)
-            // - OU une nouvelle notification vient d'arriver (hasNewNotification)
             if (isFirstLoad || showSkeleton || hasNewNotification) {
                 if (skeletonLoader) skeletonLoader.style.display = 'flex';
                 if (mainContent) mainContent.innerHTML = '';
-                hasNewNotification = false; // ✅ Réinitialiser après affichage
+                hasNewNotification = false;
             }
 
             const res = await fetch('/api/notifications');
@@ -608,14 +599,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            // ✅ Démarrer la sync
             isSyncActive = true;
             updateSyncUI();
 
-            // ✅ Connecter Socket.IO
             connectSocketIO();
 
-            // ✅ Premier chargement
             await loadNotifications();
 
             console.log('✅ Initialisation terminée');
