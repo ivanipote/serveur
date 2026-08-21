@@ -38,30 +38,78 @@
             </div>
         </div>
 
-        <!-- FORMULAIRE CODE LOGIN -->
-        <div class="login-card">
-            <div class="login-label">
-                <i class="fas fa-lock"></i> Entrez votre code secret
-            </div>
-            <div class="code-boxes-container" id="codeBoxesContainer">
-                <div class="code-boxes">
-                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
-                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
-                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
-                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+        <!-- ========================================== -->
+        <!-- ONGLET 1 : PAYER (actif par défaut)         -->
+        <!-- ========================================== -->
+        <div id="ongletPayer" class="onglet-content active">
+            <!-- FORMULAIRE CODE LOGIN -->
+            <div class="login-card">
+                <div class="login-label">
+                    <i class="fas fa-lock"></i> Entrez votre code secret
                 </div>
+                <div class="code-boxes-container">
+                    <div class="code-boxes">
+                        <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                        <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                        <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                        <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                    </div>
+                </div>
+                <div class="code-hint">Entrez votre code à 4 chiffres</div>
             </div>
-            <div class="code-hint">Entrez votre code à 4 chiffres</div>
+
+            <!-- BOUTON PAYER -->
+            <button class="btn-pay-wave" id="payWaveBtn">
+                <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon-btn" />
+                Payer avec Wave
+            </button>
         </div>
 
-        <!-- BOUTON PAYER -->
-        <button class="btn-pay-wave" id="payWaveBtn">
-            <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon-btn" />
-            Payer avec Wave
-        </button>
+        <!-- ========================================== -->
+        <!-- ONGLET 2 : VÉRIFIER                        -->
+        <!-- ========================================== -->
+        <div id="ongletVerifier" class="onglet-content">
+            <!-- CODE LOGIN -->
+            <div class="login-card">
+                <div class="login-label">
+                    <i class="fas fa-lock"></i> Entrez votre code secret
+                </div>
+                <div class="code-boxes-container">
+                    <div class="code-boxes" id="codeBoxesVerifier">
+                        <input type="password" class="code-box code-box-verif" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                        <input type="password" class="code-box code-box-verif" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                        <input type="password" class="code-box code-box-verif" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                        <input type="password" class="code-box code-box-verif" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                    </div>
+                </div>
+                <div class="code-hint">Entrez votre code à 4 chiffres</div>
+            </div>
 
-        <!-- MESSAGE ERREUR -->
-        <div id="errorMessage" class="error-message"></div>
+            <!-- ID WAVE -->
+            <div class="login-card">
+                <div class="login-label">
+                    <i class="fas fa-receipt"></i> ID Transaction Wave
+                </div>
+                <input type="text" id="waveIdInput" class="wave-id-input" placeholder="Ex: WV-987654321" maxlength="30" />
+                <div class="code-hint">Entrez l'ID Wave reçu par SMS</div>
+            </div>
+
+            <!-- STATUT DE VÉRIFICATION -->
+            <div id="verificationStatus" class="verification-status" style="display:none;">
+                <div class="status-content">
+                    <i class="fas fa-spinner fa-spin" id="statusSpinner"></i>
+                    <span id="statusMessage">🔍 Vérification en cours...</span>
+                </div>
+            </div>
+
+            <!-- BOUTON VÉRIFIER -->
+            <button class="btn-verify-wave" id="verifyWaveBtn" disabled>
+                <i class="fas fa-search"></i> Vérifier mon paiement
+            </button>
+
+            <!-- MESSAGE D'ERREUR -->
+            <div id="verifyErrorMessage" class="error-message"></div>
+        </div>
 
     </main>
 
@@ -71,9 +119,8 @@
             <button class="onglet active" data-onglet="payer">
                 <i class="fas fa-credit-card"></i> Payer
             </button>
-            <button class="onglet" data-onglet="verifier" disabled>
+            <button class="onglet" data-onglet="verifier">
                 <i class="fas fa-search"></i> Vérifier
-                <span class="badge-coming">Bientôt</span>
             </button>
         </div>
     </footer>
@@ -82,6 +129,12 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
         <p>🔄 Redirection vers Wave...</p>
+    </div>
+
+    <!-- ===== OVERLAY VÉRIFICATION ===== -->
+    <div class="loading-overlay" id="verifyOverlay" style="display:none;">
+        <div class="spinner"></div>
+        <p id="verifyOverlayMessage">🔍 Envoi de votre demande...</p>
     </div>
 
     <script src="/client/js/paywithwave.js"></script>

@@ -450,3 +450,168 @@ body {
     .footer-onglets .onglet { font-size: 12px; padding: 8px; border-radius: 12px; }
     .footer-onglets .onglet .badge-coming { font-size: 7px; padding: 1px 5px; }
 }
+/* ========================================== */
+/* ONGLET CONTENT                             */
+/* ========================================== */
+
+.onglet-content {
+    display: none;
+}
+
+.onglet-content.active {
+    display: block;
+}
+
+/* ========================================== */
+/* CHAMP ID WAVE                              */
+/* ========================================== */
+
+.wave-id-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a2e;
+    background: white;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.wave-id-input:focus {
+    border-color: #1a2a6c;
+    box-shadow: 0 0 0 4px rgba(26, 42, 108, 0.12);
+}
+
+.wave-id-input::placeholder {
+    color: #ccc;
+    font-weight: 400;
+    letter-spacing: 0px;
+}
+
+.wave-id-input.error {
+    border-color: #e74c3c;
+    animation: shake 0.4s ease;
+}
+
+/* ========================================== */
+/* BOUTON VÉRIFIER                            */
+/* ========================================== */
+
+.btn-verify-wave {
+    background: #1a2a6c;
+    color: white;
+    border: none;
+    padding: 16px 20px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(26, 42, 108, 0.25);
+    margin-top: 4px;
+}
+
+.btn-verify-wave:hover:not(:disabled) {
+    background: #0d1a4a;
+    transform: scale(1.02);
+}
+
+.btn-verify-wave:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-verify-wave.loading {
+    background: #0d1a4a;
+    opacity: 0.8;
+}
+
+/* ========================================== */
+/* STATUT DE VÉRIFICATION                     */
+/* ========================================== */
+
+.verification-status {
+    background: #f0f2fa;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 8px 0 12px 0;
+    border: 2px solid #1a2a6c;
+    display: none;
+}
+
+.verification-status.active {
+    display: block;
+}
+
+.verification-status .status-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+}
+
+.verification-status .status-content i {
+    font-size: 20px;
+    color: #1a2a6c;
+}
+
+.verification-status .status-content #statusMessage {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a2a6c;
+}
+
+.verification-status .status-content.success i {
+    color: #2d7d46;
+}
+
+.verification-status .status-content.success #statusMessage {
+    color: #2d7d46;
+}
+
+.verification-status .status-content.error i {
+    color: #e74c3c;
+}
+
+.verification-status .status-content.error #statusMessage {
+    color: #e74c3c;
+}
+
+/* ========================================== */
+/* RESPONSIVE                                 */
+/* ========================================== */
+
+@media (max-width: 600px) {
+    .wave-id-input {
+        font-size: 14px;
+        padding: 12px 14px;
+    }
+    .btn-verify-wave {
+        font-size: 16px;
+        padding: 14px 16px;
+    }
+    .verification-status .status-content {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 400px) {
+    .wave-id-input {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+    .btn-verify-wave {
+        font-size: 14px;
+        padding: 12px 14px;
+    }
+}

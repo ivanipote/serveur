@@ -8,29 +8,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const recapContent = document.getElementById('recapContent');
     const totalAmount = document.getElementById('totalAmount');
-    const codeBoxes = document.querySelectorAll('.code-box');
     const payBtn = document.getElementById('payWaveBtn');
     const errorMessage = document.getElementById('errorMessage');
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const verifyOverlay = document.getElementById('verifyOverlay');
+    const verifyOverlayMessage = document.getElementById('verifyOverlayMessage');
 
-    const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
+    // Onglets
+    const ongletPayer = document.getElementById('ongletPayer');
+    const ongletVerifier = document.getElementById('ongletVerifier');
+    const ongletBtns = document.querySelectorAll('.onglet');
+
+    // Éléments onglet Vérifier
+    const codeBoxesVerif = document.querySelectorAll('.code-box-verif');
+    const waveIdInput = document.getElementById('waveIdInput');
+    const verifyBtn = document.getElementById('verifyWaveBtn');
+    const verifyStatus = document.getElementById('verificationStatus');
+    const statusMessage = document.getElementById('statusMessage');
+    const statusSpinner = document.getElementById('statusSpinner');
+    const verifyErrorMsg = document.getElementById('verifyErrorMessage');
+
+    const WAVE_API_URL = 'https://nature-plus-wave.onrender.com';
 
     let commandeId = null;
     let commandeData = null;
     let currentUser = null;
+    let isVerifying = false;
+    let verificationStatusChecked = false;
 
     // ==========================================
-    // CODE BOXES - GESTION
+    // CODE BOXES - PAYER
     // ==========================================
 
-    codeBoxes.forEach((box, index) => {
+    const payerCodeBoxes = document.querySelectorAll('#ongletPayer .code-box');
+
+    payerCodeBoxes.forEach((box, index) => {
         box.addEventListener('input', function() {
             this.value = this.value.replace(/\D/g, '');
             if (this.value && /^\d$/.test(this.value)) {
                 this.classList.add('filled');
                 this.classList.remove('error');
-                if (index < codeBoxes.length - 1) {
-                    codeBoxes[index + 1].focus();
+                if (index < payerCodeBoxes.length - 1) {
+                    payerCodeBoxes[index + 1].focus();
                 }
             } else if (this.value === '') {
                 this.classList.remove('filled');
@@ -39,9 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         box.addEventListener('keydown', function(e) {
             if (e.key === 'Backspace' && this.value === '' && index > 0) {
-                codeBoxes[index - 1].focus();
-                codeBoxes[index - 1].value = '';
-                codeBoxes[index - 1].classList.remove('filled');
+                payerCodeBoxes[index - 1].focus();
+                payerCodeBoxes[index - 1].value = '';
+                payerCodeBoxes[index - 1].classList.remove('filled');
             }
             if (e.key === 'Backspace' && this.value !== '') {
                 this.value = '';
@@ -58,12 +77,87 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // RÉCUPÉRER LE CODE LOGIN
+    // CODE BOXES - VÉRIFIER
     // ==========================================
 
-    function getCodeLogin() {
+    codeBoxesVerif.forEach((box, index) => {
+        box.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value && /^\d$/.test(this.value)) {
+                this.classList.add('filled');
+                this.classList.remove('error');
+                if (index < codeBoxesVerif.length - 1) {
+                    codeBoxesVerif[index + 1].focus();
+                }
+            } else if (this.value === '') {
+                this.classList.remove('filled');
+            }
+            checkVerifyFields();
+        });
+
+        box.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                codeBoxesVerif[index - 1].focus();
+                codeBoxesVerif[index - 1].value = '';
+                codeBoxesVerif[index - 1].classList.remove('filled');
+            }
+            if (e.key === 'Backspace' && this.value !== '') {
+                this.value = '';
+                this.classList.remove('filled');
+            }
+            if (!/^[0-9]$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Tab' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Delete') {
+                e.preventDefault();
+            }
+            checkVerifyFields();
+        });
+
+        box.addEventListener('focus', function() {
+            this.select();
+        });
+    });
+
+    // ==========================================
+    // WAVE ID INPUT - VÉRIFIER
+    // ==========================================
+
+    waveIdInput.addEventListener('input', function() {
+        this.value = this.value.trim();
+        this.classList.remove('error');
+        checkVerifyFields();
+    });
+
+    // ==========================================
+    // VÉRIFIER LES CHAMPS (activer/désactiver bouton)
+    // ==========================================
+
+    function getCodeVerif() {
         let code = '';
-        codeBoxes.forEach(box => {
+        codeBoxesVerif.forEach(box => {
+            code += box.value || '';
+        });
+        return code;
+    }
+
+    function checkVerifyFields() {
+        const code = getCodeVerif();
+        const waveId = waveIdInput.value.trim();
+
+        if (code.length === 4 && /^\d{4}$/.test(code) && waveId.length >= 5) {
+            verifyBtn.disabled = false;
+            verifyBtn.title = '';
+        } else {
+            verifyBtn.disabled = true;
+            verifyBtn.title = 'Remplissez tous les champs';
+        }
+    }
+
+    // ==========================================
+    // RÉCUPÉRER LE CODE LOGIN (PAYER)
+    // ==========================================
+
+    function getCodePayer() {
+        let code = '';
+        payerCodeBoxes.forEach(box => {
             code += box.value || '';
         });
         return code;
@@ -130,7 +224,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Vérifier que la commande appartient à l'utilisateur
                 if (currentUser && commande.user_id !== currentUser.id) {
                     recapContent.innerHTML = `
                         <div style="text-align:center;padding:20px;color:#e74c3c;">
@@ -142,7 +235,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Vérifier que la commande est en "paiement requis"
                 if (commande.status !== 'accepter') {
                     recapContent.innerHTML = `
                         <div style="text-align:center;padding:20px;color:#e67e22;">
@@ -158,6 +250,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandeData = commande;
                 renderRecap(commande);
                 payBtn.disabled = false;
+
+                // Vérifier si une demande existe déjà
+                await checkExistingVerification(commandeId);
 
             } else {
                 recapContent.innerHTML = `
@@ -181,6 +276,68 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // VÉRIFIER SI UNE DEMANDE EXISTE DÉJÀ
+    // ==========================================
+
+    async function checkExistingVerification(commandeId) {
+        try {
+            const res = await fetch(`${WAVE_API_URL}/api/wave/status/${commandeId}`);
+            const data = await res.json();
+
+            if (data.success && data.has_request) {
+                const v = data.verification;
+
+                if (v.status === 'pending') {
+                    // Demande en cours
+                    showVerificationStatus('pending', '🔍 Vérification en cours... Attendez la confirmation de l\'admin.');
+                    verifyBtn.disabled = true;
+                } else if (v.status === 'success') {
+                    // Déjà vérifié avec succès
+                    showVerificationStatus('success', '✅ Paiement déjà vérifié avec succès !');
+                    verifyBtn.disabled = true;
+                } else if (v.status === 'refused') {
+                    // Refusé avec cause
+                    showVerificationStatus('error', `❌ Paiement refusé : ${v.cause || 'Motif non précisé'}`);
+                    verifyBtn.disabled = true;
+                }
+            }
+        } catch (error) {
+            console.error('Erreur vérification existante:', error);
+        }
+    }
+
+    // ==========================================
+    // AFFICHER LE STATUT DE VÉRIFICATION
+    // ==========================================
+
+    function showVerificationStatus(type, message) {
+        verifyStatus.style.display = 'block';
+        verifyStatus.className = 'verification-status active';
+
+        const content = verifyStatus.querySelector('.status-content');
+        content.className = 'status-content ' + type;
+
+        const icon = content.querySelector('i');
+        const msg = content.querySelector('#statusMessage');
+
+        if (type === 'pending') {
+            icon.className = 'fas fa-spinner fa-spin';
+            msg.textContent = message;
+        } else if (type === 'success') {
+            icon.className = 'fas fa-check-circle';
+            msg.textContent = message;
+        } else if (type === 'error') {
+            icon.className = 'fas fa-times-circle';
+            msg.textContent = message;
+        }
+    }
+
+    function hideVerificationStatus() {
+        verifyStatus.style.display = 'none';
+        verifyStatus.className = 'verification-status';
+    }
+
+    // ==========================================
     // AFFICHER LE RÉCAPITULATIF
     // ==========================================
 
@@ -192,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
             panier = [];
         }
 
-        // Calculer le total des produits
         let totalProduits = 0;
         let produitsHtml = '';
         if (panier.length > 0) {
@@ -217,25 +373,16 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // Récupérer les frais de livraison
         const fraisLivraison = commande.frais_livraison || 0;
-
-        // Prix brut = total produits + frais livraison
         const prixBrut = totalProduits + fraisLivraison;
-
-        // ✅ CALCUL DES FRAIS GENIUS PAY
-        const fraisWave = prixBrut * 0.015;           // 1.5%
-        const fraisGeniusPay = 100 + (prixBrut * 0.01); // 100 + 1%
+        const fraisWave = prixBrut * 0.015;
+        const fraisGeniusPay = 100 + (prixBrut * 0.01);
         const totalFrais = fraisWave + fraisGeniusPay;
-
-        // ✅ MONTANT QUE LE CLIENT PAIE SUR WAVE
         const montantWave = Math.ceil(prixBrut - totalFrais);
 
-        // Stocker le montant Wave pour le lien
         commandeData.montantWave = montantWave;
         commandeData.prixBrut = prixBrut;
 
-        // Affichage
         const clientInfo = `
             <div class="recap-item">
                 <span class="label">👤 Client</span>
@@ -302,13 +449,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // AFFICHER UNE ERREUR
     // ==========================================
 
-    function showError(message) {
-        errorMessage.textContent = message;
-        errorMessage.className = 'error-message visible';
+    function showError(message, target = 'payer') {
+        const el = target === 'payer' ? errorMessage : verifyErrorMsg;
+        el.textContent = message;
+        el.className = 'error-message visible';
     }
 
-    function hideError() {
-        errorMessage.className = 'error-message';
+    function hideError(target = 'payer') {
+        const el = target === 'payer' ? errorMessage : verifyErrorMsg;
+        el.className = 'error-message';
     }
 
     // ==========================================
@@ -323,6 +472,15 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.classList.remove('active');
     }
 
+    function showVerifyOverlay(message) {
+        verifyOverlayMessage.textContent = message || '🔍 Envoi de votre demande...';
+        verifyOverlay.style.display = 'flex';
+    }
+
+    function hideVerifyOverlay() {
+        verifyOverlay.style.display = 'none';
+    }
+
     // ==========================================
     // PAYER AVEC WAVE
     // ==========================================
@@ -330,13 +488,70 @@ document.addEventListener('DOMContentLoaded', function() {
     payBtn.addEventListener('click', async function() {
         hideError();
 
-        const code = getCodeLogin();
+        const code = getCodePayer();
 
         if (code.length !== 4 || !/^\d{4}$/.test(code)) {
-            codeBoxes.forEach(box => box.classList.add('error'));
+            payerCodeBoxes.forEach(box => box.classList.add('error'));
             showError('⚠️ Veuillez entrer un code à 4 chiffres.');
             setTimeout(() => {
-                codeBoxes.forEach(box => box.classList.remove('error'));
+                payerCodeBoxes.forEach(box => box.classList.remove('error'));
+            }, 800);
+            return;
+        }
+
+        const verifyResult = await verifyCode(code);
+
+        if (!verifyResult.success) {
+            payerCodeBoxes.forEach(box => box.classList.add('error'));
+            showError('❌ Code incorrect. Veuillez réessayer.');
+            setTimeout(() => {
+                payerCodeBoxes.forEach(box => box.classList.remove('error'));
+            }, 800);
+            return;
+        }
+
+        const montantWave = commandeData?.montantWave || 0;
+
+        if (montantWave <= 0) {
+            showError('⚠️ Montant invalide.');
+            return;
+        }
+
+        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
+
+        showLoading();
+
+        setTimeout(() => {
+            hideLoading();
+            window.open(waveLink, '_blank');
+        }, 1500);
+    });
+
+    // ==========================================
+    // VÉRIFIER LE PAIEMENT (ENVOI À L'ADMIN)
+    // ==========================================
+
+    verifyBtn.addEventListener('click', async function() {
+        if (isVerifying) return;
+        hideError('verifier');
+
+        const code = getCodeVerif();
+        const waveId = waveIdInput.value.trim();
+
+        if (code.length !== 4 || !/^\d{4}$/.test(code)) {
+            codeBoxesVerif.forEach(box => box.classList.add('error'));
+            showError('⚠️ Veuillez entrer un code à 4 chiffres.', 'verifier');
+            setTimeout(() => {
+                codeBoxesVerif.forEach(box => box.classList.remove('error'));
+            }, 800);
+            return;
+        }
+
+        if (waveId.length < 5) {
+            waveIdInput.classList.add('error');
+            showError('⚠️ Veuillez entrer un ID Wave valide.', 'verifier');
+            setTimeout(() => {
+                waveIdInput.classList.remove('error');
             }, 800);
             return;
         }
@@ -345,42 +560,85 @@ document.addEventListener('DOMContentLoaded', function() {
         const verifyResult = await verifyCode(code);
 
         if (!verifyResult.success) {
-            codeBoxes.forEach(box => box.classList.add('error'));
-            showError('❌ Code incorrect. Veuillez réessayer.');
+            codeBoxesVerif.forEach(box => box.classList.add('error'));
+            showError('❌ Code incorrect. Veuillez réessayer.', 'verifier');
             setTimeout(() => {
-                codeBoxes.forEach(box => box.classList.remove('error'));
+                codeBoxesVerif.forEach(box => box.classList.remove('error'));
             }, 800);
             return;
         }
 
-        // Code valide → lancer le paiement
-        const montantWave = commandeData?.montantWave || 0;
+        // Code valide → envoyer la demande
+        isVerifying = true;
+        verifyBtn.disabled = true;
+        verifyBtn.classList.add('loading');
+        verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
-        if (montantWave <= 0) {
-            showError('⚠️ Montant invalide.');
-            return;
+        showVerifyOverlay('🔍 Envoi de votre demande de vérification...');
+
+        try {
+            const res = await fetch(`${WAVE_API_URL}/api/wave/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    commande_id: parseInt(commandeId),
+                    code_login: code,
+                    wave_id: waveId
+                })
+            });
+
+            const data = await res.json();
+
+            hideVerifyOverlay();
+
+            if (data.success) {
+                // ✅ Demande envoyée avec succès
+                showVerificationStatus('pending', '🔍 Vérification en cours... Vous serez informé dès que l\'admin aura confirmé. Durée estimée : 1-10 min.');
+                verifyBtn.style.display = 'none';
+
+                // Notification visuelle
+                showError('✅ Demande envoyée avec succès ! Vous recevrez une notification.', 'verifier');
+                setTimeout(() => {
+                    hideError('verifier');
+                }, 5000);
+
+            } else {
+                showError('❌ ' + (data.error || 'Erreur lors de l\'envoi.'), 'verifier');
+                verifyBtn.disabled = false;
+                verifyBtn.classList.remove('loading');
+                verifyBtn.innerHTML = '<i class="fas fa-search"></i> Vérifier mon paiement';
+                isVerifying = false;
+            }
+
+        } catch (error) {
+            console.error('Erreur envoi vérification:', error);
+            hideVerifyOverlay();
+            showError('❌ Erreur de connexion au serveur.', 'verifier');
+            verifyBtn.disabled = false;
+            verifyBtn.classList.remove('loading');
+            verifyBtn.innerHTML = '<i class="fas fa-search"></i> Vérifier mon paiement';
+            isVerifying = false;
         }
-
-        // ✅ CONSTRUIRE LE LIEN WAVE AVEC LE MONTANT CALCULÉ
-        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
-
-        showLoading();
-
-        // Rediriger vers Wave après un court délai
-        setTimeout(() => {
-            hideLoading();
-            window.open(waveLink, '_blank');
-        }, 1500);
     });
 
     // ==========================================
-    // ONGLETS (pour l'instant seul Payer est actif)
+    // ONGLETS
     // ==========================================
 
-    document.querySelectorAll('.onglet').forEach(btn => {
+    ongletBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            document.querySelectorAll('.onglet').forEach(b => b.classList.remove('active'));
+            ongletBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
+
+            const target = this.dataset.onglet;
+
+            if (target === 'payer') {
+                ongletPayer.classList.add('active');
+                ongletVerifier.classList.remove('active');
+            } else {
+                ongletPayer.classList.remove('active');
+                ongletVerifier.classList.add('active');
+            }
         });
     });
 
