@@ -60,9 +60,10 @@
 
             <!-- BOUTON PAYER -->
             <button class="btn-pay-wave" id="payWaveBtn">
-                <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon-btn" />
-                Payer avec Wave
-            </button>
+    <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon-btn" 
+         onerror="this.style.display='none'; this.parentElement.innerHTML='💳 Payer avec Wave'" />
+    Payer avec Wave
+</button>
         </div>
 
         <!-- ========================================== -->
@@ -90,7 +91,7 @@
                 <div class="login-label">
                     <i class="fas fa-receipt"></i> ID Transaction Wave
                 </div>
-                <input type="text" id="waveIdInput" class="wave-id-input" placeholder="Ex: WV-987654321" maxlength="30" />
+                <input type="text" id="waveIdInput" class="wave-id-input" placeholder="Ex: T_5SZ2TOFG2PMLEEQO" maxlength="30" />
                 <div class="code-hint">Entrez l'ID Wave reçu par SMS</div>
             </div>
 
