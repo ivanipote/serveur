@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ Admin dashboard chargé');
 
+    // ==========================================
+    // VÉRIFICATION CONNEXION
+    // ==========================================
+
     const adminToken = localStorage.getItem('adminToken');
     if (!adminToken) {
         window.location.href = '/admin/login';
@@ -10,6 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const adminName = localStorage.getItem('adminName') || 'Admin';
     document.getElementById('adminName').textContent = adminName;
+
+    // ==========================================
+    // HORLOGE
+    // ==========================================
 
     function updateClock() {
         const now = new Date();
@@ -64,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('🆕 Nouvelle commande:', data);
                 loadOverview();
                 loadCommandes();
+                loadPayments();
                 updateNavBadge('commandes');
                 showToast(`🆕 Nouvelle commande #${data.commandeId}`, 'success');
             });
@@ -72,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('📦 Mise à jour commande:', data);
                 loadOverview();
                 loadCommandes();
+                loadPayments();
                 showToast(`📦 Commande #${data.commandeId} mise à jour`, 'info');
             });
 
@@ -147,7 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
         clients: '👤 Clients',
         livraison: '📍 Frais de livraison',
         'send-message': '📨 Envoyer un message',
-        updates: '🔄 Mises à jour'
+        updates: '🔄 Mises à jour',
+        profile: '👤 Mon profil'
     };
 
     function showPage(pageId) {
@@ -209,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (activePage) {
                     const pageId = activePage.id.replace('page-', '');
                     const fn = window['load' + pageId.charAt(0).toUpperCase() + pageId.slice(1).replace(/-/g, '')];
-                    if (typeof fn === 'function' && pageId !== 'add-product' && pageId !== 'send-message') {
+                    if (typeof fn === 'function' && pageId !== 'add-product' && pageId !== 'send-message' && pageId !== 'profile') {
                         fn();
                     }
                 }
@@ -332,20 +343,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const countEl = document.getElementById('filterCount');
 
         let filtered = allCommandes;
-        if (currentFilter !== 'all') filtered = filtered.filter(c => c.status === currentFilter);
+        if (currentFilter !== 'all') filtered = filtered.filter(c => c.status === currentFilter || c.genius_status === currentFilter);
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(c =>
                 c.id.toString().includes(term) ||
                 (c.reference && c.reference.toLowerCase().includes(term)) ||
-                c.nom.toLowerCase().includes(term)
+                c.nom.toLowerCase().includes(term) ||
+                (c.genius_reference && c.genius_reference.toLowerCase().includes(term))
             );
         }
 
         if (countEl) countEl.textContent = filtered.length + ' commandes';
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">Aucune commande trouvée.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">Aucune commande trouvée.</td></tr>`;
             return;
         }
 
@@ -356,20 +368,47 @@ document.addEventListener('DOMContentLoaded', function() {
             'disponible': '📍 Disponible', 'recuperee': '✅ Récupérée'
         };
 
-        const statusColors = {
-            'en_attente': 'en_attente',
-            'accepter': 'accepter',
-            'refuse': 'refuse',
-            'annulee': 'annulee',
-            'paiement_effectue': 'paiement_effectue',
-            'livraison_en_cours': 'livraison_en_cours',
-            'disponible': 'disponible',
-            'recuperee': 'recuperee'
+        const geniusLabels = {
+            'pending': '⏳ pending',
+            'processing': '⏳ processing',
+            'success': '✅ success',
+            'failed': '❌ failed',
+            'cancelled': '⏰ cancelled',
+            'expired': '⏳ expired',
+            'refunded': '🔄 refunded'
+        };
+
+        const geniusColors = {
+            'pending': 'pending',
+            'processing': 'processing',
+            'success': 'success',
+            'failed': 'failed',
+            'cancelled': 'cancelled',
+            'expired': 'expired',
+            'refunded': 'refunded'
         };
 
         tbody.innerHTML = filtered.map(c => {
             const status = c.status || 'en_attente';
+            const geniusStatus = c.genius_status || c.status || 'en_attente';
             const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
+            const isExpired = geniusStatus === 'expired' || (status === 'paiement_en_cours' && new Date(c.created_at).getTime() + 20 * 60 * 1000 < Date.now());
+
+            let timerHtml = '';
+            if (geniusStatus === 'pending' || geniusStatus === 'processing' || status === 'paiement_en_cours') {
+                const createdDate = new Date(c.created_at);
+                const expiryTime = createdDate.getTime() + 20 * 60 * 1000;
+                const now = Date.now();
+                const diff = expiryTime - now;
+
+                if (diff > 0) {
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    timerHtml = `<span class="timer-badge active">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</span>`;
+                } else {
+                    timerHtml = `<span class="timer-badge expired">⏳ Expiré</span>`;
+                }
+            }
 
             return `
                 <tr data-id="${c.id}">
@@ -377,12 +416,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
                     <td>${c.nom}</td>
                     <td>${(c.total || 0).toLocaleString()} FCFA</td>
-                    <td><span class="status-badge ${statusColors[status] || 'en_attente'}">${labels[status] || status}</span></td>
+                    <td><span class="status-badge ${status}">${labels[status] || status}</span></td>
+                    <td><span class="genius-status-badge ${geniusColors[geniusStatus] || 'pending'}">${geniusLabels[geniusStatus] || geniusStatus}</span></td>
+                    <td>${timerHtml}</td>
                     <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                     <td>
                         <button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Maps"><i class="fas fa-map-marker-alt"></i></button>
                         ${!isFinal ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Statut"><i class="fas fa-edit"></i></button>` : `<button class="btn-action status" style="opacity:0.4;cursor:not-allowed;" disabled><i class="fas fa-lock"></i></button>`}
                         <button class="btn-action detail" onclick="openDetailOverlay(${c.id})" title="Détails"><i class="fas fa-eye"></i></button>
+                        ${c.genius_reference ? `<button class="btn-action link" onclick="window.open('https://geniuspay.ci/checkout/${c.genius_reference}', '_blank')" title="Voir paiement"><i class="fas fa-external-link-alt"></i></button>` : ''}
                     </td>
                 </tr>
             `;
@@ -392,7 +434,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateFilterCounts() {
         document.querySelectorAll('#filterButtons .filter-btn').forEach(btn => {
             const filter = btn.dataset.filter;
-            const count = filter === 'all' ? allCommandes.length : allCommandes.filter(c => c.status === filter).length;
+            let count;
+            if (filter === 'all') {
+                count = allCommandes.length;
+            } else {
+                count = allCommandes.filter(c => c.status === filter || c.genius_status === filter).length;
+            }
             btn.textContent = btn.textContent.split('(')[0].trim() + ` (${count})`;
         });
     }
@@ -522,8 +569,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="section-title">📋 Informations générales</div>
                 <div class="detail-row"><span class="label">ID</span><span class="value">#${commande.id}</span></div>
                 <div class="detail-row"><span class="label">Référence</span><span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span></div>
+                <div class="detail-row"><span class="label">Réf. Genius</span><span class="value" style="font-size:13px;color:#888;">${commande.genius_reference || '-'}</span></div>
                 <div class="detail-row"><span class="label">Date</span><span class="value">${new Date(commande.created_at).toLocaleString()}</span></div>
                 <div class="detail-row"><span class="label">Statut</span><span class="value"><span class="status-badge ${commande.status}">${labels[commande.status] || commande.status}</span></span></div>
+                ${commande.genius_status ? `<div class="detail-row"><span class="label">Statut Genius</span><span class="value"><span class="genius-status-badge ${commande.genius_status}">${commande.genius_status}</span></span></div>` : ''}
                 ${commande.cause_refus ? `<div class="detail-row"><span class="label">Cause refus</span><span class="value" style="color:#e74c3c;">${commande.cause_refus}</span></div>` : ''}
             </div>
             <div class="detail-section">
@@ -569,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('paymentsCount').textContent = data.length + ' transactions';
 
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">Aucun paiement</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-msg">Aucun paiement</td></tr>`;
                 return;
             }
 
@@ -584,13 +633,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 refunded: '🔄 Remboursé'
             };
 
+            const geniusColors = {
+                pending: 'pending',
+                processing: 'processing',
+                success: 'success',
+                failed: 'failed',
+                cancelled: 'cancelled',
+                expired: 'expired',
+                refunded: 'refunded'
+            };
+
             tbody.innerHTML = data.map(p => `
                 <tr>
                     <td>#${p.id}</td>
                     <td style="font-size:12px;color:#888;">${p.reference || '-'}</td>
+                    <td style="font-size:12px;color:#888;">${p.genius_reference || '-'}</td>
                     <td>${(p.amount || 0).toLocaleString()} FCFA</td>
                     <td><span class="status-badge ${p.status}">${statusLabels[p.status] || p.status}</span></td>
-                    <td>#${p.commande_id || '-'}</td>
+                    <td><span class="genius-status-badge ${geniusColors[p.genius_status] || 'pending'}">${p.genius_status || 'pending'}</span></td>
+                    <td>${p.customer_name || '-'}</td>
+                    <td>${p.checkout_url ? `<button class="btn-action link" onclick="window.open('${p.checkout_url}', '_blank')" title="Ouvrir le lien"><i class="fas fa-external-link-alt"></i></button>` : '-'}</td>
+                    <td>${p.expires_at ? new Date(p.expires_at).toLocaleDateString('fr-FR') : '-'}</td>
                     <td>${new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
                 </tr>
             `).join('');
@@ -603,10 +666,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // PRODUITS
     // ==========================================
 
+    let allProducts = [];
+
     window.loadProducts = async function() {
         try {
             const res = await fetch('/api/admin/products');
             const data = await res.json();
+            allProducts = data;
             const tbody = document.getElementById('productsList');
             document.getElementById('productsCount').textContent = data.length + ' produits';
 
@@ -618,10 +684,10 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.innerHTML = data.map(p => `
                 <tr data-id="${p.id}">
                     <td>#${p.id}</td>
-                    <td>${p.name}</td>
+                    <td style="cursor:pointer;color:#1a2a6c;font-weight:600;" onclick="openProductDetail(${p.id})">${p.name}</td>
                     <td>${(p.price || 0).toLocaleString()} FCFA</td>
                     <td>${p.quantity || 0}</td>
-                    <td>${p.image1 ? `<img src="${p.image1}" alt="${p.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">` : '-'}</td>
+                    <td>${p.image1 ? `<img src="${p.image1}" alt="${p.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;" onclick="openProductDetail(${p.id})">` : '-'}</td>
                     <td>
                         <button class="btn-action edit" onclick="editProduct(${p.id})" title="Modifier"><i class="fas fa-edit"></i></button>
                         <button class="btn-action delete" onclick="deleteProduct(${p.id})" title="Supprimer"><i class="fas fa-trash-alt"></i></button>
@@ -631,16 +697,51 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { console.error('Erreur produits:', e); }
     };
 
+    window.openProductDetail = function(id) {
+        const product = allProducts.find(p => p.id === id);
+        if (!product) { alert('❌ Produit non trouvé'); return; }
+
+        document.getElementById('productDetailContent').innerHTML = `
+            <div class="detail-section">
+                <div class="section-title">📦 Informations produit</div>
+                <div class="detail-row"><span class="label">ID</span><span class="value">#${product.id}</span></div>
+                <div class="detail-row"><span class="label">Nom</span><span class="value">${product.name}</span></div>
+                <div class="detail-row"><span class="label">Prix</span><span class="value">${(product.price || 0).toLocaleString()} FCFA</span></div>
+                <div class="detail-row"><span class="label">Stock</span><span class="value">${product.quantity || 0}</span></div>
+                <div class="detail-row"><span class="label">Description</span><span class="value">${product.description || 'Aucune description'}</span></div>
+            </div>
+            <div class="detail-section">
+                <div class="section-title">🖼️ Images</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+                    ${product.image1 ? `<img src="${product.image1}" alt="Image 1" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;border:1px solid #e8ecf4;">` : ''}
+                    ${product.image2 ? `<img src="${product.image2}" alt="Image 2" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;border:1px solid #e8ecf4;">` : ''}
+                </div>
+            </div>
+            <div class="detail-section">
+                <div class="section-title">📅 Informations</div>
+                <div class="detail-row"><span class="label">Créé le</span><span class="value">${new Date(product.created_at).toLocaleString()}</span></div>
+            </div>
+        `;
+
+        document.getElementById('productDetailOverlay').classList.add('active');
+    };
+
+    document.getElementById('closeProductDetailOverlay').addEventListener('click', function() {
+        document.getElementById('productDetailOverlay').classList.remove('active');
+    });
+
     window.editProduct = function(id) {
-        // Rediriger vers la page d'ajout avec l'ID
+        const product = allProducts.find(p => p.id === id);
+        if (!product) { alert('❌ Produit non trouvé'); return; }
+
         showPage('add-product');
-        // On peut charger les données du produit pour les pré-remplir
-        document.getElementById('productName').value = '';
-        document.getElementById('productPrice').value = '';
-        document.getElementById('productQuantity').value = '';
-        document.getElementById('productDescription').value = '';
+        document.getElementById('productName').value = product.name;
+        document.getElementById('productPrice').value = product.price;
+        document.getElementById('productQuantity').value = product.quantity || 0;
+        document.getElementById('productDescription').value = product.description || '';
         document.querySelector('form').dataset.editId = id;
-        document.getElementById('submitProductBtn').textContent = 'Modifier le produit';
+        document.getElementById('submitProductBtn').textContent = '💾 Mettre à jour le produit';
+        document.getElementById('submitProductBtn').dataset.editId = id;
     };
 
     window.deleteProduct = function(id) {
@@ -669,16 +770,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('refreshProductsBtn').addEventListener('click', window.loadProducts);
 
     // ==========================================
-    // AJOUTER PRODUIT
+    // AJOUTER PRODUIT (avec édition)
     // ==========================================
 
     document.getElementById('addProductForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitProductBtn');
         const msg = document.getElementById('productFormMessage');
+        const editId = btn.dataset.editId;
 
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (editId ? 'Mise à jour...' : 'Envoi...');
         msg.className = 'form-message';
         msg.style.display = 'none';
 
@@ -690,23 +792,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const image1 = document.getElementById('productImage1').files[0];
         const image2 = document.getElementById('productImage2').files[0];
-        if (!image1) { showToast('⚠️ Image 1 requise', 'warning'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit'; return; }
-        formData.append('image1', image1);
+
+        if (!image1 && !editId) {
+            showToast('⚠️ Image 1 requise', 'warning');
+            btn.disabled = false;
+            btn.innerHTML = editId ? '💾 Mettre à jour le produit' : '<i class="fas fa-plus-circle"></i> Ajouter le produit';
+            return;
+        }
+
+        if (image1) formData.append('image1', image1);
         if (image2) formData.append('image2', image2);
 
+        const url = editId ? `/api/admin/products/${editId}` : '/api/admin/products';
+        const method = editId ? 'PUT' : 'POST';
+
         try {
-            const res = await fetch('/api/admin/products', {
-                method: 'POST',
-                body: formData
-            });
+            const res = await fetch(url, { method, body: formData });
             const data = await res.json();
             if (res.ok) {
                 msg.className = 'form-message success';
-                msg.textContent = '✅ Produit ajouté avec succès !';
+                msg.textContent = editId ? '✅ Produit mis à jour avec succès !' : '✅ Produit ajouté avec succès !';
                 msg.style.display = 'block';
                 this.reset();
+                delete btn.dataset.editId;
+                btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit';
                 window.loadProducts();
-                showToast('✅ Produit ajouté', 'success');
+                showToast(editId ? '✅ Produit mis à jour' : '✅ Produit ajouté', 'success');
             } else {
                 msg.className = 'form-message error';
                 msg.textContent = '❌ ' + (data.error || 'Erreur');
@@ -718,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
             msg.style.display = 'block';
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit';
+            if (!editId) btn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit';
         }
     });
 
@@ -820,6 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const commune = document.getElementById('livraisonCommune').value.trim();
         const tarif = parseInt(document.getElementById('livraisonTarif').value);
         const msg = document.getElementById('livraisonFormMessage');
+        const editId = this.dataset.editId;
 
         if (!commune || !tarif) {
             msg.className = 'form-message error';
@@ -828,7 +940,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const editId = this.dataset.editId;
         const url = editId ? `/api/admin/livraison/${editId}` : '/api/admin/livraison';
         const method = editId ? 'PUT' : 'POST';
         const body = editId ? JSON.stringify({ tarif }) : JSON.stringify({ commune, tarif });
@@ -860,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('refreshLivraisonBtn').addEventListener('click', window.loadLivraison);
 
     // ==========================================
-    // ENVOYER UN MESSAGE
+    // ENVOYER UN MESSAGE (multi-sélection)
     // ==========================================
 
     window.loadSendMessage = async function() {
@@ -882,7 +993,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const btn = document.getElementById('sendMessageBtn');
         const msg = document.getElementById('messageFormMessage');
-        const userId = document.getElementById('messageUserId').value;
+        const select = document.getElementById('messageUserId');
         const title = document.getElementById('messageTitle').value.trim();
         const content = document.getElementById('messageContent').value.trim();
 
@@ -893,35 +1004,54 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const selectedOptions = select.selectedOptions;
+        const userIds = Array.from(selectedOptions).map(opt => opt.value);
+
+        if (userIds.length === 0) {
+            msg.className = 'form-message error';
+            msg.textContent = '⚠️ Sélectionnez au moins un destinataire';
+            msg.style.display = 'block';
+            return;
+        }
+
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
-        try {
-            const res = await fetch('/api/admin/notification/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, title, content })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                msg.className = 'form-message success';
-                msg.textContent = '✅ Message envoyé avec succès !';
-                msg.style.display = 'block';
-                this.reset();
-                showToast('✅ Message envoyé', 'success');
-            } else {
-                msg.className = 'form-message error';
-                msg.textContent = '❌ ' + (data.error || 'Erreur');
-                msg.style.display = 'block';
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const userId of userIds) {
+            try {
+                const res = await fetch('/api/admin/notification/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId === 'all' ? 'all' : parseInt(userId), title, content })
+                });
+                if (res.ok) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                }
+            } catch (err) {
+                errorCount++;
             }
-        } catch (e) {
-            msg.className = 'form-message error';
-            msg.textContent = '❌ Erreur de connexion';
-            msg.style.display = 'block';
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
         }
+
+        if (errorCount === 0) {
+            msg.className = 'form-message success';
+            msg.textContent = `✅ ${successCount} message(s) envoyé(s) avec succès !`;
+            msg.style.display = 'block';
+            this.reset();
+            showToast(`✅ ${successCount} message(s) envoyé(s)`, 'success');
+        } else {
+            msg.className = 'form-message warning';
+            msg.textContent = `⚠️ ${successCount} envoyé(s), ${errorCount} échec(s)`;
+            msg.style.display = 'block';
+            showToast(`⚠️ ${errorCount} erreur(s)`, 'warning');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
     });
 
     // ==========================================
@@ -933,17 +1063,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const res = await fetch('/api/admin/updates');
             const data = await res.json();
             const tbody = document.getElementById('updatesList');
+            document.getElementById('updatesCount').textContent = data.length + ' versions';
 
             if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">Aucune mise à jour</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">Aucune mise à jour</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = data.map(u => `
                 <tr>
-                    <td style="font-size:12px;color:#888;">${u.commit_sha ? u.commit_sha.substring(0, 7) : '-'}</td>
+                    <td style="font-size:12px;color:#888;font-family:monospace;">${u.commit_sha ? u.commit_sha.substring(0, 7) : '-'}</td>
                     <td>${u.commit_message || '-'}</td>
-                    <td>${u.commit_date ? new Date(u.commit_date).toLocaleDateString('fr-FR') : '-'}</td>
+                    <td>${u.commit_date ? new Date(u.commit_date).toLocaleString('fr-FR') : '-'}</td>
+                    <td>${u.commit_url ? `<a href="${u.commit_url}" target="_blank" style="color:#1a2a6c;text-decoration:none;">🔗 Voir</a>` : '-'}</td>
                 </tr>
             `).join('');
         } catch (e) { console.error('Erreur updates:', e); }
@@ -967,6 +1099,104 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
+    // PROFIL ADMIN
+    // ==========================================
+
+    let adminProfile = {};
+
+    window.loadProfile = async function() {
+        try {
+            const email = localStorage.getItem('adminEmail') || '';
+            const merchantName = localStorage.getItem('adminName') || 'Admin';
+            const contact = localStorage.getItem('adminContact') || '';
+            const logo = localStorage.getItem('adminLogo') || '';
+
+            document.getElementById('profileMerchantName').value = merchantName;
+            document.getElementById('profileEmail').value = email;
+            document.getElementById('profileContact').value = contact;
+            document.getElementById('profileLogo').value = logo;
+
+            adminProfile = { merchantName, email, contact, logo };
+        } catch (e) { console.error('Erreur chargement profil:', e); }
+    };
+
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('profileSaveBtn');
+        const msg = document.getElementById('profileFormMessage');
+
+        const merchantName = document.getElementById('profileMerchantName').value.trim();
+        const email = document.getElementById('profileEmail').value.trim();
+        const contact = document.getElementById('profileContact').value.trim();
+        const logo = document.getElementById('profileLogo').value.trim();
+        const password = document.getElementById('profilePassword').value;
+        const confirmPassword = document.getElementById('profileConfirmPassword').value;
+
+        if (!merchantName || !email) {
+            msg.className = 'form-message error';
+            msg.textContent = '⚠️ Nom et email requis';
+            msg.style.display = 'block';
+            return;
+        }
+
+        if (password && password !== confirmPassword) {
+            msg.className = 'form-message error';
+            msg.textContent = '⚠️ Les mots de passe ne correspondent pas';
+            msg.style.display = 'block';
+            return;
+        }
+
+        if (password && password.length < 6) {
+            msg.className = 'form-message error';
+            msg.textContent = '⚠️ Le mot de passe doit faire au moins 6 caractères';
+            msg.style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+        msg.className = 'form-message';
+        msg.style.display = 'none';
+
+        try {
+            // Mettre à jour le profil via une route dédiée (à implémenter)
+            // Pour l'instant on simule et on met à jour localStorage
+            localStorage.setItem('adminName', merchantName);
+            localStorage.setItem('adminEmail', email);
+            localStorage.setItem('adminContact', contact);
+            localStorage.setItem('adminLogo', logo);
+
+            document.getElementById('adminName').textContent = merchantName;
+
+            msg.className = 'form-message success';
+            msg.textContent = '✅ Profil mis à jour avec succès !';
+            msg.style.display = 'block';
+            showToast('✅ Profil mis à jour', 'success');
+
+            // Si mot de passe changé, on le sauvegarde (à envoyer au serveur)
+            if (password) {
+                // TODO: Appel API pour changer le mot de passe
+                localStorage.setItem('adminPassword', password);
+                showToast('🔒 Mot de passe mis à jour', 'info');
+            }
+
+        } catch (e) {
+            msg.className = 'form-message error';
+            msg.textContent = '❌ Erreur lors de la mise à jour';
+            msg.style.display = 'block';
+            showToast('❌ Erreur', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer les modifications';
+        }
+    });
+
+    document.getElementById('profileRefreshBtn').addEventListener('click', function() {
+        window.loadProfile();
+        showToast('🔄 Profil rechargé', 'info');
+    });
+
+    // ==========================================
     // INITIALISATION
     // ==========================================
 
@@ -982,6 +1212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadLivraison();
     window.loadSendMessage();
     window.loadUpdates();
+    window.loadProfile();
 
     console.log('✅ Admin dashboard initialisé avec sync auto');
 

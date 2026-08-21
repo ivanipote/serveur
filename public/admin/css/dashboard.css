@@ -489,6 +489,23 @@ body {
     min-height: 80px;
 }
 
+.form-group select[multiple] {
+    height: auto;
+    min-height: 100px;
+    padding: 8px;
+}
+
+.form-group select[multiple] option {
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-group select[multiple] option:checked {
+    background: #1a2a6c;
+    color: white;
+}
+
 .btn-submit {
     background: #1a2a6c;
     color: white;
@@ -607,9 +624,46 @@ body {
 .status-badge.disponible { background: #d4edda; color: #155724; }
 .status-badge.recuperee { background: #a5d6a7; color: #1b5e20; }
 .status-badge.pending { background: #fff3cd; color: #856404; }
+.status-badge.processing { background: #ffe0b2; color: #e67e22; }
 .status-badge.success { background: #d4edda; color: #155724; }
 .status-badge.failed { background: #f8d7da; color: #721c24; }
 .status-badge.canceled { background: #f8d7da; color: #721c24; }
+.status-badge.expired { background: #f8d7da; color: #721c24; }
+.status-badge.refunded { background: #d1ecf1; color: #0c5460; }
+
+.genius-status-badge {
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.genius-status-badge.pending { background: #fff3cd; color: #856404; }
+.genius-status-badge.processing { background: #ffe0b2; color: #e67e22; }
+.genius-status-badge.success { background: #d4edda; color: #155724; }
+.genius-status-badge.failed { background: #f8d7da; color: #721c24; }
+.genius-status-badge.cancelled { background: #f8d7da; color: #721c24; }
+.genius-status-badge.expired { background: #f8d7da; color: #721c24; }
+.genius-status-badge.refunded { background: #d1ecf1; color: #0c5460; }
+
+.timer-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.timer-badge.active {
+    color: #e67e22;
+    background: #fff3e0;
+}
+
+.timer-badge.expired {
+    color: #e74c3c;
+    background: #fef0f0;
+}
 
 .btn-action {
     padding: 5px 10px;
@@ -638,6 +692,8 @@ body {
 .btn-action.edit:hover { background: #bfdbfe; }
 .btn-action.delete { background: #fee2e2; color: #dc2626; }
 .btn-action.delete:hover { background: #fecaca; }
+.btn-action.link { background: #e8f5ec; color: #2d7d46; }
+.btn-action.link:hover { background: #d4edda; }
 
 .filters-bar {
     background: white;
@@ -903,6 +959,7 @@ body {
 }
 
 .detail-row .value .status-badge { font-size: 12px; }
+.detail-row .value .genius-status-badge { font-size: 11px; }
 
 .detail-products {
     background: #f8f9fc;
@@ -1039,6 +1096,10 @@ body {
     to { transform: scale(1); opacity: 1; }
 }
 
+/* ========================================== */
+/* RESPONSIVE                                 */
+/* ========================================== */
+
 @media (max-width: 992px) {
     .sidebar { width: 220px; padding: 20px 14px; }
     .main-content { margin-left: 220px; padding: 20px 24px 30px 24px; }
@@ -1052,6 +1113,9 @@ body {
     .stat-card .stat-content .stat-value { font-size: 20px; }
     .main-header h1 { font-size: 20px; }
     .form-card { padding: 18px 16px; }
+    .table-container table { min-width: 600px; }
+    .table-container th,
+    .table-container td { padding: 8px 12px; font-size: 12px; }
 }
 
 @media (max-width: 576px) {
@@ -1064,9 +1128,9 @@ body {
     .filter-search { flex-direction: column; align-items: stretch; }
     .filter-search input { min-width: unset; }
     .table-container { border-radius: 12px; }
-    .table-container table { min-width: 600px; }
+    .table-container table { min-width: 500px; }
     .table-container th,
-    .table-container td { padding: 8px 12px; font-size: 12px; }
+    .table-container td { padding: 6px 8px; font-size: 11px; }
     .status-box,
     .detail-box { padding: 20px 16px; }
     .form-row { grid-template-columns: 1fr; gap: 10px; }
