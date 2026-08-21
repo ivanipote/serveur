@@ -3,6 +3,54 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Admin dashboard chargé');
 
     // ==========================================
+    // FUSEAU HORAIRE - UTC+0 (Côte d'Ivoire)
+    // ==========================================
+
+    function parseDateUTC(dateStr) {
+        if (!dateStr) return null;
+        // Forcer UTC en ajoutant 'Z' si pas présent
+        const str = dateStr.includes('Z') ? dateStr : dateStr + 'Z';
+        return new Date(str);
+    }
+
+    function formatDateLocale(dateStr) {
+        if (!dateStr) return '-';
+        const d = parseDateUTC(dateStr);
+        if (!d) return '-';
+        return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getTimeRemainingUTC(dateStr) {
+        if (!dateStr) return null;
+        const created = parseDateUTC(dateStr);
+        if (!created) return null;
+        const expiryTime = created.getTime() + 20 * 60 * 1000; // 20 min
+        const now = Date.now();
+        const diff = expiryTime - now;
+
+        if (diff <= 0) return 'expired';
+
+        const minutes = Math.floor(diff / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        return {
+            minutes: String(minutes).padStart(2, '0'),
+            seconds: String(seconds).padStart(2, '0'),
+            diff: diff
+        };
+    }
+
+    function isExpiredUTC(dateStr) {
+        if (!dateStr) return false;
+        const created = parseDateUTC(dateStr);
+        if (!created) return false;
+        const expiryTime = created.getTime() + 20 * 60 * 1000;
+        return Date.now() > expiryTime;
+    }
+
+    const TIMEOUT_MINUTES = 20;
+    const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
+
+    // ==========================================
     // VÉRIFICATION CONNEXION
     // ==========================================
 
@@ -289,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${c.nom}</td>
                         <td>${(c.total || 0).toLocaleString()} FCFA</td>
                         <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
-                        <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                        <td>${formatDateLocale(c.created_at)}</td>
                     </tr>
                 `).join('');
             } else {
@@ -392,26 +440,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const status = c.status || 'en_attente';
             const geniusStatus = c.genius_status || c.status || 'en_attente';
             const isFinal = ['recuperee', 'refuse', 'annulee'].includes(status);
-            const isExpired = geniusStatus === 'expired' || (status === 'paiement_en_cours' && new Date(c.created_at).getTime() + 20 * 60 * 1000 < Date.now());
-
+            
+            // ✅ Timer UTC pour admin
             let timerHtml = '';
             if (geniusStatus === 'pending' || geniusStatus === 'processing' || status === 'paiement_en_cours') {
-                const createdDate = new Date(c.created_at);
-                const expiryTime = createdDate.getTime() + 20 * 60 * 1000;
-                const now = Date.now();
-                const diff = expiryTime - now;
-
-                if (diff > 0) {
-                    const minutes = Math.floor(diff / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    timerHtml = `<span class="timer-badge active">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</span>`;
-                } else {
+                const paymentDateStr = c.payment_created_at || c.created_at;
+                const timeRemaining = getTimeRemainingUTC(paymentDateStr);
+                
+                if (timeRemaining === 'expired') {
                     timerHtml = `<span class="timer-badge expired">⏳ Expiré</span>`;
+                } else if (timeRemaining) {
+                    timerHtml = `<span class="timer-badge active">⏳ ${timeRemaining.minutes}:${timeRemaining.seconds}</span>`;
                 }
             }
 
+            // ✅ Vérifier si expiré UTC
+            const expired = isExpiredUTC(c.payment_created_at || c.created_at);
+
             return `
-                <tr data-id="${c.id}">
+                <tr data-id="${c.id}" class="${expired ? 'expired-row' : ''}">
                     <td>#${c.id}</td>
                     <td style="font-size:12px;color:#888;">${c.reference || '-'}</td>
                     <td>${c.nom}</td>
@@ -419,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><span class="status-badge ${status}">${labels[status] || status}</span></td>
                     <td><span class="genius-status-badge ${geniusColors[geniusStatus] || 'pending'}">${geniusLabels[geniusStatus] || geniusStatus}</span></td>
                     <td>${timerHtml}</td>
-                    <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td>${formatDateLocale(c.created_at)}</td>
                     <td>
                         <button class="btn-action maps" onclick="openMaps(${c.latitude || 'null'}, ${c.longitude || 'null'}, ${c.id})" title="Maps"><i class="fas fa-map-marker-alt"></i></button>
                         ${!isFinal ? `<button class="btn-action status" onclick="openStatusOverlay(${c.id})" title="Statut"><i class="fas fa-edit"></i></button>` : `<button class="btn-action status" style="opacity:0.4;cursor:not-allowed;" disabled><i class="fas fa-lock"></i></button>`}
@@ -570,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="detail-row"><span class="label">ID</span><span class="value">#${commande.id}</span></div>
                 <div class="detail-row"><span class="label">Référence</span><span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span></div>
                 <div class="detail-row"><span class="label">Réf. Genius</span><span class="value" style="font-size:13px;color:#888;">${commande.genius_reference || '-'}</span></div>
-                <div class="detail-row"><span class="label">Date</span><span class="value">${new Date(commande.created_at).toLocaleString()}</span></div>
+                <div class="detail-row"><span class="label">Date</span><span class="value">${formatDateLocale(commande.created_at)}</span></div>
                 <div class="detail-row"><span class="label">Statut</span><span class="value"><span class="status-badge ${commande.status}">${labels[commande.status] || commande.status}</span></span></div>
                 ${commande.genius_status ? `<div class="detail-row"><span class="label">Statut Genius</span><span class="value"><span class="genius-status-badge ${commande.genius_status}">${commande.genius_status}</span></span></div>` : ''}
                 ${commande.cause_refus ? `<div class="detail-row"><span class="label">Cause refus</span><span class="value" style="color:#e74c3c;">${commande.cause_refus}</span></div>` : ''}
@@ -653,8 +700,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><span class="genius-status-badge ${geniusColors[p.genius_status] || 'pending'}">${p.genius_status || 'pending'}</span></td>
                     <td>${p.customer_name || '-'}</td>
                     <td>${p.checkout_url ? `<button class="btn-action link" onclick="window.open('${p.checkout_url}', '_blank')" title="Ouvrir le lien"><i class="fas fa-external-link-alt"></i></button>` : '-'}</td>
-                    <td>${p.expires_at ? new Date(p.expires_at).toLocaleDateString('fr-FR') : '-'}</td>
-                    <td>${new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td>${p.expires_at ? formatDateLocale(p.expires_at) : '-'}</td>
+                    <td>${formatDateLocale(p.created_at)}</td>
                 </tr>
             `).join('');
         } catch (e) { console.error('Erreur paiements:', e); }
@@ -719,7 +766,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="detail-section">
                 <div class="section-title">📅 Informations</div>
-                <div class="detail-row"><span class="label">Créé le</span><span class="value">${new Date(product.created_at).toLocaleString()}</span></div>
+                <div class="detail-row"><span class="label">Créé le</span><span class="value">${formatDateLocale(product.created_at)}</span></div>
             </div>
         `;
 
@@ -855,7 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${c.name}</td>
                     <td>${c.email}</td>
                     <td>${c.phone || '-'}</td>
-                    <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td>${formatDateLocale(c.created_at)}</td>
                 </tr>
             `).join('');
         } catch (e) { console.error('Erreur clients:', e); }
@@ -1074,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <tr>
                     <td style="font-size:12px;color:#888;font-family:monospace;">${u.commit_sha ? u.commit_sha.substring(0, 7) : '-'}</td>
                     <td>${u.commit_message || '-'}</td>
-                    <td>${u.commit_date ? new Date(u.commit_date).toLocaleString('fr-FR') : '-'}</td>
+                    <td>${u.commit_date ? formatDateLocale(u.commit_date) : '-'}</td>
                     <td>${u.commit_url ? `<a href="${u.commit_url}" target="_blank" style="color:#1a2a6c;text-decoration:none;">🔗 Voir</a>` : '-'}</td>
                 </tr>
             `).join('');
@@ -1159,8 +1206,6 @@ document.addEventListener('DOMContentLoaded', function() {
         msg.style.display = 'none';
 
         try {
-            // Mettre à jour le profil via une route dédiée (à implémenter)
-            // Pour l'instant on simule et on met à jour localStorage
             localStorage.setItem('adminName', merchantName);
             localStorage.setItem('adminEmail', email);
             localStorage.setItem('adminContact', contact);
@@ -1173,9 +1218,7 @@ document.addEventListener('DOMContentLoaded', function() {
             msg.style.display = 'block';
             showToast('✅ Profil mis à jour', 'success');
 
-            // Si mot de passe changé, on le sauvegarde (à envoyer au serveur)
             if (password) {
-                // TODO: Appel API pour changer le mot de passe
                 localStorage.setItem('adminPassword', password);
                 showToast('🔒 Mot de passe mis à jour', 'info');
             }
@@ -1214,6 +1257,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadUpdates();
     window.loadProfile();
 
-    console.log('✅ Admin dashboard initialisé avec sync auto');
+    console.log('✅ Admin dashboard initialisé avec sync auto et fuseau UTC+0');
 
 });
