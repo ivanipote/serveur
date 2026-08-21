@@ -140,6 +140,7 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
+        // ✅ Vérifier si paiement existe déjà
         const existingPayment = await db.get(
             `SELECT * FROM payments WHERE commande_id = $1`,
             [commandeId]
@@ -158,6 +159,7 @@ app.post('/api/payment/create', async (req, res) => {
                 });
             }
 
+            // ✅ Retourner le lien existant IMMÉDIATEMENT (pas de nouveau paiement)
             return res.json({
                 success: true,
                 checkout_url: existingPayment.checkout_url,
@@ -169,6 +171,7 @@ app.post('/api/payment/create', async (req, res) => {
             });
         }
 
+        // ✅ Créer un nouveau paiement
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
@@ -236,13 +239,13 @@ app.post('/api/payment/create', async (req, res) => {
             ['paiement_en_cours', commandeId]
         );
 
-        // ✅ NOTIFICATION : Paiement initié avec mention des 3 minutes
+        // ✅ NOTIFICATION : Paiement initié avec 20 minutes
         await createNotification(
             userId,
             commandeId,
             'paiement',
             '📥 Paiement initié',
-            `Votre paiement pour la commande #${commandeId} a été initié. Vous disposez de 3 minutes pour le finaliser. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
+            `Votre paiement pour la commande #${commandeId} a été initié. Vous disposez de 20 minutes pour le finaliser. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
         );
 
         res.json({
@@ -672,21 +675,19 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
 }
 
 // ========================================================
-// SYNC AUTO : EXPIRATION DES PAIEMENTS EN PENDING > 3 MIN
+// SYNC AUTO : EXPIRATION DES PAIEMENTS EN PENDING > 20 MIN
 // ========================================================
 
 async function checkExpiredPayments() {
     try {
-        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-
         const expiredPayments = await db.query(
             `SELECT p.id, p.commande_id, p.genius_reference, c.user_id
              FROM payments p
              JOIN commandes c ON c.id = p.commande_id
              WHERE p.genius_status IN ('pending', 'processing')
-             AND p.created_at < $1
+             AND p.created_at < NOW() - INTERVAL '20 minutes'
              AND c.status = 'paiement_en_cours'`,
-            [threeMinutesAgo]
+            []
         );
 
         if (expiredPayments.rows.length === 0) return;
@@ -700,7 +701,7 @@ async function checkExpiredPayments() {
             );
 
             await db.query(
-                `UPDATE commandes SET status = 'annulee', cause_refus = 'Paiement expiré (3 min)' WHERE id = $1`,
+                `UPDATE commandes SET status = 'annulee', cause_refus = 'Paiement expiré (20 min)' WHERE id = $1`,
                 [payment.commande_id]
             );
 
@@ -719,7 +720,7 @@ async function checkExpiredPayments() {
                 message: 'Paiement expiré ⏳'
             });
 
-            console.log(`✅ Commande #${payment.commande_id} : expirée (3 min)`);
+            console.log(`✅ Commande #${payment.commande_id} : expirée (20 min)`);
         }
 
     } catch (error) {
