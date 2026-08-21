@@ -2,7 +2,6 @@
 process.env.TZ = 'Africa/Abidjan';
 
 const express = require('express');
-const http = require('http');
 const { Server } = require('socket.io');
 const Redis = require('ioredis');
 const { createAdapter } = require('@socket.io/redis-adapter');
@@ -27,10 +26,10 @@ const pubClient = redisClient.duplicate();
 const subClient = redisClient.duplicate();
 
 // ========================================================
-// SOCKET.IO - Connexion au serveur client
+// SOCKET.IO
 // ========================================================
 
-const socket = new Server({
+const io = new Server({
     cors: {
         origin: ['https://nature-plus-client.onrender.com', 'http://localhost:3000', 'http://localhost:3001'],
         credentials: true
@@ -38,9 +37,9 @@ const socket = new Server({
     adapter: createAdapter(pubClient, subClient)
 });
 
-socket.listen(3005);
+io.listen(3005);
 
-socket.on('connection', (sock) => {
+io.on('connection', (sock) => {
     console.log('✅ Socket.IO (wave) connecté');
     sock.on('disconnect', () => {
         console.log('❌ Socket.IO (wave) déconnecté');
@@ -48,15 +47,12 @@ socket.on('connection', (sock) => {
 });
 
 // ========================================================
-// MIDDLEWARE - JSON
+// MIDDLEWARE
 // ========================================================
 
 app.use(express.json());
 
-// ========================================================
-// MIDDLEWARE - CORS COMPLET
-// ========================================================
-
+// CORS complet
 app.use((req, res, next) => {
     const allowedOrigins = [
         'https://nature-plus-client.onrender.com',
@@ -86,9 +82,27 @@ app.use((req, res, next) => {
 console.log('🌊 SERVEUR WAVE PAY - DÉMARRAGE');
 
 // ========================================================
-// ROUTE HEALTH
+// ROUTES
 // ========================================================
 
+// ROUTE RACINE
+app.get('/', (req, res) => {
+    res.status(200).json({
+        service: 'Nature+ Wave Pay',
+        status: 'online',
+        version: '1.0.0',
+        endpoints: {
+            health: '/health',
+            verify: 'POST /api/wave/verify',
+            requests: 'GET /api/wave/requests',
+            validate: 'POST /api/wave/validate',
+            status: 'GET /api/wave/status/:commande_id',
+            history: 'GET /api/wave/history'
+        }
+    });
+});
+
+// ROUTE HEALTH
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'wave' });
 });
@@ -130,11 +144,7 @@ app.post('/api/wave/verify', async (req, res) => {
     }
 
     try {
-        // 1. Vérifier que la commande existe
-        const commande = await db.get(
-            'SELECT * FROM commandes WHERE id = $1',
-            [commande_id]
-        );
+        const commande = await db.get('SELECT * FROM commandes WHERE id = $1', [commande_id]);
 
         if (!commande) {
             return res.status(404).json({
@@ -143,7 +153,6 @@ app.post('/api/wave/verify', async (req, res) => {
             });
         }
 
-        // 2. Vérifier que la commande est en "paiement requis"
         if (commande.status !== 'accepter') {
             return res.status(400).json({
                 success: false,
@@ -151,11 +160,7 @@ app.post('/api/wave/verify', async (req, res) => {
             });
         }
 
-        // 3. Vérifier le code login
-        const user = await db.get(
-            'SELECT * FROM users WHERE id = $1 AND password IS NOT NULL',
-            [commande.user_id]
-        );
+        const user = await db.get('SELECT * FROM users WHERE id = $1', [commande.user_id]);
 
         if (!user) {
             return res.status(404).json({
@@ -174,7 +179,6 @@ app.post('/api/wave/verify', async (req, res) => {
             });
         }
 
-        // 4. Vérifier qu'il n'y a pas déjà une demande en attente
         const existing = await db.get(
             'SELECT * FROM wave_verifications WHERE commande_id = $1 AND status = $2',
             [commande_id, 'pending']
@@ -187,11 +191,9 @@ app.post('/api/wave/verify', async (req, res) => {
             });
         }
 
-        // 5. Créer la demande de vérification
         const result = await db.query(
             `INSERT INTO wave_verifications (commande_id, user_id, wave_id, code_login, status)
-             VALUES ($1, $2, $3, $4, $5)
-             RETURNING id`,
+             VALUES ($1, $2, $3, $4, $5) RETURNING id`,
             [commande_id, commande.user_id, wave_id, code_login, 'pending']
         );
 
@@ -199,13 +201,8 @@ app.post('/api/wave/verify', async (req, res) => {
 
         console.log(`✅ Demande Wave #${verificationId} créée pour commande #${commande_id}`);
 
-        // 6. Récupérer les infos du client
-        const client = await db.get(
-            'SELECT name, phone, email FROM users WHERE id = $1',
-            [commande.user_id]
-        );
+        const client = await db.get('SELECT name, phone FROM users WHERE id = $1', [commande.user_id]);
 
-        // 7. Envoyer la notification à l'admin via Socket.IO
         const notificationData = {
             id: verificationId,
             commande_id: commande_id,
@@ -218,11 +215,10 @@ app.post('/api/wave/verify', async (req, res) => {
             created_at: new Date().toISOString()
         };
 
-        socket.emit('wave-verification-request', notificationData);
+        io.emit('wave-verification-request', notificationData);
 
         console.log(`📢 Notification admin envoyée pour commande #${commande_id}`);
 
-        // 8. Créer une notification pour le client
         await createNotification(
             commande.user_id,
             commande_id,
@@ -314,11 +310,7 @@ app.post('/api/wave/validate', async (req, res) => {
     }
 
     try {
-        // 1. Récupérer la demande
-        const verification = await db.get(
-            `SELECT * FROM wave_verifications WHERE id = $1`,
-            [verification_id]
-        );
+        const verification = await db.get('SELECT * FROM wave_verifications WHERE id = $1', [verification_id]);
 
         if (!verification) {
             return res.status(404).json({
@@ -334,43 +326,29 @@ app.post('/api/wave/validate', async (req, res) => {
             });
         }
 
-        // 2. Mettre à jour la demande
         let query = '';
         let params = [];
 
         if (status === 'success') {
-            query = `UPDATE wave_verifications 
-                     SET status = $1, verified_by = $2, updated_at = NOW()
-                     WHERE id = $3`;
+            query = `UPDATE wave_verifications SET status = $1, verified_by = $2, updated_at = NOW() WHERE id = $3`;
             params = ['success', admin_id || null, verification_id];
         } else {
-            query = `UPDATE wave_verifications 
-                     SET status = $1, cause = $2, verified_by = $3, updated_at = NOW()
-                     WHERE id = $4`;
+            query = `UPDATE wave_verifications SET status = $1, cause = $2, verified_by = $3, updated_at = NOW() WHERE id = $4`;
             params = ['refused', cause, admin_id || null, verification_id];
         }
 
         await db.query(query, params);
         console.log(`✅ Demande #${verification_id} : ${status}`);
 
-        // 3. Mettre à jour la commande
         const commandeId = verification.commande_id;
 
         if (status === 'success') {
-            // Commande passe en paiement_effectue
+            await db.query(`UPDATE commandes SET status = $1 WHERE id = $2`, ['paiement_effectue', commandeId]);
             await db.query(
-                `UPDATE commandes SET status = $1 WHERE id = $2`,
-                ['paiement_effectue', commandeId]
-            );
-
-            // Mettre à jour le paiement
-            await db.query(
-                `UPDATE payments SET status = 'success', genius_status = 'wave_manual' 
-                 WHERE commande_id = $1`,
+                `UPDATE payments SET status = 'success', genius_status = 'wave_manual' WHERE commande_id = $1`,
                 [commandeId]
             );
 
-            // Notification au client
             await createNotification(
                 verification.user_id,
                 commandeId,
@@ -379,8 +357,7 @@ app.post('/api/wave/validate', async (req, res) => {
                 `Votre paiement Wave (ID: ${verification.wave_id}) a été confirmé avec succès. Commande #${commandeId} validée.`
             );
 
-            // Émettre via Socket.IO
-            socket.emit('commande-update', {
+            io.emit('commande-update', {
                 commandeId: parseInt(commandeId),
                 status: 'paiement_effectue',
                 userId: verification.user_id,
@@ -388,13 +365,8 @@ app.post('/api/wave/validate', async (req, res) => {
             });
 
         } else {
-            // Commande passe en annulee
-            await db.query(
-                `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
-                ['annulee', cause, commandeId]
-            );
+            await db.query(`UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`, ['annulee', cause, commandeId]);
 
-            // Notification au client
             await createNotification(
                 verification.user_id,
                 commandeId,
@@ -403,8 +375,7 @@ app.post('/api/wave/validate', async (req, res) => {
                 `Votre paiement Wave (ID: ${verification.wave_id}) a été refusé. Motif : ${cause}`
             );
 
-            // Émettre via Socket.IO
-            socket.emit('commande-update', {
+            io.emit('commande-update', {
                 commandeId: parseInt(commandeId),
                 status: 'annulee',
                 userId: verification.user_id,
@@ -438,10 +409,7 @@ app.get('/api/wave/status/:commande_id', async (req, res) => {
 
     try {
         const verification = await db.get(
-            `SELECT * FROM wave_verifications 
-             WHERE commande_id = $1 
-             ORDER BY created_at DESC 
-             LIMIT 1`,
+            `SELECT * FROM wave_verifications WHERE commande_id = $1 ORDER BY created_at DESC LIMIT 1`,
             [commande_id]
         );
 
@@ -476,7 +444,7 @@ app.get('/api/wave/status/:commande_id', async (req, res) => {
 });
 
 // ========================================================
-// ROUTE : ADMIN RÉCUPÈRE TOUTES LES DEMANDES (HISTORIQUE)
+// ROUTE : ADMIN RÉCUPÈRE L'HISTORIQUE DES DEMANDES
 // ========================================================
 
 app.get('/api/wave/history', async (req, res) => {
@@ -510,7 +478,7 @@ app.get('/api/wave/history', async (req, res) => {
 });
 
 // ========================================================
-// TABLE WAVE_VERIFICATIONS (à exécuter une fois)
+// TABLE WAVE_VERIFICATIONS
 // ========================================================
 
 async function createWaveTable() {
@@ -550,7 +518,6 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log(`📍 ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`========================================`);
 
-    // Créer la table si elle n'existe pas (non bloquant)
     setTimeout(async () => {
         try {
             await createWaveTable();
