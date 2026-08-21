@@ -236,12 +236,13 @@ app.post('/api/payment/create', async (req, res) => {
             ['paiement_en_cours', commandeId]
         );
 
+        // ✅ NOTIFICATION : Paiement initié avec mention des 3 minutes
         await createNotification(
             userId,
             commandeId,
             'paiement',
             '📥 Paiement initié',
-            `Votre paiement pour la commande #${commandeId} a été initié. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
+            `Votre paiement pour la commande #${commandeId} a été initié. Vous disposez de 3 minutes pour le finaliser. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
         );
 
         res.json({
@@ -669,6 +670,65 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
         return null;
     }
 }
+
+// ========================================================
+// SYNC AUTO : EXPIRATION DES PAIEMENTS EN PENDING > 3 MIN
+// ========================================================
+
+async function checkExpiredPayments() {
+    try {
+        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+
+        const expiredPayments = await db.query(
+            `SELECT p.id, p.commande_id, p.genius_reference, c.user_id
+             FROM payments p
+             JOIN commandes c ON c.id = p.commande_id
+             WHERE p.genius_status IN ('pending', 'processing')
+             AND p.created_at < $1
+             AND c.status = 'paiement_en_cours'`,
+            [threeMinutesAgo]
+        );
+
+        if (expiredPayments.rows.length === 0) return;
+
+        console.log(`⏳ ${expiredPayments.rows.length} paiement(s) expiré(s) détecté(s)`);
+
+        for (const payment of expiredPayments.rows) {
+            await db.query(
+                `UPDATE payments SET genius_status = 'expired', status = 'expired', updated_at = NOW() WHERE id = $1`,
+                [payment.id]
+            );
+
+            await db.query(
+                `UPDATE commandes SET status = 'annulee', cause_refus = 'Paiement expiré (3 min)' WHERE id = $1`,
+                [payment.commande_id]
+            );
+
+            await createNotification(
+                payment.user_id,
+                payment.commande_id,
+                'paiement',
+                '⏳ Paiement expiré',
+                `Votre paiement pour la commande #${payment.commande_id} a expiré. Vous pouvez passer une nouvelle commande.`
+            );
+
+            socket.emit('commande-update', {
+                commandeId: parseInt(payment.commande_id),
+                status: 'annulee',
+                userId: payment.user_id,
+                message: 'Paiement expiré ⏳'
+            });
+
+            console.log(`✅ Commande #${payment.commande_id} : expirée (3 min)`);
+        }
+
+    } catch (error) {
+        console.error('❌ Erreur checkExpiredPayments:', error);
+    }
+}
+
+// ✅ LANCER LA VÉRIFICATION D'EXPIRATION TOUTES LES 30 SECONDES
+setInterval(checkExpiredPayments, 30 * 1000);
 
 // ========================================================
 // TRAITEMENT DES ÉVÉNEMENTS WEBHOOK
