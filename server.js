@@ -1260,17 +1260,14 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
     }
 });
 
-app.get('/api/commandes', isAuthenticated, async (req, res) => {
-    const userId = req.session.userId;
-
+app.get('/api/admin/commandes', async (req, res) => {
     try {
         const rows = await db.all(
-            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url, p.amount as payment_amount
+            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url, 
+                    to_char(c.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at
              FROM commandes c
              LEFT JOIN payments p ON p.commande_id = c.id
-             WHERE c.user_id = $1 
-             ORDER BY c.created_at DESC`,
-            [userId]
+             ORDER BY c.created_at DESC`
         );
         res.json(rows);
     } catch (err) {
