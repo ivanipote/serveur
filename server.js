@@ -1304,8 +1304,14 @@ app.get('/passcommande', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'passcommande.html'));
 });
 
+
 app.get('/mescommandes', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'mescommandes.html'));
+});
+
+// Dans server.js, dans la section des routes client
+app.get('/paywithwave', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
 
 app.get('/detailcom', (req, res) => {
