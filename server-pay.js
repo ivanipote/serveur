@@ -217,12 +217,45 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
+        // ✅ 1. Vérifier si un paiement existe déjà pour cette commande
+        const existingPayment = await db.get(
+            `SELECT * FROM payments WHERE commande_id = $1`,
+            [commandeId]
+        );
+
+        // ✅ 2. Si paiement existe, retourner le lien existant
+        if (existingPayment) {
+            console.log(`✅ Paiement existant pour la commande #${commandeId}`);
+
+            // ✅ Si le paiement est déjà finalisé, ne pas permettre de continuer
+            const finalStatuses = ['success', 'failed', 'cancelled', 'expired', 'refunded'];
+            if (finalStatuses.includes(existingPayment.genius_status || existingPayment.status)) {
+                return res.json({
+                    success: false,
+                    error: 'Ce paiement est déjà finalisé.',
+                    status: existingPayment.genius_status || existingPayment.status,
+                    existing: true
+                });
+            }
+
+            return res.json({
+                success: true,
+                checkout_url: existingPayment.checkout_url,
+                reference: existingPayment.reference,
+                genius_reference: existingPayment.genius_reference,
+                genius_status: existingPayment.genius_status || 'pending',
+                message: 'Paiement déjà existant, lien réutilisé',
+                existing: true
+            });
+        }
+
+        // ✅ 3. Aucun paiement existant → créer un nouveau lien
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
 
-        // ✅ Utiliser la référence de la commande comme référence de paiement
-        const paymentRef = reference || `NAT-${Date.now()}`;
+        // ✅ Utiliser la référence de la commande (NAT-XXX)
+        const paymentRef = reference || `NAT-${commandeId}-${Date.now()}`;
 
         const payload = {
             amount: amount,
@@ -301,7 +334,6 @@ app.post('/api/payment/create', async (req, res) => {
         });
     }
 });
-
 // ========================================================
 // ROUTE : METTRE À JOUR LE STATUT
 // ========================================================
