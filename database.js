@@ -73,9 +73,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // ========================================================
-        // TABLE PAYMENTS - MISE À JOUR
-        // ========================================================
+        // TABLE PAYMENTS
         await client.query(`
             CREATE TABLE IF NOT EXISTS payments (
                 id SERIAL PRIMARY KEY,
@@ -101,7 +99,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // ✅ SUPPRIMER LA FK EXISTANTE
+        // SUPPRIMER LA FK EXISTANTE
         await client.query(`
             DO $$
             BEGIN
@@ -150,7 +148,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // TABLE MESSAGES (avec ON DELETE CASCADE)
+        // TABLE MESSAGES
         await client.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -198,7 +196,32 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // ========================================================
+        // ✅ TABLE WAVE_VERIFICATIONS
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS wave_verifications (
+                id SERIAL PRIMARY KEY,
+                commande_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                wave_id TEXT NOT NULL,
+                code_login TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                cause TEXT,
+                verified_by INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (commande_id) REFERENCES commandes(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+
         // INDEX
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_commande_id ON wave_verifications(commande_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
+
+        // INDEX EXISTANTS
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_user_id ON commandes(user_id)`);
@@ -216,13 +239,13 @@ async function initializeDatabase() {
         console.log('   - products');
         console.log('   - users');
         console.log('   - panier');
-        console.log('   - payments (avec genius_status, expires_at, updated_at)');
+        console.log('   - payments');
         console.log('   - frais_livraison');
         console.log('   - commandes');
-        console.log('   - messages (ON DELETE CASCADE)');
+        console.log('   - messages');
         console.log('   - updates');
         console.log('   - session');
-        console.log('   - Index créés');
+        console.log('   - wave_verifications ✅ NOUVEAU');
 
     } catch (error) {
         await client.query('ROLLBACK');
