@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payer avec Wave | Nature+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/client/css/paywithwave.css">
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="wave-header">
+        <button class="back-btn" onclick="window.location.href='/mescommandes'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="wave-title">💳 Payer avec Wave</span>
+    </header>
+
+    <!-- ===== CONTENU PRINCIPAL ===== -->
+    <main class="wave-main" id="waveMain">
+
+        <!-- RÉCAP COMMANDE -->
+        <div class="recap-card" id="recapCard">
+            <div class="recap-header">
+                <span class="recap-icon">📋</span>
+                <span class="recap-label">Récapitulatif de votre commande</span>
+            </div>
+            <div id="recapContent">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Chargement...</p>
+                </div>
+            </div>
+            <div class="recap-total" id="recapTotal">
+                <span class="total-label">Total à payer</span>
+                <span class="total-value" id="totalAmount">0 FCFA</span>
+            </div>
+        </div>
+
+        <!-- FORMULAIRE CODE LOGIN -->
+        <div class="login-card">
+            <div class="login-label">
+                <i class="fas fa-lock"></i> Entrez votre code secret
+            </div>
+            <div class="code-boxes-container" id="codeBoxesContainer">
+                <div class="code-boxes">
+                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                    <input type="password" class="code-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" placeholder="_">
+                </div>
+            </div>
+            <div class="code-hint">Entrez votre code à 4 chiffres</div>
+        </div>
+
+        <!-- BOUTON PAYER -->
+        <button class="btn-pay-wave" id="payWaveBtn">
+            <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon-btn" />
+            Payer avec Wave
+        </button>
+
+        <!-- MESSAGE ERREUR -->
+        <div id="errorMessage" class="error-message"></div>
+
+    </main>
+
+    <!-- ===== FOOTER AVEC ONGLETS ===== -->
+    <footer class="wave-footer">
+        <div class="footer-onglets">
+            <button class="onglet active" data-onglet="payer">
+                <i class="fas fa-credit-card"></i> Payer
+            </button>
+            <button class="onglet" data-onglet="verifier" disabled>
+                <i class="fas fa-search"></i> Vérifier
+                <span class="badge-coming">Bientôt</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- ===== OVERLAY CHARGEMENT ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>🔄 Redirection vers Wave...</p>
+    </div>
+
+    <script src="/client/js/paywithwave.js"></script>
+</body>
+</html>
