@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let isFirstLoad = true;
     let timerIntervals = {};
 
-    // ✅ 20 MINUTES
     const TIMEOUT_MINUTES = 20;
     const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
 
@@ -366,7 +365,6 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(timerIntervals[commandeId]);
         }
 
-        // ✅ Utiliser la date du paiement, pas la commande
         const createdDate = new Date(paymentCreatedAt);
         const expiryTime = createdDate.getTime() + TIMEOUT_MS;
 
@@ -400,10 +398,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getStatusHistory(commande) {
-        // ✅ Utiliser genius_status si disponible, sinon status
         const currentStatus = commande.genius_status || commande.status || 'en_attente';
         
-        // ✅ Ordre logique des statuts
         const statusFlow = [
             'en_attente', 'accepter', 
             'pending', 'processing', 
@@ -412,7 +408,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'livraison_en_cours', 'disponible', 'recuperee', 'annulee', 'refuse'
         ];
 
-        // ✅ Si statut actuel est le premier de la liste, pas d'historique
         if (currentStatus === 'en_attente' || currentStatus === 'accepter') {
             return { old: null, current: currentStatus };
         }
@@ -420,19 +415,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentIndex = statusFlow.indexOf(currentStatus);
         let oldStatus = null;
 
-        // ✅ Trouver le statut précédent dans le flux
         if (currentIndex > 0) {
-            // Chercher le dernier statut valide avant le statut actuel
             for (let i = currentIndex - 1; i >= 0; i--) {
                 const candidate = statusFlow[i];
-                // Vérifier si ce statut apparaît dans la commande ou dans l'historique
                 if (candidate === commande.status || candidate === commande.genius_status) {
                     oldStatus = candidate;
                     break;
                 }
             }
             
-            // ✅ Fallback : si pas trouvé, utiliser "en_attente" comme ancien statut
             if (!oldStatus && currentStatus !== 'en_attente') {
                 oldStatus = 'en_attente';
             }
@@ -495,18 +486,15 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         commandes.forEach((c) => {
-            // ✅ Utiliser genius_status comme statut principal
             const statusKey = c.genius_status || c.status || 'en_attente';
             const statusInfo = statusLabels[statusKey] || { label: statusKey, icon: '📋', class: 'en_attente' };
             const history = getStatusHistory(c);
 
-            // ✅ Vérifier si paiement est expiré (20 min)
             const paymentDate = c.payment_created_at || c.created_at;
             const isExpired = statusKey === 'expired' || 
                               (c.status === 'paiement_en_cours' && 
                                new Date(paymentDate).getTime() + TIMEOUT_MS < Date.now());
 
-            // ✅ Actions disponibles
             const isPayable = c.status === 'accepter';
             const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
             const showContinue = isPaymentInProgress && !isExpired;
@@ -517,7 +505,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
 
-            // ✅ Timer
             let timerHtml = '';
             if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && !isExpired) {
                 const paymentDateObj = new Date(paymentDate);
@@ -538,7 +525,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
             }
 
-            // ✅ Historique des statuts
             let statusTransitionHtml = '';
             if (history.old && history.old !== history.current) {
                 const oldLabel = statusLabels[history.old]?.label || history.old;
@@ -554,7 +540,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
-            // ✅ Message d'action
             let actionHint = '';
             if (isPayable) {
                 actionHint = '💳 Cliquez sur Payer pour effectuer le paiement';
@@ -597,6 +582,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="btn btn-pay" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
                                 <i class="fas fa-credit-card"></i> Payer
                             </button>
+                            <button class="btn btn-wave" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
+                                <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon" /> Wave
+                            </button>
                         ` : ''}
                         ${showContinue && !isExpired && !isTerminal ? `
                             <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}">
@@ -613,7 +601,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         mainContent.innerHTML = html;
 
-        // ✅ Démarrer les timers
         commandes.forEach((c) => {
             if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && 
                 !(c.genius_status === 'expired' || new Date(c.payment_created_at || c.created_at).getTime() + TIMEOUT_MS < Date.now())) {
@@ -628,6 +615,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ref = this.dataset.ref;
                 const phone = currentUser?.phone || localStorage.getItem('userPhone');
                 openPaymentOverlay(id, total, phone, ref);
+            });
+        });
+
+        // ✅ BOUTON WAVE - REDIRECTION VERS PAYWITHWAVE
+        document.querySelectorAll('.btn-wave').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                window.location.href = `/paywithwave?id=${id}`;
             });
         });
 
