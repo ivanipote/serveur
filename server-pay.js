@@ -143,7 +143,6 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
-        // ✅ Vérifier si paiement existe déjà
         const existingPayment = await db.get(
             `SELECT * FROM payments WHERE commande_id = $1`,
             [commandeId]
@@ -162,7 +161,6 @@ app.post('/api/payment/create', async (req, res) => {
                 });
             }
 
-            // ✅ Retourner le lien existant IMMÉDIATEMENT (pas de nouveau paiement)
             return res.json({
                 success: true,
                 checkout_url: existingPayment.checkout_url,
@@ -174,7 +172,6 @@ app.post('/api/payment/create', async (req, res) => {
             });
         }
 
-        // ✅ Créer un nouveau paiement
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
@@ -242,7 +239,6 @@ app.post('/api/payment/create', async (req, res) => {
             ['paiement_en_cours', commandeId]
         );
 
-        // ✅ NOTIFICATION : Paiement initié avec 20 minutes
         await createNotification(
             userId,
             commandeId,
@@ -601,7 +597,6 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
         const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [payment.commande_id]);
         if (!commande) return null;
 
-        // ✅ NOTIFICATION : processing
         if (status === 'processing') {
             await createNotification(
                 commande.user_id,
@@ -731,7 +726,6 @@ async function checkExpiredPayments() {
     }
 }
 
-// ✅ LANCER LA VÉRIFICATION D'EXPIRATION TOUTES LES 30 SECONDES
 setInterval(checkExpiredPayments, 30 * 1000);
 
 // ========================================================

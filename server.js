@@ -81,144 +81,6 @@ io.on('connection', (socket) => {
 global.io = io;
 
 // ========================================================
-// CONFIGURATION GENIUS PAY
-// ========================================================
-
-const GENIUS_PUBLIC_KEY = process.env.GENIUS_PUBLIC_KEY;
-const GENIUS_SECRET_KEY = process.env.GENIUS_SECRET_KEY;
-const GENIUS_API_URL = 'https://geniuspay.ci/api/v1/merchant/payments';
-
-// ========================================================
-// SYNC AUTO - VÉRIFICATION DES PAIEMENTS EN ATTENTE
-// ========================================================
-
-async function checkPendingPayments() {
-    try {
-        const pendingOrders = await db.query(
-            `SELECT c.id, c.reference, p.genius_reference, p.id as payment_id
-             FROM commandes c
-             JOIN payments p ON p.commande_id = c.id
-             WHERE c.status = 'paiement_en_cours'
-             AND p.genius_reference IS NOT NULL
-             AND p.genius_reference != ''
-             AND c.created_at > NOW() - INTERVAL '24 hours'`
-        );
-
-        if (pendingOrders.rows.length === 0) return;
-
-        console.log(`🔍 Vérification auto: ${pendingOrders.rows.length} paiement(s) en attente`);
-
-        for (const order of pendingOrders.rows) {
-            try {
-                const response = await axios.get(
-                    `${GENIUS_API_URL}/${order.genius_reference}`,
-                    {
-                        headers: {
-                            'X-API-Key': GENIUS_PUBLIC_KEY,
-                            'X-API-Secret': GENIUS_SECRET_KEY
-                        }
-                    }
-                );
-
-                const geniusStatus = response.data?.data?.status || response.data?.status;
-
-                if (!geniusStatus) continue;
-
-                // ✅ Mise à jour du statut Genius Pay dans payments
-                await db.query(
-                    `UPDATE payments SET genius_status = $1, updated_at = NOW() WHERE id = $2`,
-                    [geniusStatus, order.payment_id]
-                );
-
-                // ✅ Si statut final, mettre à jour la commande
-                if (geniusStatus === 'success') {
-                    await db.query(
-                        `UPDATE commandes SET status = 'paiement_effectue' WHERE id = $1`,
-                        [order.id]
-                    );
-                    console.log(`✅ Commande #${order.id} : paiement réussi (sync auto)`);
-
-                    // Notification enrichie
-                    const paymentData = await db.get(
-                        `SELECT amount, reference, genius_reference FROM payments WHERE commande_id = $1`,
-                        [order.id]
-                    );
-                    if (paymentData) {
-                        await createNotification(
-                            null, // On récupère l'user via la commande
-                            order.id,
-                            'paiement',
-                            '💳 Paiement réussi',
-                            `Votre commande #${order.id} (${order.reference}) a été soldée avec succès. Montant: ${paymentData.amount} FCFA. Réf. Genius Pay: ${paymentData.genius_reference || '-'}`
-                        );
-                    }
-
-                    global.io.to(`user_${order.user_id}`).emit('commande-update', {
-                        commandeId: order.id,
-                        status: 'paiement_effectue',
-                        message: 'Paiement réussi ✅'
-                    });
-
-                } else if (['failed', 'cancelled', 'expired', 'refunded'].includes(geniusStatus)) {
-                    await db.query(
-                        `UPDATE commandes SET status = 'annulee' WHERE id = $1`,
-                        [order.id]
-                    );
-                    console.log(`❌ Commande #${order.id} : paiement ${geniusStatus} (sync auto)`);
-
-                    const statusLabels = {
-                        'failed': 'échec',
-                        'cancelled': 'annulation',
-                        'expired': 'expiration',
-                        'refunded': 'remboursement'
-                    };
-
-                    const paymentData = await db.get(
-                        `SELECT amount, reference FROM payments WHERE commande_id = $1`,
-                        [order.id]
-                    );
-
-                    if (paymentData) {
-                        await createNotification(
-                            null,
-                            order.id,
-                            'paiement',
-                            `❌ Paiement ${statusLabels[geniusStatus] || 'annulé'}`,
-                            `Le paiement de votre commande #${order.id} (${order.reference}) a ${statusLabels[geniusStatus] || 'été annulé'}. Montant: ${paymentData.amount} FCFA.`
-                        );
-                    }
-
-                    global.io.to(`user_${order.user_id}`).emit('commande-update', {
-                        commandeId: order.id,
-                        status: 'annulee',
-                        message: `Paiement ${geniusStatus} ❌`
-                    });
-                }
-
-            } catch (error) {
-                console.error(`❌ Erreur vérification paiement #${order.id}:`, error.message);
-            }
-        }
-
-    } catch (error) {
-        console.error('❌ Erreur sync auto:', error.message);
-    }
-}
-
-// ========================================================
-// LANCER LA SYNC AUTO TOUTES LES 5 MINUTES
-// ========================================================
-
-setInterval(() => {
-    checkPendingPayments();
-}, 5 * 60 * 1000);
-
-// Premier lancement immédiat
-setTimeout(() => {
-    checkPendingPayments();
-}, 10000);
-
-// ========================================================
 // MIDDLEWARE
 // ========================================================
 
@@ -263,40 +125,17 @@ function isAuthenticated(req, res, next) {
 }
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION (ENRICHIE)
+// FONCTION : CRÉER UNE NOTIFICATION
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
-    // Si userId est null, on récupère depuis la commande
-    let finalUserId = userId;
-    if (!finalUserId && commandeId) {
-        try {
-            const cmd = await db.get('SELECT user_id FROM commandes WHERE id = $1', [commandeId]);
-            if (cmd) finalUserId = cmd.user_id;
-        } catch (e) {}
-    }
-
-    if (!finalUserId) {
-        console.warn('⚠️ Impossible de créer une notification: userId manquant');
-        return false;
-    }
-
     try {
         await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [finalUserId, commandeId, type, title, content, false]
+            [userId, commandeId, type, title, content, false]
         );
-        console.log(`✅ Notification créée pour user ${finalUserId}: ${title}`);
-
-        // Émettre en temps réel
-        global.io.to(`user_${finalUserId}`).emit('notification', {
-            title: title,
-            content: content,
-            type: type,
-            commandeId: commandeId
-        });
-
+        console.log(`✅ Notification créée pour user ${userId}: ${title}`);
         return true;
     } catch (err) {
         console.error('❌ Erreur création notification:', err);
@@ -544,7 +383,8 @@ app.get('/api/admin/clients', async (req, res) => {
 app.get('/api/admin/commandes', async (req, res) => {
     try {
         const rows = await db.all(
-            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url
+            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url,
+                    to_char(c.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at
              FROM commandes c
              LEFT JOIN payments p ON p.commande_id = c.id
              ORDER BY c.created_at DESC`
@@ -792,82 +632,6 @@ app.get('/api/admin/check-updates', async (req, res) => {
     } catch (error) {
         console.error('❌ Erreur check-updates:', error);
         res.status(500).json({ error: error.message });
-    }
-});
-
-// ========================================================
-// ROUTE : VÉRIFIER UN PAIEMENT (CLIENT)
-// ========================================================
-
-app.get('/api/payment/check/:reference', isAuthenticated, async (req, res) => {
-    const { reference } = req.params;
-    const userId = req.session.userId;
-
-    if (!reference) {
-        return res.status(400).json({ error: 'Référence requise.' });
-    }
-
-    try {
-        let row = await db.get(
-            `SELECT * FROM payments WHERE commande_id = $1 OR genius_reference = $1 OR reference = $1`,
-            [reference]
-        );
-
-        if (row) {
-            return res.json({
-                success: true,
-                status: row.genius_status || row.status || 'pending',
-                source: 'database',
-                data: row
-            });
-        }
-
-        try {
-            const response = await axios.get(
-                `${GENIUS_API_URL}/${reference}`,
-                {
-                    headers: {
-                        'X-API-Key': GENIUS_PUBLIC_KEY,
-                        'X-API-Secret': GENIUS_SECRET_KEY
-                    }
-                }
-            );
-
-            const paymentData = response.data?.data || response.data;
-            const status = paymentData?.status || 'unknown';
-
-            // ✅ Mettre à jour la base avec le statut Genius Pay
-            if (row) {
-                await db.query(
-                    `UPDATE payments SET genius_status = $1, updated_at = NOW() WHERE id = $2`,
-                    [status, row.id]
-                );
-            }
-
-            return res.json({
-                success: true,
-                status: status,
-                source: 'geniuspay',
-                data: paymentData
-            });
-
-        } catch (geniusError) {
-            if (geniusError.response?.status === 404) {
-                return res.json({
-                    success: true,
-                    status: 'not_found',
-                    message: 'Transaction non trouvée'
-                });
-            }
-            throw geniusError;
-        }
-
-    } catch (error) {
-        console.error('❌ Erreur vérification:', error.message);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
     }
 });
 
@@ -1260,14 +1024,19 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
     }
 });
 
-app.get('/api/admin/commandes', async (req, res) => {
+// ✅ ROUTE COMMANDES - CLIENT
+app.get('/api/commandes', isAuthenticated, async (req, res) => {
+    const userId = req.session.userId;
+
     try {
         const rows = await db.all(
-            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url, 
+            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url, p.amount as payment_amount,
                     to_char(c.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at
              FROM commandes c
              LEFT JOIN payments p ON p.commande_id = c.id
-             ORDER BY c.created_at DESC`
+             WHERE c.user_id = $1 
+             ORDER BY c.created_at DESC`,
+            [userId]
         );
         res.json(rows);
     } catch (err) {
