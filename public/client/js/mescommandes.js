@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return [];
     }
 
+    // ✅ FONCTION HANDLEPAYMENT CORRIGÉE
     async function handlePayment(commandeId, amount, reference, phone) {
         if (!phone) {
             await showMessage('📱', 'Numéro manquant', 'Veuillez renseigner votre numéro Wave dans votre profil.');
@@ -320,12 +321,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
+            // ✅ 1. Vérifier si un paiement existe déjà pour cette commande
+            const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${commandeId}`);
+            const checkData = await checkRes.json();
+
+            // ✅ 2. Si paiement existe déjà, utiliser le checkout_url existant
+            if (checkData.success && checkData.data) {
+                const existingCheckoutUrl = checkData.data.checkout_url;
+                const existingRef = checkData.data.reference || reference;
+                
+                // ✅ Si le checkout_url existe déjà, l'ouvrir directement
+                if (existingCheckoutUrl && existingCheckoutUrl !== 'null' && existingCheckoutUrl !== '') {
+                    window.open(existingCheckoutUrl, '_blank');
+                    setTimeout(() => loadCommandes(), 500);
+                    return;
+                }
+            }
+
+            // ✅ 3. Sinon, créer un nouveau paiement
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     commandeId,
-                    reference: reference || commandeId.toString(),
+                    reference: reference,
                     amount,
                     phone,
                     description: `Commande Nature+ #${commandeId} (${reference})`
@@ -341,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await showMessage('❌', 'Erreur', data.error || 'Impossible de créer le paiement.');
             }
         } catch (error) {
+            console.error('Erreur paiement:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
     }
