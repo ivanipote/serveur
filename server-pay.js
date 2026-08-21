@@ -87,7 +87,6 @@ app.get('/health', (req, res) => {
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
-    // Si userId est null, on récupère depuis la commande
     let finalUserId = userId;
     if (!finalUserId && commandeId) {
         try {
@@ -141,13 +140,11 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
-        // ✅ 1. Vérifier si un paiement existe déjà pour cette commande
         const existingPayment = await db.get(
             `SELECT * FROM payments WHERE commande_id = $1`,
             [commandeId]
         );
 
-        // ✅ 2. Si paiement existe, retourner le lien existant
         if (existingPayment) {
             console.log(`✅ Paiement existant pour la commande #${commandeId}`);
 
@@ -172,7 +169,6 @@ app.post('/api/payment/create', async (req, res) => {
             });
         }
 
-        // ✅ 3. Aucun paiement existant → créer un nouveau lien
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
@@ -235,28 +231,19 @@ app.post('/api/payment/create', async (req, res) => {
         );
         console.log('✅ Payment enregistré');
 
-        // ✅ Mettre à jour le statut de la commande
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['paiement_en_cours', commandeId]
         );
-// ✅ NOTIFICATION : Paiement initié (via createNotification)
-await createNotification(
-    userId,
-    commandeId,
-    'paiement',
-    '📥 Paiement initié',
-    `Votre paiement pour la commande #${commandeId} a été initié. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
-);
 
-// ✅ NOTIFICATION : Paiement en cours (via socket directement)
-socket.emit('notification', {
-    title: '⏳ Paiement en cours',
-    content: `Votre paiement pour la commande #${commandeId} est en cours de traitement. Veuillez vérifier votre téléphone Wave.`,
-    type: 'paiement',
-    commandeId: commandeId,
-    userId: userId
-});
+        await createNotification(
+            userId,
+            commandeId,
+            'paiement',
+            '📥 Paiement initié',
+            `Votre paiement pour la commande #${commandeId} a été initié. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
+        );
+
         res.json({
             success: true,
             checkout_url: checkoutUrl,
@@ -398,8 +385,7 @@ app.get('/api/payment/check/:reference', async (req, res) => {
                     [status, row.id]
                 );
 
-                // ✅ Si statut final, mettre à jour la commande et envoyer notification
-                if (['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(status)) {
+                if (['success', 'failed', 'cancelled', 'expired', 'refunded', 'processing'].includes(status)) {
                     await updateGeniusStatus(row.genius_reference || reference, status, paymentData);
                 }
             }
@@ -605,6 +591,27 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
 
         if (!payment) return null;
 
+        const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [payment.commande_id]);
+        if (!commande) return null;
+
+        // ✅ NOTIFICATION : processing
+        if (status === 'processing') {
+            await createNotification(
+                commande.user_id,
+                payment.commande_id,
+                'paiement',
+                '⏳ Paiement en cours',
+                `Votre paiement pour la commande #${payment.commande_id} est en cours de traitement. Veuillez vérifier votre téléphone Wave.`
+            );
+
+            socket.emit('commande-update', {
+                commandeId: parseInt(payment.commande_id),
+                status: 'paiement_en_cours',
+                userId: commande.user_id,
+                message: 'Paiement en cours ⏳'
+            });
+        }
+
         let commandeStatus = null;
         let notificationTitle = '';
         let notificationContent = '';
@@ -639,21 +646,18 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
             );
             console.log(`✅ Commande #${payment.commande_id} : statut -> ${commandeStatus}`);
 
-            const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [payment.commande_id]);
-            if (commande) {
-                await createNotification(
-                    commande.user_id,
-                    payment.commande_id,
-                    notificationType,
-                    notificationTitle,
-                    notificationContent
-                );
-            }
+            await createNotification(
+                commande.user_id,
+                payment.commande_id,
+                notificationType,
+                notificationTitle,
+                notificationContent
+            );
 
             socket.emit('commande-update', {
                 commandeId: parseInt(payment.commande_id),
                 status: commandeStatus,
-                userId: commande?.user_id,
+                userId: commande.user_id,
                 message: `Statut mis à jour : ${commandeStatus}`
             });
         }
