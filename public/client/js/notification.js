@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ notification.js chargé');
 
+    // ==========================================
+    // RÉFÉRENCES
+    // ==========================================
+
     const mainContent = document.getElementById('notifList');
     const skeletonLoader = document.getElementById('skeletonLoader');
     const notifBadge = document.getElementById('notifBadge');
@@ -368,12 +372,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const badgeClass = getBadgeClass(n.type);
             const contentClass = getContentClass(n.type);
 
+            // ✅ Détecter si le contenu contient un lien de paiement
+            let contentHtml = n.content || 'Aucun contenu';
+            const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
+            if (linkMatch) {
+                const url = linkMatch[1];
+                contentHtml = contentHtml.replace(
+                    /\[Cliquez ici pour payer\]\(([^)]+)\)/,
+                    `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
+                        <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
+                    </a>`
+                );
+            }
+
             html += `
                 <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
                     <div class="avatar ${avatarClass}">${avatarIcon}</div>
                     <div class="body">
                         <div class="title">${n.title || 'Notification'}</div>
-                        <div class="content ${contentClass}">${n.content || 'Aucun contenu'}</div>
+                        <div class="content ${contentClass}">${contentHtml}</div>
                         <div class="date">${dateStr}</div>
                         <span class="badge-type ${badgeClass}">${typeLabel}</span>
                     </div>
@@ -441,6 +458,14 @@ document.addEventListener('DOMContentLoaded', function() {
             card.addEventListener('click', function() {
                 const id = this.dataset.id;
                 markAsRead(id);
+            });
+        });
+
+        // ✅ Gérer les clics sur les liens dans les notifications
+        document.querySelectorAll('.notification-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Le lien s'ouvre normalement grâce à target="_blank"
             });
         });
     }
