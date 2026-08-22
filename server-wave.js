@@ -97,7 +97,8 @@ app.get('/', (req, res) => {
             requests: 'GET /api/wave/requests',
             validate: 'POST /api/wave/validate',
             status: 'GET /api/wave/status/:commande_id',
-            history: 'GET /api/wave/history'
+            history: 'GET /api/wave/history',
+            solde: 'GET /api/wave/solde'
         }
     });
 });
@@ -338,15 +339,35 @@ app.post('/api/wave/validate', async (req, res) => {
             });
         }
 
+        // ✅ Récupérer le montant de la commande
+        const commande = await db.get('SELECT total, user_id FROM commandes WHERE id = $1', [verification.commande_id]);
+        const montant = commande?.total || 0;
+
         let query = '';
         let params = [];
 
         if (status === 'success') {
-            query = `UPDATE wave_verifications SET status = $1, verified_by = $2, updated_at = NOW() WHERE id = $3`;
-            params = ['success', admin_id || null, verification_id];
+            query = `UPDATE wave_verifications 
+                     SET status = $1, 
+                         verified_by = $2, 
+                         updated_at = NOW(),
+                         extra1 = NOW()::text,
+                         extra2 = $3,
+                         extra3 = $4,
+                         extra4 = $5
+                     WHERE id = $6`;
+            params = ['success', admin_id || null, 'Validé par admin', 'success', montant.toString(), verification_id];
         } else {
-            query = `UPDATE wave_verifications SET status = $1, cause = $2, verified_by = $3, updated_at = NOW() WHERE id = $4`;
-            params = ['refused', cause, admin_id || null, verification_id];
+            query = `UPDATE wave_verifications 
+                     SET status = $1, 
+                         cause = $2, 
+                         verified_by = $3, 
+                         updated_at = NOW(),
+                         extra1 = NOW()::text,
+                         extra2 = $4,
+                         extra3 = $5
+                     WHERE id = $6`;
+            params = ['refused', cause, admin_id || null, 'Refusé par admin', 'refused', verification_id];
         }
 
         await db.query(query, params);
@@ -357,7 +378,6 @@ app.post('/api/wave/validate', async (req, res) => {
         if (status === 'success') {
             await db.query(`UPDATE commandes SET status = $1 WHERE id = $2`, ['paiement_effectue', commandeId]);
             
-            // ✅ Mettre à jour la méthode de paiement si non définie
             await db.query(
                 `UPDATE commandes SET methode_paiement = $1 WHERE id = $2 AND methode_paiement IS NULL`,
                 ['wave', commandeId]
@@ -367,6 +387,17 @@ app.post('/api/wave/validate', async (req, res) => {
                 `UPDATE payments SET status = 'success', genius_status = 'wave_manual' WHERE commande_id = $1`,
                 [commandeId]
             );
+
+            // ✅ AJOUTER LE MONTANT AU SOLDE (admins.extra1)
+            if (montant > 0) {
+                await db.query(
+                    `UPDATE admins 
+                     SET extra1 = COALESCE(extra1, '0')::int + $1 
+                     WHERE id = $2`,
+                    [montant, admin_id || 1]
+                );
+                console.log(`✅ Solde mis à jour: +${montant} FCFA`);
+            }
 
             await createNotification(
                 verification.user_id,
@@ -381,6 +412,12 @@ app.post('/api/wave/validate', async (req, res) => {
                 status: 'paiement_effectue',
                 userId: verification.user_id,
                 message: 'Paiement Wave confirmé ✅'
+            });
+
+            // ✅ Émettre la mise à jour du solde
+            const newSolde = await db.get('SELECT extra1 FROM admins WHERE id = $1', [admin_id || 1]);
+            io.emit('solde-update', {
+                solde: newSolde?.extra1 ? parseInt(newSolde.extra1) : 0
             });
 
         } else {
@@ -452,7 +489,11 @@ app.get('/api/wave/status/:commande_id', async (req, res) => {
                 wave_id: verification.wave_id,
                 cause: verification.cause,
                 created_at: verification.created_at,
-                updated_at: verification.updated_at
+                updated_at: verification.updated_at,
+                date_validation: verification.extra1 || null,
+                notes_validation: verification.extra2 || null,
+                type_action: verification.extra3 || null,
+                montant_valide: verification.extra4 || null
             }
         });
 
@@ -500,6 +541,62 @@ app.get('/api/wave/history', async (req, res) => {
 });
 
 // ========================================================
+// ✅ ROUTE : RÉCUPÉRER LE SOLDE WAVE
+// ========================================================
+
+app.get('/api/wave/solde', async (req, res) => {
+    console.log('💰 Récupération du solde Wave');
+
+    try {
+        const admin = await db.get('SELECT extra1 FROM admins WHERE id = $1', [1]);
+        const solde = admin?.extra1 ? parseInt(admin.extra1) : 0;
+
+        res.json({
+            success: true,
+            solde: solde
+        });
+    } catch (error) {
+        console.error('❌ Erreur solde:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// ========================================================
+// TABLE WAVE_VERIFICATIONS
+// ========================================================
+
+async function createWaveTable() {
+    try {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS wave_verifications (
+                id SERIAL PRIMARY KEY,
+                commande_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                wave_id TEXT NOT NULL,
+                code_login TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                cause TEXT,
+                verified_by INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
+                FOREIGN KEY (commande_id) REFERENCES commandes(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+        console.log('✅ Table wave_verifications créée avec succès');
+    } catch (error) {
+        console.error('❌ Erreur création table:', error);
+    }
+}
+
+// ========================================================
 // DÉMARRAGE
 // ========================================================
 
@@ -511,4 +608,13 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log(`📍 Socket.IO: port 3005`);
     console.log(`📍 ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`========================================`);
+
+    setTimeout(async () => {
+        try {
+            await createWaveTable();
+            console.log('✅ Table wave_verifications vérifiée');
+        } catch (error) {
+            console.error('⚠️ Erreur création table (non bloquante):', error.message);
+        }
+    }, 2000);
 });
