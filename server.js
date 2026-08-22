@@ -1376,6 +1376,9 @@ app.get('/payment-failed', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-failed.html'));
 });
 
+app.get('/paywithwave', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
+});
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
@@ -1446,6 +1449,10 @@ app.get('/admin/profil.html', (req, res) => {
 
 app.get('/admin/message.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'admin-message.html'));
+});
+
+app.get('/admin/message.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'message.html'));
 });
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
