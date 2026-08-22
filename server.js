@@ -1344,6 +1344,10 @@ app.get('/payment-failed', (req, res) => {
 // ROUTES PAGES (ADMIN)
 // ========================================================
 
+// ========================================================
+// ROUTES PAGES (ADMIN)
+// ========================================================
+
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
 });
@@ -1370,6 +1374,38 @@ app.get('/admin/comm.html', (req, res) => {
 
 app.get('/admin/add-produit.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'add-produit.html'));
+});
+
+app.get('/admin/livraison.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'livraison.html'));
+});
+
+app.get('/admin/wave.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'wave.html'));
+});
+
+app.get('/admin/paiements.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'paiements.html'));
+});
+
+app.get('/admin/produits.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'produits.html'));
+});
+
+app.get('/admin/clients.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'clients.html'));
+});
+
+app.get('/admin/message.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'message.html'));
+});
+
+app.get('/admin/updates.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'updates.html'));
+});
+
+app.get('/admin/profil.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'profil.html'));
 });
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
