@@ -4,57 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription Admin | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/admin/css/register.css">
 </head>
 <body>
 
-    <div class="auth-container">
-        <div class="auth-card">
+    <div class="register-container">
 
-            <div class="auth-header">
-                <h1>🚀 <span>Inscription Admin</span></h1>
-                <p class="subtitle">Créez votre compte administrateur</p>
+        <!-- ===== PARTIE GAUCHE : INFO ===== -->
+        <div class="register-left">
+            <div class="left-content">
+                <div class="logo-area">
+                    <span class="logo-icon">🌿</span>
+                    <h1>Nature<span>+</span></h1>
+                    <p class="logo-sub">Espace Administration</p>
+                </div>
+
+                <div class="welcome-message">
+                    <h2>🚀 Créez votre compte</h2>
+                    <p>Rejoignez l'espace admin et gérez votre boutique Nature+ en toute simplicité.</p>
+                </div>
+
+                <div class="tips">
+                    <div class="tip-item">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Accédez à vos statistiques en temps réel</span>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-truck"></i>
+                        <span>Gérez vos commandes et livraisons</span>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Suivez vos paiements Wave</span>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-box"></i>
+                        <span>Ajoutez et modifiez vos produits</span>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-users"></i>
+                        <span>Gérez vos clients et messages</span>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-lock"></i>
+                        <span>Sécurisez votre espace admin</span>
+                    </div>
+                </div>
+
+                <div class="left-footer">
+                    <p>🌱 Nature+ — Gestion simplifiée</p>
+                </div>
             </div>
-
-            <form id="registerForm" class="auth-form">
-
-                <div class="form-group">
-                    <label for="merchantName">Nom du marchand</label>
-                    <input type="text" id="merchantName" placeholder="Ma Boutique" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="admin@natureplus.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Mot de passe</label>
-                    <input type="password" id="password" placeholder="••••••••" required minlength="6">
-                </div>
-
-                <div class="form-group">
-                    <label for="contact">Contact (WhatsApp)</label>
-                    <input type="text" id="contact" placeholder="+225 05 00 00 00 00">
-                </div>
-
-                <div class="form-group">
-                    <label for="logo">Logo (URL)</label>
-                    <input type="url" id="logo" placeholder="https://exemple.com/logo.png">
-                </div>
-
-                <button type="submit" class="btn-primary">S'inscrire</button>
-
-                <div id="message" class="message"></div>
-
-            </form>
-
-            <p class="auth-footer">
-                Déjà inscrit ? <a href="/admin/html/login.html">Se connecter</a>
-            </p>
-
         </div>
+
+        <!-- ===== PARTIE DROITE : FORMULAIRE ===== -->
+        <div class="register-right">
+            <div class="right-content">
+                <div class="form-header">
+                    <h2>📝 Inscription Admin</h2>
+                    <p>Remplissez le formulaire pour créer votre compte</p>
+                </div>
+
+                <form id="registerForm" class="register-form">
+                    <div class="form-group">
+                        <label for="merchantName">
+                            <i class="fas fa-store"></i> Nom du marchand
+                        </label>
+                        <input type="text" id="merchantName" placeholder="Ma Boutique" required />
+                        <span class="input-status" id="nameStatus"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="email" placeholder="admin@natureplus.com" required />
+                        <span class="input-status" id="emailStatus"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Mot de passe
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" placeholder="••••••" minlength="6" required />
+                            <button type="button" class="toggle-password" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-hint">6 caractères minimum (lettres et chiffres)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact">
+                            <i class="fas fa-phone"></i> Contact (WhatsApp)
+                        </label>
+                        <input type="text" id="contact" placeholder="+225 05 00 00 00 00" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="logo">
+                            <i class="fas fa-image"></i> Logo (URL)
+                        </label>
+                        <input type="url" id="logo" placeholder="https://exemple.com/logo.png" />
+                    </div>
+
+                    <button type="submit" class="btn-register" id="registerBtn">
+                        <i class="fas fa-user-plus"></i> Créer mon compte
+                    </button>
+
+                    <div id="message" class="message"></div>
+
+                    <p class="login-link">
+                        Déjà inscrit ? <a href="/admin/login">Se connecter</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <script src="/admin/js/register.js"></script>

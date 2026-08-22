@@ -1,175 +1,492 @@
+/* =============================================================
+   REGISTER ADMIN - DESIGN SYSTÈME (Ink-Navy + Brand)
+   ============================================================= */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F5F6F9;
     min-height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #6C63FF 0%, #FF6B9D 100%);
-    padding: 20px;
+    justify-content: center;
+    -webkit-font-smoothing: antialiased;
 }
 
-.auth-container {
+/* =============================================================
+   CONTAINER PRINCIPAL
+   ============================================================= */
+
+.register-container {
+    display: flex;
     width: 100%;
-    max-width: 420px;
-}
-
-.auth-card {
-    background: white;
+    max-width: 1100px;
+    min-height: 600px;
+    background: #FFFFFF;
     border-radius: 24px;
-    padding: 40px 32px;
-    box-shadow: 0 20px 60px rgba(108, 99, 255, 0.25);
-    animation: fadeUp 0.5s ease-out;
+    box-shadow: 0 20px 60px rgba(10, 14, 26, 0.15);
+    overflow: hidden;
+    margin: 20px;
 }
 
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+/* =============================================================
+   PARTIE GAUCHE : INFO (50%)
+   ============================================================= */
+
+.register-left {
+    width: 50%;
+    background: linear-gradient(180deg, #0A0E1A 0%, #131A2C 100%);
+    color: #F3F5FA;
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.auth-header {
-    text-align: center;
+.register-left .left-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Logo */
+.register-left .logo-area {
+    margin-bottom: 32px;
+}
+
+.register-left .logo-area .logo-icon {
+    font-size: 32px;
+}
+
+.register-left .logo-area h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #F3F5FA;
+    margin-top: 4px;
+    letter-spacing: -0.01em;
+}
+
+.register-left .logo-area h1 span {
+    color: #34D399;
+}
+
+.register-left .logo-area .logo-sub {
+    font-size: 13px;
+    color: rgba(226, 230, 242, 0.5);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+}
+
+/* Welcome */
+.register-left .welcome-message {
     margin-bottom: 28px;
 }
 
-.auth-header h1 {
-    font-size: 26px;
-    color: #1a1a2e;
+.register-left .welcome-message h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #F3F5FA;
+    margin-bottom: 6px;
 }
 
-.auth-header h1 span {
-    background: linear-gradient(135deg, #6C63FF, #FF6B9D);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+.register-left .welcome-message p {
+    font-size: 15px;
+    color: rgba(226, 230, 242, 0.7);
+    line-height: 1.6;
 }
 
-.auth-header .subtitle {
-    color: #888;
+/* Tips */
+.register-left .tips {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+.register-left .tips .tip-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.2s;
+}
+
+.register-left .tips .tip-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.register-left .tips .tip-item i {
+    width: 20px;
+    color: #34D399;
+    font-size: 15px;
+    text-align: center;
+}
+
+.register-left .tips .tip-item span {
     font-size: 14px;
-    margin-top: 4px;
+    color: rgba(226, 230, 242, 0.85);
+    font-weight: 500;
+}
+
+/* Footer */
+.register-left .left-footer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.register-left .left-footer p {
+    font-size: 13px;
+    color: rgba(226, 230, 242, 0.4);
+    font-weight: 500;
+}
+
+/* =============================================================
+   PARTIE DROITE : FORMULAIRE (50%)
+   ============================================================= */
+
+.register-right {
+    width: 50%;
+    background: #FFFFFF;
+    padding: 48px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.register-right .right-content {
+    width: 100%;
+    max-width: 380px;
+}
+
+/* Form Header */
+.register-right .form-header {
+    margin-bottom: 24px;
+}
+
+.register-right .form-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #10141F;
+    margin-bottom: 4px;
+}
+
+.register-right .form-header p {
+    font-size: 14px;
+    color: #6B7280;
 }
 
 /* ===== FORMULAIRE ===== */
-.auth-form .form-group {
-    margin-bottom: 18px;
+.register-form .form-group {
+    margin-bottom: 16px;
 }
 
-.auth-form label {
+.register-form .form-group label {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #333;
+    color: #3A4152;
     margin-bottom: 5px;
 }
 
-.auth-form input {
+.register-form .form-group label i {
+    color: #9CA3AF;
+    margin-right: 6px;
+}
+
+.register-form .form-group input {
     width: 100%;
     padding: 12px 14px;
-    border: 2px solid #e8e8f0;
-    border-radius: 12px;
+    border: 2px solid #E6E8EF;
+    border-radius: 10px;
     font-size: 14px;
-    background: #f8f9fc;
+    background: #FAFBFC;
     outline: none;
-    transition: border-color 0.3s, background 0.3s;
-    color: #1a1a2e;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    color: #10141F;
+    font-family: 'Inter', sans-serif;
 }
 
-.auth-form input:focus {
-    border-color: #6C63FF;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.08);
+.register-form .form-group input:focus {
+    border-color: #17A464;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.08);
 }
 
-.auth-form input::placeholder {
-    color: #aaa;
+.register-form .form-group input::placeholder {
+    color: #9CA3AF;
 }
 
-/* ===== BOUTON ===== */
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #6C63FF, #FF6B9D);
-    color: white;
+/* Password wrapper */
+.register-form .password-wrapper {
+    position: relative;
+}
+
+.register-form .password-wrapper input {
+    padding-right: 44px;
+}
+
+.register-form .password-wrapper .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
     border: none;
-    border-radius: 12px;
+    color: #9CA3AF;
     font-size: 16px;
-    font-weight: 700;
     cursor: pointer;
-    transition: 0.3s;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.register-form .password-wrapper .toggle-password:hover {
+    color: #3A4152;
+}
+
+/* Password hint */
+.register-form .password-hint {
+    font-size: 12px;
+    color: #9CA3AF;
     margin-top: 4px;
 }
 
-.btn-primary:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 30px rgba(108, 99, 255, 0.35);
+/* Input status */
+.register-form .input-status {
+    display: none;
+    font-size: 13px;
+    margin-top: 4px;
 }
 
-.btn-primary:disabled {
-    opacity: 0.6;
+.register-form .input-status.visible {
+    display: block;
+}
+
+.register-form .input-status.valid {
+    color: #17A464;
+}
+
+.register-form .input-status.invalid {
+    color: #C0342A;
+}
+
+/* ===== BOUTON ===== */
+.btn-register {
+    width: 100%;
+    padding: 14px;
+    background: #17A464;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.btn-register:hover {
+    background: #0E7A49;
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(23, 164, 100, 0.25);
+}
+
+.btn-register:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
 }
 
-/* ===== MESSAGES ===== */
-.message {
+/* ===== MESSAGE ===== */
+.register-form .message {
     margin-top: 14px;
     padding: 12px;
     border-radius: 10px;
     font-size: 14px;
+    font-weight: 500;
     display: none;
 }
 
-.message.success {
+.register-form .message.success {
     display: block;
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: #E6F7EE;
+    color: #0E7A49;
+    border: 1px solid #BFEBD3;
 }
 
-.message.error {
+.register-form .message.error {
     display: block;
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: #FCEBEA;
+    color: #C0342A;
+    border: 1px solid #F3C6C2;
 }
 
-.message.info {
+.register-form .message.info {
     display: block;
-    background: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
+    background: #EAF1FF;
+    color: #2563EB;
+    border: 1px solid #C7D9FB;
 }
 
-/* ===== FOOTER ===== */
-.auth-footer {
+/* ===== LIEN LOGIN ===== */
+.register-form .login-link {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 16px;
     font-size: 14px;
-    color: #888;
+    color: #6B7280;
 }
 
-.auth-footer a {
-    color: #6C63FF;
+.register-form .login-link a {
+    color: #17A464;
     text-decoration: none;
     font-weight: 600;
+    transition: color 0.2s;
 }
 
-.auth-footer a:hover {
+.register-form .login-link a:hover {
+    color: #0E7A49;
     text-decoration: underline;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 480px) {
-    .auth-card {
-        padding: 28px 18px;
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+
+@media (max-width: 992px) {
+    .register-container {
+        max-width: 100%;
+        margin: 16px;
+        border-radius: 20px;
     }
-    .auth-header h1 {
+
+    .register-left {
+        padding: 36px 28px;
+    }
+
+    .register-right {
+        padding: 36px 28px;
+    }
+
+    .register-left .tips .tip-item {
+        padding: 8px 12px;
+    }
+
+    .register-left .tips .tip-item span {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .register-container {
+        flex-direction: column;
+        max-width: 480px;
+        margin: 16px;
+        border-radius: 20px;
+        min-height: auto;
+    }
+
+    .register-left {
+        width: 100%;
+        padding: 32px 24px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .register-left .tips {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .register-left .tips .tip-item {
+        padding: 8px 12px;
+    }
+
+    .register-left .tips .tip-item span {
+        font-size: 12px;
+    }
+
+    .register-left .welcome-message h2 {
+        font-size: 20px;
+    }
+
+    .register-right {
+        width: 100%;
+        padding: 32px 24px;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .register-right .right-content {
+        max-width: 100%;
+    }
+
+    .register-right .form-header h2 {
+        font-size: 20px;
+    }
+
+    .register-left .logo-area h1 {
         font-size: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-container {
+        margin: 10px;
+        border-radius: 16px;
+    }
+
+    .register-left {
+        padding: 24px 16px;
+    }
+
+    .register-left .tips {
+        grid-template-columns: 1fr;
+    }
+
+    .register-left .tips .tip-item span {
+        font-size: 12px;
+    }
+
+    .register-right {
+        padding: 24px 16px;
+    }
+
+    .register-right .form-header h2 {
+        font-size: 18px;
+    }
+
+    .btn-register {
+        font-size: 15px;
+        padding: 12px;
+    }
+
+    .register-left .logo-area h1 {
+        font-size: 20px;
+    }
+
+    .register-left .welcome-message h2 {
+        font-size: 18px;
+    }
+
+    .register-left .welcome-message p {
+        font-size: 14px;
     }
 }
