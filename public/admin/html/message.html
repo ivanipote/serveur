@@ -644,6 +644,124 @@
             -webkit-user-select: text !important;
             user-select: text !important;
         }
+        /* =============================================================
+   MESSAGE - BORDURES ARRONDIES SUPPLEMENTAIRES
+   ============================================================= */
+
+/* Cadre des messages reçus */
+.col-messages {
+    border-radius: 0; /* Déjà géré par le parent */
+}
+
+.col-messages .messages-list {
+    border-radius: 0 0 12px 12px;
+}
+
+/* Colonne d'envoi */
+.col-send {
+    border-radius: 0; /* Déjà géré par le parent */
+}
+
+/* Conteneur global */
+.page-container {
+    border-radius: 0; /* Pas de bordure sur le conteneur principal */
+}
+
+/* Ajout de coins arrondis sur les éléments internes */
+.col-messages .col-header {
+    border-radius: 12px 12px 0 0;
+}
+
+.col-send .col-header {
+    border-radius: 0;
+}
+
+/* =============================================================
+   CADRE DES MESSAGES AVEC BORDS ARRONDIS
+   ============================================================= */
+
+.msg-card {
+    border-radius: 16px !important;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.msg-card:hover {
+    border-color: var(--brand);
+    box-shadow: 0 4px 16px rgba(23,164,100,0.08);
+}
+
+/* =============================================================
+   CADRE DU FORMULAIRE D'ENVOI
+   ============================================================= */
+
+.col-send {
+    background: var(--surface);
+    border-radius: 16px;
+    margin: 12px 12px 12px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+}
+
+.col-send .col-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+}
+
+.col-send form {
+    padding: 4px 0;
+}
+
+/* =============================================================
+   BOUTONS ARRONDIS
+   ============================================================= */
+
+.btn-send {
+    border-radius: 30px !important;
+}
+
+.btn-action {
+    border-radius: 20px !important;
+}
+
+/* =============================================================
+   ADAPTATION RESPONSIVE
+   ============================================================= */
+
+@media (max-width: 992px) {
+    .col-messages {
+        border-radius: 12px 12px 0 0 !important;
+        margin-bottom: 0;
+    }
+    
+    .col-send {
+        border-radius: 0 0 12px 12px !important;
+        margin: 0 0 12px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-messages .col-header {
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .msg-card {
+        border-radius: 14px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .msg-card {
+        border-radius: 12px !important;
+        padding: 10px 12px;
+    }
+    
+    .col-send {
+        border-radius: 0 0 10px 10px !important;
+        padding: 12px;
+    }
+}
     </style>
 </head>
 <body>
