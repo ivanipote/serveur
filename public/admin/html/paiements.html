@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💳 Paiements | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-common.css">
+    <style>
+        /* =============================================================
+           PAIEMENTS - STYLES DÉDIÉS
+           ============================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        :root {
+            --bg-app: #F5F6F9;
+            --surface: #FFFFFF;
+            --surface-alt: #FAFBFC;
+            --border: #E6E8EF;
+            --border-strong: #D8DBE4;
+            --ink-900: #10141F;
+            --ink-700: #3A4152;
+            --ink-500: #6B7280;
+            --ink-400: #9CA3AF;
+            --sidebar-1: #0A0E1A;
+            --sidebar-line: rgba(255,255,255,0.07);
+            --sidebar-text: rgba(226,230,242,0.62);
+            --sidebar-text-hi: #F3F5FA;
+            --brand: #17A464;
+            --brand-dark: #0E7A49;
+            --brand-tint: #E6F7EE;
+            --brand-line: #BFEBD3;
+            --blue: #2563EB;
+            --blue-tint: #EAF1FF;
+            --amber: #B45309;
+            --amber-tint: #FFF3DF;
+            --red: #C0342A;
+            --red-tint: #FCEBEA;
+            --green: #17A464;
+            --green-tint: #E6F7EE;
+            --violet: #7C3AED;
+            --violet-tint: #F1EBFE;
+            --slate: #475467;
+            --slate-tint: #EEF1F5;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-app);
+            color: var(--ink-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* =============================================================
+           HEADER COMMUN (admin-common)
+           ============================================================= */
+
+        .admin-header {
+            background: var(--sidebar-1);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-line);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-header .header-left .logo {
+            color: var(--sidebar-text-hi);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .admin-header .header-left .logo span {
+            color: #34D399;
+        }
+
+        .admin-header .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .header-center .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid transparent;
+        }
+
+        .admin-header .header-center .header-badge:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-center .header-badge.active {
+            background: rgba(23,164,100,0.15);
+            color: var(--sidebar-text-hi);
+            border-color: rgba(23,164,100,0.25);
+        }
+
+        .admin-header .header-center .header-badge i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red);
+            color: white;
+            margin-left: 2px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot.zero {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text);
+        }
+
+        .admin-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-header .header-right .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--sidebar-line);
+        }
+
+        .admin-header .header-right .btn-back:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-right .btn-back i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-right .admin-name {
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* =============================================================
+           PAGE CONTENT
+           ============================================================= */
+
+        .page-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 20px 20px 20px;
+            height: calc(100vh - 76px);
+            overflow: hidden;
+        }
+
+        /* =============================================================
+           CARTE STATS
+           ============================================================= */
+
+        .stats-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            flex-shrink: 0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .stats-card .stats-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-card .stats-title i {
+            color: var(--brand);
+        }
+
+        .stats-card .stats-content {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stats-card .stats-content .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink-700);
+        }
+
+        .stats-card .stats-content .stat-item .stat-value {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .stats-card .stats-content .stat-item .stat-value.negative {
+            color: var(--red);
+        }
+
+        .stats-card .stats-content .stat-item .stat-icon {
+            font-size: 16px;
+        }
+
+        /* =============================================================
+           MAIN LAYOUT (sidebar + content)
+           ============================================================= */
+
+        .main-layout {
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* =============================================================
+           SIDEBAR (37%)
+           ============================================================= */
+
+        .sidebar-payments {
+            width: 37%;
+            min-width: 280px;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar-payments .sidebar-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface-alt);
+        }
+
+        .sidebar-payments .sidebar-header .sidebar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-payments .sidebar-header .sidebar-title i {
+            font-size: 14px;
+        }
+
+        /* ===== RECHERCHE ===== */
+        .sidebar-payments .search-wrapper {
+            padding: 12px 16px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-payments .search-wrapper .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--surface-alt);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            font-family: var(--font-ui);
+            color: var(--ink-900);
+            position: relative;
+        }
+
+        .sidebar-payments .search-wrapper .search-input:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+        }
+
+        .sidebar-payments .search-wrapper .search-input::placeholder {
+            color: var(--ink-400);
+        }
+
+        .sidebar-payments .search-wrapper {
+            position: relative;
+        }
+
+        .sidebar-payments .search-wrapper .search-icon {
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ink-400);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* ===== FILTRES SWITCH ===== */
+        .sidebar-payments .filter-switch {
+            padding: 8px 16px 12px 16px;
+            flex-shrink: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .sidebar-payments .filter-switch .filter-btn {
+            padding: 6px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-500);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .sidebar-payments .filter-switch .filter-btn:hover {
+            border-color: var(--brand);
+            color: var(--brand-dark);
+        }
+
+        .sidebar-payments .filter-switch .filter-btn.active {
+            background: var(--brand);
+            color: white;
+            border-color: var(--brand);
+        }
+
+        /* ===== MINI STATS ===== */
+        .sidebar-payments .mini-stats {
+            padding: 8px 16px 12px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-payments .mini-stats .mini-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-400);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-payments .mini-stats .mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 12px;
+        }
+
+        .sidebar-payments .mini-stats .mini-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 3px 0;
+            border-bottom: 1px solid var(--surface-alt);
+        }
+
+        .sidebar-payments .mini-stats .mini-item .mini-label {
+            color: var(--ink-500);
+        }
+
+        .sidebar-payments .mini-stats .mini-item .mini-count {
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        .sidebar-payments .mini-stats .mini-item .mini-count.success { color: var(--brand-dark); }
+        .sidebar-payments .mini-stats .mini-item .mini-count.refunded { color: var(--red); }
+        .sidebar-payments .mini-stats .mini-item .mini-count.pending { color: var(--amber); }
+        .sidebar-payments .mini-stats .mini-item .mini-count.failed { color: var(--red); }
+        .sidebar-payments .mini-stats .mini-item .mini-count.canceled { color: var(--slate); }
+
+        /* ===== LISTE SCROLLABLE ===== */
+        .sidebar-payments .payment-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px 12px 12px;
+        }
+
+        .sidebar-payments .payment-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-payments .payment-list::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        /* ===== PAYMENT ITEM (sidebar) ===== */
+        .sidebar-payments .payment-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-payments .payment-item:hover {
+            background: var(--surface-alt);
+            transform: translateX(2px);
+        }
+
+        .sidebar-payments .payment-item.active {
+            background: var(--brand-tint);
+            border-color: var(--brand-line);
+        }
+
+        .sidebar-payments .payment-item .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .sidebar-payments .payment-item .status-dot.success { background: #34D399; }
+        .sidebar-payments .payment-item .status-dot.refunded { background: #F87171; }
+        .sidebar-payments .payment-item .status-dot.pending { background: #FBBF24; animation: pulse 1.5s ease-in-out infinite; }
+        .sidebar-payments .payment-item .status-dot.failed { background: #F87171; opacity: 0.6; }
+        .sidebar-payments .payment-item .status-dot.canceled { background: #9CA3AF; opacity: 0.6; }
+
+        .sidebar-payments .payment-item .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-payments .payment-item .item-info .client {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-900);
+        }
+
+        .sidebar-payments .payment-item .item-info .ref {
+            font-size: 11px;
+            color: var(--ink-400);
+            font-family: var(--font-mono);
+            display: block;
+        }
+
+        .sidebar-payments .payment-item .item-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .sidebar-payments .payment-item .item-right .amount {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .sidebar-payments .payment-item .item-right .amount.positive { color: var(--brand-dark); }
+        .sidebar-payments .payment-item .item-right .amount.negative { color: var(--red); }
+
+        .sidebar-payments .payment-item .item-right .gateway {
+            font-size: 10px;
+            color: var(--ink-400);
+            font-weight: 600;
+        }
+
+        /* ===== EMPTY ===== */
+        .sidebar-payments .empty-list {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--ink-400);
+            font-size: 14px;
+        }
+
+        .sidebar-payments .empty-list i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+            color: var(--border-strong);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* =============================================================
+           CONTENU PRINCIPAL (63%)
+           ============================================================= */
+
+        .content-payments {
+            flex: 1;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .content-payments .content-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface-alt);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .content-payments .content-header .content-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-payments .content-header .content-title i {
+            color: var(--brand);
+        }
+
+        .content-payments .content-header .content-count {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-500);
+        }
+
+        /* ===== TABLEAU SCROLLABLE ===== */
+        .content-payments .table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 4px 12px 4px;
+        }
+
+        .content-payments .table-wrapper::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .content-payments .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        .content-payments .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 650px;
+        }
+
+        .content-payments .table-wrapper th {
+            background: var(--surface-alt);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink-500);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .content-payments .table-wrapper td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--surface-alt);
+            color: var(--ink-700);
+            vertical-align: middle;
+        }
+
+        .content-payments .table-wrapper tr:last-child td {
+            border-bottom: none;
+        }
+
+        .content-payments .table-wrapper tr:hover td {
+            background: var(--surface-alt);
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            border: 1px solid transparent;
+        }
+
+        .status-badge.success { background: var(--green-tint); color: var(--brand-dark); border-color: var(--brand-line); }
+        .status-badge.refunded { background: var(--red-tint); color: var(--red); border-color: #F3C6C2; }
+        .status-badge.pending { background: var(--amber-tint); color: var(--amber); border-color: #F5DBAA; }
+        .status-badge.failed { background: var(--red-tint); color: var(--red); border-color: #F3C6C2; }
+        .status-badge.canceled { background: var(--slate-tint); color: var(--slate); border-color: #D8DBE4; }
+        .status-badge.expired { background: var(--slate-tint); color: var(--slate); border-color: #D8DBE4; }
+
+        /* ===== GATEWAY BADGE ===== */
+        .gateway-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        .gateway-badge.genius_pay {
+            background: #EAF1FF;
+            color: #1a2a6c;
+        }
+
+        .gateway-badge.wave {
+            background: #E6F7EE;
+            color: #0E7A49;
+        }
+
+        /* ===== MONTANT ===== */
+        .amount-positive {
+            font-weight: 700;
+            color: var(--brand-dark);
+            font-family: var(--font-mono);
+        }
+
+        .amount-negative {
+            font-weight: 700;
+            color: var(--red);
+            font-family: var(--font-mono);
+        }
+
+        /* ===== EMPTY TABLE ===== */
+        .empty-table {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ink-400);
+        }
+
+        .empty-table i {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 12px;
+            color: var(--border-strong);
+        }
+
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+
+        @media (max-width: 992px) {
+            .sidebar-payments {
+                width: 45%;
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 12px 12px 16px 12px;
+                height: calc(100vh - 68px);
+            }
+
+            .admin-header {
+                padding: 8px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .admin-header .header-left {
+                justify-content: center;
+            }
+
+            .admin-header .header-center {
+                justify-content: center;
+                gap: 4px;
+            }
+
+            .admin-header .header-center .header-badge {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+
+            .admin-header .header-right {
+                justify-content: center;
+            }
+
+            .main-layout {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .sidebar-payments {
+                width: 100%;
+                min-width: unset;
+                max-height: 45vh;
+            }
+
+            .content-payments {
+                flex: 1;
+                min-height: 200px;
+            }
+
+            .stats-card {
+                padding: 12px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .stats-card .stats-content {
+                gap: 12px;
+            }
+
+            .stats-card .stats-content .stat-item {
+                font-size: 13px;
+            }
+
+            .stats-card .stats-content .stat-item .stat-value {
+                font-size: 16px;
+            }
+
+            .sidebar-payments .filter-switch .filter-btn {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .content-payments .table-wrapper table {
+                min-width: 500px;
+                font-size: 12px;
+            }
+
+            .content-payments .table-wrapper th,
+            .content-payments .table-wrapper td {
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+
+            .admin-header .header-left .logo {
+                font-size: 15px;
+            }
+
+            .admin-header .header-center .header-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+                gap: 4px;
+            }
+
+            .admin-header .header-center .header-badge i {
+                font-size: 11px;
+            }
+
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 8px;
+                min-width: 14px;
+                height: 14px;
+                padding: 0 4px;
+            }
+
+            .admin-header .header-right .btn-back {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .page-container {
+                padding: 8px 8px 12px 8px;
+                height: calc(100vh - 60px);
+            }
+
+            .sidebar-payments {
+                max-height: 35vh;
+            }
+
+            .sidebar-payments .search-wrapper .search-input {
+                font-size: 13px;
+                padding: 8px 10px 8px 34px;
+            }
+
+            .sidebar-payments .search-wrapper .search-icon {
+                left: 22px;
+                font-size: 12px;
+            }
+
+            .sidebar-payments .filter-switch .filter-btn {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .sidebar-payments .mini-stats .mini-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 2px 8px;
+            }
+
+            .sidebar-payments .mini-stats .mini-item {
+                font-size: 12px;
+            }
+
+            .content-payments .table-wrapper table {
+                min-width: 400px;
+                font-size: 11px;
+            }
+
+            .content-payments .table-wrapper th,
+            .content-payments .table-wrapper td {
+                padding: 4px 6px;
+            }
+
+            .stats-card .stats-content .stat-item {
+                font-size: 12px;
+            }
+
+            .stats-card .stats-content .stat-item .stat-value {
+                font-size: 14px;
+            }
+
+            .status-badge {
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+
+            .gateway-badge {
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge active">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- PAGE CONTENT                                                   -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <!-- CARTE STATS -->
+        <div class="stats-card">
+            <div class="stats-title">
+                <i class="fas fa-credit-card"></i> Paiements
+            </div>
+            <div class="stats-content">
+                <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span>Succès :</span>
+                    <span class="stat-value" id="statSuccess">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">💰</span>
+                    <span>Total :</span>
+                    <span class="stat-value" id="statTotal">0 FCFA</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🔄</span>
+                    <span>Remboursés :</span>
+                    <span class="stat-value negative" id="statRefunded">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+
+            <!-- SIDEBAR (37%) -->
+            <aside class="sidebar-payments" id="sidebarPayments">
+
+                <!-- Header -->
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <i class="fas fa-filter"></i> Filtres
+                    </div>
+                </div>
+
+                <!-- Recherche -->
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un paiement..." />
+                </div>
+
+                <!-- Switch filtres -->
+                <div class="filter-switch" id="filterSwitch">
+                    <button class="filter-btn active" data-filter="all">📋 Tous</button>
+                    <button class="filter-btn" data-filter="success">✅ Succès</button>
+                    <button class="filter-btn" data-filter="refunded">🔄 Remboursés</button>
+                    <button class="filter-btn" data-filter="pending">⏳ En attente</button>
+                    <button class="filter-btn" data-filter="failed">❌ Échoués</button>
+                    <button class="filter-btn" data-filter="canceled">⏰ Annulés</button>
+                </div>
+
+                <!-- Mini stats -->
+                <div class="mini-stats">
+                    <div class="mini-title">📊 Répartition par statut</div>
+                    <div class="mini-grid" id="miniStatsGrid">
+                        <div class="mini-item">
+                            <span class="mini-label">✅ Succès</span>
+                            <span class="mini-count success" id="miniSuccess">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">🔄 Remboursés</span>
+                            <span class="mini-count refunded" id="miniRefunded">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">⏳ En attente</span>
+                            <span class="mini-count pending" id="miniPending">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">❌ Échoués</span>
+                            <span class="mini-count failed" id="miniFailed">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">⏰ Annulés</span>
+                            <span class="mini-count canceled" id="miniCanceled">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liste des paiements (scrollable) -->
+                <div class="payment-list" id="paymentList">
+                    <div class="loading-state" id="loadingState">
+                        <i class="fas fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                        <p style="color:var(--ink-400);">Chargement...</p>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- CONTENU PRINCIPAL (63%) -->
+            <main class="content-payments">
+
+                <!-- Header -->
+                <div class="content-header">
+                    <div class="content-title">
+                        <i class="fas fa-list"></i> Liste des paiements
+                    </div>
+                    <span class="content-count" id="paymentCount">0 paiements</span>
+                </div>
+
+                <!-- Tableau (scrollable) -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Référence</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Gateway</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <tr><td colspan="7" class="empty-table">
+                                <i class="fas fa-credit-card"></i>
+                                <p>Aucun paiement trouvé</p>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ paiements.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const paymentList = document.getElementById('paymentList');
+            const loadingState = document.getElementById('loadingState');
+            const paymentsTableBody = document.getElementById('paymentsTableBody');
+            const searchInput = document.getElementById('searchInput');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const paymentCount = document.getElementById('paymentCount');
+
+            const statSuccess = document.getElementById('statSuccess');
+            const statTotal = document.getElementById('statTotal');
+            const statRefunded = document.getElementById('statRefunded');
+
+            const miniSuccess = document.getElementById('miniSuccess');
+            const miniRefunded = document.getElementById('miniRefunded');
+            const miniPending = document.getElementById('miniPending');
+            const miniFailed = document.getElementById('miniFailed');
+            const miniCanceled = document.getElementById('miniCanceled');
+
+            let allPayments = [];
+            let currentFilter = 'all';
+            let searchTerm = '';
+            let currentPaymentId = null;
+
+            // ==========================================
+            // NOM ADMIN
+            // ==========================================
+
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // CHARGER LES PAIEMENTS
+            // ==========================================
+
+            async function loadPayments() {
+                try {
+                    const res = await fetch('/api/admin/payments');
+                    const data = await res.json();
+
+                    if (res.ok && data.length > 0) {
+                        allPayments = data;
+                        loadingState.style.display = 'none';
+                        renderPayments();
+                        updateStats();
+                    } else {
+                        allPayments = [];
+                        loadingState.style.display = 'none';
+                        renderEmpty();
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur chargement paiements:', error);
+                    loadingState.innerHTML = `
+                        <div class="empty-list">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Erreur de chargement</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ==========================================
+            // RENDRE LES PAIEMENTS
+            // ==========================================
+
+            function renderPayments() {
+                let filtered = allPayments;
+
+                // Filtre par statut
+                if (currentFilter !== 'all') {
+                    filtered = filtered.filter(p => {
+                        const status = p.genius_status || p.status || 'pending';
+                        return status.toLowerCase() === currentFilter.toLowerCase();
+                    });
+                }
+
+                // Recherche
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    filtered = filtered.filter(p =>
+                        (p.customer_name && p.customer_name.toLowerCase().includes(term)) ||
+                        (p.reference && p.reference.toLowerCase().includes(term)) ||
+                        (p.genius_reference && p.genius_reference.toLowerCase().includes(term)) ||
+                        (p.commande_id && p.commande_id.toString().includes(term))
+                    );
+                }
+
+                // Trier par date (plus récent en premier)
+                filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                // Mettre à jour le compte
+                paymentCount.textContent = filtered.length + ' paiements';
+
+                // Rendre la sidebar
+                renderSidebar(filtered);
+
+                // Rendre le tableau
+                renderTable(filtered);
+            }
+
+            // ==========================================
+            // SIDEBAR
+            // ==========================================
+
+            function renderSidebar(payments) {
+                if (payments.length === 0) {
+                    paymentList.innerHTML = `
+                        <div class="empty-list">
+                            <i class="fas fa-inbox"></i>
+                            <p>Aucun paiement trouvé</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const statusIcons = {
+                    'success': '✅',
+                    'refunded': '🔄',
+                    'pending': '⏳',
+                    'failed': '❌',
+                    'canceled': '⏰',
+                    'cancelled': '⏰',
+                    'expired': '⏳'
+                };
+
+                let html = '';
+                payments.forEach(p => {
+                    const status = p.genius_status || p.status || 'pending';
+                    const isActive = currentPaymentId === p.id;
+                    const amount = p.amount || 0;
+                    const isNegative = amount < 0;
+                    const client = p.customer_name || 'Client inconnu';
+                    const ref = p.reference || p.genius_reference || '-';
+
+                    html += `
+                        <div class="payment-item ${isActive ? 'active' : ''}" data-id="${p.id}">
+                            <span class="status-dot ${status}"></span>
+                            <div class="item-info">
+                                <div class="client">${client}</div>
+                                <span class="ref">${ref}</span>
+                            </div>
+                            <div class="item-right">
+                                <span class="amount ${isNegative ? 'negative' : 'positive'}">
+                                    ${isNegative ? '-' : ''}${Math.abs(amount).toLocaleString()} FCFA
+                                </span>
+                                <span class="gateway">${p.gateway || 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                paymentList.innerHTML = html;
+
+                // Événements click
+                document.querySelectorAll('.payment-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const id = parseInt(this.dataset.id);
+                        currentPaymentId = id;
+                        renderPayments();
+                    });
+                });
+            }
+
+            // ==========================================
+            // TABLEAU
+            // ==========================================
+
+            function renderTable(payments) {
+                if (payments.length === 0) {
+                    paymentsTableBody.innerHTML = `
+                        <tr><td colspan="7" class="empty-table">
+                            <i class="fas fa-credit-card"></i>
+                            <p>Aucun paiement trouvé</p>
+                        </td></tr>
+                    `;
+                    return;
+                }
+
+                const statusLabels = {
+                    'success': { label: '✅ Succès', class: 'success' },
+                    'refunded': { label: '🔄 Remboursé', class: 'refunded' },
+                    'pending': { label: '⏳ En attente', class: 'pending' },
+                    'failed': { label: '❌ Échoué', class: 'failed' },
+                    'canceled': { label: '⏰ Annulé', class: 'canceled' },
+                    'cancelled': { label: '⏰ Annulé', class: 'canceled' },
+                    'expired': { label: '⏳ Expiré', class: 'expired' }
+                };
+
+                const gatewayLabels = {
+                    'genius_pay': { label: '💳 Genius Pay', class: 'genius_pay' },
+                    'wave': { label: '🌊 Wave', class: 'wave' }
+                };
+
+                const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+                let html = '';
+                payments.forEach(p => {
+                    const status = p.genius_status || p.status || 'pending';
+                    const statusInfo = statusLabels[status] || { label: status, class: 'pending' };
+                    const gatewayInfo = gatewayLabels[p.gateway] || { label: p.gateway || 'N/A', class: '' };
+                    const amount = p.amount || 0;
+                    const isNegative = amount < 0;
+                    const client = p.customer_name || 'Client inconnu';
+                    const ref = p.reference || p.genius_reference || '-';
+                    const date = new Date(p.created_at);
+
+                    html += `
+                        <tr data-id="${p.id}" class="${currentPaymentId === p.id ? 'active-row' : ''}">
+                            <td>#${p.id}</td>
+                            <td style="font-size:12px;color:var(--ink-400);font-family:var(--font-mono);">${ref}</td>
+                            <td>${client}</td>
+                            <td class="${isNegative ? 'amount-negative' : 'amount-positive'}">
+                                ${isNegative ? '-' : ''}${Math.abs(amount).toLocaleString()} FCFA
+                            </td>
+                            <td><span class="gateway-badge ${gatewayInfo.class}">${gatewayInfo.label}</span></td>
+                            <td><span class="status-badge ${statusInfo.class}">${statusInfo.label}</span></td>
+                            <td style="font-size:12px;color:var(--ink-400);">${date.toLocaleDateString('fr-FR', dateOptions)}</td>
+                        </tr>
+                    `;
+                });
+
+                paymentsTableBody.innerHTML = html;
+            }
+
+            // ==========================================
+            // STATS
+            // ==========================================
+
+            function updateStats() {
+                const successPayments = allPayments.filter(p => {
+                    const status = p.genius_status || p.status || 'pending';
+                    return status === 'success';
+                });
+
+                const refundedPayments = allPayments.filter(p => {
+                    const status = p.genius_status || p.status || 'pending';
+                    return status === 'refunded';
+                });
+
+                const pendingPayments = allPayments.filter(p => {
+                    const status = p.genius_status || p.status || 'pending';
+                    return status === 'pending' || status === 'expired';
+                });
+
+                const failedPayments = allPayments.filter(p => {
+                    const status = p.genius_status || p.status || 'pending';
+                    return status === 'failed' || status === 'canceled' || status === 'cancelled';
+                });
+
+                const totalSuccess = successPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+                statSuccess.textContent = successPayments.length;
+                statTotal.textContent = totalSuccess.toLocaleString() + ' FCFA';
+                statRefunded.textContent = refundedPayments.length;
+
+                miniSuccess.textContent = successPayments.length;
+                miniRefunded.textContent = refundedPayments.length;
+                miniPending.textContent = pendingPayments.length;
+                miniFailed.textContent = failedPayments.length;
+                miniCanceled.textContent = failedPayments.length;
+            }
+
+            // ==========================================
+            // EMPTY
+            // ==========================================
+
+            function renderEmpty() {
+                paymentList.innerHTML = `
+                    <div class="empty-list">
+                        <i class="fas fa-inbox"></i>
+                        <p>Aucun paiement trouvé</p>
+                    </div>
+                `;
+                paymentsTableBody.innerHTML = `
+                    <tr><td colspan="7" class="empty-table">
+                        <i class="fas fa-credit-card"></i>
+                        <p>Aucun paiement trouvé</p>
+                    </td></tr>
+                `;
+                paymentCount.textContent = '0 paiements';
+            }
+
+            // ==========================================
+            // FILTRES
+            // ==========================================
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderPayments();
+                });
+            });
+
+            // ==========================================
+            // RECHERCHE
+            // ==========================================
+
+            searchInput.addEventListener('input', function() {
+                searchTerm = this.value.trim();
+                renderPayments();
+            });
+
+            // ==========================================
+            // SOCKET.IO
+            // ==========================================
+
+            let socket = null;
+            let isSocketConnected = false;
+
+            function connectSocketIO() {
+                if (socket) {
+                    socket.disconnect();
+                    socket = null;
+                }
+
+                try {
+                    const adminId = localStorage.getItem('adminId') || '1';
+
+                    socket = io({
+                        auth: {
+                            userId: parseInt(adminId),
+                            isAdmin: true
+                        },
+                        transports: ['websocket', 'polling'],
+                        timeout: 5000,
+                        reconnection: true,
+                        reconnectionAttempts: 20,
+                        reconnectionDelay: 500
+                    });
+
+                    socket.on('connect', function() {
+                        console.log('✅ Socket.IO admin (paiements) connecté');
+                        isSocketConnected = true;
+                    });
+
+                    socket.on('disconnect', function() {
+                        console.log('❌ Socket.IO admin (paiements) déconnecté');
+                        isSocketConnected = false;
+                        setTimeout(() => {
+                            if (!isSocketConnected) connectSocketIO();
+                        }, 3000);
+                    });
+
+                    socket.on('commande-update', function(data) {
+                        console.log('📦 Mise à jour commande (paiements):', data);
+                        loadPayments();
+                        if (window.updateBadges) window.updateBadges();
+                    });
+
+                    socket.on('solde-update', function(data) {
+                        console.log('💰 Solde mis à jour (paiements):', data);
+                        loadPayments();
+                    });
+
+                } catch (error) {
+                    console.error('❌ Erreur connexion Socket.IO:', error);
+                    setTimeout(() => connectSocketIO(), 5000);
+                }
+            }
+
+            // ==========================================
+            // SYNC AUTO
+            // ==========================================
+
+            let syncInterval = null;
+
+            function startSync() {
+                if (syncInterval) {
+                    clearInterval(syncInterval);
+                }
+                syncInterval = setInterval(() => {
+                    loadPayments();
+                }, 10000);
+            }
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadPayments();
+            connectSocketIO();
+            startSync();
+
+            console.log('✅ paiements.html initialisé');
+
+        });
+    </script>
+
+</body>
+</html>
