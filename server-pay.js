@@ -65,9 +65,25 @@ socket.on('connection', (sock) => {
 app.use(express.json());
 
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, X-API-Key, X-API-Secret, X-Webhook-Signature, X-Webhook-Timestamp, X-Webhook-Event');
+    const allowedOrigins = [
+        'https://nature-plus-client.onrender.com',
+        'https://nature-plus-pay.onrender.com',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -143,6 +159,7 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
+        // ✅ Vérifier si un paiement existe déjà
         const existingPayment = await db.get(
             `SELECT * FROM payments WHERE commande_id = $1`,
             [commandeId]
@@ -161,6 +178,7 @@ app.post('/api/payment/create', async (req, res) => {
                 });
             }
 
+            // ✅ Si paiement existe mais pas finalisé → retourner le lien existant
             return res.json({
                 success: true,
                 checkout_url: existingPayment.checkout_url,
@@ -172,6 +190,7 @@ app.post('/api/payment/create', async (req, res) => {
             });
         }
 
+        // ✅ Récupérer les infos de la commande
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
@@ -234,17 +253,19 @@ app.post('/api/payment/create', async (req, res) => {
         );
         console.log('✅ Payment enregistré');
 
+        // ✅ Mettre à jour le statut de la commande
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['paiement_en_cours', commandeId]
         );
 
+        // ✅ Envoyer la notification au client avec le lien
         await createNotification(
             userId,
             commandeId,
             'paiement',
-            '📥 Paiement initié',
-            `Votre paiement pour la commande #${commandeId} a été initié. Vous disposez de 20 minutes pour le finaliser. Montant : ${amount} FCFA. Réf. : ${geniusReference}`
+            '🔗 Lien de paiement généré',
+            `Voici votre lien de paiement pour la commande #${commandeId}. Montant : ${amount} FCFA. Vous disposez de 20 minutes. [Cliquez ici pour payer](${checkoutUrl})`
         );
 
         res.json({
@@ -253,11 +274,193 @@ app.post('/api/payment/create', async (req, res) => {
             reference: paymentRef,
             genius_reference: geniusReference,
             genius_status: geniusStatus,
-            message: 'Paiement créé avec succès'
+            message: 'Paiement créé avec succès',
+            notification_sent: true
         });
 
     } catch (error) {
         console.error('❌ Erreur paiement:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// ========================================================
+// ✅ NOUVELLE ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
+// ========================================================
+
+app.get('/api/payment/link/:commande_id', async (req, res) => {
+    const { commande_id } = req.params;
+
+    console.log(`🔍 Récupération du lien de paiement pour la commande #${commande_id}`);
+
+    try {
+        const payment = await db.get(
+            `SELECT checkout_url, reference, genius_reference, status, genius_status 
+             FROM payments 
+             WHERE commande_id = $1 
+             ORDER BY created_at DESC 
+             LIMIT 1`,
+            [commande_id]
+        );
+
+        if (!payment) {
+            return res.json({
+                success: true,
+                has_link: false,
+                message: 'Aucun lien de paiement trouvé pour cette commande.'
+            });
+        }
+
+        const finalStatuses = ['success', 'failed', 'cancelled', 'expired', 'refunded'];
+        const isFinal = finalStatuses.includes(payment.genius_status || payment.status);
+
+        res.json({
+            success: true,
+            has_link: true,
+            checkout_url: payment.checkout_url,
+            reference: payment.reference,
+            genius_reference: payment.genius_reference,
+            status: payment.status,
+            genius_status: payment.genius_status,
+            is_final: isFinal
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération lien:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// ========================================================
+// ✅ NOUVELLE ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT PAR RÉFÉRENCE
+// ========================================================
+
+app.get('/api/payment/status/:reference', async (req, res) => {
+    const { reference } = req.params;
+
+    console.log(`🔍 Vérification statut paiement: ${reference}`);
+
+    if (!reference) {
+        return res.status(400).json({ error: 'Référence requise.' });
+    }
+
+    try {
+        // ✅ 1. Rechercher dans la base
+        let payment = await db.get(
+            `SELECT * FROM payments WHERE reference = $1 OR genius_reference = $1 OR commande_id::text = $1`,
+            [reference]
+        );
+
+        if (payment) {
+            console.log(`✅ Paiement trouvé dans la base: ${payment.genius_status || payment.status}`);
+            
+            // ✅ Si pas finalisé, vérifier sur Genius Pay
+            const finalStatuses = ['success', 'failed', 'cancelled', 'expired', 'refunded'];
+            if (!finalStatuses.includes(payment.genius_status || payment.status)) {
+                try {
+                    const geniusCheck = await axios.get(
+                        `${GENIUS_API_URL}/${payment.genius_reference || payment.reference}`,
+                        {
+                            headers: {
+                                'X-API-Key': PUBLIC_KEY,
+                                'X-API-Secret': SECRET_KEY
+                            }
+                        }
+                    );
+                    
+                    const geniusStatus = geniusCheck.data?.data?.status || geniusCheck.data?.status;
+                    
+                    if (geniusStatus && geniusStatus !== payment.genius_status) {
+                        await db.query(
+                            `UPDATE payments SET genius_status = $1, updated_at = NOW() WHERE id = $2`,
+                            [geniusStatus, payment.id]
+                        );
+                        payment.genius_status = geniusStatus;
+                        
+                        // ✅ Si succès, mettre à jour la commande
+                        if (geniusStatus === 'success' && payment.commande_id) {
+                            await db.query(
+                                `UPDATE commandes SET status = $1 WHERE id = $2`,
+                                ['paiement_effectue', payment.commande_id]
+                            );
+                            
+                            await createNotification(
+                                payment.user_id,
+                                payment.commande_id,
+                                'paiement',
+                                '✅ Paiement réussi',
+                                `Votre paiement pour la commande #${payment.commande_id} a été confirmé avec succès.`
+                            );
+                        }
+                    }
+                } catch (geniusError) {
+                    console.warn('⚠️ Erreur vérification Genius Pay:', geniusError.message);
+                }
+            }
+            
+            return res.json({
+                success: true,
+                payment: {
+                    reference: payment.reference,
+                    genius_reference: payment.genius_reference,
+                    amount: payment.amount,
+                    status: payment.status,
+                    genius_status: payment.genius_status,
+                    checkout_url: payment.checkout_url,
+                    commande_id: payment.commande_id,
+                    created_at: payment.created_at,
+                    expires_at: payment.expires_at,
+                    is_final: finalStatuses.includes(payment.genius_status || payment.status)
+                }
+            });
+        }
+
+        // ✅ 2. Si pas trouvé en base, vérifier directement sur Genius Pay
+        try {
+            const geniusCheck = await axios.get(
+                `${GENIUS_API_URL}/${reference}`,
+                {
+                    headers: {
+                        'X-API-Key': PUBLIC_KEY,
+                        'X-API-Secret': SECRET_KEY
+                    }
+                }
+            );
+            
+            const geniusData = geniusCheck.data?.data || geniusCheck.data;
+            
+            return res.json({
+                success: true,
+                source: 'geniuspay',
+                payment: {
+                    reference: geniusData.reference,
+                    amount: geniusData.amount,
+                    status: geniusData.status,
+                    checkout_url: geniusData.checkout_url,
+                    created_at: geniusData.created_at,
+                    expires_at: geniusData.expires_at
+                }
+            });
+            
+        } catch (geniusError) {
+            if (geniusError.response?.status === 404) {
+                return res.json({
+                    success: true,
+                    found: false,
+                    message: 'Aucun paiement trouvé pour cette référence.'
+                });
+            }
+            throw geniusError;
+        }
+
+    } catch (error) {
+        console.error('❌ Erreur vérification statut:', error);
         res.status(500).json({
             success: false,
             error: error.message
