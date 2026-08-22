@@ -18,13 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const miniSuccess = document.getElementById('miniSuccess');
     const miniRefunded = document.getElementById('miniRefunded');
-    const miniPending = document.getElementById('miniPending');
     const miniExpired = document.getElementById('miniExpired');
     const miniCanceled = document.getElementById('miniCanceled');
 
     const miniSuccessAmount = document.getElementById('miniSuccessAmount');
     const miniRefundedAmount = document.getElementById('miniRefundedAmount');
-    const miniPendingAmount = document.getElementById('miniPendingAmount');
     const miniExpiredAmount = document.getElementById('miniExpiredAmount');
     const miniCanceledAmount = document.getElementById('miniCanceledAmount');
 
@@ -38,6 +36,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const adminName = localStorage.getItem('adminName') || 'Admin';
     document.getElementById('adminName').textContent = adminName;
+
+    // ==========================================
+    // FONCTION : OBTENIR LE VRAI STATUT
+    // ==========================================
+
+    function getRealStatus(payment) {
+        // Wave manuel → success
+        if (payment.genius_status === 'wave_manual') return 'success';
+        // Wave remboursé → refunded
+        if (payment.genius_status === 'wave_refunded') return 'refunded';
+        // Genius Pay success
+        if (payment.genius_status === 'success') return 'success';
+        // Genius Pay refunded
+        if (payment.genius_status === 'refunded') return 'refunded';
+        // Status direct
+        if (payment.status === 'success') return 'success';
+        if (payment.status === 'refunded') return 'refunded';
+        if (payment.status === 'expired') return 'expired';
+        // failed, canceled, cancelled → canceled
+        if (payment.status === 'failed' || payment.status === 'canceled' || payment.status === 'cancelled') return 'canceled';
+        // Par défaut
+        return payment.status || payment.genius_status || 'pending';
+    }
+
+    // ==========================================
+    // FONCTION : CALCULER LES STATS
+    // ==========================================
+
+    function calculateStats(payments) {
+        const stats = {
+            success: { count: 0, total: 0 },
+            refunded: { count: 0, total: 0 },
+            expired: { count: 0, total: 0 },
+            canceled: { count: 0, total: 0 },
+            pending: { count: 0, total: 0 }
+        };
+
+        payments.forEach(p => {
+            const realStatus = getRealStatus(p);
+            const amount = p.amount || 0;
+            
+            if (stats[realStatus]) {
+                stats[realStatus].count++;
+                stats[realStatus].total += amount;
+            }
+        });
+
+        return stats;
+    }
+
+    // ==========================================
+    // FONCTION : FILTRER PAR STATUT
+    // ==========================================
+
+    function filterByStatus(payments, filter) {
+        if (filter === 'all') return payments;
+        
+        return payments.filter(p => {
+            const realStatus = getRealStatus(p);
+            if (filter === 'canceled') {
+                return realStatus === 'canceled';
+            }
+            return realStatus === filter;
+        });
+    }
 
     // ==========================================
     // CHARGER LES PAIEMENTS
@@ -67,18 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function renderPayments() {
-        let filtered = allPayments;
-
-        // Filtre par statut
-        if (currentFilter !== 'all') {
-            filtered = filtered.filter(p => {
-                const status = p.genius_status || p.status || 'pending';
-                if (currentFilter === 'canceled') {
-                    return status === 'canceled' || status === 'cancelled' || status === 'failed';
-                }
-                return status.toLowerCase() === currentFilter.toLowerCase();
-            });
-        }
+        // Filtrer
+        let filtered = filterByStatus(allPayments, currentFilter);
 
         // Recherche
         if (searchTerm) {
@@ -119,11 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusLabels = {
             'success': { label: '✅ Succès', class: 'success' },
             'refunded': { label: '🔄 Remboursé', class: 'refunded' },
-            'pending': { label: '⏳ En attente', class: 'pending' },
-            'failed': { label: '❌ Annulé', class: 'canceled' },
-            'canceled': { label: '⏰ Annulé', class: 'canceled' },
-            'cancelled': { label: '⏰ Annulé', class: 'canceled' },
-            'expired': { label: '⏰ Expiré', class: 'expired' }
+            'expired': { label: '⏰ Expiré', class: 'expired' },
+            'canceled': { label: '❌ Annulé', class: 'canceled' },
+            'pending': { label: '⏳ En attente', class: 'pending' }
         };
 
         const gatewayLabels = {
@@ -135,8 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let html = '';
         payments.forEach(p => {
-            const status = p.genius_status || p.status || 'pending';
-            const statusInfo = statusLabels[status] || { label: status, class: 'pending' };
+            const realStatus = getRealStatus(p);
+            const statusInfo = statusLabels[realStatus] || { label: realStatus, class: 'pending' };
             const gatewayInfo = gatewayLabels[p.gateway] || { label: p.gateway || 'N/A', class: '' };
             const amount = p.amount || 0;
             const isNegative = amount < 0;
@@ -224,60 +275,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function updateStats() {
-        const successPayments = allPayments.filter(p => {
-            const status = p.genius_status || p.status || 'pending';
-            return status === 'success';
-        });
-
-        const refundedPayments = allPayments.filter(p => {
-            const status = p.genius_status || p.status || 'pending';
-            return status === 'refunded';
-        });
-
-        const pendingPayments = allPayments.filter(p => {
-            const status = p.genius_status || p.status || 'pending';
-            return status === 'pending';
-        });
-
-        const expiredPayments = allPayments.filter(p => {
-            const status = p.genius_status || p.status || 'pending';
-            return status === 'expired';
-        });
-
-        const canceledPayments = allPayments.filter(p => {
-            const status = p.genius_status || p.status || 'pending';
-            return status === 'canceled' || status === 'cancelled' || status === 'failed';
-        });
-
-        const totalSuccess = successPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const totalRefunded = refundedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const totalPending = pendingPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const totalExpired = expiredPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const totalCanceled = canceledPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const stats = calculateStats(allPayments);
 
         // Header stats
-        statSuccess.textContent = successPayments.length;
-        statTotal.textContent = totalSuccess.toLocaleString() + ' FCFA';
-        statRefunded.textContent = refundedPayments.length;
-        statRefundedTotal.textContent = Math.abs(totalRefunded).toLocaleString() + ' FCFA';
+        statSuccess.textContent = stats.success.count;
+        statTotal.textContent = stats.success.total.toLocaleString() + ' FCFA';
+        statRefunded.textContent = stats.refunded.count;
+        
+        // Total remboursés (montant négatif)
+        const refundedTotal = stats.refunded.total;
+        statRefundedTotal.textContent = Math.abs(refundedTotal).toLocaleString() + ' FCFA';
         statRefundedTotal.className = 'stat-value negative';
 
         // Mini stats
-        miniSuccess.textContent = successPayments.length;
-        miniSuccessAmount.textContent = totalSuccess.toLocaleString() + ' FCFA';
+        miniSuccess.textContent = stats.success.count;
+        miniSuccessAmount.textContent = stats.success.total.toLocaleString() + ' FCFA';
 
-        miniRefunded.textContent = refundedPayments.length;
-        miniRefundedAmount.textContent = Math.abs(totalRefunded).toLocaleString() + ' FCFA';
+        miniRefunded.textContent = stats.refunded.count;
+        miniRefundedAmount.textContent = Math.abs(stats.refunded.total).toLocaleString() + ' FCFA';
         miniRefundedAmount.className = 'mini-amount negative';
 
-        miniPending.textContent = pendingPayments.length;
-        miniPendingAmount.textContent = totalPending.toLocaleString() + ' FCFA';
+        miniExpired.textContent = stats.expired.count;
+        miniExpiredAmount.textContent = stats.expired.total.toLocaleString() + ' FCFA';
 
-        miniExpired.textContent = expiredPayments.length;
-        miniExpiredAmount.textContent = totalExpired.toLocaleString() + ' FCFA';
-
-        miniCanceled.textContent = canceledPayments.length;
-        miniCanceledAmount.textContent = totalCanceled.toLocaleString() + ' FCFA';
+        miniCanceled.textContent = stats.canceled.count;
+        miniCanceledAmount.textContent = stats.canceled.total.toLocaleString() + ' FCFA';
     }
 
     // ==========================================
@@ -300,13 +322,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         miniSuccess.textContent = '0';
         miniRefunded.textContent = '0';
-        miniPending.textContent = '0';
         miniExpired.textContent = '0';
         miniCanceled.textContent = '0';
 
         miniSuccessAmount.textContent = '0 FCFA';
         miniRefundedAmount.textContent = '0 FCFA';
-        miniPendingAmount.textContent = '0 FCFA';
         miniExpiredAmount.textContent = '0 FCFA';
         miniCanceledAmount.textContent = '0 FCFA';
     }
