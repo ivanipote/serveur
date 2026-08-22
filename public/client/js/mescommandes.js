@@ -157,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (existingIndex !== -1) {
             commandes[existingIndex].status = status;
-            // Si le statut est final, arrêter la vérification
             if (['paiement_effectue', 'annulee', 'refuse'].includes(status)) {
                 stopVerification(commandeId);
             }
@@ -363,7 +362,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function generatePaymentLink(commandeId, amount, reference, phone) {
         if (generatingLinks[commandeId]) return;
+        
+        // ✅ Marquer comme en cours de génération
         generatingLinks[commandeId] = true;
+        renderCommandes();
 
         try {
             // 1. Vérifier si un lien existe déjà
@@ -374,12 +376,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (linkData.is_final) {
                     await showMessage('✅', 'Paiement déjà effectué', 'Cette commande a déjà été payée.');
                     generatingLinks[commandeId] = false;
+                    renderCommandes();
                     return;
                 }
                 if (linkData.checkout_url) {
                     // ✅ Lien existant → notification déjà envoyée
                     await showMessage('🔗', 'Lien déjà généré', 'Le lien de paiement est déjà disponible dans vos notifications.');
                     generatingLinks[commandeId] = false;
+                    renderCommandes();
                     return;
                 }
             }
@@ -415,19 +419,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     cmd.genius_reference = data.genius_reference;
                 }
                 
+                generatingLinks[commandeId] = false;
                 renderCommandes();
                 
                 // ✅ Démarrer la vérification continue
                 startVerification(commandeId);
                 
             } else {
+                generatingLinks[commandeId] = false;
+                renderCommandes();
                 await showMessage('❌', 'Erreur', data.error || 'Impossible de générer le lien de paiement.');
             }
         } catch (error) {
             console.error('Erreur génération lien:', error);
-            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
-        } finally {
             generatingLinks[commandeId] = false;
+            renderCommandes();
+            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
         }
     }
 
@@ -436,15 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function startVerification(commandeId) {
-        // Arrêter toute vérification existante pour cette commande
         stopVerification(commandeId);
 
         console.log(`🔍 Début vérification continue pour commande #${commandeId}`);
 
-        // Vérifier immédiatement
         checkAndUpdateStatus(commandeId);
 
-        // Puis toutes les 10 secondes
         verificationIntervals[commandeId] = setInterval(() => {
             checkAndUpdateStatus(commandeId);
         }, VERIFICATION_INTERVAL);
@@ -469,16 +473,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (!commande) return;
 
-                // ✅ Si statut change
                 if (geniusStatus === 'success' || geniusStatus === 'paiement_effectue') {
-                    // Paiement réussi
                     commande.status = 'paiement_effectue';
                     stopVerification(commandeId);
                     renderCommandes();
                     await showMessage('✅', 'Paiement réussi !', 'Votre paiement a été confirmé avec succès.');
                     
                 } else if (geniusStatus === 'expired' || geniusStatus === 'failed' || geniusStatus === 'cancelled') {
-                    // Paiement expiré ou échoué
                     commande.status = 'annulee';
                     commande.cause_refus = geniusStatus === 'expired' ? 'Paiement expiré (20 min)' : 'Paiement échoué';
                     stopVerification(commandeId);
@@ -510,7 +511,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (data.success) {
-                // ✅ Demande envoyée → mise à jour locale
                 const cmd = commandes.find(c => c.id === commandeId);
                 if (cmd) {
                     cmd.status = 'verification_en_cours';
@@ -725,22 +725,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
             }
 
-            // ✅ Affichage du statut de paiement
+            // ✅ Affichage du statut de paiement (CORRIGÉ)
             let paymentStatusHtml = '';
             if (isPayable) {
+                const isGenerating = generatingLinks[c.id] === true;
                 if (hasPaymentLink) {
                     paymentStatusHtml = `
                         <div class="status-link-available">
                             <i class="fas fa-envelope"></i> 📩 Lien disponible dans vos notifications
                         </div>
                     `;
-                } else {
+                } else if (isGenerating) {
                     paymentStatusHtml = `
                         <div class="status-generating" id="generating-${c.id}">
                             <i class="fas fa-spinner"></i> Lien de paiement en cours de génération...
                         </div>
                     `;
                 }
+                // ✅ Sinon, rien ne s'affiche (plus de message par défaut)
             }
 
             // ✅ État vérification en cours
@@ -772,7 +774,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // ✅ Message d'action
             let actionHint = '';
             if (isPayable) {
-                actionHint = hasPaymentLink ? '📩 Lien de paiement disponible dans vos notifications' : '⏳ Génération du lien de paiement...';
+                if (hasPaymentLink) {
+                    actionHint = '📩 Lien de paiement disponible dans vos notifications';
+                } else {
+                    // ✅ Ne rien afficher si le lien n'est pas encore généré
+                }
             } else if (isVerificationInProgress) {
                 actionHint = '🔍 En attente de la confirmation de l\'admin...';
             } else if (showContinue) {
@@ -802,11 +808,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // ✅ Boutons (masqués si paiement en cours ou vérification)
             let buttonsHtml = '';
             if (isPayable && !isVerificationInProgress) {
+                const isGenerating = generatingLinks[c.id] === true;
                 buttonsHtml = `
                     <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" 
                             data-id="${c.id}" 
                             data-total="${c.total}" 
-                            data-ref="${c.reference || c.id}">
+                            data-ref="${c.reference || c.id}"
+                            ${isGenerating ? 'disabled' : ''}>
                         <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
                     </button>
                     <button class="btn btn-wave" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
@@ -856,7 +864,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 startTimer(c.id, c.payment_created_at || c.created_at);
             }
             
-            // ✅ Si commande en paiement_en_cours, démarrer vérification
             if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
                 startVerification(c.id);
             }
@@ -866,6 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.btn-pay-genius').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                if (this.disabled) return;
                 const id = parseInt(this.dataset.id);
                 const total = parseInt(this.dataset.total);
                 const ref = this.dataset.ref;
