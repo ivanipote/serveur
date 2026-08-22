@@ -1467,3 +1467,120 @@ body {
         font-size: 11px;
     }
 }
+/* ========================================== */
+/* ÉTAT : VÉRIFICATION EN COURS               */
+/* ========================================== */
+
+.status-verification {
+    font-size: 13px;
+    color: #e67e22;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.status-verification i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== CARTE EN VÉRIFICATION ===== */
+.commande-card.status-verification_en_cours {
+    background: #fff8e1;
+    border-color: #ffe082;
+}
+
+.commande-card.status-verification_en_cours .badge-top {
+    background: #ffe0b2;
+    color: #e67e22;
+}
+
+/* ===== CARTE PAYÉE ===== */
+.commande-card.status-paiement_effectue {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+}
+
+.commande-card.status-paiement_effectue .badge-top {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+/* ===== CARTE ANNULÉE / REFUSÉE ===== */
+.commande-card.status-annulee {
+    background: #ffebee;
+    border-color: #ef9a9a;
+    opacity: 0.7;
+}
+
+.commande-card.status-annulee .badge-top {
+    background: #ffcdd2;
+    color: #c62828;
+}
+
+.commande-card.status-refuse {
+    background: #ffebee;
+    border-color: #ef9a9a;
+    opacity: 0.7;
+}
+
+.commande-card.status-refuse .badge-top {
+    background: #ffcdd2;
+    color: #c62828;
+}
+
+/* ===== BOUTON VÉRIFIER STATUT ===== */
+.btn-check-status {
+    background: #e8e8f0;
+    color: #1a1a2e;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    min-height: 40px;
+}
+
+.btn-check-status:hover {
+    background: #d0d0da;
+    transform: scale(1.04);
+}
+
+/* ========================================== */
+/* RESPONSIVE                                 */
+/* ========================================== */
+
+@media (max-width: 600px) {
+    .status-verification {
+        font-size: 12px;
+    }
+    .btn-check-status {
+        font-size: 12px;
+        padding: 6px 12px;
+        height: 36px;
+        min-height: 36px;
+    }
+}
+
+@media (max-width: 400px) {
+    .status-verification {
+        font-size: 11px;
+    }
+    .btn-check-status {
+        font-size: 11px;
+        padding: 4px 10px;
+        height: 32px;
+        min-height: 32px;
+    }
+}

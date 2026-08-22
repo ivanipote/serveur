@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
+    const WAVE_API_URL = 'https://server-wave-js.onrender.com';
 
     const mainContent = document.getElementById('mainContent');
     const loadingState = document.getElementById('loadingState');
@@ -39,9 +40,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let isSyncActive = true;
     let isFirstLoad = true;
     let timerIntervals = {};
+    let generatingLinks = {};
+    let verificationIntervals = {};
 
     const TIMEOUT_MINUTES = 20;
     const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
+    const VERIFICATION_INTERVAL = 10000; // 10 secondes
+
+    // ==========================================
+    // UI SYNC
+    // ==========================================
 
     function updateSyncUI() {
         if (isSyncActive) {
@@ -68,6 +76,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ==========================================
+    // SYNC
+    // ==========================================
+
     function startSync() {
         if (syncInterval) {
             clearInterval(syncInterval);
@@ -86,6 +98,10 @@ document.addEventListener('DOMContentLoaded', function() {
             syncInterval = null;
         }
     }
+
+    // ==========================================
+    // SOCKET.IO
+    // ==========================================
 
     function connectSocketIO() {
         if (socket) {
@@ -120,6 +136,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleCommandeUpdate(data);
             });
 
+            socket.on('notification', function(data) {
+                loadCommandes();
+            });
+
         } catch (error) {
             setTimeout(() => connectSocketIO(), 5000);
         }
@@ -137,6 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (existingIndex !== -1) {
             commandes[existingIndex].status = status;
+            // Si le statut est final, arrêter la vérification
+            if (['paiement_effectue', 'annulee', 'refuse'].includes(status)) {
+                stopVerification(commandeId);
+            }
             renderCommandes();
         } else {
             loadCommandes();
@@ -147,6 +171,10 @@ document.addEventListener('DOMContentLoaded', function() {
             badgeTotal.textContent = commandes.length;
         }
     }
+
+    // ==========================================
+    // OVERLAYS
+    // ==========================================
 
     function showMessage(icon, title, text) {
         messageIcon.textContent = icon;
@@ -218,6 +246,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ==========================================
+    // AUTH
+    // ==========================================
+
     async function checkAuth() {
         try {
             const res = await fetch('/api/client/me');
@@ -237,6 +269,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
     }
+
+    // ==========================================
+    // CHARGER LES COMMANDES
+    // ==========================================
 
     async function loadCommandes() {
         if (isFirstLoad && loadingState) {
@@ -287,6 +323,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ==========================================
+    // EXTRAIRE LES PRODUITS
+    // ==========================================
+
     function extractProducts(panierData) {
         if (!panierData) return [];
         if (Array.isArray(panierData)) return panierData;
@@ -317,48 +357,194 @@ document.addEventListener('DOMContentLoaded', function() {
         return [];
     }
 
-    async function handlePayment(commandeId, amount, reference, phone) {
-        if (!phone) {
-            await showMessage('📱', 'Numéro manquant', 'Veuillez renseigner votre numéro Wave dans votre profil.');
-            return;
-        }
+    // ==========================================
+    // ✅ GÉNÉRER LE LIEN DE PAIEMENT
+    // ==========================================
+
+    async function generatePaymentLink(commandeId, amount, reference, phone) {
+        if (generatingLinks[commandeId]) return;
+        generatingLinks[commandeId] = true;
 
         try {
-            const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${commandeId}`);
-            const checkData = await checkRes.json();
+            // 1. Vérifier si un lien existe déjà
+            const linkRes = await fetch(`${PAYMENT_API_URL}/api/payment/link/${commandeId}`);
+            const linkData = await linkRes.json();
 
-            if (checkData.success && checkData.data) {
-                const existingCheckoutUrl = checkData.data.checkout_url;
-                if (existingCheckoutUrl && existingCheckoutUrl !== 'null' && existingCheckoutUrl !== '') {
-                    window.open(existingCheckoutUrl, '_blank');
+            if (linkData.success && linkData.has_link) {
+                if (linkData.is_final) {
+                    await showMessage('✅', 'Paiement déjà effectué', 'Cette commande a déjà été payée.');
+                    generatingLinks[commandeId] = false;
+                    return;
+                }
+                if (linkData.checkout_url) {
+                    // ✅ Lien existant → notification déjà envoyée
+                    await showMessage('🔗', 'Lien déjà généré', 'Le lien de paiement est déjà disponible dans vos notifications.');
+                    generatingLinks[commandeId] = false;
                     return;
                 }
             }
 
+            // 2. Générer un nouveau lien
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    commandeId,
+                    commandeId: parseInt(commandeId),
                     reference: reference,
-                    amount,
-                    phone,
-                    description: `Commande Nature+ #${commandeId} (${reference})`
+                    amount: amount,
+                    phone: phone,
+                    description: `Commande Nature+ #${commandeId}`
                 })
             });
 
             const data = await res.json();
 
             if (res.ok && data.success && data.checkout_url) {
-                window.open(data.checkout_url, '_blank');
+                // ✅ Lien généré → overlay de confirmation
+                await showConfirm(
+                    '✅',
+                    'Lien généré avec succès !',
+                    'Votre lien de paiement a été envoyé dans vos notifications. Veuillez finaliser votre paiement.'
+                );
+                
+                // ✅ Mettre à jour la commande en local
+                const cmd = commandes.find(c => c.id === commandeId);
+                if (cmd) {
+                    cmd.status = 'paiement_en_cours';
+                    cmd.checkout_url = data.checkout_url;
+                    cmd.genius_reference = data.genius_reference;
+                }
+                
+                renderCommandes();
+                
+                // ✅ Démarrer la vérification continue
+                startVerification(commandeId);
+                
             } else {
-                await showMessage('❌', 'Erreur', data.error || 'Impossible de créer le paiement.');
+                await showMessage('❌', 'Erreur', data.error || 'Impossible de générer le lien de paiement.');
             }
         } catch (error) {
-            console.error('Erreur paiement:', error);
+            console.error('Erreur génération lien:', error);
             await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur de paiement.');
+        } finally {
+            generatingLinks[commandeId] = false;
         }
     }
+
+    // ==========================================
+    // ✅ VÉRIFICATION CONTINUE DU STATUT
+    // ==========================================
+
+    function startVerification(commandeId) {
+        // Arrêter toute vérification existante pour cette commande
+        stopVerification(commandeId);
+
+        console.log(`🔍 Début vérification continue pour commande #${commandeId}`);
+
+        // Vérifier immédiatement
+        checkAndUpdateStatus(commandeId);
+
+        // Puis toutes les 10 secondes
+        verificationIntervals[commandeId] = setInterval(() => {
+            checkAndUpdateStatus(commandeId);
+        }, VERIFICATION_INTERVAL);
+    }
+
+    function stopVerification(commandeId) {
+        if (verificationIntervals[commandeId]) {
+            clearInterval(verificationIntervals[commandeId]);
+            delete verificationIntervals[commandeId];
+            console.log(`⏹️ Vérification arrêtée pour commande #${commandeId}`);
+        }
+    }
+
+    async function checkAndUpdateStatus(commandeId) {
+        try {
+            const res = await fetch(`${PAYMENT_API_URL}/api/payment/status/${commandeId}`);
+            const data = await res.json();
+
+            if (data.success && data.payment) {
+                const geniusStatus = data.payment.genius_status || data.payment.status;
+                const commande = commandes.find(c => c.id === commandeId);
+
+                if (!commande) return;
+
+                // ✅ Si statut change
+                if (geniusStatus === 'success' || geniusStatus === 'paiement_effectue') {
+                    // Paiement réussi
+                    commande.status = 'paiement_effectue';
+                    stopVerification(commandeId);
+                    renderCommandes();
+                    await showMessage('✅', 'Paiement réussi !', 'Votre paiement a été confirmé avec succès.');
+                    
+                } else if (geniusStatus === 'expired' || geniusStatus === 'failed' || geniusStatus === 'cancelled') {
+                    // Paiement expiré ou échoué
+                    commande.status = 'annulee';
+                    commande.cause_refus = geniusStatus === 'expired' ? 'Paiement expiré (20 min)' : 'Paiement échoué';
+                    stopVerification(commandeId);
+                    renderCommandes();
+                    await showMessage('⏳', 'Paiement non finalisé', 'Le délai de paiement a expiré ou a été annulé.');
+                }
+            }
+        } catch (error) {
+            console.error(`❌ Erreur vérification statut #${commandeId}:`, error);
+        }
+    }
+
+    // ==========================================
+    // ✅ VÉRIFICATION WAVE (demande admin)
+    // ==========================================
+
+    async function verifyWavePayment(commandeId, codeLogin, waveId) {
+        try {
+            const res = await fetch(`${WAVE_API_URL}/api/wave/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    commande_id: parseInt(commandeId),
+                    code_login: codeLogin,
+                    wave_id: waveId
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // ✅ Demande envoyée → mise à jour locale
+                const cmd = commandes.find(c => c.id === commandeId);
+                if (cmd) {
+                    cmd.status = 'verification_en_cours';
+                }
+                renderCommandes();
+                await showMessage('🔍', 'Vérification en cours', 'Votre demande a été envoyée à l\'admin. Vous serez informé.');
+                return true;
+            } else {
+                await showMessage('❌', 'Erreur', data.error || 'Erreur lors de l\'envoi.');
+                return false;
+            }
+        } catch (error) {
+            console.error('Erreur vérification Wave:', error);
+            await showMessage('❌', 'Erreur', 'Erreur de connexion au serveur.');
+            return false;
+        }
+    }
+
+    // ==========================================
+    // PAIEMENT CLASSIQUE (via Genius Pay)
+    // ==========================================
+
+    async function handlePayment(commandeId, amount, reference, phone) {
+        if (!phone) {
+            await showMessage('📱', 'Numéro manquant', 'Veuillez renseigner votre numéro Wave dans votre profil.');
+            return;
+        }
+
+        await generatePaymentLink(commandeId, amount, reference, phone);
+    }
+
+    // ==========================================
+    // TIMER
+    // ==========================================
 
     function startTimer(commandeId, paymentCreatedAt) {
         if (timerIntervals[commandeId]) {
@@ -397,6 +583,10 @@ document.addEventListener('DOMContentLoaded', function() {
         timerIntervals[commandeId] = setInterval(updateTimer, 1000);
     }
 
+    // ==========================================
+    // HISTORIQUE DES STATUTS
+    // ==========================================
+
     function getStatusHistory(commande) {
         const currentStatus = commande.genius_status || commande.status || 'en_attente';
         
@@ -432,6 +622,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return { old: oldStatus, current: currentStatus };
     }
 
+    // ==========================================
+    // RENDRE LES COMMANDES
+    // ==========================================
+
     function renderCommandes() {
         if (commandes.length === 0) {
             mainContent.innerHTML = `
@@ -457,6 +651,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'cancelled': { label: 'cancelled', icon: '⏰', class: 'cancelled' },
             'expired': { label: 'expired', icon: '⏳', class: 'expired' },
             'refunded': { label: 'refunded', icon: '🔄', class: 'refunded' },
+            'verification_en_cours': { label: 'Vérification en cours', icon: '🔍', class: 'verification_en_cours' },
             'livraison_en_cours': { label: 'En livraison', icon: '🚚', class: 'livraison_en_cours' },
             'disponible': { label: 'Disponible', icon: '📍', class: 'disponible' },
             'recuperee': { label: 'Récupérée', icon: '✅', class: 'recuperee' },
@@ -476,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'cancelled': 'cancelled',
             'expired': 'expired',
             'refunded': 'refunded',
+            'verification_en_cours': 'verification_en_cours',
             'livraison_en_cours': 'livraison_en_cours',
             'disponible': 'disponible',
             'recuperee': 'recuperee',
@@ -497,14 +693,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const isPayable = c.status === 'accepter';
             const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
+            const isVerificationInProgress = c.status === 'verification_en_cours';
             const showContinue = isPaymentInProgress && !isExpired;
             const isTerminal = ['success', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'annulee', 'refuse', 'livraison_en_cours', 'disponible', 'recuperee'].includes(c.status) || 
                               ['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.genius_status);
+
+            const hasPaymentLink = c.checkout_url || c.genius_reference;
 
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
 
+            // Timer
             let timerHtml = '';
             if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && !isExpired) {
                 const paymentDateObj = new Date(paymentDate);
@@ -525,6 +725,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
             }
 
+            // ✅ Affichage du statut de paiement
+            let paymentStatusHtml = '';
+            if (isPayable) {
+                if (hasPaymentLink) {
+                    paymentStatusHtml = `
+                        <div class="status-link-available">
+                            <i class="fas fa-envelope"></i> 📩 Lien disponible dans vos notifications
+                        </div>
+                    `;
+                } else {
+                    paymentStatusHtml = `
+                        <div class="status-generating" id="generating-${c.id}">
+                            <i class="fas fa-spinner"></i> Lien de paiement en cours de génération...
+                        </div>
+                    `;
+                }
+            }
+
+            // ✅ État vérification en cours
+            let verificationHtml = '';
+            if (isVerificationInProgress) {
+                verificationHtml = `
+                    <div class="status-verification">
+                        <i class="fas fa-spinner"></i> 🔍 Vérification en cours...
+                    </div>
+                `;
+            }
+
+            // ✅ Historique des statuts
             let statusTransitionHtml = '';
             if (history.old && history.old !== history.current) {
                 const oldLabel = statusLabels[history.old]?.label || history.old;
@@ -540,11 +769,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
+            // ✅ Message d'action
             let actionHint = '';
             if (isPayable) {
-                actionHint = '💳 Cliquez sur Payer pour effectuer le paiement';
+                actionHint = hasPaymentLink ? '📩 Lien de paiement disponible dans vos notifications' : '⏳ Génération du lien de paiement...';
+            } else if (isVerificationInProgress) {
+                actionHint = '🔍 En attente de la confirmation de l\'admin...';
             } else if (showContinue) {
-                actionHint = '⏳ Paiement en cours... Continuez pour finaliser';
+                actionHint = '⏳ Paiement en cours...';
             } else if (c.status === 'en_attente') {
                 actionHint = '⏳ En attente de validation';
             } else if (c.status === 'paiement_effectue') {
@@ -556,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (c.status === 'recuperee') {
                 actionHint = '✅ Merci pour votre commande !';
             } else if (c.status === 'annulee' || c.status === 'refuse') {
-                actionHint = '❌ Commande annulée';
+                actionHint = `❌ ${c.cause_refus || 'Commande annulée'}`;
             } else if (c.status === 'success') {
                 actionHint = '✅ Paiement réussi';
             } else if (c.status === 'failed') {
@@ -567,8 +799,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 actionHint = '⏳ Paiement expiré - Veuillez passer une nouvelle commande';
             }
 
+            // ✅ Boutons (masqués si paiement en cours ou vérification)
+            let buttonsHtml = '';
+            if (isPayable && !isVerificationInProgress) {
+                buttonsHtml = `
+                    <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" 
+                            data-id="${c.id}" 
+                            data-total="${c.total}" 
+                            data-ref="${c.reference || c.id}">
+                        <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
+                    </button>
+                    <button class="btn btn-wave" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
+                        <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon" /> Wave
+                    </button>
+                `;
+            }
+
             html += `
-                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'} ${isExpired ? 'expired' : ''}">
+                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'} ${isExpired ? 'expired' : ''} ${isVerificationInProgress ? 'verification' : ''}">
                     <span class="badge-top ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span>
                     <div class="id">#${c.id}</div>
                     <span class="ref">${refDisplay}</span>
@@ -576,17 +824,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
                     <div class="status-transition">${statusTransitionHtml}</div>
                     ${timerHtml}
+                    ${paymentStatusHtml}
+                    ${verificationHtml}
                     ${actionHint ? `<div class="action-hint">${actionHint}</div>` : ''}
                     <div class="actions">
-                        ${isPayable ? `
-                            <button class="btn btn-pay" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
-                                <i class="fas fa-credit-card"></i> Payer
-                            </button>
-                            <button class="btn btn-wave" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
-                                <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon" /> Wave
-                            </button>
-                        ` : ''}
-                        ${showContinue && !isExpired && !isTerminal ? `
+                        ${buttonsHtml}
+                        ${showContinue && !isExpired && !isTerminal && !isVerificationInProgress ? `
                             <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}">
                                 <i class="fas fa-arrow-right"></i> Continuer
                             </button>
@@ -594,6 +837,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn btn-detail" data-id="${c.id}">
                             <i class="fas fa-eye"></i> Détails
                         </button>
+                        ${isPayable && !isVerificationInProgress ? `
+                            <button class="btn btn-check-status" data-id="${c.id}" title="Vérifier le statut du paiement">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -601,33 +849,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
         mainContent.innerHTML = html;
 
+        // ✅ Démarrer les timers
         commandes.forEach((c) => {
             if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && 
                 !(c.genius_status === 'expired' || new Date(c.payment_created_at || c.created_at).getTime() + TIMEOUT_MS < Date.now())) {
                 startTimer(c.id, c.payment_created_at || c.created_at);
             }
+            
+            // ✅ Si commande en paiement_en_cours, démarrer vérification
+            if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
+                startVerification(c.id);
+            }
         });
 
-        document.querySelectorAll('.btn-pay').forEach(btn => {
-            btn.addEventListener('click', function() {
+        // ✅ Événements - Payer Genius
+        document.querySelectorAll('.btn-pay-genius').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 const id = parseInt(this.dataset.id);
                 const total = parseInt(this.dataset.total);
                 const ref = this.dataset.ref;
                 const phone = currentUser?.phone || localStorage.getItem('userPhone');
-                openPaymentOverlay(id, total, phone, ref);
+                handlePayment(id, total, ref, phone);
             });
         });
 
-        // ✅ BOUTON WAVE - REDIRECTION VERS PAYWITHWAVE
+        // ✅ Événements - Wave
         document.querySelectorAll('.btn-wave').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.dataset.id);
                 window.location.href = `/paywithwave?id=${id}`;
             });
         });
 
+        // ✅ Événements - Continuer
         document.querySelectorAll('.btn-continue').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 const id = parseInt(this.dataset.id);
                 const total = parseInt(this.dataset.total);
                 const ref = this.dataset.ref;
@@ -636,12 +895,35 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        // ✅ Événements - Détails
         document.querySelectorAll('.btn-detail').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 window.location.href = `/detailcom?id=${this.dataset.id}`;
             });
         });
+
+        // ✅ Événements - Vérifier statut
+        document.querySelectorAll('.btn-check-status').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.dataset.id);
+                checkAndUpdateStatus(id);
+            });
+        });
     }
+
+    // ==========================================
+    // EXPOSER LES FONCTIONS GLOBALEMENT
+    // ==========================================
+
+    window.generatePaymentLink = generatePaymentLink;
+    window.verifyWavePayment = verifyWavePayment;
+    window.checkAndUpdateStatus = checkAndUpdateStatus;
+
+    // ==========================================
+    // INITIALISATION
+    // ==========================================
 
     (async function init() {
         try {
