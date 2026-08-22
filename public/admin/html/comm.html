@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Commandes | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-common.css">
+    <link rel="stylesheet" href="/admin/css/comm.css">
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge active">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- CONTENU DE LA PAGE                                             -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-truck"></i> Commandes clients
+                <span class="badge-total" id="commandesTotal">0</span>
+            </div>
+            <div class="page-actions">
+                <button class="btn-refresh" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Rafraîchir
+                </button>
+            </div>
+        </div>
+
+        <!-- FILTRES -->
+        <div class="filters-bar">
+            <div class="filter-buttons" id="filterButtons">
+                <button class="filter-btn active" data-filter="all">📋 Tous</button>
+                <button class="filter-btn" data-filter="en_attente">⏳ En attente</button>
+                <button class="filter-btn" data-filter="accepter">💳 Paiement</button>
+                <button class="filter-btn" data-filter="paiement_effectue">✅ Payée</button>
+                <button class="filter-btn" data-filter="livraison_en_cours">🚚 En cours</button>
+                <button class="filter-btn" data-filter="disponible">📍 Disponible</button>
+                <button class="filter-btn" data-filter="recuperee">✅ Récupérée</button>
+                <button class="filter-btn" data-filter="refuse">❌ Refusée</button>
+                <button class="filter-btn" data-filter="annulee">❌ Annulée</button>
+            </div>
+            <div class="filter-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchCommande" placeholder="Rechercher (client, ID, référence...)" />
+                <span id="filterCount">0 commandes</span>
+            </div>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Référence</th>
+                        <th>Client</th>
+                        <th>Total</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="commandesList">
+                    <tr><td colspan="7" class="empty-msg">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- OVERLAY : VOIR LA COMMANDE                                     -->
+    <!-- ============================================================= -->
+    <div class="commande-overlay" id="commandeOverlay">
+        <div class="overlay-box">
+            <!-- HEADER -->
+            <div class="overlay-header">
+                <h3 id="overlayTitle">📦 Commande #125</h3>
+                <button class="close-btn" id="closeOverlay"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- MAIN avec SIDEBAR + CONTENT -->
+            <div class="overlay-main">
+                <!-- Sidebar (gauche) -->
+                <div class="overlay-sidebar">
+                    <button class="sidebar-tab active" data-tab="detail">
+                        <i class="fas fa-info-circle"></i> Détail
+                    </button>
+                    <button class="sidebar-tab" data-tab="statut">
+                        <i class="fas fa-chart-simple"></i> Statut
+                    </button>
+                    <button class="sidebar-tab" data-tab="paylink">
+                        <i class="fas fa-link"></i> Pay Link
+                    </button>
+                    <button class="sidebar-tab" data-tab="position">
+                        <i class="fas fa-location-dot"></i> Position
+                    </button>
+                    <button class="sidebar-tab" data-tab="message">
+                        <i class="fas fa-paper-plane"></i> Message
+                    </button>
+                    <button class="sidebar-tab" data-tab="urgence">
+                        <i class="fas fa-triangle-exclamation"></i> Urgence
+                    </button>
+                </div>
+
+                <!-- Content (droite) -->
+                <div class="overlay-content">
+                    <!-- TAB 1 : Détail -->
+                    <div class="tab-content active" id="tab-detail">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="label">ID</span>
+                                <span class="value" id="dId">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Référence</span>
+                                <span class="value" id="dRef">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Client</span>
+                                <span class="value" id="dClient">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Téléphone</span>
+                                <span class="value" id="dPhone">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Total</span>
+                                <span class="value" id="dTotal">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Statut</span>
+                                <span class="value" id="dStatus">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item full">
+                                <span class="label">Produits</span>
+                                <span class="value" id="dProduits">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="detail-item full">
+                                <span class="label">Date</span>
+                                <span class="value" id="dDate">-</span>
+                                <button class="copy-btn-mini" data-copy=""><i class="fas fa-copy"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn-copy-all" id="copyAllBtn">
+                            <i class="fas fa-copy"></i> Copier toutes les infos
+                        </button>
+                    </div>
+
+                    <!-- TAB 2 : Statut -->
+                    <div class="tab-content" id="tab-statut">
+                        <div class="statut-content">
+                            <div class="statut-current">
+                                <span class="label">Statut actuel</span>
+                                <span class="status-badge" id="sCurrent">-</span>
+                            </div>
+                            <div class="statut-message" id="statutMessage" style="display:none;">
+                                <i class="fas fa-info-circle"></i>
+                                <span>⏳ Cette commande attend le paiement de l'utilisateur.</span>
+                            </div>
+                            <div class="statut-actions" id="statutActions">
+                                <button class="btn-status-change" data-status="en_attente">⏳ En attente</button>
+                                <button class="btn-status-change" data-status="accepter">💳 Accepter</button>
+                                <button class="btn-status-change" data-status="paiement_effectue">✅ Payée</button>
+                                <button class="btn-status-change" data-status="livraison_en_cours">🚚 En livraison</button>
+                                <button class="btn-status-change" data-status="disponible">📍 Disponible</button>
+                                <button class="btn-status-change" data-status="recuperee">✅ Récupérée</button>
+                                <button class="btn-status-change" data-status="refuse">❌ Refusée</button>
+                                <button class="btn-status-change" data-status="annulee">❌ Annulée</button>
+                            </div>
+                            <div id="statutMessageResult" class="statut-message-result"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3 : Pay Link -->
+                    <div class="tab-content" id="tab-paylink">
+                        <div class="paylink-content">
+                            <span class="label">🔗 Lien de paiement Genius Pay</span>
+                            <div class="paylink-url" id="paylinkUrl">-</div>
+                            <button class="btn-copy-link" id="copyPayLinkBtn">
+                                <i class="fas fa-copy"></i> Copier le lien
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4 : Position -->
+                    <div class="tab-content" id="tab-position">
+                        <div class="position-content">
+                            <div class="position-item">
+                                <span class="label">📍 Commune</span>
+                                <span class="value" id="pCommune">-</span>
+                            </div>
+                            <div class="position-item">
+                                <span class="label">📍 Quartier</span>
+                                <span class="value" id="pQuartier">-</span>
+                            </div>
+                            <div class="position-item">
+                                <span class="label">📍 Rue / Précision</span>
+                                <span class="value" id="pRue">-</span>
+                            </div>
+                            <div class="position-item">
+                                <span class="label">📍 Option</span>
+                                <span class="value" id="pOption">-</span>
+                            </div>
+                            <div class="position-item full">
+                                <span class="label">📍 GPS</span>
+                                <span class="value" id="pGps">-</span>
+                            </div>
+                            <button class="btn-maps" id="openMapsBtn" style="display:none;">
+                                <i class="fas fa-map-location-dot"></i> Ouvrir dans Google Maps
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5 : Message -->
+                    <div class="tab-content" id="tab-message">
+                        <div class="message-content">
+                            <div class="form-group">
+                                <label for="msgTitle">Titre</label>
+                                <input type="text" id="msgTitle" placeholder="Ex: Commande prête" />
+                            </div>
+                            <div class="form-group">
+                                <label for="msgContent">Contenu</label>
+                                <textarea id="msgContent" rows="4" placeholder="Votre message..."></textarea>
+                            </div>
+                            <button class="btn-send-message" id="sendMsgBtn">
+                                <i class="fas fa-paper-plane"></i> Envoyer
+                            </button>
+                            <div id="msgResult" class="msg-result"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 6 : Urgence -->
+                    <div class="tab-content" id="tab-urgence">
+                        <div class="urgence-content">
+                            <div class="urgence-warning">
+                                <i class="fas fa-triangle-exclamation"></i>
+                                <span>⚠️ Zone d'urgence - Modifier le statut manuellement</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="adminCode">Code admin (mot de passe)</label>
+                                <input type="password" id="adminCode" placeholder="Entrez votre code admin" maxlength="20" />
+                            </div>
+                            <button class="btn-verify-admin" id="verifyAdminBtn">
+                                <i class="fas fa-unlock"></i> Vérifier
+                            </button>
+                            <div id="urgenceStatus" class="urgence-status"></div>
+                            <div id="urgenceActions" style="display:none;">
+                                <div class="statut-actions">
+                                    <button class="btn-status-change" data-status="en_attente">⏳ En attente</button>
+                                    <button class="btn-status-change" data-status="accepter">💳 Accepter</button>
+                                    <button class="btn-status-change" data-status="paiement_effectue">✅ Payée</button>
+                                    <button class="btn-status-change" data-status="livraison_en_cours">🚚 En livraison</button>
+                                    <button class="btn-status-change" data-status="disponible">📍 Disponible</button>
+                                    <button class="btn-status-change" data-status="recuperee">✅ Récupérée</button>
+                                    <button class="btn-status-change" data-status="refuse">❌ Refusée</button>
+                                    <button class="btn-status-change" data-status="annulee">❌ Annulée</button>
+                                </div>
+                                <div id="urgenceResult" class="urgence-result"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="overlay-footer">
+                <button class="btn-cancel" id="closeOverlayBtn">❌ Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script src="/admin/js/comm.js"></script>
+</body>
+</html>
