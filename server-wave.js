@@ -500,34 +500,6 @@ app.get('/api/wave/history', async (req, res) => {
 });
 
 // ========================================================
-// TABLE WAVE_VERIFICATIONS
-// ========================================================
-
-async function createWaveTable() {
-    try {
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS wave_verifications (
-                id SERIAL PRIMARY KEY,
-                commande_id INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
-                wave_id TEXT NOT NULL,
-                code_login TEXT NOT NULL,
-                status TEXT DEFAULT 'pending',
-                cause TEXT,
-                verified_by INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (commande_id) REFERENCES commandes(id),
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        `);
-        console.log('✅ Table wave_verifications créée avec succès');
-    } catch (error) {
-        console.error('❌ Erreur création table:', error);
-    }
-}
-
-// ========================================================
 // DÉMARRAGE
 // ========================================================
 
@@ -539,13 +511,4 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log(`📍 Socket.IO: port 3005`);
     console.log(`📍 ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`========================================`);
-
-    setTimeout(async () => {
-        try {
-            await createWaveTable();
-            console.log('✅ Table wave_verifications vérifiée');
-        } catch (error) {
-            console.error('⚠️ Erreur création table (non bloquante):', error.message);
-        }
-    }, 2000);
 });
