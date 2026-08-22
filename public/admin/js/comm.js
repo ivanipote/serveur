@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dStatus = document.getElementById('dStatus');
     const dProduits = document.getElementById('dProduits');
     const dDate = document.getElementById('dDate');
+    const dMethode = document.getElementById('dMethode'); // ✅ NOUVEAU
 
     const sCurrent = document.getElementById('sCurrent');
     const statutMessage = document.getElementById('statutMessage');
@@ -108,6 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const labels = {
             'en_attente': '⏳ En attente',
             'accepter': '💳 Paiement requis',
+            'paiement_en_cours': '⏳ Paiement en cours...',
+            'verification_en_cours': '🔍 Vérification en cours...',
             'paiement_effectue': '✅ Payée',
             'livraison_en_cours': '🚚 En cours',
             'disponible': '📍 Disponible',
@@ -141,21 +144,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
 
-        commandesList.innerHTML = filtered.map(c => `
-            <tr data-id="${c.id}">
-                <td>#${c.id}</td>
-                <td style="font-size:12px;color:var(--ink-400);font-family:var(--font-mono);">${c.reference || '-'}</td>
-                <td>${c.nom}</td>
-                <td>${(c.total || 0).toLocaleString()} FCFA</td>
-                <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
-                <td>${new Date(c.created_at).toLocaleDateString('fr-FR', dateOptions)}</td>
-                <td>
-                    <button class="btn-action" onclick="openCommande(${c.id})">
-                        <i class="fas fa-eye"></i> Voir
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+        commandesList.innerHTML = filtered.map(c => {
+            // ✅ Déterminer la méthode de paiement
+            let methodeLabel = '';
+            if (c.methode_paiement === 'genius_pay') {
+                methodeLabel = '<span style="color:#1a2a6c;font-weight:600;">💳 Genius Pay</span>';
+            } else if (c.methode_paiement === 'wave') {
+                methodeLabel = '<span style="color:#1a2a6c;font-weight:600;">🌊 Wave</span>';
+            } else {
+                methodeLabel = '<span style="color:#9CA3AF;">-</span>';
+            }
+
+            return `
+                <tr data-id="${c.id}">
+                    <td>#${c.id}</td>
+                    <td style="font-size:12px;color:var(--ink-400);font-family:var(--font-mono);">${c.reference || '-'}</td>
+                    <td>${c.nom}</td>
+                    <td>${(c.total || 0).toLocaleString()} FCFA</td>
+                    <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
+                    <td>${methodeLabel}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString('fr-FR', dateOptions)}</td>
+                    <td>
+                        <button class="btn-action" onclick="openCommande(${c.id})">
+                            <i class="fas fa-eye"></i> Voir
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     // ==========================================
@@ -195,10 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
         currentCommandeData = commande;
         isAdminVerified = false;
 
-        // Titre
         overlayTitle.textContent = `📦 Commande #${commandeId} - ${commande.nom}`;
 
-        // Remplir les détails
+        // ✅ Remplir les détails avec couleurs
         dId.textContent = `#${commande.id}`;
         dId.style.color = '#2563EB';
         dId.style.fontWeight = '600';
@@ -224,6 +239,20 @@ document.addEventListener('DOMContentLoaded', function() {
         dDate.textContent = new Date(commande.created_at).toLocaleString('fr-FR');
         dDate.style.color = '#9CA3AF';
 
+        // ✅ Méthode de paiement
+        if (commande.methode_paiement === 'genius_pay') {
+            dMethode.textContent = '💳 Genius Pay';
+            dMethode.style.color = '#1a2a6c';
+            dMethode.style.fontWeight = '600';
+        } else if (commande.methode_paiement === 'wave') {
+            dMethode.textContent = '🌊 Wave (manuel)';
+            dMethode.style.color = '#1a2a6c';
+            dMethode.style.fontWeight = '600';
+        } else {
+            dMethode.textContent = 'Non définie';
+            dMethode.style.color = '#9CA3AF';
+        }
+
         // Produits
         let produits = [];
         try {
@@ -246,15 +275,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Statut
+        // ✅ Statut (avec blocs selon méthode)
         updateStatutTab(commande);
 
         // Pay Link
         const geniusRef = commande.genius_reference || commande.reference || '';
-        if (geniusRef) {
+        if (geniusRef && commande.methode_paiement === 'genius_pay') {
             paylinkUrl.textContent = `https://geniuspay.ci/checkout/${geniusRef}`;
         } else {
-            paylinkUrl.textContent = 'Aucun lien de paiement disponible';
+            paylinkUrl.textContent = commande.methode_paiement === 'wave' ? 'Paiement Wave (manuel)' : 'Aucun lien de paiement disponible';
         }
 
         // Position
@@ -308,7 +337,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.sidebar-tab[data-tab="detail"]').classList.add('active');
         document.getElementById('tab-detail').classList.add('active');
 
-        // Afficher l'overlay
         overlay.classList.add('active');
     };
 
@@ -342,13 +370,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TAB : STATUT (avec grisage des précédents)
+    // TAB : STATUT (avec gestion des méthodes)
     // ==========================================
 
     function updateStatutTab(commande) {
         const labels = {
             'en_attente': '⏳ En attente',
             'accepter': '💳 Paiement requis',
+            'paiement_en_cours': '⏳ Paiement en cours...',
+            'verification_en_cours': '🔍 Vérification en cours...',
             'paiement_effectue': '✅ Payée',
             'livraison_en_cours': '🚚 En cours',
             'disponible': '📍 Disponible',
@@ -360,23 +390,46 @@ document.addEventListener('DOMContentLoaded', function() {
         sCurrent.textContent = labels[commande.status] || commande.status;
         sCurrent.className = 'status-badge ' + commande.status;
 
-        // Message si en attente
-        if (commande.status === 'en_attente') {
+        // ✅ Message selon statut
+        if (commande.status === 'accepter') {
             statutMessage.style.display = 'flex';
+            statutMessage.querySelector('span').textContent = '⏳ En attente du paiement de l\'utilisateur.';
+        } else if (commande.status === 'paiement_en_cours') {
+            statutMessage.style.display = 'flex';
+            statutMessage.querySelector('span').textContent = '⏳ Paiement Genius Pay en cours... (timer 20min)';
+        } else if (commande.status === 'verification_en_cours') {
+            statutMessage.style.display = 'flex';
+            statutMessage.querySelector('span').textContent = '🔍 Vérification Wave en cours... Admin doit vérifier sur Wave Business.';
         } else {
             statutMessage.style.display = 'none';
         }
 
         // ✅ ORDRE DES STATUTS
-        const statusOrder = ['en_attente', 'accepter', 'paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee', 'refuse', 'annulee'];
+        const statusOrder = ['en_attente', 'accepter', 'paiement_en_cours', 'verification_en_cours', 'paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee', 'refuse', 'annulee'];
         const currentIndex = statusOrder.indexOf(commande.status);
+
+        // ✅ STATUTS BLOQUÉS (admin ne peut rien faire)
+        const blockedStatuses = ['accepter', 'paiement_en_cours', 'verification_en_cours'];
 
         const statusBtns = statutActions.querySelectorAll('.btn-status-change');
         statusBtns.forEach(btn => {
             const btnStatus = btn.dataset.status;
             const btnIndex = statusOrder.indexOf(btnStatus);
 
-            // ✅ Statut avant le statut actuel → grisé et désactivé (sauf refuse et annulee)
+            // ✅ Si statut bloqué → tout est désactivé sauf le statut actuel
+            if (blockedStatuses.includes(commande.status)) {
+                btn.disabled = true;
+                btn.style.opacity = '0.4';
+                btn.style.cursor = 'not-allowed';
+                btn.classList.remove('active');
+                if (btnStatus === commande.status) {
+                    btn.classList.add('active');
+                    btn.style.opacity = '1';
+                }
+                return;
+            }
+
+            // ✅ Si statut avant le statut actuel → grisé et désactivé (sauf refuse et annulee)
             if (btnIndex < currentIndex && btnStatus !== 'refuse' && btnStatus !== 'annulee') {
                 btn.disabled = true;
                 btn.style.opacity = '0.4';
@@ -390,7 +443,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Reset résultat
         statutMessageResult.className = 'statut-message-result';
         statutMessageResult.textContent = '';
         statutMessageResult.style.display = 'none';
@@ -406,6 +458,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const commandeId = currentCommandeId;
 
             if (!commandeId) return;
+
+            // ✅ Vérifier si le statut est bloqué
+            const blockedStatuses = ['accepter', 'paiement_en_cours', 'verification_en_cours'];
+            const currentStatus = currentCommandeData?.status;
+            if (blockedStatuses.includes(currentStatus) && newStatus !== currentStatus) {
+                alert('⏳ Cette commande est en attente de paiement. Vous ne pouvez pas modifier le statut.');
+                return;
+            }
 
             if (!confirm(`Changer le statut de la commande #${commandeId} vers "${this.textContent.trim()}" ?`)) return;
 
@@ -464,6 +524,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const produitsText = produits.map(p => `${p.name} × ${p.quantity} = ${(p.price * p.quantity).toLocaleString()} FCFA`).join('\n');
 
+        const methodeLabel = data.methode_paiement === 'genius_pay' ? '💳 Genius Pay' : data.methode_paiement === 'wave' ? '🌊 Wave (manuel)' : 'Non définie';
+
         const text = `
 📋 COMMANDE #${data.id}
 📌 Référence: ${data.reference || '-'}
@@ -471,6 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
 📱 Téléphone: ${data.telephone || '-'}
 💰 Total: ${(data.total || 0).toLocaleString()} FCFA
 📊 Statut: ${data.status || '-'}
+💳 Méthode: ${methodeLabel}
 📅 Date: ${new Date(data.created_at).toLocaleString('fr-FR')}
 
 📦 Produits:
@@ -500,7 +563,7 @@ ${produitsText || 'Aucun produit'}
 
     copyPayLinkBtn.addEventListener('click', function() {
         const url = paylinkUrl.textContent;
-        if (!url || url === 'Aucun lien de paiement disponible') {
+        if (!url || url === 'Aucun lien de paiement disponible' || url === 'Paiement Wave (manuel)') {
             alert('⚠️ Aucun lien à copier');
             return;
         }
@@ -597,7 +660,7 @@ ${produitsText || 'Aucun produit'}
     });
 
     // ==========================================
-    // TAB : URGENCE (avec vérification via /api/admin/login)
+    // TAB : URGENCE (avec vérification login admin)
     // ==========================================
 
     verifyAdminBtn.addEventListener('click', async function() {
@@ -614,7 +677,6 @@ ${produitsText || 'Aucun produit'}
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
 
         try {
-            // ✅ Récupérer l'email admin stocké dans localStorage
             const adminEmail = localStorage.getItem('adminEmail');
 
             if (!adminEmail) {
@@ -626,7 +688,6 @@ ${produitsText || 'Aucun produit'}
                 return;
             }
 
-            // ✅ Utiliser la route /api/admin/login
             const res = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -753,16 +814,12 @@ ${produitsText || 'Aucun produit'}
     // INITIALISATION
     // ==========================================
 
-    // Vérifier l'authentification admin
     if (!checkAdminAuth()) return;
 
-    // Exposer openCommande globalement
     window.openCommande = window.openCommande;
 
-    // Charger les commandes
     loadCommandes();
 
-    // Mise à jour périodique
     setInterval(() => {
         if (!document.querySelector('.commande-overlay.active')) {
             loadCommandes();
