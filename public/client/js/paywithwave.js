@@ -236,23 +236,127 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                if (commande.status !== 'accepter') {
-                    recapContent.innerHTML = `
-                        <div style="text-align:center;padding:20px;color:#e67e22;">
-                            <i class="fas fa-info-circle" style="font-size:28px;display:block;margin-bottom:8px;"></i>
-                            Cette commande n'est pas en attente de paiement.
-                            <br><span style="font-size:13px;color:#888;">Statut actuel : ${commande.status}</span>
-                        </div>
-                    `;
+                // ✅ GESTION DES STATUTS COMPLÈTE
+                const status = commande.status || 'en_attente';
+                const statusMessages = {
+                    'en_attente': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#e67e22;">
+                                <i class="fas fa-clock" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                Commande en attente de validation par l'admin.
+                                <br><span style="font-size:13px;color:#888;">Veuillez patienter.</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'accepter': {
+                        html: null,
+                        payDisabled: false
+                    },
+                    'paiement_en_cours': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#e67e22;">
+                                <i class="fas fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                Paiement déjà en cours...
+                                <br><span style="font-size:13px;color:#888;">Vous avez déjà initié un paiement pour cette commande.</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'verification_en_cours': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#e67e22;">
+                                <i class="fas fa-search" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                Vérification en cours...
+                                <br><span style="font-size:13px;color:#888;">L'admin vérifie votre paiement Wave.</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'paiement_effectue': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#2d7d46;">
+                                <i class="fas fa-check-circle" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                ✅ Commande déjà payée !
+                                <br><span style="font-size:13px;color:#888;">Votre commande est en cours de préparation.</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'livraison_en_cours': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#0c5460;">
+                                <i class="fas fa-truck" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                Commande en cours de livraison
+                                <br><span style="font-size:13px;color:#888;">Votre commande est en route !</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'disponible': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#155724;">
+                                <i class="fas fa-map-pin" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                Commande disponible
+                                <br><span style="font-size:13px;color:#888;">Votre commande vous attend !</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'recuperee': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#1b5e20;">
+                                <i class="fas fa-check-double" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                ✅ Commande récupérée
+                                <br><span style="font-size:13px;color:#888;">Merci pour votre commande !</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'refuse': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#721c24;">
+                                <i class="fas fa-times-circle" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                ❌ Commande refusée
+                                <br><span style="font-size:13px;color:#888;">Motif : ${commande.cause_refus || 'Non précisé'}</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    },
+                    'annulee': {
+                        html: `
+                            <div style="text-align:center;padding:20px;color:#721c24;">
+                                <i class="fas fa-ban" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                                ❌ Commande annulée
+                                <br><span style="font-size:13px;color:#888;">${commande.cause_refus || 'Annulée par le client ou admin'}</span>
+                            </div>
+                        `,
+                        payDisabled: true
+                    }
+                };
+
+                const statusInfo = statusMessages[status] || statusMessages['en_attente'];
+
+                if (statusInfo.html) {
+                    recapContent.innerHTML = statusInfo.html;
                     payBtn.disabled = true;
+                    // Désactiver l'onglet payer
+                    ongletBtns.forEach(btn => {
+                        if (btn.dataset.onglet === 'payer') {
+                            btn.style.opacity = '0.5';
+                            btn.style.cursor = 'not-allowed';
+                            btn.disabled = true;
+                        }
+                    });
                     return;
                 }
 
+                // ✅ Si statut = 'accepter', afficher le récapitulatif normal
                 commandeData = commande;
                 renderRecap(commande);
                 payBtn.disabled = false;
 
-                // Vérifier si une demande existe déjà
+                // Vérifier si une demande Wave existe déjà
                 await checkExistingVerification(commandeId);
 
             } else {
@@ -291,6 +395,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (v.status === 'pending') {
                     showVerificationStatus('pending', '🔍 Vérification en cours... Attendez la confirmation de l\'admin.');
                     verifyBtn.disabled = true;
+                    // Activer l'onglet vérifier
+                    ongletBtns.forEach(btn => {
+                        if (btn.dataset.onglet === 'verifier') {
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                            btn.disabled = false;
+                        }
+                    });
                 } else if (v.status === 'success') {
                     showVerificationStatus('success', '✅ Paiement déjà vérifié avec succès !');
                     verifyBtn.disabled = true;
