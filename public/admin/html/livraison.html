@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📍 Frais de livraison | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* =============================================================
+           LIVRAISON - STYLES
+           ============================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        :root {
+            --bg-app: #F5F6F9;
+            --surface: #FFFFFF;
+            --surface-alt: #FAFBFC;
+            --border: #E6E8EF;
+            --border-strong: #D8DBE4;
+            --ink-900: #10141F;
+            --ink-700: #3A4152;
+            --ink-500: #6B7280;
+            --ink-400: #9CA3AF;
+            --sidebar-1: #0A0E1A;
+            --sidebar-2: #131A2C;
+            --sidebar-line: rgba(255,255,255,0.07);
+            --sidebar-text: rgba(226,230,242,0.62);
+            --sidebar-text-hi: #F3F5FA;
+            --brand: #17A464;
+            --brand-dark: #0E7A49;
+            --brand-tint: #E6F7EE;
+            --brand-line: #BFEBD3;
+            --blue: #2563EB;
+            --blue-tint: #EAF1FF;
+            --amber: #B45309;
+            --amber-tint: #FFF3DF;
+            --red: #C0342A;
+            --red-tint: #FCEBEA;
+            --green: #17A464;
+            --green-tint: #E6F7EE;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-app);
+            color: var(--ink-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =============================================================
+           HEADER COMMUN
+           ============================================================= */
+
+        .admin-header {
+            background: var(--sidebar-1);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-line);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-header .header-left .logo {
+            color: var(--sidebar-text-hi);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .admin-header .header-left .logo span {
+            color: #34D399;
+        }
+
+        .admin-header .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .header-center .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid transparent;
+        }
+
+        .admin-header .header-center .header-badge:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-center .header-badge.active {
+            background: rgba(23,164,100,0.15);
+            color: var(--sidebar-text-hi);
+            border-color: rgba(23,164,100,0.25);
+        }
+
+        .admin-header .header-center .header-badge i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red);
+            color: white;
+            margin-left: 2px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot.zero {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text);
+        }
+
+        .admin-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-header .header-right .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--sidebar-line);
+        }
+
+        .admin-header .header-right .btn-back:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-right .btn-back i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-right .admin-name {
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* =============================================================
+           PAGE CONTENT
+           ============================================================= */
+
+        .page-container {
+            padding: 24px 30px 40px 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            flex: 1;
+            width: 100%;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header .page-title i {
+            color: var(--ink-400);
+            font-size: 22px;
+        }
+
+        .page-header .badge-count {
+            font-family: var(--font-mono);
+            background: var(--ink-900);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 999px;
+        }
+
+        /* =============================================================
+           FORM CARD
+           ============================================================= */
+
+        .form-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px 28px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            margin-bottom: 24px;
+        }
+
+        .form-card .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-card .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-card .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-700);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-card .form-group label .required {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .form-card .form-group input {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: var(--font-ui);
+            background: var(--surface-alt);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            color: var(--ink-900);
+            width: 100%;
+        }
+
+        .form-card .form-group input:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px rgba(23,164,100,0.08);
+        }
+
+        .form-card .form-group input::placeholder {
+            color: var(--ink-400);
+        }
+
+        .btn-add {
+            padding: 10px 24px;
+            background: var(--brand);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            height: 44px;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .btn-add:hover {
+            background: var(--brand-dark);
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(23,164,100,0.25);
+        }
+
+        .btn-add:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* =============================================================
+           TABLE
+           ============================================================= */
+
+        .table-container {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: auto;
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        .table-container th {
+            background: var(--surface-alt);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink-500);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .table-container td {
+            padding: 12px 16px;
+            font-size: 13.5px;
+            color: var(--ink-700);
+            border-bottom: 1px solid var(--surface-alt);
+            vertical-align: middle;
+        }
+
+        .table-container tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-container tr:hover td {
+            background: var(--surface-alt);
+        }
+
+        .table-container .empty-msg {
+            text-align: center;
+            color: var(--ink-400);
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action.edit {
+            background: var(--blue-tint);
+            color: var(--blue);
+        }
+
+        .btn-action.edit:hover {
+            background: #C7D9FB;
+            transform: scale(1.05);
+        }
+
+        .btn-action.delete {
+            background: var(--red-tint);
+            color: var(--red);
+        }
+
+        .btn-action.delete:hover {
+            background: #F3C6C2;
+            transform: scale(1.05);
+        }
+
+        /* =============================================================
+           FORM MESSAGE
+           ============================================================= */
+
+        .form-message {
+            margin-top: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            border: 1px solid transparent;
+        }
+
+        .form-message.success {
+            display: block;
+            background: var(--green-tint);
+            color: var(--brand-dark);
+            border-color: var(--brand-line);
+        }
+
+        .form-message.error {
+            display: block;
+            background: var(--red-tint);
+            color: var(--red);
+            border-color: #F3C6C2;
+        }
+
+        .form-message.info {
+            display: block;
+            background: var(--blue-tint);
+            color: var(--blue);
+            border-color: #C7D9FB;
+        }
+
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+
+        @media (max-width: 992px) {
+            .form-card .form-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 8px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .admin-header .header-left {
+                justify-content: center;
+            }
+            .admin-header .header-center {
+                justify-content: center;
+                gap: 4px;
+            }
+            .admin-header .header-center .header-badge {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 9px;
+                min-width: 16px;
+                height: 16px;
+            }
+            .admin-header .header-right {
+                justify-content: center;
+            }
+            .page-container {
+                padding: 16px;
+            }
+            .page-header .page-title {
+                font-size: 20px;
+            }
+            .form-card {
+                padding: 18px 16px;
+            }
+            .form-card .form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .btn-add {
+                width: 100%;
+                height: 44px;
+            }
+            .table-container table {
+                min-width: 400px;
+            }
+            .table-container th,
+            .table-container td {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .admin-header .header-left .logo {
+                font-size: 15px;
+            }
+            .admin-header .header-center .header-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+                gap: 4px;
+            }
+            .admin-header .header-center .header-badge i {
+                font-size: 11px;
+            }
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 8px;
+                min-width: 14px;
+                height: 14px;
+                padding: 0 4px;
+            }
+            .admin-header .header-right .btn-back {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .page-container {
+                padding: 10px;
+            }
+            .page-header .page-title {
+                font-size: 17px;
+            }
+            .form-card {
+                padding: 12px 10px;
+                border-radius: 12px;
+            }
+            .form-card .form-group label {
+                font-size: 12px;
+            }
+            .form-card .form-group input {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+            .btn-add {
+                font-size: 13px;
+                height: 40px;
+            }
+            .table-container table {
+                min-width: 320px;
+            }
+            .table-container th,
+            .table-container td {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+            .btn-action {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+
+        /* ========================================== */
+        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
+        /* ========================================== */
+
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- CONTENU DE LA PAGE                                             -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-map-pin"></i> Frais de livraison
+            </div>
+            <span class="badge-count" id="totalCount">0</span>
+        </div>
+
+        <!-- ===== FORMULAIRE D'AJOUT ===== -->
+        <form id="addLivraisonForm" class="form-card">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        Commune <span class="required">*</span>
+                    </label>
+                    <input type="text" id="communeInput" placeholder="Ex: Yopougon" required />
+                </div>
+                <div class="form-group">
+                    <label>Précision (quartier, zone)</label>
+                    <input type="text" id="precisionInput" placeholder="Ex: Carrefour Maroc, poulet chaud" />
+                </div>
+                <div class="form-group">
+                    <label>
+                        Tarif (FCFA) <span class="required">*</span>
+                    </label>
+                    <div style="display:flex;gap:10px;">
+                        <input type="number" id="tarifInput" placeholder="Ex: 500" required min="0" style="flex:1;" />
+                        <button type="submit" class="btn-add" id="addBtn">
+                            <i class="fas fa-plus-circle"></i> Ajouter
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="formMessage" class="form-message"></div>
+        </form>
+
+        <!-- ===== LISTE DES COMMUNES ===== -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Commune</th>
+                        <th>Précision</th>
+                        <th>Tarif</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="livraisonList">
+                    <tr><td colspan="5" class="empty-msg">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ livraison.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const form = document.getElementById('addLivraisonForm');
+            const communeInput = document.getElementById('communeInput');
+            const precisionInput = document.getElementById('precisionInput');
+            const tarifInput = document.getElementById('tarifInput');
+            const addBtn = document.getElementById('addBtn');
+            const message = document.getElementById('formMessage');
+            const listBody = document.getElementById('livraisonList');
+            const totalCount = document.getElementById('totalCount');
+
+            let allCommunes = [];
+            let editingId = null;
+
+            // ==========================================
+            // NOM ADMIN
+            // ==========================================
+
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // AFFICHER UN MESSAGE
+            // ==========================================
+
+            function showMessage(text, type) {
+                message.textContent = text;
+                message.className = 'form-message ' + type;
+            }
+
+            function hideMessage() {
+                message.className = 'form-message';
+                message.textContent = '';
+            }
+
+            // ==========================================
+            // CHARGER LES COMMUNES
+            // ==========================================
+
+            async function loadCommunes() {
+                try {
+                    const res = await fetch('/api/admin/livraison');
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        allCommunes = data;
+                        totalCount.textContent = data.length;
+                        renderCommunes(data);
+                    } else {
+                        listBody.innerHTML = `<tr><td colspan="5" class="empty-msg">Erreur de chargement</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    listBody.innerHTML = `<tr><td colspan="5" class="empty-msg">Erreur de connexion</td></tr>`;
+                }
+            }
+
+            // ==========================================
+            // AFFICHER LES COMMUNES
+            // ==========================================
+
+            function renderCommunes(communnes) {
+                if (communnes.length === 0) {
+                    listBody.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucune commune configurée.</td></tr>`;
+                    return;
+                }
+
+                listBody.innerHTML = communnes.map(c => `
+                    <tr data-id="${c.id}">
+                        <td>#${c.id}</td>
+                        <td><strong>${c.commune}</strong></td>
+                        <td style="color:var(--ink-500);">${c.precision || '-'}</td>
+                        <td style="font-weight:600;color:var(--brand-dark);">${(c.tarif || 0).toLocaleString()} FCFA</td>
+                        <td>
+                            <button class="btn-action edit" onclick="editCommune(${c.id}, '${c.commune}', '${c.precision || ''}', ${c.tarif})" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-action delete" onclick="deleteCommune(${c.id})" title="Supprimer">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // ==========================================
+            // AJOUTER / MODIFIER
+            // ==========================================
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                hideMessage();
+
+                const commune = communeInput.value.trim();
+                const precision = precisionInput.value.trim();
+                const tarif = parseInt(tarifInput.value);
+
+                if (!commune) {
+                    showMessage('⚠️ Veuillez entrer une commune.', 'error');
+                    communeInput.focus();
+                    return;
+                }
+
+                if (!tarif || tarif < 0) {
+                    showMessage('⚠️ Veuillez entrer un tarif valide.', 'error');
+                    tarifInput.focus();
+                    return;
+                }
+
+                const isEditing = editingId !== null;
+                const url = isEditing ? `/api/admin/livraison/${editingId}` : '/api/admin/livraison';
+                const method = isEditing ? 'PUT' : 'POST';
+                const body = isEditing ? JSON.stringify({ tarif }) : JSON.stringify({ commune, precision, tarif });
+
+                addBtn.disabled = true;
+                addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (isEditing ? 'Modification...' : 'Ajout...');
+
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: body
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        showMessage(isEditing ? '✅ Tarif modifié avec succès !' : '✅ Commune ajoutée avec succès !', 'success');
+                        resetForm();
+                        loadCommunes();
+                        // Mettre à jour les badges si besoin
+                        if (window.updateBadges) window.updateBadges();
+                    } else {
+                        showMessage('❌ ' + (data.error || 'Erreur'), 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showMessage('❌ Erreur de connexion', 'error');
+                } finally {
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter';
+                }
+            });
+
+            // ==========================================
+            // MODIFIER
+            // ==========================================
+
+            window.editCommune = function(id, commune, precision, tarif) {
+                editingId = id;
+                communeInput.value = commune;
+                precisionInput.value = precision || '';
+                tarifInput.value = tarif;
+                addBtn.innerHTML = '<i class="fas fa-save"></i> Modifier';
+                addBtn.style.background = '#2563EB';
+                communeInput.focus();
+                // Scroll vers le formulaire
+                document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // ==========================================
+            // SUPPRIMER
+            // ==========================================
+
+            window.deleteCommune = function(id) {
+                if (!confirm('🗑️ Supprimer cette commune ?')) return;
+
+                fetch(`/api/admin/livraison/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('✅ Commune supprimée', 'success');
+                        loadCommunes();
+                        if (window.updateBadges) window.updateBadges();
+                    } else {
+                        showMessage('❌ ' + (data.error || 'Erreur'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showMessage('❌ Erreur de connexion', 'error');
+                });
+            };
+
+            // ==========================================
+            // RÉINITIALISER LE FORMULAIRE
+            // ==========================================
+
+            function resetForm() {
+                communeInput.value = '';
+                precisionInput.value = '';
+                tarifInput.value = '';
+                editingId = null;
+                addBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter';
+                addBtn.style.background = '';
+                hideMessage();
+            }
+
+            // ==========================================
+            // RAFRAÎCHIR
+            // ==========================================
+
+            // Recharger toutes les 30 secondes
+            setInterval(() => {
+                loadCommunes();
+            }, 30000);
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadCommunes();
+
+            console.log('✅ livraison.html initialisé');
+
+        });
+    </script>
+
+</body>
+</html>
