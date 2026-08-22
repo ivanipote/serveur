@@ -808,6 +808,42 @@ app.post('/api/client/verify-code', isAuthenticated, async (req, res) => {
     }
 });
 
+// ✅ Route client → admin (message)
+app.post('/api/client/send-message', isAuthenticated, async (req, res) => {
+    const { title, content } = req.body;
+    const userId = req.session.userId;
+
+    if (!title || !content) {
+        return res.status(400).json({ error: 'Titre et contenu requis.' });
+    }
+
+    try {
+        // Récupérer l'utilisateur
+        const user = await db.get('SELECT name FROM users WHERE id = $1', [userId]);
+        
+        // Créer la notification pour l'admin (admin_id = 1)
+        await createNotification(
+            1, // admin_id
+            null, // commande_id
+            'client_message',
+            `📩 ${title}`,
+            `De: ${user?.name || 'Client'} (ID: ${userId})\n\n${content}`
+        );
+        
+        // Émettre via Socket.IO pour l'admin
+        global.io.to('admin').emit('notification', {
+            title: `📩 Nouveau message de ${user?.name || 'Client'}`,
+            content: content,
+            userId: userId
+        });
+
+        res.json({ success: true, message: 'Message envoyé avec succès' });
+    } catch (error) {
+        console.error('❌ Erreur envoi message:', error);
+        res.status(500).json({ error: 'Erreur lors de l\'envoi' });
+    }
+});
+
 // ========================================================
 // ROUTES PRODUITS (public)
 // ========================================================
