@@ -1161,6 +1161,19 @@ async function handlePaymentRefunded(data) {
         console.error('❌ Erreur traitement payment.refunded:', err);
     }
 }
+// ========================================================
+// INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
+// ========================================================
+
+(async function initDatabase() {
+    try {
+        console.log('🔄 Initialisation de la base de données (pay)...');
+        await db.initialize();
+        console.log('✅ Base de données (pay) initialisée avec succès');
+    } catch (error) {
+        console.error('❌ Erreur lors de l\'initialisation de la base (pay):', error.message);
+    }
+})();
 
 // ========================================================
 // DÉMARRAGE
