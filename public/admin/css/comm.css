@@ -388,7 +388,10 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== TAB 1 : Détail ===== */
+/* ============================================================= */
+/* TAB 1 : DÉTAIL (avec couleurs)                                */
+/* ============================================================= */
+
 .detail-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -423,6 +426,13 @@
     flex: 1;
     word-break: break-word;
 }
+
+/* ✅ COULEURS DES INFOS DÉTAIL */
+.detail-item .value#dId { color: #2563EB; font-weight: 600; }
+.detail-item .value#dRef { color: #17A464; font-weight: 600; }
+.detail-item .value#dTotal { color: #0E7A49; font-weight: 700; font-size: 16px; }
+.detail-item .value#dDate { color: #9CA3AF; }
+.detail-item .value#dStatus { font-weight: 600; }
 
 .detail-grid .detail-item .copy-btn-mini {
     background: none;
@@ -466,7 +476,10 @@
     background: var(--brand-tint);
 }
 
-/* ===== TAB 2 : Statut ===== */
+/* ============================================================= */
+/* TAB 2 : STATUT                                                */
+/* ============================================================= */
+
 .statut-content {
     display: flex;
     flex-direction: column;
@@ -535,6 +548,11 @@
     color: var(--brand-dark);
 }
 
+.statut-actions .btn-status-change:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .statut-message-result {
     margin-top: 8px;
     padding: 10px 16px;
@@ -557,7 +575,10 @@
     border: 1px solid #F3C6C2;
 }
 
-/* ===== TAB 3 : Pay Link ===== */
+/* ============================================================= */
+/* TAB 3 : PAY LINK                                              */
+/* ============================================================= */
+
 .paylink-content {
     display: flex;
     flex-direction: column;
@@ -603,7 +624,10 @@
     background: var(--brand-tint);
 }
 
-/* ===== TAB 4 : Position ===== */
+/* ============================================================= */
+/* TAB 4 : POSITION                                              */
+/* ============================================================= */
+
 .position-content {
     display: flex;
     flex-direction: column;
@@ -636,12 +660,13 @@
     font-size: 13px;
 }
 
+/* ✅ BOUTON GOOGLE MAPS */
 .btn-maps {
     margin-top: 8px;
     padding: 8px 20px;
     border: none;
     border-radius: var(--r-sm);
-    background: var(--blue);
+    background: #4285F4;
     color: white;
     font-size: 13px;
     font-weight: 600;
@@ -654,12 +679,14 @@
 }
 
 .btn-maps:hover {
-    background: var(--blue);
-    opacity: 0.85;
+    background: #3367D6;
     transform: scale(1.02);
 }
 
-/* ===== TAB 5 : Message ===== */
+/* ============================================================= */
+/* TAB 5 : MESSAGE                                               */
+/* ============================================================= */
+
 .message-content {
     display: flex;
     flex-direction: column;
@@ -745,7 +772,10 @@
     border: 1px solid #F3C6C2;
 }
 
-/* ===== TAB 6 : Urgence ===== */
+/* ============================================================= */
+/* TAB 6 : URGENCE                                               */
+/* ============================================================= */
+
 .urgence-content {
     display: flex;
     flex-direction: column;
@@ -865,7 +895,10 @@
     border: 1px solid #F3C6C2;
 }
 
-/* ===== OVERLAY FOOTER ===== */
+/* ============================================================= */
+/* OVERLAY FOOTER                                                */
+/* ============================================================= */
+
 .overlay-footer {
     padding: 12px 24px;
     border-top: 1px solid var(--border);
@@ -892,9 +925,9 @@
     background: var(--border);
 }
 
-/* =============================================================
-   RESPONSIVE
-   ============================================================= */
+/* ============================================================= */
+/* RESPONSIVE                                                    */
+/* ============================================================= */
 
 @media (max-width: 992px) {
     .overlay-sidebar {
