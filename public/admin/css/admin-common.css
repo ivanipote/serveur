@@ -1,0 +1,316 @@
+/* =============================================================
+   ADMIN HEADER COMMUN - Toutes les pages
+   ============================================================= */
+
+:root {
+    --bg-app: #F5F6F9;
+    --surface: #FFFFFF;
+    --surface-alt: #FAFBFC;
+    --border: #E6E8EF;
+    --border-strong: #D8DBE4;
+    --ink-900: #10141F;
+    --ink-700: #3A4152;
+    --ink-500: #6B7280;
+    --ink-400: #9CA3AF;
+    --sidebar-1: #0A0E1A;
+    --sidebar-2: #131A2C;
+    --sidebar-line: rgba(255, 255, 255, 0.07);
+    --sidebar-text: rgba(226, 230, 242, 0.62);
+    --sidebar-text-hi: #F3F5FA;
+    --brand: #17A464;
+    --brand-dark: #0E7A49;
+    --brand-tint: #E6F7EE;
+    --brand-line: #BFEBD3;
+    --blue: #2563EB;
+    --blue-tint: #EAF1FF;
+    --amber: #B45309;
+    --amber-tint: #FFF3DF;
+    --red: #C0342A;
+    --red-tint: #FCEBEA;
+    --green: #17A464;
+    --green-tint: #E6F7EE;
+    --violet: #7C3AED;
+    --violet-tint: #F1EBFE;
+    --slate: #475467;
+    --slate-tint: #EEF1F5;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-pill: 999px;
+    --shadow-xs: 0 1px 2px rgba(16, 20, 31, 0.05);
+    --shadow-sm: 0 2px 8px rgba(16, 20, 31, 0.06);
+    --shadow-md: 0 8px 24px rgba(16, 20, 31, 0.08);
+    --shadow-lg: 0 20px 60px rgba(16, 20, 31, 0.22);
+    --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+}
+
+body {
+    font-family: var(--font-ui);
+    background: var(--bg-app);
+    color: var(--ink-900);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================================
+   ADMIN HEADER
+   ============================================================= */
+
+.admin-header {
+    background: var(--sidebar-1);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid var(--sidebar-line);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.admin-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-header .header-left .logo {
+    color: var(--sidebar-text-hi);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.admin-header .header-left .logo span {
+    color: #34D399;
+}
+
+.admin-header .header-center {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-header .header-center .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    color: var(--sidebar-text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    position: relative;
+}
+
+.admin-header .header-center .header-badge:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--sidebar-text-hi);
+}
+
+.admin-header .header-center .header-badge.active {
+    background: rgba(23, 164, 100, 0.15);
+    color: var(--sidebar-text-hi);
+    border-color: rgba(23, 164, 100, 0.25);
+}
+
+.admin-header .header-center .header-badge i {
+    font-size: 14px;
+}
+
+.admin-header .header-center .header-badge .badge-dot {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: var(--r-pill);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--red);
+    color: white;
+    margin-left: 2px;
+}
+
+.admin-header .header-center .header-badge .badge-dot.zero {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--sidebar-text);
+}
+
+.admin-header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-header .header-right .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    color: var(--sidebar-text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--sidebar-line);
+}
+
+.admin-header .header-right .btn-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--sidebar-text-hi);
+}
+
+.admin-header .header-right .btn-back i {
+    font-size: 14px;
+}
+
+.admin-header .header-right .admin-name {
+    color: var(--sidebar-text);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* =============================================================
+   PAGE CONTENT - Style de base pour toutes les pages
+   ============================================================= */
+
+.page-container {
+    padding: 24px 30px 40px 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-container .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink-900);
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-container .page-title i {
+    color: var(--ink-400);
+    font-size: 20px;
+}
+
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 8px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .admin-header .header-left {
+        justify-content: center;
+    }
+
+    .admin-header .header-center {
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .admin-header .header-center .header-badge {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+
+    .admin-header .header-center .header-badge .badge-dot {
+        font-size: 9px;
+        min-width: 16px;
+        height: 16px;
+    }
+
+    .admin-header .header-right {
+        justify-content: center;
+    }
+
+    .page-container {
+        padding: 16px 16px 30px 16px;
+    }
+
+    .page-container .page-title {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-header {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .admin-header .header-left .logo {
+        font-size: 15px;
+    }
+
+    .admin-header .header-center .header-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+        gap: 4px;
+    }
+
+    .admin-header .header-center .header-badge i {
+        font-size: 11px;
+    }
+
+    .admin-header .header-center .header-badge .badge-dot {
+        font-size: 8px;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 4px;
+    }
+
+    .admin-header .header-right .btn-back {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+
+    .admin-header .header-right .admin-name {
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+
+    .page-container {
+        padding: 10px 10px 20px 10px;
+    }
+
+    .page-container .page-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+}
