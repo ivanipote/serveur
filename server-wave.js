@@ -191,6 +191,12 @@ app.post('/api/wave/verify', async (req, res) => {
             });
         }
 
+        // ✅ Mettre à jour la méthode de paiement
+        await db.query(
+            `UPDATE commandes SET methode_paiement = $1 WHERE id = $2`,
+            ['wave', commande_id]
+        );
+
         const result = await db.query(
             `INSERT INTO wave_verifications (commande_id, user_id, wave_id, code_login, status)
              VALUES ($1, $2, $3, $4, $5) RETURNING id`,
@@ -200,6 +206,12 @@ app.post('/api/wave/verify', async (req, res) => {
         const verificationId = result.rows[0].id;
 
         console.log(`✅ Demande Wave #${verificationId} créée pour commande #${commande_id}`);
+
+        // ✅ Mettre à jour le statut de la commande
+        await db.query(
+            `UPDATE commandes SET status = $1 WHERE id = $2`,
+            ['verification_en_cours', commande_id]
+        );
 
         const client = await db.get('SELECT name, phone FROM users WHERE id = $1', [commande.user_id]);
 
@@ -344,6 +356,13 @@ app.post('/api/wave/validate', async (req, res) => {
 
         if (status === 'success') {
             await db.query(`UPDATE commandes SET status = $1 WHERE id = $2`, ['paiement_effectue', commandeId]);
+            
+            // ✅ Mettre à jour la méthode de paiement si non définie
+            await db.query(
+                `UPDATE commandes SET methode_paiement = $1 WHERE id = $2 AND methode_paiement IS NULL`,
+                ['wave', commandeId]
+            );
+
             await db.query(
                 `UPDATE payments SET status = 'success', genius_status = 'wave_manual' WHERE commande_id = $1`,
                 [commandeId]
@@ -365,7 +384,10 @@ app.post('/api/wave/validate', async (req, res) => {
             });
 
         } else {
-            await db.query(`UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`, ['annulee', cause, commandeId]);
+            await db.query(
+                `UPDATE commandes SET status = $1, cause_refus = $2 WHERE id = $3`,
+                ['annulee', cause, commandeId]
+            );
 
             await createNotification(
                 verification.user_id,

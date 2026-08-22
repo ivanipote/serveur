@@ -102,7 +102,7 @@ app.get('/health', (req, res) => {
 });
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION (ENRICHIE)
+// FONCTION : CRÉER UNE NOTIFICATION
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
@@ -159,7 +159,6 @@ app.post('/api/payment/create', async (req, res) => {
     }
 
     try {
-        // ✅ Vérifier si un paiement existe déjà
         const existingPayment = await db.get(
             `SELECT * FROM payments WHERE commande_id = $1`,
             [commandeId]
@@ -178,7 +177,6 @@ app.post('/api/payment/create', async (req, res) => {
                 });
             }
 
-            // ✅ Si paiement existe mais pas finalisé → retourner le lien existant
             return res.json({
                 success: true,
                 checkout_url: existingPayment.checkout_url,
@@ -190,12 +188,17 @@ app.post('/api/payment/create', async (req, res) => {
             });
         }
 
-        // ✅ Récupérer les infos de la commande
         const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
         const userId = commande ? commande.user_id : 0;
         const customerName = commande?.nom || 'Client Nature+';
 
         const paymentRef = reference || `NAT-${commandeId}-${Date.now()}`;
+
+        // ✅ Mettre à jour la méthode de paiement
+        await db.query(
+            `UPDATE commandes SET methode_paiement = $1 WHERE id = $2`,
+            ['genius_pay', commandeId]
+        );
 
         const payload = {
             amount: amount,
@@ -288,7 +291,7 @@ app.post('/api/payment/create', async (req, res) => {
 });
 
 // ========================================================
-// ✅ NOUVELLE ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
+// ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
 // ========================================================
 
 app.get('/api/payment/link/:commande_id', async (req, res) => {
@@ -338,7 +341,7 @@ app.get('/api/payment/link/:commande_id', async (req, res) => {
 });
 
 // ========================================================
-// ✅ NOUVELLE ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT PAR RÉFÉRENCE
+// ROUTE : VÉRIFIER LE STATUT D'UN PAIEMENT PAR RÉFÉRENCE
 // ========================================================
 
 app.get('/api/payment/status/:reference', async (req, res) => {
@@ -351,7 +354,6 @@ app.get('/api/payment/status/:reference', async (req, res) => {
     }
 
     try {
-        // ✅ 1. Rechercher dans la base
         let payment = await db.get(
             `SELECT * FROM payments WHERE reference = $1 OR genius_reference = $1 OR commande_id::text = $1`,
             [reference]
@@ -360,7 +362,6 @@ app.get('/api/payment/status/:reference', async (req, res) => {
         if (payment) {
             console.log(`✅ Paiement trouvé dans la base: ${payment.genius_status || payment.status}`);
             
-            // ✅ Si pas finalisé, vérifier sur Genius Pay
             const finalStatuses = ['success', 'failed', 'cancelled', 'expired', 'refunded'];
             if (!finalStatuses.includes(payment.genius_status || payment.status)) {
                 try {
@@ -383,7 +384,6 @@ app.get('/api/payment/status/:reference', async (req, res) => {
                         );
                         payment.genius_status = geniusStatus;
                         
-                        // ✅ Si succès, mettre à jour la commande
                         if (geniusStatus === 'success' && payment.commande_id) {
                             await db.query(
                                 `UPDATE commandes SET status = $1 WHERE id = $2`,
@@ -421,7 +421,6 @@ app.get('/api/payment/status/:reference', async (req, res) => {
             });
         }
 
-        // ✅ 2. Si pas trouvé en base, vérifier directement sur Genius Pay
         try {
             const geniusCheck = await axios.get(
                 `${GENIUS_API_URL}/${reference}`,
