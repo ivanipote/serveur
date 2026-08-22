@@ -1443,6 +1443,10 @@ app.get('/admin/updates.html', (req, res) => {
 app.get('/admin/profil.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'profil.html'));
 });
+
+app.get('/admin/message.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'admin-message.html'));
+});
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
 // ========================================================
