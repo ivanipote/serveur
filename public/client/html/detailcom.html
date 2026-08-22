@@ -4,27 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Détail de la commande | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        /* =============================================================
+           DETAILCOM - STYLES MODERNES
+           ============================================================= */
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        :root {
+            --bg-app: #F5F6F9;
+            --surface: #FFFFFF;
+            --surface-alt: #FAFBFC;
+            --border: #E6E8EF;
+            --border-strong: #D8DBE4;
+            --ink-900: #10141F;
+            --ink-700: #3A4152;
+            --ink-500: #6B7280;
+            --ink-400: #9CA3AF;
+            --brand: #17A464;
+            --brand-dark: #0E7A49;
+            --brand-tint: #E6F7EE;
+            --brand-line: #BFEBD3;
+            --blue: #2563EB;
+            --blue-tint: #EAF1FF;
+            --amber: #B45309;
+            --amber-tint: #FFF3DF;
+            --red: #C0342A;
+            --red-tint: #FCEBEA;
+            --violet: #7C3AED;
+            --violet-tint: #F1EBFE;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #f0f2f5;
+            font-family: var(--font-ui);
+            background: var(--bg-app);
+            color: var(--ink-900);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             padding-top: 76px;
             padding-bottom: 30px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ===== HEADER ===== */
+        /* =============================================================
+           HEADER
+           ============================================================= */
+
         .detail-header {
-            background: white;
+            background: var(--surface);
             padding: 12px 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
@@ -38,12 +81,13 @@
             left: 0;
             right: 0;
             z-index: 100;
+            border-bottom: 1px solid var(--border);
         }
 
         .back-btn {
-            background: #e8e8f0;
+            background: var(--surface-alt);
             border: none;
-            color: #1a1a2e;
+            color: var(--ink-900);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -54,10 +98,11 @@
             font-size: 18px;
             transition: all 0.2s;
             flex-shrink: 0;
+            border: 1px solid var(--border);
         }
 
         .back-btn:hover {
-            background: #d0d0da;
+            background: var(--border);
             transform: scale(1.05);
         }
 
@@ -65,43 +110,144 @@
             flex: 1;
             font-size: 18px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: var(--ink-900);
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        /* ===== CONTENU ===== */
+        .detail-title i {
+            color: var(--brand);
+        }
+
+        .sync-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--ink-400);
+            flex-shrink: 0;
+        }
+
+        .sync-indicator .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34D399;
+            display: inline-block;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .sync-indicator .sync-dot.paused {
+            background: #F87171;
+            animation: none;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* =============================================================
+           CONTENU PRINCIPAL
+           ============================================================= */
+
         .detail-main {
             flex: 1;
             padding: 16px 20px 20px 20px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             margin: 0 auto;
         }
 
-        /* ===== CARTE DÉTAIL ===== */
-        .detail-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px 20px 18px 20px;
-            border: 1px solid #e8ecf4;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        /* =============================================================
+           LOADING / ERROR
+           ============================================================= */
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ink-400);
+        }
+
+        .loading-state i {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ink-400);
+        }
+
+        .error-state i {
+            font-size: 48px;
+            color: var(--border-strong);
+            display: block;
             margin-bottom: 16px;
         }
 
+        .error-state h3 {
+            font-size: 20px;
+            color: var(--ink-900);
+            margin-bottom: 6px;
+        }
+
+        .error-state .btn-back-home {
+            display: inline-block;
+            margin-top: 16px;
+            background: var(--brand);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .error-state .btn-back-home:hover {
+            background: var(--brand-dark);
+        }
+
+        /* =============================================================
+           CARTE DÉTAIL
+           ============================================================= */
+
+        .detail-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 20px 22px 18px 22px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s;
+        }
+
+        .detail-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
         .detail-card .section-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
-            color: #1a2a6c;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
             padding-bottom: 8px;
-            border-bottom: 1px solid #f0f2f5;
+            border-bottom: 1px solid var(--border);
         }
 
         .detail-card .section-title i {
-            color: #888;
+            color: var(--brand);
+            font-size: 14px;
         }
 
         .detail-row {
@@ -109,7 +255,7 @@
             justify-content: space-between;
             padding: 6px 0;
             font-size: 14px;
-            border-bottom: 1px solid #f5f5fa;
+            border-bottom: 1px solid var(--surface-alt);
         }
 
         .detail-row:last-child {
@@ -117,12 +263,13 @@
         }
 
         .detail-row .label {
-            color: #888;
+            color: var(--ink-500);
+            font-weight: 500;
         }
 
         .detail-row .value {
-            color: #1a1a2e;
-            font-weight: 500;
+            color: var(--ink-900);
+            font-weight: 600;
             text-align: right;
             max-width: 60%;
             word-break: break-word;
@@ -134,35 +281,44 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            border: 1px solid transparent;
         }
 
-        .detail-row .value .status-badge.en_attente { background: #fff3cd; color: #856404; }
-        .detail-row .value .status-badge.accepter { background: #cce5ff; color: #004085; }
-        .detail-row .value .status-badge.paiement_en_cours { background: #ffe0b2; color: #e67e22; }
-        .detail-row .value .status-badge.paiement_effectue { background: #c3e6cb; color: #0b5e2e; }
-        .detail-row .value .status-badge.livraison_en_cours { background: #d1ecf1; color: #0c5460; }
-        .detail-row .value .status-badge.disponible { background: #d4edda; color: #155724; }
-        .detail-row .value .status-badge.recuperee { background: #a5d6a7; color: #1b5e20; }
-        .detail-row .value .status-badge.refuse { background: #f8d7da; color: #721c24; }
-        .detail-row .value .status-badge.annulee { background: #f8d7da; color: #721c24; }
+        .detail-row .value .status-badge.en_attente { background: var(--amber-tint); color: var(--amber); border-color: #F5DBAA; }
+        .detail-row .value .status-badge.accepter { background: var(--blue-tint); color: var(--blue); border-color: #C7D9FB; }
+        .detail-row .value .status-badge.paiement_en_cours { background: #FFF3DF; color: var(--amber); border-color: #F5DBAA; }
+        .detail-row .value .status-badge.verification_en_cours { background: #FFF3DF; color: var(--amber); border-color: #F5DBAA; }
+        .detail-row .value .status-badge.paiement_effectue { background: var(--brand-tint); color: var(--brand-dark); border-color: var(--brand-line); }
+        .detail-row .value .status-badge.livraison_en_cours { background: var(--violet-tint); color: var(--violet); border-color: #DBCBFC; }
+        .detail-row .value .status-badge.disponible { background: var(--brand-tint); color: var(--brand-dark); border-color: var(--brand-line); }
+        .detail-row .value .status-badge.recuperee { background: #DCF5E7; color: #0E5B37; border-color: #B4E7CB; }
+        .detail-row .value .status-badge.refuse { background: var(--red-tint); color: var(--red); border-color: #F3C6C2; }
+        .detail-row .value .status-badge.annulee { background: var(--red-tint); color: var(--red); border-color: #F3C6C2; }
 
         .detail-gps-link {
-            color: #1e88e5;
+            color: var(--blue);
             text-decoration: none;
             font-weight: 600;
             font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .detail-gps-link:hover {
             text-decoration: underline;
         }
 
-        /* ===== PRODUITS ===== */
+        /* =============================================================
+           PRODUITS
+           ============================================================= */
+
         .detail-products {
-            background: #f8f9fc;
+            background: var(--surface-alt);
             border-radius: 12px;
             padding: 10px 14px;
             margin-top: 4px;
+            border: 1px solid var(--border);
         }
 
         .detail-products .product-item {
@@ -170,7 +326,7 @@
             justify-content: space-between;
             padding: 6px 0;
             font-size: 14px;
-            border-bottom: 1px solid #f0f2f5;
+            border-bottom: 1px solid var(--border);
         }
 
         .detail-products .product-item:last-child {
@@ -178,118 +334,85 @@
         }
 
         .detail-products .product-item .name {
-            color: #1a1a2e;
+            color: var(--ink-900);
             flex: 1;
+            font-weight: 500;
         }
 
         .detail-products .product-item .qty {
-            color: #888;
+            color: var(--ink-400);
             margin: 0 12px;
+            font-family: var(--font-mono);
         }
 
         .detail-products .product-item .price {
-            color: #2d7d46;
-            font-weight: 600;
+            color: var(--brand-dark);
+            font-weight: 700;
+            font-family: var(--font-mono);
         }
 
-        /* ===== TOTAL ===== */
+        /* =============================================================
+           TOTAL
+           ============================================================= */
+
         .detail-total {
             display: flex;
             justify-content: space-between;
             padding: 10px 0 4px 0;
-            border-top: 2px solid #2d7d46;
+            border-top: 2px solid var(--brand);
             font-size: 18px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: var(--ink-900);
             margin-top: 6px;
         }
 
         .detail-total .total-value {
-            color: #2d7d46;
+            color: var(--brand-dark);
+            font-family: var(--font-mono);
         }
 
         .detail-frais {
             display: flex;
             justify-content: space-between;
             font-size: 13px;
-            color: #888;
+            color: var(--ink-400);
             padding: 4px 0;
         }
 
-        /* ===== CHARGEMENT ===== */
-        .loading-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #888;
-        }
-
-        .loading-state i {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-
-        /* ===== ERREUR ===== */
-        .error-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #888;
-        }
-
-        .error-state i {
-            font-size: 48px;
-            color: #ddd;
-            display: block;
-            margin-bottom: 16px;
-        }
-
-        .error-state h3 {
-            font-size: 20px;
-            color: #1a1a2e;
-            margin-bottom: 6px;
-        }
-
-        .error-state .btn-back-home {
-            display: inline-block;
-            margin-top: 16px;
-            background: #2d7d46;
-            color: white;
-            padding: 12px 32px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .error-state .btn-back-home:hover {
-            background: #1a5a33;
-        }
-
-        /* ========================================== */
-        /* RESPONSIVE                                 */
-        /* ========================================== */
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
 
         @media (max-width: 600px) {
             body { padding-top: 68px; }
             .detail-header { padding: 10px 14px; gap: 10px; }
             .back-btn { width: 36px; height: 36px; font-size: 16px; }
             .detail-title { font-size: 16px; }
+            .detail-title i { font-size: 14px; }
+            .sync-indicator { font-size: 10px; }
             .detail-main { padding: 12px 14px; }
             .detail-card { padding: 16px 16px 14px 16px; border-radius: 16px; }
             .detail-row { font-size: 13px; padding: 5px 0; }
             .detail-row .value { max-width: 55%; }
             .detail-products .product-item { font-size: 13px; }
             .detail-total { font-size: 16px; }
+            .error-state h3 { font-size: 18px; }
         }
 
         @media (max-width: 400px) {
+            body { padding-top: 60px; }
             .detail-header { padding: 8px 10px; gap: 8px; }
             .back-btn { width: 32px; height: 32px; font-size: 14px; }
             .detail-title { font-size: 14px; }
+            .detail-main { padding: 10px 10px; }
             .detail-card { padding: 12px 12px 10px 12px; border-radius: 14px; }
             .detail-row { font-size: 12px; }
             .detail-row .value { max-width: 50%; }
             .detail-products .product-item { font-size: 12px; }
             .detail-total { font-size: 15px; }
+            .detail-card .section-title { font-size: 11px; }
+            .error-state h3 { font-size: 16px; }
+            .error-state .btn-back-home { font-size: 14px; padding: 10px 24px; }
         }
     </style>
 </head>
@@ -300,7 +423,13 @@
         <button class="back-btn" onclick="window.location.href='/mescommandes'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="detail-title">📦 Détail de la commande</span>
+        <span class="detail-title">
+            <i class="fas fa-receipt"></i> Détail de la commande
+        </span>
+        <span class="sync-indicator">
+            <span class="sync-dot" id="syncDot"></span>
+            <span id="syncLabel">Live</span>
+        </span>
     </header>
 
     <!-- ===== CONTENU ===== -->
@@ -311,6 +440,10 @@
         </div>
     </main>
 
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -322,13 +455,22 @@
 
             const mainContent = document.getElementById('detailMain');
             const loadingState = document.getElementById('loadingState');
+            const syncDot = document.getElementById('syncDot');
+            const syncLabel = document.getElementById('syncLabel');
+
+            let commandeId = null;
+            let currentCommande = null;
+            let socket = null;
+            let isSocketConnected = false;
+            let syncInterval = null;
+            let isSyncing = false;
 
             // ==========================================
             // RÉCUPÉRER L'ID DE LA COMMANDE
             // ==========================================
 
             const urlParams = new URLSearchParams(window.location.search);
-            const commandeId = urlParams.get('id');
+            commandeId = urlParams.get('id');
 
             if (!commandeId) {
                 loadingState.style.display = 'none';
@@ -344,10 +486,105 @@
             }
 
             // ==========================================
+            // SOCKET.IO - ÉCOUTER LES MISES À JOUR
+            // ==========================================
+
+            function connectSocketIO() {
+                if (socket) {
+                    socket.disconnect();
+                    socket = null;
+                }
+
+                try {
+                    const userId = localStorage.getItem('userId') || '1';
+
+                    socket = io({
+                        auth: {
+                            userId: parseInt(userId),
+                            isAdmin: false
+                        },
+                        transports: ['websocket', 'polling'],
+                        timeout: 5000,
+                        reconnection: true,
+                        reconnectionAttempts: 20,
+                        reconnectionDelay: 500
+                    });
+
+                    socket.on('connect', function() {
+                        console.log('✅ Socket.IO (detailcom) connecté');
+                        isSocketConnected = true;
+                        syncDot.className = 'sync-dot';
+                        syncLabel.textContent = 'Live';
+                    });
+
+                    socket.on('disconnect', function() {
+                        console.log('❌ Socket.IO (detailcom) déconnecté');
+                        isSocketConnected = false;
+                        syncDot.className = 'sync-dot paused';
+                        syncLabel.textContent = 'Offline';
+                        setTimeout(() => {
+                            if (!isSocketConnected) connectSocketIO();
+                        }, 3000);
+                    });
+
+                    socket.on('commande-update', function(data) {
+                        console.log('📦 Mise à jour commande (detailcom):', data);
+                        if (data.commandeId == commandeId) {
+                            // Recharger le détail
+                            loadDetail();
+                            // Faire clignoter le dot
+                            syncDot.style.animation = 'none';
+                            setTimeout(() => {
+                                syncDot.style.animation = 'pulse-dot 0.5s ease-in-out 3';
+                            }, 10);
+                            setTimeout(() => {
+                                syncDot.style.animation = 'pulse-dot 1.5s ease-in-out infinite';
+                            }, 2000);
+                        }
+                    });
+
+                } catch (error) {
+                    console.error('❌ Erreur Socket.IO:', error);
+                    setTimeout(() => connectSocketIO(), 5000);
+                }
+            }
+
+            // ==========================================
+            // SYNC EN PERMANENCE
+            // ==========================================
+
+            function startSync() {
+                if (syncInterval) {
+                    clearInterval(syncInterval);
+                }
+
+                console.log('🔄 Sync detailcom démarré (toutes les 5s)');
+
+                loadDetail();
+
+                syncInterval = setInterval(() => {
+                    if (!isSyncing) {
+                        loadDetail();
+                    }
+                }, 5000);
+            }
+
+            function stopSync() {
+                if (syncInterval) {
+                    clearInterval(syncInterval);
+                    syncInterval = null;
+                    console.log('⏹️ Sync detailcom arrêté');
+                }
+            }
+
+            // ==========================================
             // CHARGER LE DÉTAIL
             // ==========================================
 
             async function loadDetail() {
+                if (isSyncing) return;
+                isSyncing = true;
+
                 try {
                     const res = await fetch('/api/commandes');
                     const data = await res.json();
@@ -371,6 +608,7 @@
                         return;
                     }
 
+                    currentCommande = commande;
                     loadingState.style.display = 'none';
                     renderDetail(commande);
 
@@ -385,6 +623,8 @@
                             <a href="/mescommandes" class="btn-back-home">📋 Voir mes commandes</a>
                         </div>
                     `;
+                } finally {
+                    isSyncing = false;
                 }
             }
 
@@ -397,7 +637,8 @@
                     'en_attente': { label: '⏳ En attente', class: 'en_attente' },
                     'accepter': { label: '💳 Paiement requis', class: 'accepter' },
                     'paiement_en_cours': { label: '⏳ En cours...', class: 'paiement_en_cours' },
-                    'paiement_effectue': { label: '💳 Payée', class: 'paiement_effectue' },
+                    'verification_en_cours': { label: '🔍 Vérification en cours', class: 'verification_en_cours' },
+                    'paiement_effectue': { label: '✅ Payée', class: 'paiement_effectue' },
                     'livraison_en_cours': { label: '🚚 En livraison', class: 'livraison_en_cours' },
                     'disponible': { label: '📍 Disponible', class: 'disponible' },
                     'recuperee': { label: '✅ Récupérée', class: 'recuperee' },
@@ -435,7 +676,7 @@
                         `;
                     });
                 } else {
-                    productsHtml = '<p style="color:#888;font-size:13px;padding:4px 0;">Aucun produit</p>';
+                    productsHtml = '<p style="color:var(--ink-400);font-size:13px;padding:4px 0;">Aucun produit</p>';
                 }
 
                 const total = commande.total || sousTotal + (commande.frais_livraison || 0);
@@ -444,9 +685,27 @@
                     `<a href="https://www.google.com/maps?q=${commande.latitude},${commande.longitude}" target="_blank" class="detail-gps-link">
                         <i class="fas fa-map-marker-alt"></i> Voir sur Google Maps
                     </a>` :
-                    '<span style="color:#888;">Non renseigné</span>';
+                    '<span style="color:var(--ink-400);">Non renseigné</span>';
 
                 const livraisonLabel = commande.option === 'chezmoi' ? '📍 Chez moi' : '✏️ Adresse';
+
+                // ✅ Afficher la méthode de paiement si disponible
+                const methodeHtml = commande.methode_paiement ? `
+                    <div class="detail-row">
+                        <span class="label">💳 Méthode</span>
+                        <span class="value" style="color:var(--brand-dark);font-weight:600;">
+                            ${commande.methode_paiement === 'genius_pay' ? 'Genius Pay' : commande.methode_paiement === 'wave' ? 'Wave (manuel)' : commande.methode_paiement}
+                        </span>
+                    </div>
+                ` : '';
+
+                // ✅ Afficher la référence Genius Pay si disponible
+                const geniusRefHtml = commande.genius_reference ? `
+                    <div class="detail-row">
+                        <span class="label">🔗 Réf. Genius</span>
+                        <span class="value" style="font-size:12px;color:var(--ink-500);font-family:var(--font-mono);">${commande.genius_reference}</span>
+                    </div>
+                ` : '';
 
                 mainContent.innerHTML = `
                     <!-- CARTE 1 : INFOS GÉNÉRALES -->
@@ -454,24 +713,26 @@
                         <div class="section-title"><i class="fas fa-info-circle"></i> Informations générales</div>
                         <div class="detail-row">
                             <span class="label">ID</span>
-                            <span class="value">#${commande.id}</span>
+                            <span class="value" style="color:var(--blue);font-weight:700;">#${commande.id}</span>
                         </div>
                         <div class="detail-row">
                             <span class="label">Référence</span>
-                            <span class="value" style="font-size:13px;color:#888;">${commande.reference || '-'}</span>
+                            <span class="value" style="font-size:13px;color:var(--ink-400);font-family:var(--font-mono);">${commande.reference || '-'}</span>
                         </div>
+                        ${geniusRefHtml}
                         <div class="detail-row">
                             <span class="label">Date</span>
-                            <span class="value">${dateStr}</span>
+                            <span class="value" style="color:var(--ink-500);">${dateStr}</span>
                         </div>
                         <div class="detail-row">
                             <span class="label">Statut</span>
                             <span class="value"><span class="status-badge ${statusInfo.class}">${statusInfo.label}</span></span>
                         </div>
+                        ${methodeHtml}
                         ${commande.cause_refus ? `
                             <div class="detail-row">
                                 <span class="label">Cause</span>
-                                <span class="value" style="color:#e74c3c;">${commande.cause_refus}</span>
+                                <span class="value" style="color:var(--red);">${commande.cause_refus}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -481,15 +742,15 @@
                         <div class="section-title"><i class="fas fa-user"></i> Client</div>
                         <div class="detail-row">
                             <span class="label">Nom</span>
-                            <span class="value">${commande.nom}</span>
+                            <span class="value" style="font-weight:600;">${commande.nom}</span>
                         </div>
                         <div class="detail-row">
                             <span class="label">Téléphone</span>
-                            <span class="value">${commande.telephone || '-'}</span>
+                            <span class="value" style="font-family:var(--font-mono);">${commande.telephone || '-'}</span>
                         </div>
                         <div class="detail-row">
                             <span class="label">Code secret</span>
-                            <span class="value" style="letter-spacing:2px;color:#888;">${commande.code_login || '••••'}</span>
+                            <span class="value" style="letter-spacing:2px;color:var(--ink-500);font-family:var(--font-mono);">${commande.code_login || '••••'}</span>
                         </div>
                     </div>
 
@@ -526,12 +787,12 @@
                         </div>
                         <div class="detail-frais">
                             <span>Sous-total</span>
-                            <span>${sousTotal.toLocaleString()} FCFA</span>
+                            <span style="font-family:var(--font-mono);">${sousTotal.toLocaleString()} FCFA</span>
                         </div>
                         ${commande.frais_livraison ? `
                             <div class="detail-frais">
                                 <span>Frais de livraison</span>
-                                <span>${commande.frais_livraison.toLocaleString()} FCFA</span>
+                                <span style="font-family:var(--font-mono);">${commande.frais_livraison.toLocaleString()} FCFA</span>
                             </div>
                         ` : ''}
                         <div class="detail-total">
@@ -546,7 +807,19 @@
             // INITIALISATION
             // ==========================================
 
-            loadDetail();
+            // Connecter Socket.IO
+            connectSocketIO();
+
+            // Démarrer la sync
+            startSync();
+
+            // Nettoyer à la fermeture
+            window.addEventListener('beforeunload', function() {
+                stopSync();
+                if (socket) socket.disconnect();
+            });
+
+            console.log('✅ detailcom.html initialisé');
 
         });
     </script>
