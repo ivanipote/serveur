@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TAB : STATUT (TOUS LES BOUTONS ACTIFS)
+    // TAB : STATUT (avec grisage des précédents)
     // ==========================================
 
     function updateStatutTab(commande) {
@@ -367,15 +367,26 @@ document.addEventListener('DOMContentLoaded', function() {
             statutMessage.style.display = 'none';
         }
 
-        // ✅ TOUS les boutons actifs (pas de verrouillage)
+        // ✅ ORDRE DES STATUTS
+        const statusOrder = ['en_attente', 'accepter', 'paiement_effectue', 'livraison_en_cours', 'disponible', 'recuperee', 'refuse', 'annulee'];
+        const currentIndex = statusOrder.indexOf(commande.status);
+
         const statusBtns = statutActions.querySelectorAll('.btn-status-change');
         statusBtns.forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-            btn.classList.remove('active');
-            if (btn.dataset.status === commande.status) {
-                btn.classList.add('active');
+            const btnStatus = btn.dataset.status;
+            const btnIndex = statusOrder.indexOf(btnStatus);
+
+            // ✅ Statut avant le statut actuel → grisé et désactivé (sauf refuse et annulee)
+            if (btnIndex < currentIndex && btnStatus !== 'refuse' && btnStatus !== 'annulee') {
+                btn.disabled = true;
+                btn.style.opacity = '0.4';
+                btn.style.cursor = 'not-allowed';
+                btn.classList.remove('active');
+            } else {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.classList.toggle('active', btnStatus === commande.status);
             }
         });
 
@@ -385,7 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
         statutMessageResult.style.display = 'none';
     }
 
-    // Changement de statut
+    // ==========================================
+    // CHANGEMENT DE STATUT
+    // ==========================================
+
     document.querySelectorAll('.statut-actions .btn-status-change').forEach(btn => {
         btn.addEventListener('click', async function() {
             const newStatus = this.dataset.status;
@@ -583,7 +597,7 @@ ${produitsText || 'Aucun produit'}
     });
 
     // ==========================================
-    // TAB : URGENCE (avec vérification login admin)
+    // TAB : URGENCE (avec vérification via /api/admin/login)
     // ==========================================
 
     verifyAdminBtn.addEventListener('click', async function() {
@@ -591,7 +605,7 @@ ${produitsText || 'Aucun produit'}
 
         if (!code) {
             urgenceStatus.className = 'urgence-status error';
-            urgenceStatus.textContent = '⚠️ Veuillez entrer votre code admin';
+            urgenceStatus.textContent = '⚠️ Veuillez entrer votre mot de passe admin';
             urgenceStatus.style.display = 'block';
             return;
         }
@@ -600,11 +614,23 @@ ${produitsText || 'Aucun produit'}
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
 
         try {
-            // ✅ Vérification via l'API admin (vérification en base)
-            const res = await fetch('/api/admin/verify-code', {
+            // ✅ Récupérer l'email admin stocké dans localStorage
+            const adminEmail = localStorage.getItem('adminEmail');
+
+            if (!adminEmail) {
+                urgenceStatus.className = 'urgence-status error';
+                urgenceStatus.textContent = '❌ Email admin non trouvé. Veuillez vous reconnecter.';
+                urgenceStatus.style.display = 'block';
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-unlock"></i> Vérifier';
+                return;
+            }
+
+            // ✅ Utiliser la route /api/admin/login
+            const res = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
+                body: JSON.stringify({ email: adminEmail, password: code })
             });
 
             const data = await res.json();
@@ -612,14 +638,14 @@ ${produitsText || 'Aucun produit'}
             if (data.success) {
                 isAdminVerified = true;
                 urgenceStatus.className = 'urgence-status success';
-                urgenceStatus.textContent = '✅ Code admin vérifié ! Vous pouvez changer le statut.';
+                urgenceStatus.textContent = '✅ Mot de passe admin vérifié ! Vous pouvez changer le statut.';
                 urgenceStatus.style.display = 'block';
                 urgenceActions.style.display = 'block';
                 adminCode.disabled = true;
                 this.style.display = 'none';
             } else {
                 urgenceStatus.className = 'urgence-status error';
-                urgenceStatus.textContent = '❌ Code incorrect';
+                urgenceStatus.textContent = '❌ Mot de passe incorrect';
                 urgenceStatus.style.display = 'block';
             }
         } catch (error) {
@@ -638,7 +664,7 @@ ${produitsText || 'Aucun produit'}
         btn.addEventListener('click', async function() {
             if (!isAdminVerified) {
                 urgenceResult.className = 'urgence-result error';
-                urgenceResult.textContent = '⚠️ Veuillez d\'abord vérifier votre code admin';
+                urgenceResult.textContent = '⚠️ Veuillez d\'abord vérifier votre mot de passe admin';
                 urgenceResult.style.display = 'block';
                 return;
             }
