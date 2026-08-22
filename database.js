@@ -4,7 +4,9 @@ require('dotenv').config();
 // Connexion à PostgreSQL
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000
 });
 
 // ========================================================
@@ -17,7 +19,9 @@ async function initializeDatabase() {
     try {
         await client.query('BEGIN');
 
+        // ========================================================
         // TABLE ADMINS
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS admins (
                 id SERIAL PRIMARY KEY,
@@ -30,7 +34,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE PRODUCTS
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS products (
                 id SERIAL PRIMARY KEY,
@@ -46,7 +52,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE USERS
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -59,7 +67,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE PANIER
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS panier (
                 id SERIAL PRIMARY KEY,
@@ -73,7 +83,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE PAYMENTS
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS payments (
                 id SERIAL PRIMARY KEY,
@@ -99,7 +111,7 @@ async function initializeDatabase() {
             )
         `);
 
-        // SUPPRIMER LA FK EXISTANTE
+        // Supprimer l'ancienne FK si elle existe
         await client.query(`
             DO $$
             BEGIN
@@ -112,7 +124,9 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // ========================================================
         // TABLE FRAIS_LIVRAISON
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS frais_livraison (
                 id SERIAL PRIMARY KEY,
@@ -122,7 +136,9 @@ async function initializeDatabase() {
             )
         `);
 
-        // TABLE COMMANDES
+        // ========================================================
+        // TABLE COMMANDES (avec methode_paiement)
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS commandes (
                 id SERIAL PRIMARY KEY,
@@ -143,12 +159,15 @@ async function initializeDatabase() {
                 longitude REAL,
                 status TEXT DEFAULT 'en_attente',
                 cause_refus TEXT,
+                methode_paiement TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         `);
 
+        // ========================================================
         // TABLE MESSAGES
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -164,7 +183,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE UPDATES
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS updates (
                 id SERIAL PRIMARY KEY,
@@ -176,7 +197,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // TABLE SESSION
+        // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS "session" (
                 "sid" varchar NOT NULL COLLATE "default",
@@ -197,7 +220,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE WAVE_VERIFICATIONS
+        // TABLE WAVE_VERIFICATIONS (NOUVELLE)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS wave_verifications (
@@ -216,12 +239,9 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
         // INDEX
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_commande_id ON wave_verifications(commande_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
-
-        // INDEX EXISTANTS
+        // ========================================================
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_user_id ON commandes(user_id)`);
@@ -231,6 +251,9 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_reference ON payments(reference)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_genius_status ON payments(genius_status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_expires_at ON payments(expires_at)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_commande_id ON wave_verifications(commande_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
 
         await client.query('COMMIT');
 
@@ -241,7 +264,7 @@ async function initializeDatabase() {
         console.log('   - panier');
         console.log('   - payments');
         console.log('   - frais_livraison');
-        console.log('   - commandes');
+        console.log('   - commandes (avec methode_paiement ✅)');
         console.log('   - messages');
         console.log('   - updates');
         console.log('   - session');
@@ -256,7 +279,9 @@ async function initializeDatabase() {
     }
 }
 
-initializeDatabase().catch(console.error);
+// ========================================================
+// EXPORT
+// ========================================================
 
 module.exports = {
     pool,
