@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncBtn = document.getElementById('syncBtn');
     const syncStatus = document.getElementById('syncStatus');
 
+    // ✅ Footer message
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const sendMessageResult = document.getElementById('sendMessageResult');
+
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
@@ -27,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isSyncActive = true;
     let isFirstLoad = true;
     let hasNewNotification = false;
+    let isSendingMessage = false;
 
     // ==========================================
     // TOAST
@@ -43,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed;
-            bottom: 80px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
             background: ${colors[type] || '#28a745'};
@@ -68,6 +74,95 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
+
+    // ==========================================
+    // AUTO-RESIZE DU TEXTAREA
+    // ==========================================
+
+    function autoResizeTextarea() {
+        messageInput.style.height = 'auto';
+        const scrollHeight = messageInput.scrollHeight;
+        const maxHeight = 150;
+        messageInput.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    }
+
+    messageInput.addEventListener('input', autoResizeTextarea);
+
+    // ==========================================
+    // ENVOYER UN MESSAGE À L'ADMIN
+    // ==========================================
+
+    async function sendMessageToAdmin() {
+        const content = messageInput.value.trim();
+
+        if (!content) {
+            sendMessageResult.className = 'send-message-result error';
+            sendMessageResult.textContent = '⚠️ Veuillez écrire un message.';
+            sendMessageResult.style.display = 'block';
+            setTimeout(() => {
+                sendMessageResult.style.display = 'none';
+            }, 3000);
+            return;
+        }
+
+        if (isSendingMessage) return;
+        isSendingMessage = true;
+        sendMessageBtn.disabled = true;
+        sendMessageBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await fetch('/api/client/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: 'Message client',
+                    content: content
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                sendMessageResult.className = 'send-message-result success';
+                sendMessageResult.textContent = '✅ Message envoyé avec succès !';
+                sendMessageResult.style.display = 'block';
+                messageInput.value = '';
+                autoResizeTextarea();
+                
+                setTimeout(() => {
+                    sendMessageResult.style.display = 'none';
+                }, 4000);
+            } else {
+                sendMessageResult.className = 'send-message-result error';
+                sendMessageResult.textContent = '❌ ' + (data.error || 'Erreur');
+                sendMessageResult.style.display = 'block';
+                setTimeout(() => {
+                    sendMessageResult.style.display = 'none';
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('Erreur envoi message:', error);
+            sendMessageResult.className = 'send-message-result error';
+            sendMessageResult.textContent = '❌ Erreur de connexion';
+            sendMessageResult.style.display = 'block';
+            setTimeout(() => {
+                sendMessageResult.style.display = 'none';
+            }, 3000);
+        }
+
+        isSendingMessage = false;
+        sendMessageBtn.disabled = false;
+        sendMessageBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    }
+
+    sendMessageBtn.addEventListener('click', sendMessageToAdmin);
+
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessageToAdmin();
+        }
+    });
 
     // ==========================================
     // BOUTON SYNC - GESTION
@@ -166,20 +261,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
-            // ✅ ÉCOUTER LES NOTIFICATIONS EN TEMPS RÉEL
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
-                
-                // 1. Afficher le toast
                 showToast(data.title || 'Nouvelle notification', 'info');
-                
-                // 2. Marquer qu'on a une nouvelle notification
                 hasNewNotification = true;
-                
-                // 3. Recharger avec skeleton
                 loadNotifications(true);
-                
-                // 4. Mettre à jour le badge
                 updateBadge();
             });
 
@@ -251,7 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': '📦',
             'paiement': '💳',
             'admin': '📢',
-            'systeme': '⚙️'
+            'systeme': '⚙️',
+            'client_message': '💬'
         };
         return icons[type] || '🌿';
     }
@@ -261,7 +348,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': 'commande',
             'paiement': 'paiement',
             'admin': 'admin',
-            'systeme': 'systeme'
+            'systeme': 'systeme',
+            'client_message': 'admin'
         };
         return classes[type] || 'systeme';
     }
@@ -271,7 +359,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': 'commande',
             'paiement': 'paiement',
             'admin': 'admin',
-            'systeme': 'systeme'
+            'systeme': 'systeme',
+            'client_message': 'admin'
         };
         return classes[type] || 'systeme';
     }
@@ -281,7 +370,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': 'commande',
             'paiement': 'paiement',
             'admin': 'admin',
-            'systeme': 'systeme'
+            'systeme': 'systeme',
+            'client_message': 'admin'
         };
         return classes[type] || 'systeme';
     }
@@ -291,13 +381,14 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': '📦 Commande',
             'paiement': '💳 Paiement',
             'admin': '📢 Admin',
-            'systeme': '⚙️ Système'
+            'systeme': '⚙️ Système',
+            'client_message': '💬 Message'
         };
         return labels[type] || type;
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS (AVEC SKELETON OPTIONNEL)
+    // CHARGER LES NOTIFICATIONS
     // ==========================================
 
     async function loadNotifications(showSkeleton = false) {
@@ -372,7 +463,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const badgeClass = getBadgeClass(n.type);
             const contentClass = getContentClass(n.type);
 
-            // ✅ Détecter si le contenu contient un lien de paiement
             let contentHtml = n.content || 'Aucun contenu';
             const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
             if (linkMatch) {
@@ -461,11 +551,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // ✅ Gérer les clics sur les liens dans les notifications
         document.querySelectorAll('.notification-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.stopPropagation();
-                // Le lien s'ouvre normalement grâce à target="_blank"
             });
         });
     }

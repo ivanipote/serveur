@@ -49,6 +49,28 @@
         <div id="notifList"></div>
     </main>
 
+    <!-- ============================================================= -->
+    <!-- FOOTER MESSAGE FIXE                                             -->
+    <!-- ============================================================= -->
+    <footer class="notif-footer" id="notifFooter">
+        <div class="footer-container">
+            <div class="message-wrapper">
+                <div class="message-input-container">
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        rows="1"
+                        placeholder="Envoyer un message à l'admin pour expliquer un problème ou une satisfaction..."
+                    ></textarea>
+                </div>
+                <button class="btn-send-message" id="sendMessageBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div id="sendMessageResult" class="send-message-result"></div>
+        </div>
+    </footer>
+
     <!-- ===== OVERLAY CONFIRMATION (suppression) ===== -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
