@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let requests = [];
     let currentRequestId = null;
     let isProcessing = false;
-    let showHistory = false;
+    let showHistory = true; // ✅ MODIFICATION : Historique visible par défaut
     let syncInterval = null;
 
     // ==========================================
@@ -86,8 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
         showHistory = !showHistory;
         this.classList.toggle('active', showHistory);
         this.innerHTML = showHistory ?
-            '<i class="fas fa-arrow-left"></i> Retour' :
-            '<i class="fas fa-clock"></i> Historique';
+            '<i class="fas fa-clock"></i> Historique' :
+            '<i class="fas fa-arrow-left"></i> Retour';
         renderRequests(requests);
     });
 
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER L'HISTORIQUE
+    // AFFICHER L'HISTORIQUE (MODIFIÉ)
     // ==========================================
 
     function renderHistorique(data) {
@@ -323,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateValidation = data.extra1 ? new Date(data.extra1) : null;
         const typeAction = data.extra3 || data.status;
         const montantValide = data.extra4 ? parseInt(data.extra4) : 0;
+        const isRemboursement = typeAction === 'remboursement';
 
         // ✅ Vérifier s'il y a un historique
         const hasHistory = dateValidation || (data.status !== 'pending' && data.status !== 'en_attente');
@@ -339,13 +340,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const dateStr = dateValidation ? dateValidation.toLocaleDateString('fr-FR') + ' ' + dateValidation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '-';
 
+        // ✅ Affichage du remboursement
+        let actionLabel = '';
+        if (isRemboursement) {
+            const clientName = data.client_name || data.user_name || 'Client inconnu';
+            actionLabel = `🔄 Remboursement pour ${clientName}`;
+        } else if (data.status === 'success') {
+            actionLabel = '✅ Paiement confirmé';
+        } else if (data.status === 'refused') {
+            actionLabel = '❌ Paiement refusé';
+        } else {
+            actionLabel = statusInfo.label;
+        }
+
         html += `
             <div class="historique-item">
                 <div class="h-info">
-                    <span class="h-status ${data.status}">${statusInfo.label}</span>
-                    <span class="h-badge ${data.status}">${data.status === 'success' ? '✅ Confirmé' : data.status === 'refused' ? '❌ Refusé' : '⏳ En attente'}</span>
+                    <span class="h-status ${data.status}">${actionLabel}</span>
+                    <span class="h-badge ${data.status}">${data.status === 'success' ? '✅ Confirmé' : data.status === 'refused' ? '❌ Refusé' : isRemboursement ? '🔄 Remboursé' : '⏳ En attente'}</span>
                     ${montantValide > 0 ? `<span class="h-montant">${montantValide.toLocaleString()} FCFA</span>` : ''}
                     ${data.cause ? `<span style="font-size:12px;color:var(--ink-500);">· ${data.cause}</span>` : ''}
+                    ${isRemboursement ? `<span style="font-size:12px;color:var(--red);">· Motif: ${data.extra4 || 'Non précisé'}</span>` : ''}
                 </div>
                 <span class="h-date">${dateStr}</span>
             </div>
@@ -441,6 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayDetail(data.id);
                 loadSolde();
                 if (window.updateBadges) window.updateBadges();
+                // Afficher un toast ou message
+                alert('✅ Paiement confirmé avec succès !');
             } else {
                 alert('❌ ' + (result.error || 'Erreur'));
             }
@@ -508,6 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 refuseOverlay.classList.remove('active');
                 refuseCause.value = '';
                 if (window.updateBadges) window.updateBadges();
+                alert('✅ Demande refusée avec succès');
             } else {
                 alert('❌ ' + (result.error || 'Erreur'));
             }
@@ -529,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // REMBOURSEMENT
+    // REMBOURSEMENT (MODIFIÉ)
     // ==========================================
 
     remboursementBtn.addEventListener('click', function() {
@@ -553,29 +571,49 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = requests.find(r => r.id === currentRequestId);
         if (!data) return;
 
-        const clientName = data.client_name || data.user_name || 'Client';
+        if (!confirm(`Confirmer le remboursement pour la commande #${data.commande_id} ?`)) return;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
 
         try {
-            const res = await fetch('/api/admin/notification/send', {
+            // ✅ Appel à la nouvelle route /api/wave/remboursement
+            const res = await fetch(`${WAVE_API_URL}/api/wave/remboursement`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: data.user_id,
-                    title: '🔄 Remboursement',
-                    content: `Bonjour ${clientName}, un remboursement a été effectué pour votre paiement Wave (ID: ${data.wave_id}). Motif : ${cause}`
+                    verification_id: data.id,
+                    cause: cause,
+                    admin_id: 1
                 })
             });
 
-            if (res.ok) {
-                alert('✅ Notification de remboursement envoyée au client.');
+            const result = await res.json();
+
+            if (result.success) {
+                // ✅ Mettre à jour localement
+                data.status = 'success'; // On garde success mais avec extra3 = 'remboursement'
+                data.extra1 = new Date().toISOString();
+                data.extra2 = `Remboursement pour ${data.client_name || data.user_name || 'Client'}`;
+                data.extra3 = 'remboursement';
+                data.extra4 = cause;
+
+                renderRequests(requests);
+                displayDetail(data.id);
+                loadSolde();
                 remboursementOverlay.classList.remove('active');
                 remboursementCause.value = '';
+                if (window.updateBadges) window.updateBadges();
+                alert(`✅ Remboursement effectué avec succès !\nMontant: ${(data.total || 0).toLocaleString()} FCFA`);
             } else {
-                alert('❌ Erreur lors de l\'envoi de la notification.');
+                alert('❌ ' + (result.error || 'Erreur lors du remboursement'));
             }
         } catch (error) {
-            console.error('Erreur:', error);
+            console.error('Erreur remboursement:', error);
             alert('❌ Erreur de connexion');
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-undo-alt"></i> Remboursement';
         }
     });
 
@@ -680,6 +718,12 @@ document.addEventListener('DOMContentLoaded', function() {
     loadRequests();
     connectSocketIO();
     startSync();
+
+    // ✅ Bouton historique actif par défaut
+    if (historyBtn) {
+        historyBtn.classList.add('active');
+        historyBtn.innerHTML = '<i class="fas fa-clock"></i> Historique';
+    }
 
     console.log('✅ wave.js initialisé');
 
