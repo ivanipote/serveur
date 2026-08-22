@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const TIMEOUT_MINUTES = 20;
     const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
-    const VERIFICATION_INTERVAL = 10000; // 10 secondes
+    const VERIFICATION_INTERVAL = 10000;
 
     // ==========================================
     // UI SYNC
@@ -357,18 +357,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ GÉNÉRER LE LIEN DE PAIEMENT
+    // GÉNÉRER LE LIEN DE PAIEMENT
     // ==========================================
 
     async function generatePaymentLink(commandeId, amount, reference, phone) {
         if (generatingLinks[commandeId]) return;
         
-        // ✅ Marquer comme en cours de génération
         generatingLinks[commandeId] = true;
         renderCommandes();
 
         try {
-            // 1. Vérifier si un lien existe déjà
             const linkRes = await fetch(`${PAYMENT_API_URL}/api/payment/link/${commandeId}`);
             const linkData = await linkRes.json();
 
@@ -380,7 +378,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 if (linkData.checkout_url) {
-                    // ✅ Lien existant → notification déjà envoyée
                     await showMessage('🔗', 'Lien déjà généré', 'Le lien de paiement est déjà disponible dans vos notifications.');
                     generatingLinks[commandeId] = false;
                     renderCommandes();
@@ -388,7 +385,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // 2. Générer un nouveau lien
             const res = await fetch(`${PAYMENT_API_URL}/api/payment/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -404,14 +400,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (res.ok && data.success && data.checkout_url) {
-                // ✅ Lien généré → overlay de confirmation
                 await showConfirm(
                     '✅',
                     'Lien généré avec succès !',
                     'Votre lien de paiement a été envoyé dans vos notifications. Veuillez finaliser votre paiement.'
                 );
                 
-                // ✅ Mettre à jour la commande en local
                 const cmd = commandes.find(c => c.id === commandeId);
                 if (cmd) {
                     cmd.status = 'paiement_en_cours';
@@ -422,7 +416,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 generatingLinks[commandeId] = false;
                 renderCommandes();
                 
-                // ✅ Démarrer la vérification continue
                 startVerification(commandeId);
                 
             } else {
@@ -439,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ VÉRIFICATION CONTINUE DU STATUT
+    // VÉRIFICATION CONTINUE DU STATUT
     // ==========================================
 
     function startVerification(commandeId) {
@@ -493,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ VÉRIFICATION WAVE (demande admin)
+    // VÉRIFICATION WAVE (demande admin)
     // ==========================================
 
     async function verifyWavePayment(commandeId, codeLogin, waveId) {
@@ -725,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
             }
 
-            // ✅ Affichage du statut de paiement (CORRIGÉ)
+            // ✅ Affichage du statut de paiement
             let paymentStatusHtml = '';
             if (isPayable) {
                 const isGenerating = generatingLinks[c.id] === true;
@@ -742,7 +735,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     `;
                 }
-                // ✅ Sinon, rien ne s'affiche (plus de message par défaut)
             }
 
             // ✅ État vérification en cours
@@ -776,8 +768,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isPayable) {
                 if (hasPaymentLink) {
                     actionHint = '📩 Lien de paiement disponible dans vos notifications';
-                } else {
-                    // ✅ Ne rien afficher si le lien n'est pas encore généré
                 }
             } else if (isVerificationInProgress) {
                 actionHint = '🔍 En attente de la confirmation de l\'admin...';
@@ -805,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 actionHint = '⏳ Paiement expiré - Veuillez passer une nouvelle commande';
             }
 
-            // ✅ Boutons (masqués si paiement en cours ou vérification)
+            // ✅ Boutons
             let buttonsHtml = '';
             if (isPayable && !isVerificationInProgress) {
                 const isGenerating = generatingLinks[c.id] === true;
