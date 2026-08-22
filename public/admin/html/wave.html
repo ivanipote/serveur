@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 Demandes Wave | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* =============================================================
+           WAVE - DEMANDES WAVE (style dashboard)
+           ============================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        :root {
+            --bg-app: #F5F6F9;
+            --surface: #FFFFFF;
+            --surface-alt: #FAFBFC;
+            --border: #E6E8EF;
+            --border-strong: #D8DBE4;
+            --ink-900: #10141F;
+            --ink-700: #3A4152;
+            --ink-500: #6B7280;
+            --ink-400: #9CA3AF;
+            --sidebar-1: #0A0E1A;
+            --sidebar-2: #131A2C;
+            --sidebar-line: rgba(255,255,255,0.07);
+            --sidebar-text: rgba(226,230,242,0.62);
+            --sidebar-text-hi: #F3F5FA;
+            --brand: #17A464;
+            --brand-dark: #0E7A49;
+            --brand-tint: #E6F7EE;
+            --brand-line: #BFEBD3;
+            --blue: #2563EB;
+            --blue-tint: #EAF1FF;
+            --amber: #B45309;
+            --amber-tint: #FFF3DF;
+            --red: #C0342A;
+            --red-tint: #FCEBEA;
+            --green: #17A464;
+            --green-tint: #E6F7EE;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-app);
+            color: var(--ink-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =============================================================
+           HEADER COMMUN
+           ============================================================= */
+
+        .admin-header {
+            background: var(--sidebar-1);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-line);
+            flex-shrink: 0;
+        }
+
+        .admin-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-header .header-left .logo {
+            color: var(--sidebar-text-hi);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .admin-header .header-left .logo span {
+            color: #34D399;
+        }
+
+        .admin-header .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .header-center .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid transparent;
+        }
+
+        .admin-header .header-center .header-badge:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-center .header-badge.active {
+            background: rgba(23,164,100,0.15);
+            color: var(--sidebar-text-hi);
+            border-color: rgba(23,164,100,0.25);
+        }
+
+        .admin-header .header-center .header-badge i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red);
+            color: white;
+            margin-left: 2px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot.zero {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text);
+        }
+
+        .admin-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-header .header-right .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--sidebar-line);
+        }
+
+        .admin-header .header-right .btn-back:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-right .btn-back i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-right .admin-name {
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* =============================================================
+           MAIN LAYOUT
+           ============================================================= */
+
+        .page-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 76px);
+            overflow: hidden;
+        }
+
+        /* =============================================================
+           SIDEBAR WAVE (gauche)
+           ============================================================= */
+
+        .sidebar-wave {
+            width: 340px;
+            min-width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-wave .search-area {
+            padding: 16px 16px 12px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-wave .search-area .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-wave .search-area .search-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: var(--ink-400);
+            font-size: 14px;
+        }
+
+        .sidebar-wave .search-area .search-wrapper input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--surface-alt);
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: var(--font-ui);
+            color: var(--ink-900);
+        }
+
+        .sidebar-wave .search-area .search-wrapper input:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+        }
+
+        .sidebar-wave .search-area .search-wrapper input::placeholder {
+            color: var(--ink-400);
+        }
+
+        .sidebar-wave .requests-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px 12px 12px;
+        }
+
+        .sidebar-wave .requests-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-wave .requests-list::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        /* ===== REQUEST ITEM ===== */
+        .sidebar-wave .requests-list .request-item {
+            padding: 12px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-wave .requests-list .request-item:hover {
+            background: var(--surface-alt);
+        }
+
+        .sidebar-wave .requests-list .request-item.active {
+            background: var(--brand-tint);
+            border-color: var(--brand-line);
+        }
+
+        .sidebar-wave .requests-list .request-item .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .sidebar-wave .requests-list .request-item .status-dot.pending {
+            background: #F87171;
+            box-shadow: 0 0 8px rgba(248,113,113,0.4);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .sidebar-wave .requests-list .request-item .status-dot.success {
+            background: #34D399;
+        }
+
+        .sidebar-wave .requests-list .request-item .status-dot.refused {
+            background: #F87171;
+            opacity: 0.4;
+        }
+
+        .sidebar-wave .requests-list .request-item .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-wave .requests-list .request-item .item-info .name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-900);
+        }
+
+        .sidebar-wave .requests-list .request-item .item-info .ref {
+            font-size: 11px;
+            color: var(--ink-400);
+            font-family: var(--font-mono);
+            display: block;
+        }
+
+        .sidebar-wave .requests-list .request-item .item-info .phone {
+            font-size: 12px;
+            color: var(--ink-500);
+        }
+
+        .sidebar-wave .requests-list .request-item .item-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .sidebar-wave .requests-list .request-item .item-right .status-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        .sidebar-wave .requests-list .request-item .item-right .status-badge.pending {
+            background: var(--amber-tint);
+            color: var(--amber);
+        }
+
+        .sidebar-wave .requests-list .request-item .item-right .status-badge.success {
+            background: var(--green-tint);
+            color: var(--brand-dark);
+        }
+
+        .sidebar-wave .requests-list .request-item .item-right .status-badge.refused {
+            background: var(--red-tint);
+            color: var(--red);
+        }
+
+        .sidebar-wave .requests-list .request-item .item-right .time {
+            font-size: 10px;
+            color: var(--ink-400);
+            font-family: var(--font-mono);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .sidebar-wave .requests-list .request-item.done {
+            opacity: 0.6;
+        }
+
+        .sidebar-wave .requests-list .request-item.done .item-info .name {
+            color: var(--ink-500);
+        }
+
+        .sidebar-wave .requests-list .separator {
+            padding: 16px 14px 10px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-400);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
+        .sidebar-wave .requests-list .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--ink-400);
+        }
+
+        .sidebar-wave .requests-list .loading-state i {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-wave .requests-list .empty-list {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--ink-400);
+            font-size: 14px;
+        }
+
+        .sidebar-wave .requests-list .empty-list i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+            color: var(--border-strong);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* =============================================================
+           MAIN CONTENT (droite)
+           ============================================================= */
+
+        .main-wave {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            background: var(--bg-app);
+        }
+
+        .main-wave::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .main-wave::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        /* ===== CARTE STATUT ===== */
+        .status-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .status-card .status-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-card .status-left .status-icon {
+            font-size: 32px;
+        }
+
+        .status-card .status-left .status-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ink-900);
+        }
+
+        .status-card .status-left .status-sub {
+            font-size: 14px;
+            color: var(--ink-500);
+        }
+
+        .status-card .status-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-card .status-actions .btn-status {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-card .status-actions .btn-status.success-btn {
+            background: var(--green-tint);
+            color: var(--brand-dark);
+        }
+
+        .status-card .status-actions .btn-status.success-btn:hover:not(:disabled) {
+            background: var(--brand-line);
+            transform: scale(1.02);
+        }
+
+        .status-card .status-actions .btn-status.refuse-btn {
+            background: var(--red-tint);
+            color: var(--red);
+        }
+
+        .status-card .status-actions .btn-status.refuse-btn:hover:not(:disabled) {
+            background: #F3C6C2;
+            transform: scale(1.02);
+        }
+
+        .status-card .status-actions .btn-status:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== RECTANGLE USER PROFIL ===== */
+        .profile-rect {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 32px;
+        }
+
+        .profile-rect .profile-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--ink-900);
+        }
+
+        .profile-rect .profile-item i {
+            width: 18px;
+            color: var(--ink-400);
+            font-size: 14px;
+        }
+
+        .profile-rect .profile-item .label {
+            color: var(--ink-500);
+            font-weight: 500;
+        }
+
+        .profile-rect .profile-item .value {
+            font-weight: 600;
+        }
+
+        .profile-rect .profile-item .value.code {
+            font-family: var(--font-mono);
+            letter-spacing: 2px;
+            color: var(--blue);
+        }
+
+        /* ===== RECTANGLE VERIFICATION INFO ===== */
+        .verif-rect {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 32px;
+            margin-bottom: 16px;
+        }
+
+        .verif-rect .verif-item .verif-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .verif-rect .verif-item .verif-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 2px;
+            font-family: var(--font-mono);
+        }
+
+        .verif-rect .verif-item .verif-value.wave-id {
+            color: var(--brand-dark);
+            font-weight: 800;
+        }
+
+        .verif-rect .verif-item .verif-value.montant {
+            color: var(--amber);
+        }
+
+        .verif-rect .verif-item .verif-value.date {
+            color: var(--ink-900);
+        }
+
+        .verif-rect .verif-item .verif-value.ref {
+            color: var(--red);
+        }
+
+        /* ===== COPY BUTTON ===== */
+        .copy-btn-mini {
+            background: none;
+            border: none;
+            color: var(--ink-400);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            opacity: 0.4;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .copy-btn-mini:hover {
+            background: var(--surface-alt);
+            color: var(--brand);
+            opacity: 1;
+        }
+
+        .copy-btn-mini.copied {
+            color: var(--brand);
+            opacity: 1;
+        }
+
+        /* ===== OVERLAY REFUSER ===== */
+        .refuse-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 12, 20, 0.55);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .refuse-overlay.active {
+            display: flex;
+        }
+
+        .refuse-box {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: scaleIn 0.2s ease;
+        }
+
+        .refuse-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ink-900);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .refuse-box h3 i {
+            color: var(--red);
+        }
+
+        .refuse-box p {
+            font-size: 14px;
+            color: var(--ink-500);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .refuse-box textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: var(--font-ui);
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: var(--surface-alt);
+            color: var(--ink-900);
+        }
+
+        .refuse-box textarea:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+        }
+
+        .refuse-box .refuse-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .refuse-box .refuse-actions .btn-cancel {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-alt);
+            color: var(--ink-700);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refuse-box .refuse-actions .btn-cancel:hover {
+            background: var(--border);
+        }
+
+        .refuse-box .refuse-actions .btn-confirm {
+            flex: 2;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: var(--red);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refuse-box .refuse-actions .btn-confirm:hover {
+            background: #9E2A22;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* =============================================================
+           EMPTY STATE
+           ============================================================= */
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ink-400);
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            color: var(--border-strong);
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: var(--ink-700);
+            margin-bottom: 6px;
+        }
+
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+
+        @media (max-width: 992px) {
+            .sidebar-wave {
+                width: 280px;
+                min-width: 240px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 8px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .admin-header .header-left {
+                justify-content: center;
+            }
+            .admin-header .header-center {
+                justify-content: center;
+                gap: 4px;
+            }
+            .admin-header .header-center .header-badge {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 9px;
+                min-width: 16px;
+                height: 16px;
+            }
+            .admin-header .header-right {
+                justify-content: center;
+            }
+
+            .page-container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar-wave {
+                width: 100%;
+                min-width: unset;
+                max-height: 340px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .main-wave {
+                padding: 16px;
+            }
+
+            .status-card {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                padding: 16px 18px;
+            }
+
+            .status-card .status-left {
+                justify-content: center;
+            }
+
+            .status-card .status-actions {
+                justify-content: center;
+            }
+
+            .profile-rect {
+                flex-direction: column;
+                gap: 10px;
+                padding: 16px 18px;
+            }
+
+            .verif-rect {
+                grid-template-columns: 1fr 1fr;
+                padding: 16px 18px;
+            }
+
+            .sidebar-wave .requests-list .request-item {
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .admin-header .header-left .logo {
+                font-size: 15px;
+            }
+            .admin-header .header-center .header-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+                gap: 4px;
+            }
+            .admin-header .header-center .header-badge i {
+                font-size: 11px;
+            }
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 8px;
+                min-width: 14px;
+                height: 14px;
+                padding: 0 4px;
+            }
+            .admin-header .header-right .btn-back {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .sidebar-wave {
+                max-height: 280px;
+            }
+
+            .main-wave {
+                padding: 12px;
+            }
+
+            .status-card {
+                padding: 14px 14px;
+            }
+
+            .status-card .status-left .status-text {
+                font-size: 17px;
+            }
+
+            .status-card .status-actions .btn-status {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .profile-rect {
+                padding: 12px 14px;
+                gap: 8px;
+            }
+
+            .profile-rect .profile-item {
+                font-size: 13px;
+                flex-wrap: wrap;
+            }
+
+            .verif-rect {
+                padding: 12px 14px;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .verif-rect .verif-item .verif-value {
+                font-size: 16px;
+            }
+
+            .refuse-box {
+                padding: 20px 18px;
+            }
+
+            .refuse-box h3 {
+                font-size: 16px;
+            }
+
+            .sidebar-wave .requests-list .request-item {
+                padding: 8px 10px;
+            }
+
+            .sidebar-wave .requests-list .request-item .item-info .name {
+                font-size: 13px;
+            }
+
+            .sidebar-wave .requests-list .request-item .item-info .ref {
+                font-size: 10px;
+            }
+        }
+
+        /* ========================================== */
+        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
+        /* ========================================== */
+
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge active">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- MAIN LAYOUT                                                    -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <!-- ===== SIDEBAR WAVE ===== -->
+        <aside class="sidebar-wave">
+            <!-- Recherche -->
+            <div class="search-area">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Rechercher un client..." />
+                </div>
+            </div>
+
+            <!-- Liste des demandes -->
+            <div class="requests-list" id="requestsList">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Chargement...</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN ===== -->
+        <main class="main-wave" id="mainWave">
+
+            <!-- ===== EMPTY / SELECTION ===== -->
+            <div id="emptyState" class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Aucune demande sélectionnée</h3>
+                <p>Sélectionnez une demande dans la barre latérale.</p>
+            </div>
+
+            <!-- ===== DÉTAIL DEMANDE ===== -->
+            <div id="detailRequest" style="display:none;">
+
+                <!-- STATUT CARD -->
+                <div class="status-card" id="statusCard">
+                    <div class="status-left">
+                        <span class="status-icon" id="sIcon">⏳</span>
+                        <div>
+                            <div class="status-text" id="sText">En attente de vérification</div>
+                            <div class="status-sub" id="sSub">Demande #1 · Commande #125</div>
+                        </div>
+                    </div>
+                    <div class="status-actions" id="statusActions">
+                        <button class="btn-status success-btn" id="successBtn">
+                            <i class="fas fa-check"></i> Success
+                        </button>
+                        <button class="btn-status refuse-btn" id="refuseBtn">
+                            <i class="fas fa-times"></i> Refuser
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RECTANGLE 1 : USER PROFIL -->
+                <div class="profile-rect">
+                    <div class="profile-item">
+                        <i class="fas fa-user"></i>
+                        <span class="label">Nom :</span>
+                        <span class="value" id="pName">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="profile-item">
+                        <i class="fas fa-phone"></i>
+                        <span class="label">Téléphone :</span>
+                        <span class="value" id="pPhone">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="profile-item">
+                        <i class="fas fa-envelope"></i>
+                        <span class="label">Email :</span>
+                        <span class="value" id="pEmail">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="profile-item">
+                        <i class="fas fa-lock"></i>
+                        <span class="label">Code login :</span>
+                        <span class="value code" id="pCode">-</span>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <!-- RECTANGLE 2 : VERIFICATION INFO -->
+                <div class="verif-rect">
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-receipt"></i> ID Transaction Wave</div>
+                        <div class="verif-value wave-id" id="vWaveId">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-money-bill-wave"></i> Montant</div>
+                        <div class="verif-value montant" id="vMontant">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-calendar"></i> Date de la demande</div>
+                        <div class="verif-value date" id="vDate">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="verif-item">
+                        <div class="verif-label"><i class="fas fa-hashtag"></i> Réf. commande</div>
+                        <div class="verif-value ref" id="vRef">-</div>
+                        <button class="copy-btn-mini" data-copy="" title="Copier"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== OVERLAY REFUSER ===== -->
+    <div class="refuse-overlay" id="refuseOverlay">
+        <div class="refuse-box">
+            <h3><i class="fas fa-times-circle"></i> Refuser le paiement</h3>
+            <p>Veuillez indiquer la raison du refus pour informer le client.</p>
+            <textarea id="refuseCause" placeholder="Ex: ID Wave invalide, montant incorrect..." rows="3"></textarea>
+            <div class="refuse-actions">
+                <button class="btn-cancel" id="refuseCancel">Annuler</button>
+                <button class="btn-confirm" id="refuseConfirm">Confirmer le refus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ wave.html chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const WAVE_API_URL = 'https://server-wave-js.onrender.com';
+
+            const requestsList = document.getElementById('requestsList');
+            const searchInput = document.getElementById('searchInput');
+
+            const emptyState = document.getElementById('emptyState');
+            const detailRequest = document.getElementById('detailRequest');
+
+            const sIcon = document.getElementById('sIcon');
+            const sText = document.getElementById('sText');
+            const sSub = document.getElementById('sSub');
+            const successBtn = document.getElementById('successBtn');
+            const refuseBtn = document.getElementById('refuseBtn');
+
+            const pName = document.getElementById('pName');
+            const pPhone = document.getElementById('pPhone');
+            const pEmail = document.getElementById('pEmail');
+            const pCode = document.getElementById('pCode');
+
+            const vWaveId = document.getElementById('vWaveId');
+            const vMontant = document.getElementById('vMontant');
+            const vDate = document.getElementById('vDate');
+            const vRef = document.getElementById('vRef');
+
+            const refuseOverlay = document.getElementById('refuseOverlay');
+            const refuseCancel = document.getElementById('refuseCancel');
+            const refuseConfirm = document.getElementById('refuseConfirm');
+            const refuseCause = document.getElementById('refuseCause');
+
+            const copyBtns = document.querySelectorAll('.copy-btn-mini');
+
+            let requests = [];
+            let currentRequestId = null;
+            let isProcessing = false;
+
+            // ==========================================
+            // NOM ADMIN
+            // ==========================================
+
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // CHARGER LES DEMANDES
+            // ==========================================
+
+            async function loadRequests() {
+                try {
+                    const res = await fetch(`${WAVE_API_URL}/api/wave/requests`);
+                    const data = await res.json();
+
+                    if (data.success && data.requests.length > 0) {
+                        requests = data.requests;
+                        renderRequests(requests);
+
+                        // Sélectionner la première demande en attente ou la première
+                        const firstPending = requests.find(r => r.status === 'pending');
+                        if (firstPending) {
+                            displayDetail(firstPending.id);
+                        } else if (requests.length > 0) {
+                            displayDetail(requests[0].id);
+                        }
+                    } else {
+                        requests = [];
+                        renderEmpty();
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement:', error);
+                    requestsList.innerHTML = `
+                        <div class="empty-list">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Erreur de chargement</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ==========================================
+            // AFFICHER LA LISTE
+            // ==========================================
+
+            function renderRequests(requestsData) {
+                if (!requestsData || requestsData.length === 0) {
+                    renderEmpty();
+                    return;
+                }
+
+                // Séparer pending et done
+                const pending = requestsData.filter(r => r.status === 'pending');
+                const done = requestsData.filter(r => r.status !== 'pending');
+
+                // Trier : pending par date (plus récent en premier), done par date (plus récent en premier)
+                pending.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                done.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                let html = '';
+
+                // Pending
+                pending.forEach(r => {
+                    html += renderItem(r, false);
+                });
+
+                // Séparateur si done existe
+                if (done.length > 0) {
+                    html += `
+                        <div class="separator">
+                            <span>─── Historique ───</span>
+                        </div>
+                    `;
+                }
+
+                // Done (grisé)
+                done.forEach(r => {
+                    html += renderItem(r, true);
+                });
+
+                requestsList.innerHTML = html;
+
+                // Attacher les événements
+                document.querySelectorAll('.request-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const id = parseInt(this.dataset.id);
+                        if (id) displayDetail(id);
+                    });
+                });
+            }
+
+            function renderItem(r, isDone) {
+                const statusLabels = {
+                    'pending': { label: '⏳ En attente', class: 'pending' },
+                    'success': { label: '✅ Succès', class: 'success' },
+                    'refused': { label: '❌ Refusée', class: 'refused' }
+                };
+                const statusInfo = statusLabels[r.status] || statusLabels.pending;
+                const date = new Date(r.created_at);
+                const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const clientName = r.client_name || r.user_name || 'Client inconnu';
+
+                return `
+                    <div class="request-item ${isDone ? 'done' : ''} ${currentRequestId === r.id ? 'active' : ''}" data-id="${r.id}">
+                        <span class="status-dot ${r.status}"></span>
+                        <div class="item-info">
+                            <div class="name">${clientName}</div>
+                            <span class="ref">#${r.commande_id} · ${r.reference || '-'}</span>
+                            <div class="phone">📱 ${r.telephone || '-'}</div>
+                        </div>
+                        <div class="item-right">
+                            <span class="status-badge ${r.status}">${statusInfo.label}</span>
+                            <span class="time">${dateStr}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderEmpty() {
+                requestsList.innerHTML = `
+                    <div class="empty-list">
+                        <i class="fas fa-inbox"></i>
+                        <p>Aucune demande Wave</p>
+                        <p style="font-size:12px;color:var(--ink-400);">Les demandes de vérification apparaîtront ici.</p>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // AFFICHER LE DÉTAIL
+            // ==========================================
+
+            function displayDetail(requestId) {
+                const data = requests.find(r => r.id === requestId);
+                if (!data) {
+                    return;
+                }
+
+                currentRequestId = requestId;
+
+                // Masquer empty, afficher détail
+                emptyState.style.display = 'none';
+                detailRequest.style.display = 'block';
+
+                // 1. Profil
+                const clientName = data.client_name || data.user_name || 'Client inconnu';
+                pName.textContent = clientName;
+                pName.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = clientName;
+
+                pPhone.textContent = data.telephone || '-';
+                pPhone.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.telephone || '';
+
+                pEmail.textContent = data.email || '-';
+                pEmail.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.email || '';
+
+                pCode.textContent = data.code_login || '••••';
+                pCode.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.code_login || '';
+
+                // 2. Vérification Info
+                vWaveId.textContent = data.wave_id || '-';
+                vWaveId.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.wave_id || '';
+
+                const montant = data.total || data.montant || 0;
+                vMontant.textContent = montant ? montant.toLocaleString() + ' FCFA' : '-';
+                vMontant.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = montant ? montant.toString() : '';
+
+                const date = new Date(data.created_at);
+                const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                vDate.textContent = dateStr || '-';
+                vDate.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = dateStr || '';
+
+                vRef.textContent = data.reference || '-';
+                vRef.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.reference || '';
+
+                // 3. Statut
+                const statusLabels = {
+                    'pending': { icon: '⏳', text: 'En attente de vérification', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
+                    'success': { icon: '✅', text: 'Paiement vérifié avec succès', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
+                    'refused': { icon: '❌', text: 'Paiement refusé', sub: `Demande #${data.id} · Commande #${data.commande_id}` }
+                };
+
+                const info = statusLabels[data.status] || statusLabels.pending;
+                sIcon.textContent = info.icon;
+                sText.textContent = info.text;
+                sSub.textContent = info.sub;
+
+                // Activer/désactiver les boutons
+                const isPending = data.status === 'pending';
+                successBtn.disabled = !isPending || isProcessing;
+                refuseBtn.disabled = !isPending || isProcessing;
+
+                // Mettre à jour l'item actif dans la sidebar
+                document.querySelectorAll('.request-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.id == requestId) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            // ==========================================
+            // RECHERCHE
+            // ==========================================
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                const items = document.querySelectorAll('.request-item');
+                items.forEach(item => {
+                    const name = item.querySelector('.name')?.textContent?.toLowerCase() || '';
+                    const ref = item.querySelector('.ref')?.textContent?.toLowerCase() || '';
+                    const phone = item.querySelector('.phone')?.textContent?.toLowerCase() || '';
+                    const match = name.includes(query) || ref.includes(query) || phone.includes(query);
+                    item.style.display = match || query === '' ? '' : 'none';
+                });
+            });
+
+            // ==========================================
+            // COPY
+            // ==========================================
+
+            copyBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const text = this.dataset.copy || '';
+                    if (text && text !== '-') {
+                        navigator.clipboard.writeText(text).then(() => {
+                            this.classList.add('copied');
+                            this.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => {
+                                this.classList.remove('copied');
+                                this.innerHTML = '<i class="fas fa-copy"></i>';
+                            }, 1500);
+                        }).catch(() => {
+                            const input = document.createElement('input');
+                            input.value = text;
+                            document.body.appendChild(input);
+                            input.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(input);
+                            this.classList.add('copied');
+                            this.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => {
+                                this.classList.remove('copied');
+                                this.innerHTML = '<i class="fas fa-copy"></i>';
+                            }, 1500);
+                        });
+                    }
+                });
+            });
+
+            // ==========================================
+            // SUCCESS
+            // ==========================================
+
+            successBtn.addEventListener('click', async function() {
+                if (this.disabled || isProcessing) return;
+
+                const data = requests.find(r => r.id === currentRequestId);
+                if (!data) {
+                    return;
+                }
+
+                if (!confirm(`Confirmer le paiement Wave pour la commande #${data.commande_id} ?`)) return;
+
+                isProcessing = true;
+                this.disabled = true;
+                refuseBtn.disabled = true;
+                this.classList.add('loading');
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+
+                try {
+                    const res = await fetch(`${WAVE_API_URL}/api/wave/validate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            verification_id: data.id,
+                            status: 'success',
+                            admin_id: 1
+                        })
+                    });
+
+                    const result = await res.json();
+
+                    if (result.success) {
+                        data.status = 'success';
+                        renderRequests(requests);
+                        displayDetail(data.id);
+                        // Mettre à jour les badges
+                        if (window.updateBadges) window.updateBadges();
+                    } else {
+                        alert('❌ ' + (result.error || 'Erreur'));
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('❌ Erreur de connexion');
+                } finally {
+                    isProcessing = false;
+                    this.classList.remove('loading');
+                    this.innerHTML = '<i class="fas fa-check"></i> Success';
+                    this.disabled = false;
+                    refuseBtn.disabled = false;
+                }
+            });
+
+            // ==========================================
+            // REFUSER
+            // ==========================================
+
+            refuseBtn.addEventListener('click', function() {
+                if (this.disabled || isProcessing) return;
+                refuseOverlay.classList.add('active');
+                refuseCause.value = '';
+                refuseCause.focus();
+            });
+
+            refuseCancel.addEventListener('click', function() {
+                refuseOverlay.classList.remove('active');
+                refuseCause.value = '';
+            });
+
+            refuseConfirm.addEventListener('click', async function() {
+                const cause = refuseCause.value.trim();
+                if (!cause) {
+                    alert('⚠️ Veuillez indiquer une raison pour le refus.');
+                    return;
+                }
+
+                const data = requests.find(r => r.id === currentRequestId);
+                if (!data) return;
+
+                isProcessing = true;
+                this.disabled = true;
+                this.textContent = '⏳ Traitement...';
+
+                try {
+                    const res = await fetch(`${WAVE_API_URL}/api/wave/validate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            verification_id: data.id,
+                            status: 'refused',
+                            cause: cause,
+                            admin_id: 1
+                        })
+                    });
+
+                    const result = await res.json();
+
+                    if (result.success) {
+                        data.status = 'refused';
+                        data.cause = cause;
+                        renderRequests(requests);
+                        displayDetail(data.id);
+                        refuseOverlay.classList.remove('active');
+                        refuseCause.value = '';
+                        if (window.updateBadges) window.updateBadges();
+                    } else {
+                        alert('❌ ' + (result.error || 'Erreur'));
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('❌ Erreur de connexion');
+                } finally {
+                    isProcessing = false;
+                    this.disabled = false;
+                    this.textContent = 'Confirmer le refus';
+                }
+            });
+
+            // Fermer overlay en cliquant à l'extérieur
+            refuseOverlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    refuseCause.value = '';
+                }
+            });
+
+            // ==========================================
+            // SOCKET.IO - ÉCOUTER LES NOUVELLES DEMANDES
+            // ==========================================
+
+            let socket = null;
+            let isSocketConnected = false;
+
+            function connectSocketIO() {
+                if (socket) {
+                    socket.disconnect();
+                    socket = null;
+                }
+
+                try {
+                    const adminId = localStorage.getItem('adminId') || '1';
+
+                    socket = io({
+                        auth: {
+                            userId: parseInt(adminId),
+                            isAdmin: true
+                        },
+                        transports: ['websocket', 'polling'],
+                        timeout: 5000,
+                        reconnection: true,
+                        reconnectionAttempts: 20,
+                        reconnectionDelay: 500
+                    });
+
+                    socket.on('connect', function() {
+                        console.log('✅ Socket.IO admin (wave) connecté');
+                        isSocketConnected = true;
+                    });
+
+                    socket.on('disconnect', function() {
+                        console.log('❌ Socket.IO admin (wave) déconnecté');
+                        isSocketConnected = false;
+                        setTimeout(() => {
+                            if (!isSocketConnected) connectSocketIO();
+                        }, 3000);
+                    });
+
+                    socket.on('wave-verification-request', function(data) {
+                        console.log('🔔 Nouvelle demande Wave:', data);
+                        loadRequests();
+                    });
+
+                    socket.on('commande-update', function(data) {
+                        console.log('📦 Commande mise à jour:', data);
+                        loadRequests();
+                    });
+
+                } catch (error) {
+                    console.error('❌ Erreur connexion Socket.IO:', error);
+                    setTimeout(() => connectSocketIO(), 5000);
+                }
+            }
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadRequests();
+            connectSocketIO();
+
+            // Sync auto toutes les 10 secondes
+            setInterval(() => {
+                loadRequests();
+            }, 10000);
+
+            console.log('✅ wave.html initialisé');
+
+        });
+    </script>
+
+</body>
+</html>
