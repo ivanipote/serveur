@@ -288,31 +288,83 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // METTRE À JOUR LES BADGES
+    // METTRE À JOUR LES BADGES (INDÉPENDANTS)
     // ==========================================
 
     async function updateBadges() {
+        // ✅ 1. Commandes en attente
         try {
-            // Commandes en attente
             const res1 = await fetch('/api/admin/commandes');
-            const data1 = await res1.json();
-            const commandesEnAttente = data1.filter(c => c.status === 'en_attente' || c.status === 'accepter').length;
-            badgeCommandes.textContent = commandesEnAttente > 0 ? commandesEnAttente : '0';
-
-            // Demandes Wave en attente
-            const res2 = await fetch('https://server-wave-js.onrender.com/api/wave/requests');
-            const data2 = await res2.json();
-            const waveEnAttente = data2.requests ? data2.requests.filter(r => r.status === 'pending').length : 0;
-            badgeWave.textContent = waveEnAttente > 0 ? waveEnAttente : '0';
-
-            // Paiements en attente
-            const res3 = await fetch('/api/admin/payments');
-            const data3 = await res3.json();
-            const paymentsEnAttente = data3.filter(p => p.status === 'pending' || p.genius_status === 'pending').length;
-            badgePayments.textContent = paymentsEnAttente > 0 ? paymentsEnAttente : '0';
-
+            if (res1.ok) {
+                const data1 = await res1.json();
+                const commandesEnAttente = data1.filter(c => c.status === 'en_attente' || c.status === 'accepter').length;
+                if (badgeCommandes) {
+                    badgeCommandes.textContent = commandesEnAttente > 0 ? commandesEnAttente : '0';
+                    badgeCommandes.className = 'badge-nav badge-red' + (commandesEnAttente === 0 ? ' zero' : '');
+                }
+            } else {
+                console.warn('⚠️ Erreur commandes:', res1.status);
+                if (badgeCommandes) {
+                    badgeCommandes.textContent = '0';
+                    badgeCommandes.className = 'badge-nav badge-red zero';
+                }
+            }
         } catch (error) {
-            console.error('Erreur badges:', error);
+            console.error('❌ Erreur commandes:', error);
+            if (badgeCommandes) {
+                badgeCommandes.textContent = '0';
+                badgeCommandes.className = 'badge-nav badge-red zero';
+            }
+        }
+
+        // ✅ 2. Paiements en attente
+        try {
+            const res3 = await fetch('/api/admin/payments');
+            if (res3.ok) {
+                const data3 = await res3.json();
+                const paymentsEnAttente = data3.filter(p => p.status === 'pending' || p.genius_status === 'pending').length;
+                if (badgePayments) {
+                    badgePayments.textContent = paymentsEnAttente > 0 ? paymentsEnAttente : '0';
+                    badgePayments.className = 'badge-nav badge-red' + (paymentsEnAttente === 0 ? ' zero' : '');
+                }
+            } else {
+                console.warn('⚠️ Erreur paiements:', res3.status);
+                if (badgePayments) {
+                    badgePayments.textContent = '0';
+                    badgePayments.className = 'badge-nav badge-red zero';
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur paiements:', error);
+            if (badgePayments) {
+                badgePayments.textContent = '0';
+                badgePayments.className = 'badge-nav badge-red zero';
+            }
+        }
+
+        // ✅ 3. Wave en attente (indépendant - ne bloque pas les autres)
+        try {
+            const res2 = await fetch('https://server-wave-js.onrender.com/api/wave/requests');
+            if (res2.ok) {
+                const data2 = await res2.json();
+                const waveEnAttente = data2.requests ? data2.requests.filter(r => r.status === 'pending').length : 0;
+                if (badgeWave) {
+                    badgeWave.textContent = waveEnAttente > 0 ? waveEnAttente : '0';
+                    badgeWave.className = 'badge-nav badge-red' + (waveEnAttente === 0 ? ' zero' : '');
+                }
+            } else {
+                // ✅ Si Wave ne répond pas → badge à 0 (silencieux)
+                if (badgeWave) {
+                    badgeWave.textContent = '0';
+                    badgeWave.className = 'badge-nav badge-red zero';
+                }
+            }
+        } catch (error) {
+            // ✅ Erreur Wave → badge à 0 (silencieux)
+            if (badgeWave) {
+                badgeWave.textContent = '0';
+                badgeWave.className = 'badge-nav badge-red zero';
+            }
         }
     }
 
@@ -427,6 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Exposer globalement pour les autres pages
     window.showConfirm = showConfirm;
     window.hideConfirm = hideConfirm;
+    window.updateBadges = updateBadges;
 
     // Charger la vue d'ensemble
     loadOverview();
