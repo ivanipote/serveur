@@ -66,6 +66,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let isAdminVerified = false;
 
     // ==========================================
+    // VÉRIFICATION CONNEXION ADMIN
+    // ==========================================
+
+    function checkAdminAuth() {
+        const adminToken = localStorage.getItem('adminToken');
+        if (!adminToken) {
+            window.location.href = '/admin/login';
+            return false;
+        }
+        return true;
+    }
+
+    // ==========================================
     // CHARGER LES COMMANDES
     // ==========================================
 
@@ -187,12 +200,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Remplir les détails
         dId.textContent = `#${commande.id}`;
+        dId.style.color = '#2563EB';
+        dId.style.fontWeight = '600';
+
         dRef.textContent = commande.reference || '-';
+        dRef.style.color = '#17A464';
+        dRef.style.fontWeight = '600';
+
         dClient.textContent = commande.nom || '-';
+        dClient.style.color = '#10141F';
+
         dPhone.textContent = commande.telephone || '-';
+        dPhone.style.color = '#10141F';
+
         dTotal.textContent = (commande.total || 0).toLocaleString() + ' FCFA';
+        dTotal.style.color = '#0E7A49';
+        dTotal.style.fontWeight = '700';
+        dTotal.style.fontSize = '16px';
+
         dStatus.textContent = commande.status || '-';
+        dStatus.className = 'value status-badge ' + commande.status;
+
         dDate.textContent = new Date(commande.created_at).toLocaleString('fr-FR');
+        dDate.style.color = '#9CA3AF';
 
         // Produits
         let produits = [];
@@ -236,11 +266,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (commande.latitude && commande.longitude) {
             pGps.textContent = `${commande.latitude}, ${commande.longitude}`;
             openMapsBtn.style.display = 'inline-flex';
+            openMapsBtn.dataset.mode = 'coords';
             openMapsBtn.dataset.lat = commande.latitude;
             openMapsBtn.dataset.lon = commande.longitude;
         } else {
-            pGps.textContent = 'Non renseigné';
-            openMapsBtn.style.display = 'none';
+            const adresse = `${commande.commune || ''} ${commande.quartier || ''} ${commande.precision || ''}`.trim();
+            if (adresse) {
+                pGps.textContent = 'Recherche par adresse disponible';
+                openMapsBtn.style.display = 'inline-flex';
+                openMapsBtn.dataset.mode = 'search';
+                openMapsBtn.dataset.adresse = encodeURIComponent(adresse + ' Abidjan');
+            } else {
+                pGps.textContent = 'Non renseigné';
+                openMapsBtn.style.display = 'none';
+            }
         }
 
         // Reset message
@@ -252,6 +291,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Reset urgence
         adminCode.value = '';
+        adminCode.disabled = false;
+        verifyAdminBtn.style.display = 'inline-flex';
         urgenceStatus.className = 'urgence-status';
         urgenceStatus.textContent = '';
         urgenceStatus.style.display = 'none';
@@ -301,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // TAB : STATUT
+    // TAB : STATUT (TOUS LES BOUTONS ACTIFS)
     // ==========================================
 
     function updateStatutTab(commande) {
@@ -326,10 +367,16 @@ document.addEventListener('DOMContentLoaded', function() {
             statutMessage.style.display = 'none';
         }
 
-        // Boutons de changement de statut
+        // ✅ TOUS les boutons actifs (pas de verrouillage)
         const statusBtns = statutActions.querySelectorAll('.btn-status-change');
         statusBtns.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.status === commande.status);
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.classList.remove('active');
+            if (btn.dataset.status === commande.status) {
+                btn.classList.add('active');
+            }
         });
 
         // Reset résultat
@@ -366,15 +413,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     statutMessageResult.textContent = '✅ Statut mis à jour avec succès !';
                     statutMessageResult.style.display = 'block';
 
-                    // Mettre à jour la commande dans le tableau
                     const cmd = allCommandes.find(c => c.id === commandeId);
                     if (cmd) cmd.status = newStatus;
 
-                    // Mettre à jour le statut affiché
                     updateStatutTab({ ...currentCommandeData, status: newStatus });
                     renderCommandes();
 
-                    // Mettre à jour les badges
                     if (window.updateBadges) window.updateBadges();
 
                 } else {
@@ -398,7 +442,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = currentCommandeData;
         if (!data) return;
 
-        const produits = JSON.parse(data.panier || '[]');
+        let produits = [];
+        try {
+            produits = JSON.parse(data.panier || '[]');
+        } catch (e) {
+            produits = [];
+        }
         const produitsText = produits.map(p => `${p.name} × ${p.quantity} = ${(p.price * p.quantity).toLocaleString()} FCFA`).join('\n');
 
         const text = `
@@ -457,10 +506,19 @@ ${produitsText || 'Aucun produit'}
     // ==========================================
 
     openMapsBtn.addEventListener('click', function() {
-        const lat = this.dataset.lat;
-        const lon = this.dataset.lon;
-        if (lat && lon) {
-            window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank');
+        const mode = this.dataset.mode;
+
+        if (mode === 'coords') {
+            const lat = this.dataset.lat;
+            const lon = this.dataset.lon;
+            if (lat && lon) {
+                window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank');
+            }
+        } else if (mode === 'search') {
+            const adresse = this.dataset.adresse;
+            if (adresse) {
+                window.open(`https://www.google.com/maps/search/${adresse}`, '_blank');
+            }
         }
     });
 
@@ -525,7 +583,7 @@ ${produitsText || 'Aucun produit'}
     });
 
     // ==========================================
-    // TAB : URGENCE
+    // TAB : URGENCE (avec vérification login admin)
     // ==========================================
 
     verifyAdminBtn.addEventListener('click', async function() {
@@ -542,7 +600,8 @@ ${produitsText || 'Aucun produit'}
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
 
         try {
-            const res = await fetch('/api/client/verify-code', {
+            // ✅ Vérification via l'API admin (vérification en base)
+            const res = await fetch('/api/admin/verify-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: code })
@@ -564,6 +623,7 @@ ${produitsText || 'Aucun produit'}
                 urgenceStatus.style.display = 'block';
             }
         } catch (error) {
+            console.error('Erreur vérification admin:', error);
             urgenceStatus.className = 'urgence-status error';
             urgenceStatus.textContent = '❌ Erreur de connexion';
             urgenceStatus.style.display = 'block';
@@ -646,7 +706,6 @@ ${produitsText || 'Aucun produit'}
                         this.innerHTML = '<i class="fas fa-copy"></i>';
                     }, 1500);
                 }).catch(() => {
-                    // Fallback
                     const input = document.createElement('input');
                     input.value = text;
                     document.body.appendChild(input);
@@ -667,6 +726,9 @@ ${produitsText || 'Aucun produit'}
     // ==========================================
     // INITIALISATION
     // ==========================================
+
+    // Vérifier l'authentification admin
+    if (!checkAdminAuth()) return;
 
     // Exposer openCommande globalement
     window.openCommande = window.openCommande;
