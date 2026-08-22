@@ -98,6 +98,20 @@
             color: #34D399;
         }
 
+        .admin-header .header-left .solde-wave {
+            color: #34D399;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 700;
+            background: rgba(52, 211, 153, 0.12);
+            padding: 4px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .admin-header .header-center {
             display: flex;
             align-items: center;
@@ -675,6 +689,93 @@
             color: var(--red);
         }
 
+        /* ===== RECTANGLE HISTORIQUE ===== */
+        .historique-rect {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            margin-top: 16px;
+        }
+
+        .historique-rect .h-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .historique-rect .h-title i {
+            color: var(--brand);
+        }
+
+        .historique-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--surface-alt);
+            font-size: 13px;
+        }
+
+        .historique-item:last-child {
+            border-bottom: none;
+        }
+
+        .historique-item .h-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .historique-item .h-info .h-status {
+            font-weight: 600;
+        }
+
+        .historique-item .h-info .h-status.success {
+            color: var(--brand-dark);
+        }
+
+        .historique-item .h-info .h-status.refused {
+            color: var(--red);
+        }
+
+        .historique-item .h-info .h-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 999px;
+        }
+
+        .historique-item .h-info .h-badge.success {
+            background: var(--green-tint);
+            color: var(--brand-dark);
+        }
+
+        .historique-item .h-info .h-badge.refused {
+            background: var(--red-tint);
+            color: var(--red);
+        }
+
+        .historique-item .h-date {
+            font-size: 11px;
+            color: var(--ink-400);
+            font-family: var(--font-mono);
+        }
+
+        .historique-item .h-montant {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
         /* ===== COPY BUTTON ===== */
         .copy-btn-mini {
             background: none;
@@ -973,6 +1074,7 @@
             }
             .admin-header .header-left {
                 justify-content: center;
+                flex-wrap: wrap;
             }
             .admin-header .header-center {
                 justify-content: center;
@@ -1055,6 +1157,10 @@
             }
             .admin-header .header-left .logo {
                 font-size: 15px;
+            }
+            .admin-header .header-left .solde-wave {
+                font-size: 13px;
+                padding: 2px 10px;
             }
             .admin-header .header-center .header-badge {
                 font-size: 10px;
@@ -1178,6 +1284,9 @@
     <header class="admin-header">
         <div class="header-left">
             <span class="logo">🌿 Nature<span>+</span></span>
+            <span class="solde-wave">
+                💰 <span id="soldeAmount">0</span> FCFA
+            </span>
         </div>
         <div class="header-center">
             <a href="/admin/comm.html" class="header-badge">
@@ -1315,6 +1424,14 @@
                     </div>
                 </div>
 
+                <!-- RECTANGLE 3 : HISTORIQUE -->
+                <div class="historique-rect" id="historiqueRect" style="display:none;">
+                    <div class="h-title"><i class="fas fa-clock"></i> Historique de la demande</div>
+                    <div id="historiqueList">
+                        <p style="color:var(--ink-400);font-size:13px;">Aucun historique disponible.</p>
+                    </div>
+                </div>
+
             </div>
 
         </main>
@@ -1386,6 +1503,11 @@
             const vDate = document.getElementById('vDate');
             const vRef = document.getElementById('vRef');
 
+            const historiqueRect = document.getElementById('historiqueRect');
+            const historiqueList = document.getElementById('historiqueList');
+
+            const soldeAmount = document.getElementById('soldeAmount');
+
             const refuseOverlay = document.getElementById('refuseOverlay');
             const refuseCancel = document.getElementById('refuseCancel');
             const refuseConfirm = document.getElementById('refuseConfirm');
@@ -1409,6 +1531,22 @@
 
             const adminName = localStorage.getItem('adminName') || 'Admin';
             document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // CHARGER LE SOLDE
+            // ==========================================
+
+            async function loadSolde() {
+                try {
+                    const res = await fetch(`${WAVE_API_URL}/api/wave/solde`);
+                    const data = await res.json();
+                    if (data.success) {
+                        soldeAmount.textContent = data.solde.toLocaleString();
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement solde:', error);
+                }
+            }
 
             // ==========================================
             // TOGGLE HISTORIQUE
@@ -1444,7 +1582,6 @@
                                 displayDetail(requests[0].id);
                             }
                         } else {
-                            // Rafraîchir le détail si la demande existe encore
                             const exists = requests.find(r => r.id === currentRequestId);
                             if (exists) {
                                 displayDetail(currentRequestId);
@@ -1485,13 +1622,11 @@
                 let html = '';
 
                 if (showHistory) {
-                    // ✅ MODE HISTORIQUE : toutes les demandes, triées par date (plus récent en premier)
                     const all = [...requestsData].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     all.forEach(r => {
                         html += renderItem(r, true);
                     });
                 } else {
-                    // ✅ MODE NORMAL : pending en haut, historique en bas
                     const pending = requestsData.filter(r => r.status === 'pending');
                     const done = requestsData.filter(r => r.status !== 'pending');
 
@@ -1517,7 +1652,6 @@
 
                 requestsList.innerHTML = html;
 
-                // Attacher les événements
                 document.querySelectorAll('.request-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const id = parseInt(this.dataset.id);
@@ -1620,27 +1754,73 @@
                 sText.textContent = info.text;
                 sSub.textContent = info.sub;
 
-                // ✅ Activer/désactiver les boutons selon le statut
                 const isPending = data.status === 'pending';
                 const isSuccess = data.status === 'success';
 
                 successBtn.disabled = !isPending || isProcessing;
                 refuseBtn.disabled = !isPending || isProcessing;
 
-                // ✅ Bouton Remboursement : visible uniquement si statut = success
                 if (isSuccess) {
                     remboursementBtn.style.display = 'inline-flex';
                 } else {
                     remboursementBtn.style.display = 'none';
                 }
 
-                // Mettre à jour l'item actif dans la sidebar
+                // 4. Historique
+                renderHistorique(data);
+
                 document.querySelectorAll('.request-item').forEach(item => {
                     item.classList.remove('active');
                     if (item.dataset.id == requestId) {
                         item.classList.add('active');
                     }
                 });
+            }
+
+            // ==========================================
+            // AFFICHER L'HISTORIQUE
+            // ==========================================
+
+            function renderHistorique(data) {
+                const statusLabels = {
+                    'pending': { label: '⏳ En attente', class: 'pending' },
+                    'success': { label: '✅ Succès', class: 'success' },
+                    'refused': { label: '❌ Refusée', class: 'refused' }
+                };
+
+                const dateValidation = data.extra1 ? new Date(data.extra1) : null;
+                const typeAction = data.extra3 || data.status;
+                const montantValide = data.extra4 ? parseInt(data.extra4) : 0;
+
+                // ✅ Vérifier s'il y a un historique (date_validation ou status différent de pending)
+                const hasHistory = dateValidation || (data.status !== 'pending' && data.status !== 'en_attente');
+
+                if (!hasHistory) {
+                    historiqueRect.style.display = 'none';
+                    return;
+                }
+
+                historiqueRect.style.display = 'block';
+                const statusInfo = statusLabels[data.status] || statusLabels.pending;
+
+                let html = '';
+
+                // ✅ Afficher l'historique de la demande
+                const dateStr = dateValidation ? dateValidation.toLocaleDateString('fr-FR') + ' ' + dateValidation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+                html += `
+                    <div class="historique-item">
+                        <div class="h-info">
+                            <span class="h-status ${data.status}">${statusInfo.label}</span>
+                            <span class="h-badge ${data.status}">${data.status === 'success' ? '✅ Confirmé' : data.status === 'refused' ? '❌ Refusé' : '⏳ En attente'}</span>
+                            ${montantValide > 0 ? `<span class="h-montant">${montantValide.toLocaleString()} FCFA</span>` : ''}
+                            ${data.cause ? `<span style="font-size:12px;color:var(--ink-500);">· ${data.cause}</span>` : ''}
+                        </div>
+                        <span class="h-date">${dateStr}</span>
+                    </div>
+                `;
+
+                historiqueList.innerHTML = html;
             }
 
             // ==========================================
@@ -1726,9 +1906,9 @@
 
                     if (result.success) {
                         data.status = 'success';
-                        // Mettre à jour la liste
                         renderRequests(requests);
                         displayDetail(data.id);
+                        loadSolde();
                         if (window.updateBadges) window.updateBadges();
                     } else {
                         alert('❌ ' + (result.error || 'Erreur'));
@@ -1810,7 +1990,6 @@
                 }
             });
 
-            // Fermer overlay refuser en cliquant à l'extérieur
             refuseOverlay.addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.remove('active');
@@ -1843,10 +2022,8 @@
                 const data = requests.find(r => r.id === currentRequestId);
                 if (!data) return;
 
-                // Récupérer le nom du client
                 const clientName = data.client_name || data.user_name || 'Client';
 
-                // Envoyer une notification au client
                 try {
                     const res = await fetch('/api/admin/notification/send', {
                         method: 'POST',
@@ -1871,7 +2048,6 @@
                 }
             });
 
-            // Fermer overlay remboursement en cliquant à l'extérieur
             remboursementOverlay.addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.remove('active');
@@ -1880,7 +2056,7 @@
             });
 
             // ==========================================
-            // SOCKET.IO - ÉCOUTER LES NOUVELLES DEMANDES
+            // SOCKET.IO
             // ==========================================
 
             let socket = null;
@@ -1930,6 +2106,15 @@
                         loadRequests();
                     });
 
+                    socket.on('solde-update', function(data) {
+                        console.log('💰 Solde mis à jour:', data);
+                        if (data.solde !== undefined) {
+                            soldeAmount.textContent = data.solde.toLocaleString();
+                        } else {
+                            loadSolde();
+                        }
+                    });
+
                 } catch (error) {
                     console.error('❌ Erreur connexion Socket.IO:', error);
                     setTimeout(() => connectSocketIO(), 5000);
@@ -1940,10 +2125,10 @@
             // INITIALISATION
             // ==========================================
 
+            loadSolde();
             loadRequests();
             connectSocketIO();
 
-            // Sync auto toutes les 10 secondes
             setInterval(() => {
                 loadRequests();
             }, 10000);
