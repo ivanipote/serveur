@@ -211,8 +211,8 @@
            ============================================================= */
 
         .sidebar-wave {
-            width: 340px;
-            min-width: 280px;
+            width: 400px;
+            min-width: 320px;
             background: var(--surface);
             border-right: 1px solid var(--border);
             display: flex;
@@ -221,13 +221,17 @@
         }
 
         .sidebar-wave .search-area {
-            padding: 16px 16px 12px 16px;
+            padding: 14px 16px 12px 16px;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .sidebar-wave .search-area .search-wrapper {
             position: relative;
+            flex: 1;
             display: flex;
             align-items: center;
         }
@@ -259,6 +263,35 @@
 
         .sidebar-wave .search-area .search-wrapper input::placeholder {
             color: var(--ink-400);
+        }
+
+        .sidebar-wave .search-area .btn-history {
+            padding: 10px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-alt);
+            color: var(--ink-700);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .sidebar-wave .search-area .btn-history:hover {
+            border-color: var(--brand);
+            color: var(--brand-dark);
+            background: var(--brand-tint);
+        }
+
+        .sidebar-wave .search-area .btn-history.active {
+            border-color: var(--brand);
+            background: var(--brand-tint);
+            color: var(--brand-dark);
         }
 
         .sidebar-wave .requests-list {
@@ -488,6 +521,7 @@
         .status-card .status-actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .status-card .status-actions .btn-status {
@@ -527,6 +561,31 @@
             opacity: 0.4;
             cursor: not-allowed;
             transform: none;
+            background: var(--surface-alt);
+            color: var(--ink-400);
+            border: 1px solid var(--border);
+        }
+
+        /* ===== BOUTON REMBOURSEMENT ===== */
+        .btn-remboursement {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #FFF3DF;
+            color: #B45309;
+            border: 1px solid #F5DBAA;
+        }
+
+        .btn-remboursement:hover {
+            background: #F5DBAA;
+            transform: scale(1.02);
         }
 
         /* ===== RECTANGLE USER PROFIL ===== */
@@ -642,7 +701,10 @@
             opacity: 1;
         }
 
-        /* ===== OVERLAY REFUSER ===== */
+        /* =============================================================
+           OVERLAY REFUSER
+           ============================================================= */
+
         .refuse-overlay {
             position: fixed;
             top: 0;
@@ -757,6 +819,118 @@
         }
 
         /* =============================================================
+           OVERLAY REMBOURSEMENT
+           ============================================================= */
+
+        .remboursement-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 12, 20, 0.55);
+            backdrop-filter: blur(6px);
+            z-index: 210;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .remboursement-overlay.active {
+            display: flex;
+        }
+
+        .remboursement-box {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: scaleIn 0.2s ease;
+        }
+
+        .remboursement-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ink-900);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .remboursement-box h3 i {
+            color: #B45309;
+        }
+
+        .remboursement-box p {
+            font-size: 14px;
+            color: var(--ink-500);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .remboursement-box textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: var(--font-ui);
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: var(--surface-alt);
+            color: var(--ink-900);
+        }
+
+        .remboursement-box textarea:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+        }
+
+        .remboursement-box .remboursement-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .remboursement-box .remboursement-actions .btn-cancel {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-alt);
+            color: var(--ink-700);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .remboursement-box .remboursement-actions .btn-cancel:hover {
+            background: var(--border);
+        }
+
+        .remboursement-box .remboursement-actions .btn-confirm {
+            flex: 2;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #B45309;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .remboursement-box .remboursement-actions .btn-confirm:hover {
+            background: #8B5E3C;
+        }
+
+        /* =============================================================
            EMPTY STATE
            ============================================================= */
 
@@ -785,8 +959,8 @@
 
         @media (max-width: 992px) {
             .sidebar-wave {
-                width: 280px;
-                min-width: 240px;
+                width: 320px;
+                min-width: 280px;
             }
         }
 
@@ -828,6 +1002,15 @@
                 max-height: 340px;
                 border-right: none;
                 border-bottom: 1px solid var(--border);
+            }
+
+            .sidebar-wave .search-area {
+                flex-wrap: wrap;
+            }
+
+            .sidebar-wave .search-area .btn-history {
+                font-size: 12px;
+                padding: 8px 12px;
             }
 
             .main-wave {
@@ -896,6 +1079,11 @@
                 max-height: 280px;
             }
 
+            .sidebar-wave .search-area .btn-history {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
             .main-wave {
                 padding: 12px;
             }
@@ -938,6 +1126,14 @@
             }
 
             .refuse-box h3 {
+                font-size: 16px;
+            }
+
+            .remboursement-box {
+                padding: 20px 18px;
+            }
+
+            .remboursement-box h3 {
                 font-size: 16px;
             }
 
@@ -1012,12 +1208,15 @@
 
         <!-- ===== SIDEBAR WAVE ===== -->
         <aside class="sidebar-wave">
-            <!-- Recherche -->
+            <!-- Recherche + Historique -->
             <div class="search-area">
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Rechercher un client..." />
                 </div>
+                <button class="btn-history" id="historyBtn">
+                    <i class="fas fa-clock"></i> Historique
+                </button>
             </div>
 
             <!-- Liste des demandes -->
@@ -1057,6 +1256,9 @@
                         </button>
                         <button class="btn-status refuse-btn" id="refuseBtn">
                             <i class="fas fa-times"></i> Refuser
+                        </button>
+                        <button class="btn-remboursement" id="remboursementBtn" style="display:none;">
+                            <i class="fas fa-undo-alt"></i> Remboursement
                         </button>
                     </div>
                 </div>
@@ -1131,6 +1333,19 @@
         </div>
     </div>
 
+    <!-- ===== OVERLAY REMBOURSEMENT ===== -->
+    <div class="remboursement-overlay" id="remboursementOverlay">
+        <div class="remboursement-box">
+            <h3><i class="fas fa-undo-alt"></i> Remboursement</h3>
+            <p>Informez le client du remboursement effectué sur Wave Business.</p>
+            <textarea id="remboursementCause" placeholder="Ex: Remboursement effectué suite à une erreur de montant..." rows="3"></textarea>
+            <div class="remboursement-actions">
+                <button class="btn-cancel" id="remboursementCancel">Annuler</button>
+                <button class="btn-confirm" id="remboursementConfirm">📨 Envoyer</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ============================================================= -->
     <!-- SCRIPTS                                                        -->
     <!-- ============================================================= -->
@@ -1149,6 +1364,7 @@
 
             const requestsList = document.getElementById('requestsList');
             const searchInput = document.getElementById('searchInput');
+            const historyBtn = document.getElementById('historyBtn');
 
             const emptyState = document.getElementById('emptyState');
             const detailRequest = document.getElementById('detailRequest');
@@ -1158,6 +1374,7 @@
             const sSub = document.getElementById('sSub');
             const successBtn = document.getElementById('successBtn');
             const refuseBtn = document.getElementById('refuseBtn');
+            const remboursementBtn = document.getElementById('remboursementBtn');
 
             const pName = document.getElementById('pName');
             const pPhone = document.getElementById('pPhone');
@@ -1174,11 +1391,17 @@
             const refuseConfirm = document.getElementById('refuseConfirm');
             const refuseCause = document.getElementById('refuseCause');
 
+            const remboursementOverlay = document.getElementById('remboursementOverlay');
+            const remboursementCancel = document.getElementById('remboursementCancel');
+            const remboursementConfirm = document.getElementById('remboursementConfirm');
+            const remboursementCause = document.getElementById('remboursementCause');
+
             const copyBtns = document.querySelectorAll('.copy-btn-mini');
 
             let requests = [];
             let currentRequestId = null;
             let isProcessing = false;
+            let showHistory = false;
 
             // ==========================================
             // NOM ADMIN
@@ -1186,6 +1409,19 @@
 
             const adminName = localStorage.getItem('adminName') || 'Admin';
             document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // TOGGLE HISTORIQUE
+            // ==========================================
+
+            historyBtn.addEventListener('click', function() {
+                showHistory = !showHistory;
+                this.classList.toggle('active', showHistory);
+                this.innerHTML = showHistory ?
+                    '<i class="fas fa-arrow-left"></i> Retour' :
+                    '<i class="fas fa-clock"></i> Historique';
+                renderRequests(requests);
+            });
 
             // ==========================================
             // CHARGER LES DEMANDES
@@ -1200,12 +1436,26 @@
                         requests = data.requests;
                         renderRequests(requests);
 
-                        // Sélectionner la première demande en attente ou la première
-                        const firstPending = requests.find(r => r.status === 'pending');
-                        if (firstPending) {
-                            displayDetail(firstPending.id);
-                        } else if (requests.length > 0) {
-                            displayDetail(requests[0].id);
+                        if (!currentRequestId) {
+                            const firstPending = requests.find(r => r.status === 'pending');
+                            if (firstPending) {
+                                displayDetail(firstPending.id);
+                            } else if (requests.length > 0) {
+                                displayDetail(requests[0].id);
+                            }
+                        } else {
+                            // Rafraîchir le détail si la demande existe encore
+                            const exists = requests.find(r => r.id === currentRequestId);
+                            if (exists) {
+                                displayDetail(currentRequestId);
+                            } else {
+                                const firstPending = requests.find(r => r.status === 'pending');
+                                if (firstPending) {
+                                    displayDetail(firstPending.id);
+                                } else if (requests.length > 0) {
+                                    displayDetail(requests[0].id);
+                                }
+                            }
                         }
                     } else {
                         requests = [];
@@ -1232,34 +1482,38 @@
                     return;
                 }
 
-                // Séparer pending et done
-                const pending = requestsData.filter(r => r.status === 'pending');
-                const done = requestsData.filter(r => r.status !== 'pending');
-
-                // Trier : pending par date (plus récent en premier), done par date (plus récent en premier)
-                pending.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                done.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
                 let html = '';
 
-                // Pending
-                pending.forEach(r => {
-                    html += renderItem(r, false);
-                });
+                if (showHistory) {
+                    // ✅ MODE HISTORIQUE : toutes les demandes, triées par date (plus récent en premier)
+                    const all = [...requestsData].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    all.forEach(r => {
+                        html += renderItem(r, true);
+                    });
+                } else {
+                    // ✅ MODE NORMAL : pending en haut, historique en bas
+                    const pending = requestsData.filter(r => r.status === 'pending');
+                    const done = requestsData.filter(r => r.status !== 'pending');
 
-                // Séparateur si done existe
-                if (done.length > 0) {
-                    html += `
-                        <div class="separator">
-                            <span>─── Historique ───</span>
-                        </div>
-                    `;
+                    pending.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    done.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                    pending.forEach(r => {
+                        html += renderItem(r, false);
+                    });
+
+                    if (done.length > 0) {
+                        html += `
+                            <div class="separator">
+                                <span>─── Historique ───</span>
+                            </div>
+                        `;
+                    }
+
+                    done.forEach(r => {
+                        html += renderItem(r, true);
+                    });
                 }
-
-                // Done (grisé)
-                done.forEach(r => {
-                    html += renderItem(r, true);
-                });
 
                 requestsList.innerHTML = html;
 
@@ -1321,7 +1575,6 @@
 
                 currentRequestId = requestId;
 
-                // Masquer empty, afficher détail
                 emptyState.style.display = 'none';
                 detailRequest.style.display = 'block';
 
@@ -1367,10 +1620,19 @@
                 sText.textContent = info.text;
                 sSub.textContent = info.sub;
 
-                // Activer/désactiver les boutons
+                // ✅ Activer/désactiver les boutons selon le statut
                 const isPending = data.status === 'pending';
+                const isSuccess = data.status === 'success';
+
                 successBtn.disabled = !isPending || isProcessing;
                 refuseBtn.disabled = !isPending || isProcessing;
+
+                // ✅ Bouton Remboursement : visible uniquement si statut = success
+                if (isSuccess) {
+                    remboursementBtn.style.display = 'inline-flex';
+                } else {
+                    remboursementBtn.style.display = 'none';
+                }
 
                 // Mettre à jour l'item actif dans la sidebar
                 document.querySelectorAll('.request-item').forEach(item => {
@@ -1439,9 +1701,7 @@
                 if (this.disabled || isProcessing) return;
 
                 const data = requests.find(r => r.id === currentRequestId);
-                if (!data) {
-                    return;
-                }
+                if (!data) return;
 
                 if (!confirm(`Confirmer le paiement Wave pour la commande #${data.commande_id} ?`)) return;
 
@@ -1466,9 +1726,9 @@
 
                     if (result.success) {
                         data.status = 'success';
+                        // Mettre à jour la liste
                         renderRequests(requests);
                         displayDetail(data.id);
-                        // Mettre à jour les badges
                         if (window.updateBadges) window.updateBadges();
                     } else {
                         alert('❌ ' + (result.error || 'Erreur'));
@@ -1550,11 +1810,72 @@
                 }
             });
 
-            // Fermer overlay en cliquant à l'extérieur
+            // Fermer overlay refuser en cliquant à l'extérieur
             refuseOverlay.addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.remove('active');
                     refuseCause.value = '';
+                }
+            });
+
+            // ==========================================
+            // REMBOURSEMENT
+            // ==========================================
+
+            remboursementBtn.addEventListener('click', function() {
+                remboursementOverlay.classList.add('active');
+                remboursementCause.value = '';
+                remboursementCause.focus();
+            });
+
+            remboursementCancel.addEventListener('click', function() {
+                remboursementOverlay.classList.remove('active');
+                remboursementCause.value = '';
+            });
+
+            remboursementConfirm.addEventListener('click', async function() {
+                const cause = remboursementCause.value.trim();
+                if (!cause) {
+                    alert('⚠️ Veuillez indiquer le motif du remboursement.');
+                    return;
+                }
+
+                const data = requests.find(r => r.id === currentRequestId);
+                if (!data) return;
+
+                // Récupérer le nom du client
+                const clientName = data.client_name || data.user_name || 'Client';
+
+                // Envoyer une notification au client
+                try {
+                    const res = await fetch('/api/admin/notification/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: data.user_id,
+                            title: '🔄 Remboursement',
+                            content: `Bonjour ${clientName}, un remboursement a été effectué pour votre paiement Wave (ID: ${data.wave_id}). Motif : ${cause}`
+                        })
+                    });
+
+                    if (res.ok) {
+                        alert('✅ Notification de remboursement envoyée au client.');
+                        remboursementOverlay.classList.remove('active');
+                        remboursementCause.value = '';
+                    } else {
+                        alert('❌ Erreur lors de l\'envoi de la notification.');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('❌ Erreur de connexion');
+                }
+            });
+
+            // Fermer overlay remboursement en cliquant à l'extérieur
+            remboursementOverlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    remboursementCause.value = '';
                 }
             });
 
