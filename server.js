@@ -1352,6 +1352,9 @@ app.get('/admin/comm.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'comm.html'));
 });
 
+app.get('/admin/add-produit.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'add-produit.html'));
+});
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
 // ========================================================
