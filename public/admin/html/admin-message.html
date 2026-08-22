@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📨 Messages | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* =============================================================
+           ADMIN-MESSAGE - STYLES
+           ============================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        :root {
+            --bg-app: #F5F6F9;
+            --surface: #FFFFFF;
+            --surface-alt: #FAFBFC;
+            --border: #E6E8EF;
+            --border-strong: #D8DBE4;
+            --ink-900: #10141F;
+            --ink-700: #3A4152;
+            --ink-500: #6B7280;
+            --ink-400: #9CA3AF;
+            --sidebar-1: #0A0E1A;
+            --sidebar-2: #131A2C;
+            --sidebar-line: rgba(255,255,255,0.07);
+            --sidebar-text: rgba(226,230,242,0.62);
+            --sidebar-text-hi: #F3F5FA;
+            --brand: #17A464;
+            --brand-dark: #0E7A49;
+            --brand-tint: #E6F7EE;
+            --brand-line: #BFEBD3;
+            --blue: #2563EB;
+            --blue-tint: #EAF1FF;
+            --amber: #B45309;
+            --amber-tint: #FFF3DF;
+            --red: #C0342A;
+            --red-tint: #FCEBEA;
+            --green: #17A464;
+            --green-tint: #E6F7EE;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-app);
+            color: var(--ink-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =============================================================
+           HEADER COMMUN
+           ============================================================= */
+
+        .admin-header {
+            background: var(--sidebar-1);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-line);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-header .header-left .logo {
+            color: var(--sidebar-text-hi);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .admin-header .header-left .logo span {
+            color: #34D399;
+        }
+
+        .admin-header .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .header-center .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid transparent;
+        }
+
+        .admin-header .header-center .header-badge:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-center .header-badge.active {
+            background: rgba(23,164,100,0.15);
+            color: var(--sidebar-text-hi);
+            border-color: rgba(23,164,100,0.25);
+        }
+
+        .admin-header .header-center .header-badge i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red);
+            color: white;
+            margin-left: 2px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot.zero {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text);
+        }
+
+        .admin-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-header .header-right .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--sidebar-line);
+        }
+
+        .admin-header .header-right .btn-back:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-right .btn-back i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-right .admin-name {
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* =============================================================
+           PAGE CONTAINER
+           ============================================================= */
+
+        .page-container {
+            padding: 24px 30px 40px 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex: 1;
+            width: 100%;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header .page-title i {
+            color: var(--ink-400);
+            font-size: 22px;
+        }
+
+        .page-header .badge-count {
+            font-family: var(--font-mono);
+            background: var(--ink-900);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 999px;
+        }
+
+        /* =============================================================
+           TABS
+           ============================================================= */
+
+        .tabs-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+        }
+
+        .tabs-container .tab-btn {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-500);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tabs-container .tab-btn:hover {
+            color: var(--ink-900);
+            background: var(--surface-alt);
+        }
+
+        .tabs-container .tab-btn.active {
+            background: var(--brand);
+            color: white;
+            box-shadow: 0 4px 16px rgba(23,164,100,0.2);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =============================================================
+           TAB 1 : MESSAGES REÇUS
+           ============================================================= */
+
+        .table-container {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: auto;
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        .table-container th {
+            background: var(--surface-alt);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink-500);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .table-container td {
+            padding: 12px 16px;
+            font-size: 13.5px;
+            color: var(--ink-700);
+            border-bottom: 1px solid var(--surface-alt);
+            vertical-align: middle;
+        }
+
+        .table-container tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-container tr:hover td {
+            background: var(--surface-alt);
+        }
+
+        .table-container .empty-msg {
+            text-align: center;
+            color: var(--ink-400);
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        .table-container .message-preview {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-container .message-preview .from {
+            font-weight: 600;
+            color: var(--ink-900);
+        }
+
+        .table-container .message-preview .content {
+            color: var(--ink-500);
+            font-size: 13px;
+        }
+
+        .table-container .status-badge {
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .table-container .status-badge.read {
+            background: var(--surface-alt);
+            color: var(--ink-400);
+        }
+
+        .table-container .status-badge.unread {
+            background: var(--blue-tint);
+            color: var(--blue);
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action.read {
+            background: var(--blue-tint);
+            color: var(--blue);
+        }
+
+        .btn-action.read:hover {
+            background: #C7D9FB;
+            transform: scale(1.05);
+        }
+
+        .btn-action.delete {
+            background: var(--red-tint);
+            color: var(--red);
+        }
+
+        .btn-action.delete:hover {
+            background: #F3C6C2;
+            transform: scale(1.05);
+        }
+
+        .btn-action.reply {
+            background: var(--brand-tint);
+            color: var(--brand-dark);
+        }
+
+        .btn-action.reply:hover {
+            background: var(--brand-line);
+            transform: scale(1.05);
+        }
+
+        /* =============================================================
+           TAB 2 : ENVOYER UN MESSAGE
+           ============================================================= */
+
+        .send-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px 28px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            max-width: 700px;
+        }
+
+        .send-card .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .send-card .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-700);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .send-card .form-group label .required {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .send-card .form-group select,
+        .send-card .form-group input,
+        .send-card .form-group textarea {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: var(--font-ui);
+            background: var(--surface-alt);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            color: var(--ink-900);
+            width: 100%;
+        }
+
+        .send-card .form-group select:focus,
+        .send-card .form-group input:focus,
+        .send-card .form-group textarea:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px rgba(23,164,100,0.08);
+        }
+
+        .send-card .form-group select[multiple] {
+            height: auto;
+            min-height: 120px;
+            padding: 8px;
+        }
+
+        .send-card .form-group select[multiple] option {
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .send-card .form-group select[multiple] option:checked {
+            background: var(--brand);
+            color: white;
+        }
+
+        .send-card .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .send-card .form-hint {
+            font-size: 12px;
+            color: var(--ink-400);
+            margin-top: 2px;
+        }
+
+        .btn-send {
+            padding: 12px 32px;
+            background: var(--brand);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background: var(--brand-dark);
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(23,164,100,0.25);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-message {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            border: 1px solid transparent;
+        }
+
+        .form-message.success {
+            display: block;
+            background: var(--green-tint);
+            color: var(--brand-dark);
+            border-color: var(--brand-line);
+        }
+
+        .form-message.error {
+            display: block;
+            background: var(--red-tint);
+            color: var(--red);
+            border-color: #F3C6C2;
+        }
+
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 8px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .admin-header .header-left {
+                justify-content: center;
+            }
+            .admin-header .header-center {
+                justify-content: center;
+                gap: 4px;
+            }
+            .admin-header .header-center .header-badge {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 9px;
+                min-width: 16px;
+                height: 16px;
+            }
+            .admin-header .header-right {
+                justify-content: center;
+            }
+            .page-container {
+                padding: 16px;
+            }
+            .page-header .page-title {
+                font-size: 20px;
+            }
+            .tabs-container .tab-btn {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+            .send-card {
+                padding: 18px 16px;
+            }
+            .table-container table {
+                min-width: 400px;
+            }
+            .table-container th,
+            .table-container td {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .admin-header .header-left .logo {
+                font-size: 15px;
+            }
+            .admin-header .header-center .header-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+                gap: 4px;
+            }
+            .admin-header .header-center .header-badge i {
+                font-size: 11px;
+            }
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 8px;
+                min-width: 14px;
+                height: 14px;
+                padding: 0 4px;
+            }
+            .admin-header .header-right .btn-back {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .page-container {
+                padding: 10px;
+            }
+            .page-header .page-title {
+                font-size: 17px;
+            }
+            .tabs-container {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .tabs-container .tab-btn {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+            .send-card {
+                padding: 12px 10px;
+                border-radius: 12px;
+            }
+            .send-card .form-group label {
+                font-size: 12px;
+            }
+            .send-card .form-group select,
+            .send-card .form-group input,
+            .send-card .form-group textarea {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+            .table-container table {
+                min-width: 320px;
+            }
+            .table-container th,
+            .table-container td {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+            .btn-send {
+                font-size: 14px;
+                padding: 10px 24px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ========================================== */
+        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
+        /* ========================================== */
+
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- CONTENU DE LA PAGE                                             -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-paper-plane"></i> Messages
+            </div>
+            <span class="badge-count" id="messageCount">0</span>
+        </div>
+
+        <!-- ===== TABS ===== -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="received">📥 Messages reçus</button>
+            <button class="tab-btn" data-tab="send">✉️ Envoyer un message</button>
+        </div>
+
+        <!-- ===== TAB 1 : MESSAGES REÇUS ===== -->
+        <div class="tab-content active" id="tab-received">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>De</th>
+                            <th>Message</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messagesList">
+                        <tr><td colspan="6" class="empty-msg">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== TAB 2 : ENVOYER UN MESSAGE ===== -->
+        <div class="tab-content" id="tab-send">
+            <div class="send-card">
+                <form id="sendMessageForm">
+                    <div class="form-group">
+                        <label>
+                            Destinataire(s) <span class="required">*</span>
+                        </label>
+                        <select id="messageUsers" multiple required>
+                            <option value="all">📢 Tous les clients</option>
+                        </select>
+                        <div class="form-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs clients</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Titre <span class="required">*</span>
+                        </label>
+                        <input type="text" id="messageTitle" placeholder="Ex: Offre spéciale" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Contenu <span class="required">*</span>
+                        </label>
+                        <textarea id="messageContent" rows="4" placeholder="Votre message..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-send" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i> Envoyer
+                    </button>
+
+                    <div id="sendFormMessage" class="form-message"></div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ admin-message.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const messagesList = document.getElementById('messagesList');
+            const messageCount = document.getElementById('messageCount');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            const messageUsers = document.getElementById('messageUsers');
+            const messageTitle = document.getElementById('messageTitle');
+            const messageContent = document.getElementById('messageContent');
+            const sendBtn = document.getElementById('sendBtn');
+            const sendFormMessage = document.getElementById('sendFormMessage');
+
+            let allMessages = [];
+            let allUsers = [];
+
+            // ==========================================
+            // NOM ADMIN
+            // ==========================================
+
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // TABS
+            // ==========================================
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+                });
+            });
+
+            // ==========================================
+            // CHARGER LES MESSAGES REÇUS
+            // ==========================================
+
+            async function loadMessages() {
+                try {
+                    // Récupérer les messages de type 'client_message' ou 'admin' pour admin
+                    const res = await fetch('/api/notifications?type=client_message');
+                    const data = await res.json();
+
+                    if (res.ok && data.notifications) {
+                        allMessages = data.notifications;
+                        messageCount.textContent = data.count || 0;
+                        renderMessages(allMessages);
+                    } else {
+                        messagesList.innerHTML = `<tr><td colspan="6" class="empty-msg">Aucun message reçu</td></tr>`;
+                        messageCount.textContent = '0';
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement messages:', error);
+                    messagesList.innerHTML = `<tr><td colspan="6" class="empty-msg">Erreur de chargement</td></tr>`;
+                }
+            }
+
+            // ==========================================
+            // AFFICHER LES MESSAGES
+            // ==========================================
+
+            function renderMessages(messages) {
+                if (messages.length === 0) {
+                    messagesList.innerHTML = `<tr><td colspan="6" class="empty-msg">Aucun message reçu</td></tr>`;
+                    return;
+                }
+
+                const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+                messagesList.innerHTML = messages.map(m => {
+                    const isUnread = m.is_read === 0 || m.is_read === false;
+                    const from = m.title ? m.title.replace('📩 ', '') : 'Client';
+
+                    return `
+                        <tr data-id="${m.id}">
+                            <td>#${m.id}</td>
+                            <td><strong>${from}</strong></td>
+                            <td>
+                                <div class="message-preview">
+                                    <div class="content">${m.content || 'Aucun contenu'}</div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge ${isUnread ? 'unread' : 'read'}">${isUnread ? 'Non lu' : 'Lu'}</span></td>
+                            <td>${new Date(m.created_at).toLocaleDateString('fr-FR', dateOptions)}</td>
+                            <td>
+                                <button class="btn-action read" onclick="markAsRead(${m.id})" title="Marquer comme lu">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn-action delete" onclick="deleteMessage(${m.id})" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // ==========================================
+            // MARQUER COMME LU
+            // ==========================================
+
+            window.markAsRead = async function(id) {
+                try {
+                    const res = await fetch(`/api/notifications/read/${id}`, { method: 'PUT' });
+                    if (res.ok) {
+                        loadMessages();
+                        if (window.updateBadges) window.updateBadges();
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            };
+
+            // ==========================================
+            // SUPPRIMER UN MESSAGE
+            // ==========================================
+
+            window.deleteMessage = async function(id) {
+                if (!confirm('🗑️ Supprimer ce message ?')) return;
+                try {
+                    const res = await fetch(`/api/notifications/delete/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        loadMessages();
+                        if (window.updateBadges) window.updateBadges();
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            };
+
+            // ==========================================
+            // CHARGER LES UTILISATEURS
+            // ==========================================
+
+            async function loadUsers() {
+                try {
+                    const res = await fetch('/api/admin/clients');
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        allUsers = data;
+                        messageUsers.innerHTML = '<option value="all">📢 Tous les clients</option>';
+                        data.forEach(u => {
+                            const opt = document.createElement('option');
+                            opt.value = u.id;
+                            opt.textContent = `${u.name} (${u.email})`;
+                            messageUsers.appendChild(opt);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement users:', error);
+                }
+            }
+
+            // ==========================================
+            // ENVOYER UN MESSAGE
+            // ==========================================
+
+            document.getElementById('sendMessageForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const title = messageTitle.value.trim();
+                const content = messageContent.value.trim();
+                const selectedOptions = messageUsers.selectedOptions;
+                const userIds = Array.from(selectedOptions).map(opt => opt.value);
+
+                if (!title || !content) {
+                    sendFormMessage.className = 'form-message error';
+                    sendFormMessage.textContent = '⚠️ Titre et contenu requis';
+                    sendFormMessage.style.display = 'block';
+                    return;
+                }
+
+                if (userIds.length === 0) {
+                    sendFormMessage.className = 'form-message error';
+                    sendFormMessage.textContent = '⚠️ Sélectionnez au moins un destinataire';
+                    sendFormMessage.style.display = 'block';
+                    return;
+                }
+
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                sendFormMessage.className = 'form-message';
+                sendFormMessage.style.display = 'none';
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const userId of userIds) {
+                    try {
+                        const res = await fetch('/api/admin/notification/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: userId === 'all' ? 'all' : parseInt(userId),
+                                title: title,
+                                content: content
+                            })
+                        });
+
+                        if (res.ok) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    } catch (err) {
+                        errorCount++;
+                    }
+                }
+
+                if (errorCount === 0) {
+                    sendFormMessage.className = 'form-message success';
+                    sendFormMessage.textContent = `✅ ${successCount} message(s) envoyé(s) avec succès !`;
+                    sendFormMessage.style.display = 'block';
+                    messageTitle.value = '';
+                    messageContent.value = '';
+                } else {
+                    sendFormMessage.className = 'form-message error';
+                    sendFormMessage.textContent = `⚠️ ${successCount} envoyé(s), ${errorCount} échec(s)`;
+                    sendFormMessage.style.display = 'block';
+                }
+
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
+            });
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadMessages();
+            loadUsers();
+
+            // Rafraîchir toutes les 30 secondes
+            setInterval(() => {
+                loadMessages();
+            }, 30000);
+
+            console.log('✅ admin-message.html initialisé');
+
+        });
+    </script>
+
+</body>
+</html>
