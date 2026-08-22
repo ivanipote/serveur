@@ -30,6 +30,10 @@ async function initializeDatabase() {
                 merchant_name TEXT NOT NULL,
                 logo TEXT,
                 contact TEXT,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -47,6 +51,19 @@ async function initializeDatabase() {
                 description TEXT,
                 quantity INTEGER DEFAULT 0,
                 price INTEGER NOT NULL,
+                categorie TEXT DEFAULT NULL,
+                tags TEXT[] DEFAULT NULL,
+                poids DECIMAL DEFAULT NULL,
+                unite TEXT DEFAULT NULL,
+                promotion BOOLEAN DEFAULT FALSE,
+                prix_promotion INTEGER DEFAULT NULL,
+                stock_min INTEGER DEFAULT NULL,
+                fournisseur TEXT DEFAULT NULL,
+                date_peremption DATE DEFAULT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (admin_id) REFERENCES admins(id)
             )
@@ -63,6 +80,18 @@ async function initializeDatabase() {
                 password TEXT NOT NULL,
                 phone TEXT NOT NULL,
                 is_verified BOOLEAN DEFAULT FALSE,
+                adresse TEXT DEFAULT NULL,
+                ville TEXT DEFAULT NULL,
+                code_postal TEXT DEFAULT NULL,
+                date_naissance DATE DEFAULT NULL,
+                genre TEXT DEFAULT NULL,
+                avatar TEXT DEFAULT NULL,
+                total_achats INTEGER DEFAULT 0,
+                derniere_connexion TIMESTAMP DEFAULT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -76,6 +105,10 @@ async function initializeDatabase() {
                 user_id INTEGER NOT NULL,
                 product_id INTEGER NOT NULL,
                 quantity INTEGER DEFAULT 1,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id),
                 FOREIGN KEY (product_id) REFERENCES products(id),
@@ -105,6 +138,15 @@ async function initializeDatabase() {
                 gateway TEXT,
                 environment TEXT DEFAULT 'live',
                 expires_at TIMESTAMP,
+                frais_application INTEGER DEFAULT NULL,
+                frais_gateway INTEGER DEFAULT NULL,
+                net_recu INTEGER DEFAULT NULL,
+                date_validation TIMESTAMP DEFAULT NULL,
+                validateur_id INTEGER DEFAULT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
@@ -132,12 +174,16 @@ async function initializeDatabase() {
                 id SERIAL PRIMARY KEY,
                 commune TEXT UNIQUE NOT NULL,
                 tarif INTEGER NOT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
         // ========================================================
-        // TABLE COMMANDES (avec methode_paiement)
+        // TABLE COMMANDES (avec colonnes flexibles)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS commandes (
@@ -160,6 +206,19 @@ async function initializeDatabase() {
                 status TEXT DEFAULT 'en_attente',
                 cause_refus TEXT,
                 methode_paiement TEXT DEFAULT NULL,
+                date_livraison TIMESTAMP DEFAULT NULL,
+                date_recuperation TIMESTAMP DEFAULT NULL,
+                notes TEXT DEFAULT NULL,
+                note_client INTEGER DEFAULT NULL,
+                rating INTEGER DEFAULT NULL,
+                livreur_id INTEGER DEFAULT NULL,
+                zone_livraison TEXT DEFAULT NULL,
+                poids DECIMAL DEFAULT NULL,
+                volume DECIMAL DEFAULT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
@@ -177,6 +236,10 @@ async function initializeDatabase() {
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
                 is_read BOOLEAN DEFAULT FALSE,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id),
                 FOREIGN KEY (commande_id) REFERENCES commandes(id) ON DELETE CASCADE
@@ -193,6 +256,10 @@ async function initializeDatabase() {
                 commit_message TEXT NOT NULL,
                 commit_date TEXT,
                 commit_url TEXT,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -204,7 +271,11 @@ async function initializeDatabase() {
             CREATE TABLE IF NOT EXISTS "session" (
                 "sid" varchar NOT NULL COLLATE "default",
                 "sess" json NOT NULL,
-                "expire" timestamp(6) NOT NULL
+                "expire" timestamp(6) NOT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL
             )
         `);
 
@@ -220,7 +291,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE WAVE_VERIFICATIONS (NOUVELLE)
+        // TABLE WAVE_VERIFICATIONS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS wave_verifications (
@@ -232,6 +303,13 @@ async function initializeDatabase() {
                 status TEXT DEFAULT 'pending',
                 cause TEXT,
                 verified_by INTEGER,
+                date_validation TIMESTAMP DEFAULT NULL,
+                validateur_id INTEGER DEFAULT NULL,
+                notes_validation TEXT DEFAULT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (commande_id) REFERENCES commandes(id),
@@ -255,20 +333,26 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
 
+        // ✅ Index pour les colonnes flexibles (si besoin un jour)
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_extra1 ON commandes(extra1) WHERE extra1 IS NOT NULL`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_users_extra1 ON users(extra1) WHERE extra1 IS NOT NULL`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_products_extra1 ON products(extra1) WHERE extra1 IS NOT NULL`);
+
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
-        console.log('   - admins');
-        console.log('   - products');
-        console.log('   - users');
-        console.log('   - panier');
-        console.log('   - payments');
-        console.log('   - frais_livraison');
-        console.log('   - commandes (avec methode_paiement ✅)');
-        console.log('   - messages');
-        console.log('   - updates');
-        console.log('   - session');
-        console.log('   - wave_verifications ✅ NOUVEAU');
+        console.log('   - admins (flex: 4)');
+        console.log('   - products (flex: 4)');
+        console.log('   - users (flex: 4)');
+        console.log('   - panier (flex: 4)');
+        console.log('   - payments (flex: 4)');
+        console.log('   - frais_livraison (flex: 4)');
+        console.log('   - commandes (flex: 4)');
+        console.log('   - messages (flex: 4)');
+        console.log('   - updates (flex: 4)');
+        console.log('   - session (flex: 4)');
+        console.log('   - wave_verifications (flex: 4)');
+        console.log('   - Index créés');
 
     } catch (error) {
         await client.query('ROLLBACK');
