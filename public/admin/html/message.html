@@ -254,16 +254,16 @@
         /* ===== CARTE MESSAGE ===== */
         .msg-card {
             background: var(--surface-alt);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 14px 16px;
             margin-bottom: 10px;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
+            border: 1.5px solid var(--border);
+            transition: all 0.3s ease;
         }
 
         .msg-card:hover {
-            border-color: var(--brand-line);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-color: var(--brand);
+            box-shadow: 0 4px 16px rgba(23,164,100,0.08);
         }
 
         .msg-card .msg-header {
@@ -313,7 +313,7 @@
         .msg-card .msg-actions .btn-action {
             padding: 4px 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
@@ -383,47 +383,91 @@
             display: flex;
             flex-direction: column;
             background: var(--surface);
-            padding: 24px 28px;
-            overflow-y: auto;
+            border-radius: 16px;
+            margin: 12px 12px 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+            overflow: hidden;
         }
 
         .col-send .col-header {
-            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: var(--surface-alt);
         }
 
         .col-send .col-header h2 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--ink-900);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .col-send .col-header h2 i {
             color: var(--brand);
         }
 
-        .col-send .form-group {
+        .col-send .col-header .btn-toggle {
+            display: flex;
+            gap: 6px;
+        }
+
+        .col-send .col-header .btn-toggle button {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-500);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .col-send .col-header .btn-toggle button:hover {
+            border-color: var(--brand);
+            color: var(--brand-dark);
+        }
+
+        .col-send .col-header .btn-toggle button.active {
+            background: var(--brand);
+            color: white;
+            border-color: var(--brand);
+        }
+
+        /* ===== CONTENU DE LA COLONNE DROITE ===== */
+        .col-send .col-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+
+        .col-send .col-body .form-group {
             display: flex;
             flex-direction: column;
             gap: 4px;
             margin-bottom: 16px;
         }
 
-        .col-send .form-group label {
+        .col-send .col-body .form-group label {
             font-size: 13px;
             font-weight: 600;
             color: var(--ink-700);
         }
 
-        .col-send .form-group label .required {
+        .col-send .col-body .form-group label .required {
             color: var(--red);
         }
 
-        .col-send .form-group select,
-        .col-send .form-group input,
-        .col-send .form-group textarea {
+        .col-send .col-body .form-group select,
+        .col-send .col-body .form-group input,
+        .col-send .col-body .form-group textarea {
             padding: 10px 14px;
             border: 1.5px solid var(--border);
             border-radius: 10px;
@@ -436,37 +480,37 @@
             width: 100%;
         }
 
-        .col-send .form-group select:focus,
-        .col-send .form-group input:focus,
-        .col-send .form-group textarea:focus {
+        .col-send .col-body .form-group select:focus,
+        .col-send .col-body .form-group input:focus,
+        .col-send .col-body .form-group textarea:focus {
             border-color: var(--brand);
             background: var(--surface);
             box-shadow: 0 0 0 4px rgba(23,164,100,0.08);
         }
 
-        .col-send .form-group select[multiple] {
+        .col-send .col-body .form-group select[multiple] {
             height: auto;
             min-height: 100px;
             padding: 8px;
         }
 
-        .col-send .form-group select[multiple] option {
+        .col-send .col-body .form-group select[multiple] option {
             padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
         }
 
-        .col-send .form-group select[multiple] option:checked {
+        .col-send .col-body .form-group select[multiple] option:checked {
             background: var(--brand);
             color: white;
         }
 
-        .col-send .form-group textarea {
+        .col-send .col-body .form-group textarea {
             resize: vertical;
             min-height: 100px;
         }
 
-        .col-send .form-hint {
+        .col-send .col-body .form-hint {
             font-size: 12px;
             color: var(--ink-400);
         }
@@ -476,7 +520,7 @@
             background: var(--brand);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 30px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
@@ -524,6 +568,74 @@
             border-color: #F3C6C2;
         }
 
+        /* ===== VUE HISTORIQUE ===== */
+        .history-list {
+            display: none;
+        }
+
+        .history-list.active {
+            display: block;
+        }
+
+        .history-list .history-card {
+            background: var(--surface-alt);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1.5px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .history-list .history-card:hover {
+            border-color: var(--brand-line);
+        }
+
+        .history-list .history-card .h-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .history-list .history-card .h-header .h-to {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-900);
+        }
+
+        .history-list .history-card .h-header .h-to i {
+            color: var(--ink-400);
+            font-size: 12px;
+        }
+
+        .history-list .history-card .h-header .h-date {
+            font-size: 11px;
+            color: var(--ink-400);
+            font-family: var(--font-mono);
+        }
+
+        .history-list .history-card .h-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 2px;
+        }
+
+        .history-list .history-card .h-content {
+            font-size: 13.5px;
+            color: var(--ink-700);
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .send-view {
+            display: block;
+        }
+
+        .send-view.hidden {
+            display: none;
+        }
+
         /* =============================================================
            RESPONSIVE
            ============================================================= */
@@ -538,10 +650,12 @@
                 max-height: 400px;
                 border-right: none;
                 border-bottom: 1px solid var(--border);
+                border-radius: 12px 12px 0 0 !important;
             }
             .col-send {
                 width: 100%;
-                padding: 20px;
+                border-radius: 0 0 12px 12px !important;
+                margin: 0 0 12px 0;
             }
         }
 
@@ -574,7 +688,7 @@
             .col-messages {
                 max-height: 350px;
             }
-            .col-send {
+            .col-send .col-body {
                 padding: 16px;
             }
             .btn-send {
@@ -612,10 +726,11 @@
             .col-messages {
                 max-height: 280px;
             }
-            .col-send {
+            .col-send .col-body {
                 padding: 12px;
             }
             .msg-card {
+                border-radius: 12px !important;
                 padding: 10px 12px;
             }
             .msg-card .msg-header .from {
@@ -624,11 +739,15 @@
             .msg-card .msg-content {
                 font-size: 13px;
             }
-            .col-send .form-group select,
-            .col-send .form-group input,
-            .col-send .form-group textarea {
+            .col-send .col-body .form-group select,
+            .col-send .col-body .form-group input,
+            .col-send .col-body .form-group textarea {
                 font-size: 13px;
                 padding: 8px 12px;
+            }
+            .col-send .col-header .btn-toggle button {
+                font-size: 11px;
+                padding: 4px 10px;
             }
         }
 
@@ -644,124 +763,6 @@
             -webkit-user-select: text !important;
             user-select: text !important;
         }
-        /* =============================================================
-   MESSAGE - BORDURES ARRONDIES SUPPLEMENTAIRES
-   ============================================================= */
-
-/* Cadre des messages reçus */
-.col-messages {
-    border-radius: 0; /* Déjà géré par le parent */
-}
-
-.col-messages .messages-list {
-    border-radius: 0 0 12px 12px;
-}
-
-/* Colonne d'envoi */
-.col-send {
-    border-radius: 0; /* Déjà géré par le parent */
-}
-
-/* Conteneur global */
-.page-container {
-    border-radius: 0; /* Pas de bordure sur le conteneur principal */
-}
-
-/* Ajout de coins arrondis sur les éléments internes */
-.col-messages .col-header {
-    border-radius: 12px 12px 0 0;
-}
-
-.col-send .col-header {
-    border-radius: 0;
-}
-
-/* =============================================================
-   CADRE DES MESSAGES AVEC BORDS ARRONDIS
-   ============================================================= */
-
-.msg-card {
-    border-radius: 16px !important;
-    overflow: hidden;
-    border: 1.5px solid var(--border);
-    transition: all 0.3s ease;
-}
-
-.msg-card:hover {
-    border-color: var(--brand);
-    box-shadow: 0 4px 16px rgba(23,164,100,0.08);
-}
-
-/* =============================================================
-   CADRE DU FORMULAIRE D'ENVOI
-   ============================================================= */
-
-.col-send {
-    background: var(--surface);
-    border-radius: 16px;
-    margin: 12px 12px 12px 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border: 1px solid var(--border);
-}
-
-.col-send .col-header {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-}
-
-.col-send form {
-    padding: 4px 0;
-}
-
-/* =============================================================
-   BOUTONS ARRONDIS
-   ============================================================= */
-
-.btn-send {
-    border-radius: 30px !important;
-}
-
-.btn-action {
-    border-radius: 20px !important;
-}
-
-/* =============================================================
-   ADAPTATION RESPONSIVE
-   ============================================================= */
-
-@media (max-width: 992px) {
-    .col-messages {
-        border-radius: 12px 12px 0 0 !important;
-        margin-bottom: 0;
-    }
-    
-    .col-send {
-        border-radius: 0 0 12px 12px !important;
-        margin: 0 0 12px 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .col-messages .col-header {
-        border-radius: 12px 12px 0 0;
-    }
-    
-    .msg-card {
-        border-radius: 14px !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .msg-card {
-        border-radius: 12px !important;
-        padding: 10px 12px;
-    }
-    
-    .col-send {
-        border-radius: 0 0 10px 10px !important;
-        padding: 12px;
-    }
-}
     </style>
 </head>
 <body>
@@ -814,43 +815,68 @@
             </div>
         </div>
 
-        <!-- COLONNE DROITE : Envoyer un message -->
+        <!-- COLONNE DROITE : Envoyer un message / Historique -->
         <div class="col-send">
             <div class="col-header">
-                <h2><i class="fas fa-paper-plane"></i> Envoyer un message</h2>
+                <h2 id="colRightTitle"><i class="fas fa-paper-plane"></i> Envoyer un message</h2>
+                <div class="btn-toggle">
+                    <button class="active" id="btnSendView" title="Envoyer un message">
+                        <i class="fas fa-paper-plane"></i> Envoyer
+                    </button>
+                    <button id="btnHistoryView" title="Voir l'historique">
+                        <i class="fas fa-clock"></i> Historique
+                    </button>
+                </div>
             </div>
 
-            <form id="sendMessageForm">
-                <div class="form-group">
-                    <label>
-                        Destinataire(s) <span class="required">*</span>
-                    </label>
-                    <select id="messageUsers" multiple required>
-                        <option value="all">📢 Tous les clients</option>
-                    </select>
-                    <div class="form-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs</div>
+            <div class="col-body">
+
+                <!-- VUE : ENVOYER UN MESSAGE -->
+                <div class="send-view" id="sendView">
+                    <form id="sendMessageForm">
+                        <div class="form-group">
+                            <label>
+                                Destinataire(s) <span class="required">*</span>
+                            </label>
+                            <select id="messageUsers" multiple required>
+                                <option value="all">📢 Tous les clients</option>
+                            </select>
+                            <div class="form-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                Titre <span class="required">*</span>
+                            </label>
+                            <input type="text" id="messageTitle" placeholder="Ex: Offre spéciale" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                Contenu <span class="required">*</span>
+                            </label>
+                            <textarea id="messageContent" rows="4" placeholder="Votre message..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-send" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+
+                        <div id="sendFormMessage" class="form-message"></div>
+                    </form>
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        Titre <span class="required">*</span>
-                    </label>
-                    <input type="text" id="messageTitle" placeholder="Ex: Offre spéciale" required />
+                <!-- VUE : HISTORIQUE DES MESSAGES ENVOYÉS -->
+                <div class="history-list" id="historyView">
+                    <!-- Les messages historiques seront injectés ici -->
+                    <div class="empty-msg" id="historyEmpty">
+                        <i class="fas fa-clock"></i>
+                        Aucun message envoyé
+                    </div>
+                    <div id="historyList"></div>
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        Contenu <span class="required">*</span>
-                    </label>
-                    <textarea id="messageContent" rows="4" placeholder="Votre message..." required></textarea>
-                </div>
-
-                <button type="submit" class="btn-send" id="sendBtn">
-                    <i class="fas fa-paper-plane"></i> Envoyer
-                </button>
-
-                <div id="sendFormMessage" class="form-message"></div>
-            </form>
+            </div>
         </div>
 
     </div>
@@ -878,7 +904,16 @@
             const sendBtn = document.getElementById('sendBtn');
             const sendFormMessage = document.getElementById('sendFormMessage');
 
+            const colRightTitle = document.getElementById('colRightTitle');
+            const btnSendView = document.getElementById('btnSendView');
+            const btnHistoryView = document.getElementById('btnHistoryView');
+            const sendView = document.getElementById('sendView');
+            const historyView = document.getElementById('historyView');
+            const historyList = document.getElementById('historyList');
+            const historyEmpty = document.getElementById('historyEmpty');
+
             let allMessages = [];
+            let allSentMessages = [];
 
             // ==========================================
             // NOM ADMIN
@@ -888,17 +923,36 @@
             document.getElementById('adminName').textContent = adminName;
 
             // ==========================================
-            // CHARGER LES MESSAGES
+            // TOGGLE VUES
+            // ==========================================
+
+            btnSendView.addEventListener('click', function() {
+                btnSendView.classList.add('active');
+                btnHistoryView.classList.remove('active');
+                sendView.classList.remove('hidden');
+                historyView.classList.remove('active');
+                colRightTitle.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer un message';
+            });
+
+            btnHistoryView.addEventListener('click', function() {
+                btnHistoryView.classList.add('active');
+                btnSendView.classList.remove('active');
+                sendView.classList.add('hidden');
+                historyView.classList.add('active');
+                colRightTitle.innerHTML = '<i class="fas fa-clock"></i> Historique des envois';
+                loadHistory();
+            });
+
+            // ==========================================
+            // CHARGER LES MESSAGES REÇUS
             // ==========================================
 
             async function loadMessages() {
                 try {
-                    // Récupérer TOUTES les notifications (type client_message)
                     const res = await fetch('/api/notifications');
                     const data = await res.json();
 
                     if (res.ok && data.notifications) {
-                        // Filtrer les messages des clients (type 'client_message')
                         allMessages = data.notifications.filter(n => n.type === 'client_message');
                         msgCount.textContent = allMessages.length;
                         renderMessages(allMessages);
@@ -923,7 +977,7 @@
             }
 
             // ==========================================
-            // AFFICHER LES MESSAGES
+            // AFFICHER LES MESSAGES REÇUS
             // ==========================================
 
             function renderMessages(messages) {
@@ -967,6 +1021,60 @@
                         </div>
                     `;
                 }).join('');
+            }
+
+            // ==========================================
+            // CHARGER L'HISTORIQUE DES ENVOIS
+            // ==========================================
+
+            async function loadHistory() {
+                try {
+                    const res = await fetch('/api/notifications');
+                    const data = await res.json();
+
+                    if (res.ok && data.notifications) {
+                        // Messages envoyés par l'admin (type 'admin')
+                        allSentMessages = data.notifications.filter(n => n.type === 'admin');
+                        renderHistory(allSentMessages);
+                    } else {
+                        historyList.innerHTML = '';
+                        historyEmpty.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Erreur historique:', error);
+                    historyList.innerHTML = '';
+                    historyEmpty.style.display = 'block';
+                    historyEmpty.innerHTML = `
+                        <i class="fas fa-exclamation-circle"></i>
+                        Erreur de chargement
+                    `;
+                }
+            }
+
+            // ==========================================
+            // AFFICHER L'HISTORIQUE
+            // ==========================================
+
+            function renderHistory(messages) {
+                if (messages.length === 0) {
+                    historyList.innerHTML = '';
+                    historyEmpty.style.display = 'block';
+                    return;
+                }
+
+                historyEmpty.style.display = 'none';
+                const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+                historyList.innerHTML = messages.map(m => `
+                    <div class="history-card">
+                        <div class="h-header">
+                            <span class="h-to"><i class="fas fa-users"></i> Destinataires: tous</span>
+                            <span class="h-date">${new Date(m.created_at).toLocaleDateString('fr-FR', dateOptions)}</span>
+                        </div>
+                        <div class="h-title">${m.title || 'Sans titre'}</div>
+                        <div class="h-content">${m.content || 'Aucun contenu'}</div>
+                    </div>
+                `).join('');
             }
 
             // ==========================================
@@ -1087,6 +1195,10 @@
                     sendFormMessage.style.display = 'block';
                     messageTitle.value = '';
                     messageContent.value = '';
+                    // Recharger l'historique si ouvert
+                    if (historyView.classList.contains('active')) {
+                        loadHistory();
+                    }
                 } else {
                     sendFormMessage.className = 'form-message error';
                     sendFormMessage.textContent = `⚠️ ${successCount} envoyé(s), ${errorCount} échec(s)`;
@@ -1107,6 +1219,9 @@
             // Rafraîchir toutes les 30 secondes
             setInterval(() => {
                 loadMessages();
+                if (historyView.classList.contains('active')) {
+                    loadHistory();
+                }
             }, 30000);
 
             console.log('✅ message.html initialisé');
