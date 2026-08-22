@@ -1304,14 +1304,8 @@ app.get('/passcommande', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'passcommande.html'));
 });
 
-
 app.get('/mescommandes', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'mescommandes.html'));
-});
-
-// Dans server.js, dans la section des routes client
-app.get('/paywithwave', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
 
 app.get('/detailcom', (req, res) => {
@@ -1330,9 +1324,6 @@ app.get('/payment-failed', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'payment-failed.html'));
 });
 
-// ========================================================
-// ROUTES PAGES (ADMIN)
-// ========================================================
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
@@ -1357,10 +1348,26 @@ app.get('/admin/dashwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashwave.html'));
 });
 
-// ✅ AJOUTER CETTE LIGNE
 app.get('/admin/comm.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'comm.html'));
 });
+
+// ========================================================
+// INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
+// ========================================================
+
+// ✅ Créer les tables au démarrage
+(async function initDatabase() {
+    try {
+        console.log('🔄 Initialisation de la base de données...');
+        await db.initialize();
+        console.log('✅ Base de données initialisée avec succès');
+    } catch (error) {
+        console.error('❌ Erreur lors de l\'initialisation de la base:', error.message);
+        // On continue quand même le démarrage, la base sera recréée au prochain redémarrage
+    }
+})();
+
 // ========================================================
 // DÉMARRAGE
 // ========================================================
