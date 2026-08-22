@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let requests = [];
     let currentRequestId = null;
     let isProcessing = false;
-    let showHistory = true; // ✅ MODIFICATION : Historique visible par défaut
+    let showHistory = true;
     let syncInterval = null;
 
     // ==========================================
@@ -152,13 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '';
 
         if (showHistory) {
-            // ✅ MODE HISTORIQUE : toutes les demandes
             const all = [...requestsData].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             all.forEach(r => {
                 html += renderItem(r, true);
             });
         } else {
-            // ✅ MODE NORMAL : pending en haut, historique en bas
             const pending = requestsData.filter(r => r.status === 'pending');
             const done = requestsData.filter(r => r.status !== 'pending');
 
@@ -292,9 +290,27 @@ document.addEventListener('DOMContentLoaded', function() {
         successBtn.disabled = !isPending || isProcessing;
         refuseBtn.disabled = !isPending || isProcessing;
 
-        if (isSuccess) {
+        // ✅ GESTION DU BOUTON REMBOURSEMENT
+        // Vérifier si un remboursement a déjà été effectué (extra3 === 'remboursement')
+        const isAlreadyRefunded = data.extra3 === 'remboursement';
+
+        if (isSuccess && !isAlreadyRefunded) {
+            // ✅ Paiement validé ET pas encore remboursé → bouton actif
             remboursementBtn.style.display = 'inline-flex';
+            remboursementBtn.disabled = false;
+            remboursementBtn.innerHTML = '<i class="fas fa-undo-alt"></i> Remboursement';
+            remboursementBtn.style.opacity = '1';
+            remboursementBtn.title = 'Rembourser ce paiement';
+        } else if (isSuccess && isAlreadyRefunded) {
+            // ✅ Paiement validé ET déjà remboursé → bouton désactivé
+            remboursementBtn.style.display = 'inline-flex';
+            remboursementBtn.disabled = true;
+            remboursementBtn.innerHTML = '✅ Remboursement effectué';
+            remboursementBtn.style.opacity = '0.5';
+            remboursementBtn.style.cursor = 'not-allowed';
+            remboursementBtn.title = 'Ce paiement a déjà été remboursé';
         } else {
+            // ✅ Ni success → cacher le bouton
             remboursementBtn.style.display = 'none';
         }
 
@@ -310,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER L'HISTORIQUE (MODIFIÉ)
+    // AFFICHER L'HISTORIQUE
     // ==========================================
 
     function renderHistorique(data) {
@@ -325,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const montantValide = data.extra4 ? parseInt(data.extra4) : 0;
         const isRemboursement = typeAction === 'remboursement';
 
-        // ✅ Vérifier s'il y a un historique
         const hasHistory = dateValidation || (data.status !== 'pending' && data.status !== 'en_attente');
 
         if (!hasHistory) {
@@ -340,7 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const dateStr = dateValidation ? dateValidation.toLocaleDateString('fr-FR') + ' ' + dateValidation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '-';
 
-        // ✅ Affichage du remboursement
         let actionLabel = '';
         if (isRemboursement) {
             const clientName = data.client_name || data.user_name || 'Client inconnu';
@@ -456,7 +470,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayDetail(data.id);
                 loadSolde();
                 if (window.updateBadges) window.updateBadges();
-                // Afficher un toast ou message
                 alert('✅ Paiement confirmé avec succès !');
             } else {
                 alert('❌ ' + (result.error || 'Erreur'));
@@ -547,10 +560,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // REMBOURSEMENT (MODIFIÉ)
+    // REMBOURSEMENT
     // ==========================================
 
     remboursementBtn.addEventListener('click', function() {
+        if (this.disabled) return;
         remboursementOverlay.classList.add('active');
         remboursementCause.value = '';
         remboursementCause.focus();
@@ -571,13 +585,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = requests.find(r => r.id === currentRequestId);
         if (!data) return;
 
+        // ✅ Vérifier si déjà remboursé
+        if (data.extra3 === 'remboursement') {
+            alert('⚠️ Cette demande a déjà été remboursée.');
+            remboursementOverlay.classList.remove('active');
+            return;
+        }
+
         if (!confirm(`Confirmer le remboursement pour la commande #${data.commande_id} ?`)) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
 
         try {
-            // ✅ Appel à la nouvelle route /api/wave/remboursement
             const res = await fetch(`${WAVE_API_URL}/api/wave/remboursement`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -592,7 +612,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (result.success) {
                 // ✅ Mettre à jour localement
-                data.status = 'success'; // On garde success mais avec extra3 = 'remboursement'
                 data.extra1 = new Date().toISOString();
                 data.extra2 = `Remboursement pour ${data.client_name || data.user_name || 'Client'}`;
                 data.extra3 = 'remboursement';
@@ -719,7 +738,6 @@ document.addEventListener('DOMContentLoaded', function() {
     connectSocketIO();
     startSync();
 
-    // ✅ Bouton historique actif par défaut
     if (historyBtn) {
         historyBtn.classList.add('active');
         historyBtn.innerHTML = '<i class="fas fa-clock"></i> Historique';
