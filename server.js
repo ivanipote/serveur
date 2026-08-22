@@ -259,9 +259,25 @@ app.post('/api/admin/products', upload.fields([
         return res.status(400).json({ error: 'Image 1 requise.' });
     }
 
-    const adminId = 1;
-
     try {
+        // ✅ Récupérer ou créer un admin
+        let adminId = 1;
+        let admin = await db.get('SELECT id FROM admins LIMIT 1');
+        
+        if (!admin) {
+            const bcrypt = require('bcrypt');
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            const result = await db.query(
+                `INSERT INTO admins (email, password, merchant_name) 
+                 VALUES ($1, $2, $3) RETURNING id`,
+                ['admin@natureplus.com', hashedPassword, 'Nature+']
+            );
+            adminId = result.rows[0].id;
+            console.log('✅ Admin par défaut créé avec ID:', adminId);
+        } else {
+            adminId = admin.id;
+        }
+
         const result = await db.query(
             `INSERT INTO products (admin_id, name, price, quantity, image1, image2, description)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
