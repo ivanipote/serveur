@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Produits | Nature+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/produits.css">
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+            <a href="/admin/produits.html" class="header-badge active">
+                <i class="fas fa-box"></i> Produits
+                <span class="badge-dot zero" id="headerBadgeProducts">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- PAGE CONTENT                                                   -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <!-- CARTE STATS -->
+        <div class="stats-card">
+            <div class="stats-title">
+                <i class="fas fa-box"></i> Produits
+            </div>
+            <div class="stats-content">
+                <div class="stat-item">
+                    <span class="stat-icon">📦</span>
+                    <span>Total :</span>
+                    <span class="stat-value" id="statTotal">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span>En stock :</span>
+                    <span class="stat-value" id="statInStock">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⚠️</span>
+                    <span>Stock bas :</span>
+                    <span class="stat-value negative" id="statLowStock">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🚫</span>
+                    <span>Ruptures :</span>
+                    <span class="stat-value negative" id="statOutOfStock">0</span>
+                </div>
+            </div>
+            <a href="/admin/add-produit.html" class="btn-add-product">
+                <i class="fas fa-plus-circle"></i> Ajouter
+            </a>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+
+            <!-- SIDEBAR (37%) -->
+            <aside class="sidebar-products" id="sidebarProducts">
+
+                <!-- Header -->
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <i class="fas fa-filter"></i> Filtres
+                    </div>
+                </div>
+
+                <!-- Recherche -->
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un produit..." />
+                </div>
+
+                <!-- Filtres -->
+                <div class="filter-section">
+                    <div class="filter-label">📊 Statut stock</div>
+                    <div class="filter-switch" id="stockFilterSwitch">
+                        <button class="filter-btn active" data-filter="all">📋 Tous</button>
+                        <button class="filter-btn" data-filter="instock">✅ En stock</button>
+                        <button class="filter-btn" data-filter="lowstock">⚠️ Stock bas</button>
+                        <button class="filter-btn" data-filter="outofstock">🚫 Rupture</button>
+                    </div>
+                </div>
+
+                <!-- Mini stats par catégorie -->
+                <div class="mini-stats">
+                    <div class="mini-title">🏷️ Catégories</div>
+                    <div class="mini-grid" id="categoryStats">
+                        <div class="mini-item">
+                            <span class="mini-label">Toutes</span>
+                            <span class="mini-count" id="catTotal">0</span>
+                        </div>
+                        <!-- Les catégories seront injectées par JS -->
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- CONTENU PRINCIPAL (63%) -->
+            <main class="content-products">
+
+                <!-- Header -->
+                <div class="content-header">
+                    <div class="content-title">
+                        <i class="fas fa-list"></i> Liste des produits
+                    </div>
+                    <span class="content-count" id="productCount">0 produits</span>
+                </div>
+
+                <!-- Tableau (scrollable) -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Nom</th>
+                                <th>Prix</th>
+                                <th>Stock</th>
+                                <th>Catégorie</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <tr><td colspan="8" class="empty-table">
+                                <i class="fas fa-box"></i>
+                                <p>Aucun produit trouvé</p>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- OVERLAY SUPPRESSION                                             -->
+    <!-- ============================================================= -->
+    <div class="delete-overlay" id="deleteOverlay">
+        <div class="delete-box">
+            <div class="delete-icon">🗑️</div>
+            <h3>Supprimer le produit</h3>
+            <p id="deleteMessage">Êtes-vous sûr de vouloir supprimer ce produit ?</p>
+            <div class="delete-actions">
+                <button class="btn-cancel" id="deleteCancel">Annuler</button>
+                <button class="btn-confirm delete" id="deleteConfirm">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script src="/admin/js/produits.js"></script>
+
+</body>
+</html>
