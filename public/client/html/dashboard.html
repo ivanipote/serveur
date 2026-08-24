@@ -3,139 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | ComPlus</title>
+    <title>ComPlus | Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/dashboard.css">
 </head>
 <body>
 
     <!-- ========================================= -->
-    <!-- HEADER FIXE (70px / Glassmorphisme)       -->
+    <!-- TEXTE EN ARRIÈRE-PLAN                      -->
     <!-- ========================================= -->
-    <header class="dashboard-header">
-        <!-- Logo (feuille uniquement) -->
-        <a href="/dashboard" class="header-logo">
-            <span class="logo">🌿</span>
-        </a>
+    <div class="header-background-text">ComPlus</div>
 
-        <!-- Recherche -->
+    <!-- ========================================= -->
+    <!-- HEADER GLOBAL                             -->
+    <!-- ========================================= -->
+    <header class="dashboard-header" id="dashboardHeader">
         <div class="header-center">
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher...">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher un produit...">
             </div>
         </div>
-
-        <!-- Boutons -->
         <div class="header-right">
-            <button id="mesCommandesBtn" class="header-btn commandes-btn" title="Mes commandes">
+            <a href="/mescommandes" id="mesCommandesBtn" class="header-btn" title="Mes commandes">
                 <i class="fas fa-clipboard-list"></i>
-                <span id="commandeBadge" class="badge badge-commandes">0</span>
-            </button>
+                <span class="badge">0</span>
+            </a>
 
-            <button id="notifBtn" class="header-btn notif-btn" title="Notifications">
+            <a href="/notification" id="notifBtn" class="header-btn" title="Notifications">
                 <i class="fas fa-bell"></i>
-                <span id="notifBadge" class="badge badge-notif">0</span>
-            </button>
+                <span class="badge">0</span>
+            </a>
 
-            <button id="cartBtn" class="header-btn cart-btn" title="Mon panier">
+            <a href="/panier" id="cartBtn" class="header-btn" title="Mon panier">
                 <i class="fas fa-shopping-cart"></i>
-                <span id="cartBadge" class="badge badge-cart">0</span>
-            </button>
+                <span class="badge">0</span>
+            </a>
 
-            <button id="profilBtn" class="header-btn profil-btn" title="Mon profil">
+            <a href="/profil" id="profilBtn" class="header-btn" title="Mon profil">
                 <i class="fas fa-user-circle"></i>
-            </button>
+            </a>
         </div>
     </header>
 
     <!-- ========================================= -->
-    <!-- CONTENU PRINCIPAL (scrollable)            -->
+    <!-- CARROUSEL PRODUIT                          -->
     <!-- ========================================= -->
-    <main class="main-content" id="mainContent">
+    <div class="carousel-wrapper">
+        <div class="carousel-card" id="carouselCard">
 
-        <!-- MESSAGE INVITÉ -->
-        <div id="guestMessage" class="guest-message" style="display:none;">
-            <div class="guest-content">
-                <div class="guest-icon">
-                    <i class="fas fa-leaf"></i>
-                </div>
-                <div class="guest-text">
-                    <h3>🌿 Bienvenue sur ComPlus</h3>
-                    <p>Connectez-vous pour passer commande et profiter de toutes nos fonctionnalités.</p>
-                </div>
-                <a href="/login" class="guest-login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Se connecter
-                </a>
-            </div>
-        </div>
-
-        <!-- CARTE 1 : CARROUSEL (redesign) -->
-        <div class="card-rectangle" id="productCard">
-            <div class="carousel-container">
-                <!-- SKELETON LOADER -->
-                <div id="carouselSkeleton" class="skeleton-carousel">
-                    <div class="skeleton-img"></div>
-                    <div class="skeleton-footer"></div>
-                </div>
-
-                <!-- CARROUSEL TRACK -->
-                <div class="carousel-track" id="carouselTrack">
-                    <!-- Les produits seront injectés ici par JS -->
-                </div>
-
-                <!-- BOUTONS DE NAVIGATION -->
-                <button class="carousel-btn prev" id="prevBtn">
+            <div class="carousel-header" id="carouselHeader">
+                <button class="carousel-nav-btn prev" id="prevProduct">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <button class="carousel-btn next" id="nextBtn">
+                <span class="carousel-title" id="productName">Nom du produit</span>
+                <button class="carousel-nav-btn next" id="nextProduct">
                     <i class="fas fa-chevron-right"></i>
                 </button>
+            </div>
 
-                <!-- INDICATEUR -->
-                <div class="carousel-nav" id="carouselNav">
-                    <span id="navCurrent">1</span>
-                    <span>/</span>
-                    <span id="navTotal">1</span>
+            <div class="carousel-main">
+                <div class="carousel-image-wrapper">
+                    <img id="productImage" src="https://picsum.photos/seed/1/600/400" alt="Produit">
                 </div>
             </div>
-        </div>
 
-        <!-- CARTE BIENVENUE ComPlus -->
-        <div class="welcome-card" id="welcomeCard">
-            <div class="welcome-content">
-                <div class="welcome-icon">🌿</div>
-                <div class="welcome-text">
-                    <h3>Bienvenue sur ComPlus</h3>
-                    <p>Commander plus et recevez votre commande en toute bonne état.</p>
-                    <div class="welcome-features">
-                        <span>✅ Produits 100% naturels</span>
-                        <span>📦 Livraison rapide</span>
-                        <span>💳 Paiement sécurisé</span>
-                    </div>
-                </div>
+            <div class="carousel-footer" id="carouselFooter">
+                <span class="product-stock" id="productStock">📦 En stock</span>
+                <span class="product-price" id="productPrice">0 FCFA</span>
+                <button class="btn-add-cart" id="addToCartBtn">
+                    <i class="fas fa-plus-circle"></i> Ajouter
+                </button>
+                <button class="btn-view-detail" id="viewDetailBtn">
+                    <i class="fas fa-eye"></i> Voir
+                </button>
+                <span class="carousel-indicator-inline">
+                    <span id="currentIndex">1</span> / <span id="totalProducts">1</span>
+                </span>
             </div>
-        </div>
 
-        <!-- CARTE 2 : DÉTAIL PRODUIT (footer) -->
-        <div class="card-detail" id="productDetail">
-            <div class="detail-bg" id="detailBg"></div>
-            <div class="detail-overlay">
-                <div class="detail-content">
-                    <h2 class="detail-name">Nom du produit</h2>
-                    <p class="detail-price">0 FCFA</p>
-                    <p class="detail-desc">Description du produit</p>
-                    <button class="detail-add-btn" id="detailAddBtn">
-                        <i class="fas fa-plus-circle"></i> Ajouter au panier
-                    </button>
-                </div>
-            </div>
         </div>
+    </div>
 
-    </main>
+    <!-- ========================================= -->
+    <!-- SEPARATION 8px                            -->
+    <!-- ========================================= -->
+    <div class="separator-8px"></div>
+
+    <!-- ========================================= -->
+    <!-- CARTE DYNAMIQUE                           -->
+    <!-- ========================================= -->
+    <div id="dynamicCard">
+        <!-- Injecté par JS -->
+    </div>
 
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/dashboard.js"></script>
-
 </body>
 </html>
