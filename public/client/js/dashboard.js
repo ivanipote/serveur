@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     description: p.description || 'Aucune description',
                     price: p.price || 0,
                     stock: p.quantity || 0,
-                    image: p.image1 || 'https://picsum.photos/seed/default/600/400'
+                    image: p.image1 || ''
                 }));
                 console.log(`✅ ${products.length} produits chargés`);
                 return true;
@@ -112,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // Commandes
             const res1 = await fetch('/api/commandes');
             if (res1.ok) {
                 const data = await res1.json();
@@ -121,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandeBadge.style.display = count > 0 ? 'flex' : 'none';
             }
 
-            // Notifications
             const res2 = await fetch('/api/notifications/count');
             if (res2.ok) {
                 const data = await res2.json();
@@ -130,7 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBadge.style.display = count > 0 ? 'flex' : 'none';
             }
 
-            // Panier
             const res3 = await fetch('/api/panier/count');
             if (res3.ok) {
                 const data = await res3.json();
@@ -197,15 +194,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateCarousel(index) {
         const product = products[index];
-        if (!product) return;
+        if (!product) {
+            productName.textContent = 'Aucun produit';
+            productPrice.textContent = '0 FCFA';
+            productStock.textContent = '🚫 Indisponible';
+            productImage.src = '';
+            return;
+        }
 
         productName.textContent = product.name;
         productPrice.textContent = product.price.toLocaleString() + ' FCFA';
         productStock.textContent = product.stock > 0 ? `📦 ${product.stock} en stock` : '🚫 Rupture de stock';
         productStock.style.color = product.stock > 0 ? '#4ade80' : '#f87171';
-        productImage.src = product.image;
+        productImage.src = product.image || '';
 
-        const bgImage = `url(${product.image})`;
+        const bgImage = product.image ? `url(${product.image})` : 'none';
         dashboardHeader.style.backgroundImage = bgImage;
         carouselHeader.style.backgroundImage = bgImage;
         carouselFooter.style.backgroundImage = bgImage;
@@ -345,21 +348,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const loaded = await loadProducts();
         if (!loaded || products.length === 0) {
-            // Produits de secours
-            products = [
-                { id: 1, name: 'Produit 1', price: 1500, stock: 25, image: 'https://picsum.photos/seed/1/600/400' },
-                { id: 2, name: 'Produit 2', price: 3500, stock: 12, image: 'https://picsum.photos/seed/2/600/400' },
-                { id: 3, name: 'Produit 3', price: 2200, stock: 8, image: 'https://picsum.photos/seed/3/600/400' }
-            ];
+            productName.textContent = 'Aucun produit disponible';
+            productPrice.textContent = '0 FCFA';
+            productStock.textContent = '🚫 Aucun produit';
+            productImage.src = '';
+            currentIndexEl.textContent = '0';
+            totalProductsEl.textContent = '0';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            dashboardHeader.style.backgroundImage = 'none';
+            carouselHeader.style.backgroundImage = 'none';
+            carouselFooter.style.backgroundImage = 'none';
+            console.log('⚠️ Aucun produit disponible');
         }
 
         renderDynamicCard();
-        updateCarousel(0);
-        startAutoScroll();
+        if (products.length > 0) {
+            updateCarousel(0);
+            startAutoScroll();
+        }
         loadBadges();
         connectSocketIO();
 
-        // Rafraîchir badges toutes les 30s
         setInterval(loadBadges, 30000);
 
         console.log('✅ Dashboard ComPlus prêt - Production');
