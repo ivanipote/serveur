@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement des données vendeur...');
 
-            // 1. Récupérer la boutique
             const shopRes = await fetch('/api/seller/shop', {
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -69,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const shop = shopData.shop;
                 const products = shopData.products || [];
 
-                // Construire l'objet boutique
                 sellerData = {
                     id: shop.id,
                     name: shop.name,
@@ -84,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     products: products
                 };
 
-                // 2. Récupérer les stats
                 try {
                     const statsRes = await fetch('/api/seller/stats', {
                         headers: {
@@ -117,7 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('✅ Données chargées:', sellerData);
 
             } else {
-                // Pas de boutique
                 shops = [];
                 isDataLoaded = true;
                 renderCarousel(shops);
@@ -224,7 +220,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentIndex = 0;
         updateCarousel();
 
-        // Clic sur une boutique → /shop?id=...
         document.querySelectorAll('.shop-slide').forEach(slide => {
             slide.addEventListener('click', function() {
                 const id = this.dataset.id;
@@ -258,7 +253,6 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.disabled = currentIndex === total - 1;
     }
 
-    // Navigation carousel
     prevBtn.addEventListener('click', function() {
         if (currentIndex > 0) {
             currentIndex--;
@@ -435,29 +429,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // INITIALISATION
+    // INITIALISATION (CORRIGÉE)
     // ==========================================
 
     if (!checkAuth()) return;
 
-    // Charger les données
-    await loadSellerData();
+    // ✅ IIFE pour éviter l'erreur "await is only valid in async functions"
+    (async function init() {
+        await loadSellerData();
+        connectSocketIO();
 
-    // Connecter Socket.IO
-    connectSocketIO();
+        setInterval(() => {
+            refreshData();
+        }, 30000);
 
-    // Rafraîchir toutes les 30 secondes
-    setInterval(() => {
-        refreshData();
-    }, 30000);
+        window.sellerDashboard = {
+            refreshData,
+            shops,
+            sellerData
+        };
 
-    // Exposer pour debugging
-    window.sellerDashboard = {
-        refreshData,
-        shops,
-        sellerData
-    };
-
-    console.log('✅ Dashboard vendeur - Prêt');
+        console.log('✅ Dashboard vendeur - Prêt');
+    })();
 
 });
