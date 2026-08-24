@@ -1,3 +1,8 @@
+// ========================================================
+// SERVEUR VENDEUR - NATURE+ / COMPLUS
+// Version complète avec toutes les routes
+// ========================================================
+
 // ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
 process.env.TZ = 'Africa/Abidjan';
 
@@ -8,7 +13,6 @@ const Redis = require('ioredis');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const fs = require('fs');
 const session = require('express-session');
 const pg = require('pg');
 const PgSession = require('connect-pg-simple')(session);
@@ -67,7 +71,15 @@ const subClient = redisClient.duplicate();
 
 const io = new Server(server, {
     cors: {
-        origin: ['*'],
+        origin: [
+            'https://nature-plus-client.onrender.com',
+            'https://nature-plus-pay.onrender.com',
+            'https://nature-plus-seller.onrender.com',
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:3002',
+            'http://localhost:3006'
+        ],
         credentials: true
     },
     adapter: createAdapter(pubClient, subClient)
@@ -103,7 +115,7 @@ global.io = io;
 
 app.use(express.json());
 
-// ✅ Servir le dossier public ENTIER
+// Servir le dossier public ENTIER
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/seller', express.static(path.join(__dirname, 'public', 'seller')));
 
@@ -236,7 +248,6 @@ app.post('/api/seller/register', async (req, res) => {
         return res.status(400).json({ error: 'Tous les champs sont requis.' });
     }
 
-    // ✅ 4 chiffres
     if (password.length !== 4 || !/^\d{4}$/.test(password)) {
         return res.status(400).json({ error: 'Le mot de passe doit être un code à 4 chiffres.' });
     }
@@ -279,7 +290,6 @@ app.post('/api/seller/register', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Erreur inscription vendeur:', error);
-        console.error('📄 Stack:', error.stack);
         res.status(500).json({ error: 'Erreur lors de l\'inscription.', details: error.message });
     }
 });
@@ -668,11 +678,26 @@ app.get('/api/seller/shop/:id', async (req, res) => {
             [id]
         );
 
+        const viewCount = await db.get(
+            'SELECT total_views FROM seller_stats WHERE shop_id = $1',
+            [id]
+        );
+
+        // Incrémenter les vues
+        await db.query(
+            `INSERT INTO seller_stats (seller_id, shop_id, total_views, updated_at)
+             VALUES ($1, $2, 1, NOW())
+             ON CONFLICT (shop_id) 
+             DO UPDATE SET total_views = seller_stats.total_views + 1, updated_at = NOW()`,
+            [shop.seller_id, id]
+        );
+
         res.json({
             success: true,
             shop: {
                 ...shop,
-                total_likes: parseInt(likeCount?.count || 0)
+                total_likes: parseInt(likeCount?.count || 0),
+                total_views: parseInt(viewCount?.total_views || 0)
             },
             products: products || []
         });
@@ -816,7 +841,8 @@ app.get('/api/seller/stats', isAuthenticatedSeller, async (req, res) => {
                 (SELECT COUNT(*) FROM seller_products WHERE shop_id = s.id) as total_products,
                 (SELECT COUNT(*) FROM seller_likes WHERE shop_id = s.id) as total_likes,
                 (SELECT COUNT(*) FROM seller_messages WHERE shop_id = s.id) as total_messages,
-                (SELECT COUNT(*) FROM seller_orders WHERE shop_id = s.id) as total_orders
+                (SELECT COUNT(*) FROM seller_orders WHERE shop_id = s.id) as total_orders,
+                (SELECT total_views FROM seller_stats WHERE shop_id = s.id) as total_views
             FROM shops s
             WHERE s.seller_id = $1
         `, [sellerId]);
@@ -949,10 +975,17 @@ app.get('/api/seller/messages/:userId', isAuthenticatedSeller, async (req, res) 
 // ROUTES PAGES VENDEUR
 // ========================================================
 
+// Route racine - redirection intelligente
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
+    const token = req.headers.authorization?.split(' ')[1] || req.query.token;
+    if (token || req.session?.sellerId) {
+        res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'dashboard.html'));
+    } else {
+        res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
+    }
 });
 
+// Pages d'authentification
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
 });
@@ -961,6 +994,7 @@ app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'register.html'));
 });
 
+// Pages principales
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'dashboard.html'));
 });
@@ -969,8 +1003,21 @@ app.get('/create-shop', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-shop.html'));
 });
 
+// ✅ PAGES MANQUANTES (ajoutées)
 app.get('/shop', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop.html'));
+});
+
+app.get('/products', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'products.html'));
+});
+
+app.get('/messages', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'messages.html'));
+});
+
+app.get('/profil', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'profil.html'));
 });
 
 // ========================================================
