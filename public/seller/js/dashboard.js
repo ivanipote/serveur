@@ -31,23 +31,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // METTRE À JOUR L'IMAGE DE FOND (sans image)
+    // METTRE À JOUR L'IMAGE DE FOND
     // ==========================================
 
     function updateBackground(index) {
         if (!shops || shops.length === 0 || !shops[index]) {
             shopCardBg.style.backgroundImage = 'none';
             shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
+            shopCardBg.style.filter = 'none';
             return;
         }
-        // Si la boutique a une image, on l'utilise, sinon dégradé rouge
+
         const shop = shops[index];
-        if (shop.image && shop.image !== '') {
-            shopCardBg.style.backgroundImage = `url(${shop.image})`;
+
+        // ✅ Vérifier si une image existe
+        if (shop.image && shop.image !== '' && shop.image !== 'null' && shop.image !== 'undefined') {
+            // Si l'image est une URL complète (http:// ou https://)
+            if (shop.image.startsWith('http://') || shop.image.startsWith('https://')) {
+                shopCardBg.style.backgroundImage = `url(${shop.image})`;
+            } else {
+                // Sinon, considérer comme un chemin local
+                shopCardBg.style.backgroundImage = `url(/uploads/seller/${shop.image})`;
+            }
             shopCardBg.style.background = 'none';
+            shopCardBg.style.filter = 'blur(6px) brightness(0.5)';
+            shopCardBg.style.backgroundSize = 'cover';
+            shopCardBg.style.backgroundPosition = 'center';
+            shopCardBg.style.transform = 'scale(1.05)';
         } else {
+            // ✅ Pas d'image → dégradé rouge
             shopCardBg.style.backgroundImage = 'none';
             shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
+            shopCardBg.style.filter = 'none';
+            shopCardBg.style.transform = 'none';
         }
     }
 
@@ -86,8 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `).join('');
 
-        updateBackground(0);
-
         currentIndex = 0;
         updateCarousel();
 
@@ -95,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             slide.addEventListener('click', function() {
                 const id = this.dataset.id;
                 if (id) {
-                    window.location.href = `/seller/shop.html?id=${id}`;
+                    window.location.href = '/shop?id=' + id;
                 }
             });
         });
