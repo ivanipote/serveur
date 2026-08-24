@@ -1,0 +1,655 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+}
+
+/* ==========================================
+   HEADER - Rouge
+   ========================================== */
+
+.dashboard-header {
+    background: #c62828;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow: 0 2px 10px rgba(198, 40, 40, 0.15);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left .logo {
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.header-center {
+    flex: 1;
+    min-width: 160px;
+    max-width: 400px;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 10px 14px 10px 40px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.search-wrapper input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-wrapper input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.header-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.header-btn .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ffffff;
+    color: #c62828;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+}
+
+.add-shop-btn {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.add-shop-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* ==========================================
+   MAIN - 100vh
+   ========================================== */
+
+.dashboard-main {
+    flex: 1;
+    padding: 10px 20px 0 20px;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 76px);
+    overflow: hidden;
+}
+
+/* ==========================================
+   CADRE 1 - BOUTIQUES
+   ========================================== */
+
+.shop-card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #f0f0f5;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 calc(50% - 5px);
+    min-height: 180px;
+}
+
+.shop-card-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(6px) brightness(0.5);
+    transform: scale(1.05);
+    transition: background-image 0.5s ease;
+}
+
+.shop-card-overlay {
+    position: relative;
+    z-index: 2;
+    padding: 18px 20px 16px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.card-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.card-header h2 i {
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.shop-counter {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 4px 14px;
+    border-radius: 20px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.shop-carousel-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.carousel-btn {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.shop-carousel {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    scroll-behavior: smooth;
+    gap: 0;
+    height: 100%;
+}
+
+.shop-slide {
+    min-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.shop-item {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    padding: 20px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    margin: 0 auto;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.shop-item:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.01);
+}
+
+.shop-item .shop-icon {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.shop-item .shop-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.shop-item .shop-location {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    display: block;
+    margin-top: 2px;
+}
+
+.shop-item .shop-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.shop-empty {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 20px 20px;
+    width: 100%;
+}
+
+.shop-empty i {
+    font-size: 36px;
+    color: rgba(255, 255, 255, 0.5);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.shop-empty p {
+    font-size: 14px;
+}
+
+/* ==========================================
+   CADRE 2 - STATS
+   ========================================== */
+
+.stats-card {
+    background: white;
+    border-radius: 20px;
+    padding: 14px 20px 12px 20px;
+    border: 1px solid #f0f0f5;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    flex: 1;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+
+.stats-card .card-header {
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.stats-card .card-header h2 {
+    color: #1a1a2e;
+    font-size: 16px;
+    text-shadow: none;
+}
+
+.stats-card .card-header h2 i {
+    color: #c62828;
+    text-shadow: none;
+}
+
+.stats-table-wrapper {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+}
+
+.stats-table-wrapper::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.stats-table-wrapper::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 10px;
+}
+
+.stats-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 300px;
+}
+
+.stats-table-wrapper thead th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #f0f0f5;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: white;
+}
+
+.stats-table-wrapper .col-shop {
+    color: #2563EB;
+}
+
+.stats-table-wrapper .col-articles {
+    color: #16A34A;
+}
+
+.stats-table-wrapper .col-messages {
+    color: #EA580C;
+}
+
+.stats-table-wrapper .col-likes {
+    color: #DC2626;
+}
+
+.stats-table-wrapper td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f5f5f5;
+    color: #1a1a2e;
+}
+
+.stats-table-wrapper tr:last-child td {
+    border-bottom: none;
+}
+
+.stats-table-wrapper .shop-name {
+    font-weight: 600;
+    color: #2563EB;
+}
+
+.stats-table-wrapper .stat-number {
+    font-weight: 700;
+}
+
+.stats-table-wrapper .stat-number.articles {
+    color: #16A34A;
+}
+
+.stats-table-wrapper .stat-number.messages {
+    color: #EA580C;
+}
+
+.stats-table-wrapper .stat-number.likes {
+    color: #DC2626;
+}
+
+.stats-empty {
+    text-align: center;
+    color: #888;
+    padding: 20px 20px;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 10px 14px;
+        gap: 8px;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .header-center {
+        min-width: 120px;
+        max-width: 100%;
+        order: 3;
+        flex-basis: 100%;
+    }
+
+    .search-wrapper input {
+        padding: 8px 12px 8px 36px;
+        font-size: 13px;
+    }
+
+    .header-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+
+    .dashboard-main {
+        padding: 10px 14px 0 14px;
+        height: calc(100vh - 72px);
+    }
+
+    .shop-card {
+        flex: 0 0 calc(50% - 5px);
+        min-height: 150px;
+    }
+
+    .shop-card-overlay {
+        padding: 14px 14px 12px 14px;
+    }
+
+    .card-header h2 {
+        font-size: 16px;
+    }
+
+    .shop-item {
+        padding: 16px 14px;
+    }
+
+    .shop-item .shop-name {
+        font-size: 16px;
+    }
+
+    .carousel-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .stats-card {
+        padding: 12px 14px 10px 14px;
+        margin-top: 10px;
+    }
+
+    .stats-card .card-header h2 {
+        font-size: 15px;
+    }
+
+    .stats-table-wrapper table {
+        font-size: 13px;
+        min-width: 250px;
+    }
+
+    .stats-table-wrapper th,
+    .stats-table-wrapper td {
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        padding: 8px 10px;
+        gap: 6px;
+        border-radius: 0 0 14px 14px;
+    }
+
+    .header-left .logo {
+        font-size: 15px;
+    }
+
+    .header-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .header-btn .badge {
+        font-size: 8px;
+        min-width: 14px;
+        height: 14px;
+    }
+
+    .dashboard-main {
+        padding: 8px 8px 0 8px;
+        height: calc(100vh - 64px);
+    }
+
+    .shop-card {
+        flex: 0 0 calc(50% - 4px);
+        min-height: 130px;
+        border-radius: 14px;
+    }
+
+    .shop-card-overlay {
+        padding: 10px 10px 10px 10px;
+    }
+
+    .card-header h2 {
+        font-size: 13px;
+    }
+
+    .shop-counter {
+        font-size: 11px;
+        padding: 2px 10px;
+    }
+
+    .shop-item {
+        padding: 12px 10px;
+    }
+
+    .shop-item .shop-name {
+        font-size: 14px;
+    }
+
+    .shop-item .shop-desc {
+        font-size: 12px;
+    }
+
+    .shop-item .shop-location {
+        font-size: 12px;
+    }
+
+    .shop-item .shop-icon {
+        font-size: 28px;
+    }
+
+    .carousel-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .shop-empty i {
+        font-size: 28px;
+    }
+    .shop-empty {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+
+    .stats-card {
+        padding: 10px 10px 8px 10px;
+        border-radius: 14px;
+        margin-top: 8px;
+    }
+
+    .stats-card .card-header h2 {
+        font-size: 13px;
+    }
+
+    .stats-table-wrapper table {
+        font-size: 12px;
+        min-width: 200px;
+    }
+
+    .stats-table-wrapper th,
+    .stats-table-wrapper td {
+        padding: 5px 6px;
+    }
+}

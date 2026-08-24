@@ -1,0 +1,233 @@
+document.addEventListener('DOMContentLoaded', function() {
+
+    console.log('✅ Dashboard vendeur - Production');
+
+    // ==========================================
+    // RÉFÉRENCES
+    // ==========================================
+
+    const shopCarousel = document.getElementById('shopCarousel');
+    const statsBody = document.getElementById('statsBody');
+    const searchInput = document.getElementById('searchInput');
+    const messageBadge = document.getElementById('messageBadge');
+    const shopCounter = document.getElementById('shopCounter');
+    const prevBtn = document.getElementById('prevShop');
+    const nextBtn = document.getElementById('nextShop');
+    const shopCardBg = document.getElementById('shopCardBg');
+
+    let currentIndex = 0;
+    let shops = [];
+
+    // ==========================================
+    // RÉCUPÉRER LES DONNÉES (localStorage - mode démo)
+    // ==========================================
+
+    function getShops() {
+        try {
+            return JSON.parse(localStorage.getItem('sellerShops')) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function getSellerName() {
+        return localStorage.getItem('sellerName') || 'Vendeur';
+    }
+
+    // ==========================================
+    // AFFICHAGE CAROUSEL (1/1 horizontal)
+    // ==========================================
+
+    function renderCarousel(shopsData) {
+        shops = shopsData;
+
+        if (!shops || shops.length === 0) {
+            shopCarousel.innerHTML = `
+                <div class="shop-slide">
+                    <div class="shop-empty">
+                        <i class="fas fa-store"></i>
+                        <p>Aucune boutique créée</p>
+                        <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">Cliquez sur + pour créer votre première boutique</p>
+                    </div>
+                </div>
+            `;
+            shopCounter.textContent = '0 / 0';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            shopCardBg.style.backgroundImage = 'url(https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop)';
+            return;
+        }
+
+        shopCarousel.innerHTML = shops.map((shop, index) => `
+            <div class="shop-slide" data-id="${shop.id}" data-index="${index}">
+                <div class="shop-item">
+                    <span class="shop-icon">🏪</span>
+                    <div class="shop-name">${shop.name}</div>
+                    <span class="shop-location">📍 ${shop.location}</span>
+                    <div class="shop-desc">${shop.description || ''}</div>
+                </div>
+            </div>
+        `).join('');
+
+        updateBackground(0);
+
+        currentIndex = 0;
+        updateCarousel();
+
+        document.querySelectorAll('.shop-slide').forEach(slide => {
+            slide.addEventListener('click', function() {
+                const id = this.dataset.id;
+                if (id) {
+                    window.location.href = `/shop.html?id=${id}`;
+                }
+            });
+        });
+    }
+
+    // ==========================================
+    // METTRE À JOUR L'IMAGE DE FOND
+    // ==========================================
+
+    function updateBackground(index) {
+        if (!shops || shops.length === 0 || !shops[index]) {
+            shopCardBg.style.backgroundImage = 'url(https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop)';
+            return;
+        }
+        const shop = shops[index];
+        const imageUrl = shop.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop';
+        shopCardBg.style.backgroundImage = `url(${imageUrl})`;
+    }
+
+    // ==========================================
+    // CAROUSEL NAVIGATION
+    // ==========================================
+
+    function updateCarousel() {
+        const slides = shopCarousel.querySelectorAll('.shop-slide');
+        const total = slides.length;
+
+        if (total === 0) {
+            shopCounter.textContent = '0 / 0';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            return;
+        }
+
+        slides.forEach((slide, index) => {
+            slide.style.display = index === currentIndex ? 'flex' : 'none';
+        });
+
+        updateBackground(currentIndex);
+
+        shopCounter.textContent = `${currentIndex + 1} / ${total}`;
+
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === total - 1;
+    }
+
+    prevBtn.addEventListener('click', function() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCarousel();
+        }
+    });
+
+    nextBtn.addEventListener('click', function() {
+        const total = shopCarousel.querySelectorAll('.shop-slide').length;
+        if (currentIndex < total - 1) {
+            currentIndex++;
+            updateCarousel();
+        }
+    });
+
+    // ==========================================
+    // AFFICHAGE STATS
+    // ==========================================
+
+    function renderStats(shopsData) {
+        if (!shopsData || shopsData.length === 0) {
+            statsBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="stats-empty">Aucune donnée disponible</td>
+                </tr>
+            `;
+            return;
+        }
+
+        statsBody.innerHTML = shopsData.map(shop => `
+            <tr>
+                <td class="shop-name">${shop.name}</td>
+                <td class="stat-number articles">${shop.articles || 0}</td>
+                <td class="stat-number messages">${shop.messages || 0}</td>
+                <td class="stat-number likes">${shop.likes || 0}</td>
+            </tr>
+        `).join('');
+    }
+
+    // ==========================================
+    // RECHERCHE
+    // ==========================================
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        const allShops = getShops();
+
+        if (query === '') {
+            renderCarousel(allShops);
+            renderStats(allShops);
+            return;
+        }
+
+        const filtered = allShops.filter(shop =>
+            shop.name.toLowerCase().includes(query) ||
+            shop.location.toLowerCase().includes(query) ||
+            (shop.description && shop.description.toLowerCase().includes(query))
+        );
+
+        renderCarousel(filtered);
+        renderStats(filtered);
+    });
+
+    // ==========================================
+    // MESSAGE BADGE
+    // ==========================================
+
+    function updateMessageBadge() {
+        const allShops = getShops();
+        const totalMessages = allShops.reduce((sum, shop) => sum + (shop.messages || 0), 0);
+        messageBadge.textContent = totalMessages > 0 ? totalMessages : '0';
+    }
+
+    // ==========================================
+    // BOUTONS HEADER
+    // ==========================================
+
+    document.getElementById('messagesBtn').addEventListener('click', function() {
+        window.location.href = '/messages.html';
+    });
+
+    document.getElementById('productsBtn').addEventListener('click', function() {
+        window.location.href = '/profil.html';
+    });
+
+    document.getElementById('profileBtn').addEventListener('click', function() {
+        window.location.href = '/profil.html';
+    });
+
+    document.getElementById('addShopBtn').addEventListener('click', function() {
+        window.location.href = '/create-shop.html';
+    });
+
+    // ==========================================
+    // INITIALISATION
+    // ==========================================
+
+    const allShops = getShops();
+    renderCarousel(allShops);
+    renderStats(allShops);
+    updateMessageBadge();
+
+    console.log('✅ Dashboard vendeur - Production prêt');
+    console.log(`📊 ${allShops.length} boutique(s) chargée(s)`);
+
+});

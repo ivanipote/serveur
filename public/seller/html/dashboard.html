@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Vendeur | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/seller/css/dashboard.css">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER                                       -->
+    <!-- ========================================== -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <span class="logo">🛒 ComPlus</span>
+        </div>
+        <div class="header-center">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher..." />
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" id="messagesBtn" title="Messages">
+                <i class="fas fa-envelope"></i>
+                <span class="badge" id="messageBadge">0</span>
+            </button>
+            <button class="header-btn" id="productsBtn" title="Mes produits">
+                <i class="fas fa-box"></i>
+            </button>
+            <button class="header-btn" id="profileBtn" title="Mon profil">
+                <i class="fas fa-user-circle"></i>
+            </button>
+            <button class="header-btn add-shop-btn" id="addShopBtn" title="Ajouter une boutique">
+                <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN CONTENT                                -->
+    <!-- ========================================== -->
+    <main class="dashboard-main">
+
+        <!-- ===== CADRE 1 : BOUTIQUES ===== -->
+        <section class="shop-card" id="shopCard">
+            <div class="shop-card-bg" id="shopCardBg">
+                <!-- Image de fond injectée par JS -->
+            </div>
+            <div class="shop-card-overlay">
+                <div class="card-header">
+                    <h2><i class="fas fa-store"></i> Mes boutiques</h2>
+                    <span class="shop-counter" id="shopCounter">1 / 1</span>
+                </div>
+                <div class="shop-carousel-wrapper">
+                    <button class="carousel-btn prev" id="prevShop">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="shop-carousel" id="shopCarousel">
+                        <!-- Injecté par JS -->
+                    </div>
+                    <button class="carousel-btn next" id="nextShop">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== CADRE 2 : STATS ===== -->
+        <section class="stats-card" id="statsCard">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Statistiques</h2>
+            </div>
+            <div class="stats-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-shop">BOUTIQUE</th>
+                            <th class="col-articles">ARTICLES</th>
+                            <th class="col-messages">MESSAGE</th>
+                            <th class="col-likes">LIKE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsBody">
+                        <!-- Injecté par JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/seller/js/dashboard.js"></script>
+</body>
+</html>
