@@ -31,13 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const recapCancelBtn = document.getElementById('recapCancelBtn');
     const recapConfirmBtn = document.getElementById('recapConfirmBtn');
 
+    const loaderOverlay = document.getElementById('loaderOverlay');
+
     const messageOverlay = document.getElementById('messageOverlay');
     const messageIcon = document.getElementById('messageIcon');
     const messageTitle = document.getElementById('messageTitle');
     const messageText = document.getElementById('messageText');
     const messageBtn = document.getElementById('messageBtn');
-
-    const confirmOverlay = document.getElementById('confirmOverlay');
 
     const communeOverlay = document.getElementById('communeOverlay');
     const communeList = document.getElementById('communeList');
@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
     let isGpsResolved = false;
 
-    // Coordonnées de l'entreprise
     const ENTREPRISE_COORDS = {
         lat: 5.3720557,
         lon: -3.9561231
@@ -331,7 +330,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 gpsStatus.textContent = '❌ Erreur de localisation';
                 gpsStatus.className = 'gps-status error';
 
-                // ✅ Vider les champs GPS pour que l'utilisateur les remplisse manuellement
                 gpsAdresse.value = '';
                 gpsCommune.value = '';
                 gpsQuartier.value = '';
@@ -339,10 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 gpsAdresseAdresse.value = '';
                 distanceEstimee.value = 'Non calculée';
 
-                // ✅ Afficher un message à l'utilisateur
                 showMessage('📍', 'Localisation non disponible', 'Veuillez entrer manuellement votre adresse de livraison.');
 
-                // ✅ Mettre à jour le statut GPS
                 isGpsResolved = false;
             }, {
                 enableHighAccuracy: true,
@@ -542,9 +538,9 @@ document.addEventListener('DOMContentLoaded', function() {
             'Adresse saisie';
 
         let productsHtml = panier.map(item =>
-            `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f2f5;font-size:14px;">
+            `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(45,125,70,0.06);font-size:14px;">
                 <span>${item.name} × ${item.quantity}</span>
-                <span style="font-weight:600;">${(item.price * item.quantity).toLocaleString()} FCFA</span>
+                <span style="font-weight:600;color:#2d7d46;">${(item.price * item.quantity).toLocaleString()} FCFA</span>
             </div>`
         ).join('');
 
@@ -553,21 +549,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 <strong style="color:#1a1a2e;">📦 ${totalItems} article(s)</strong>
             </div>
             ${productsHtml}
-            <div style="margin-top:12px;padding-top:10px;border-top:2px solid #e8ecf4;">
+            <div style="margin-top:12px;padding-top:10px;border-top:2px solid #2d7d46;">
                 <div style="display:flex;justify-content:space-between;font-size:15px;">
                     <span style="color:#888;">Sous-total</span>
-                    <span style="font-weight:600;">${sousTotal.toLocaleString()} FCFA</span>
+                    <span style="font-weight:600;color:#1a1a2e;">${sousTotal.toLocaleString()} FCFA</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:15px;margin-top:2px;">
                     <span style="color:#888;">Livraison</span>
-                    <span style="font-weight:600;">${fraisActuels.toLocaleString()} FCFA</span>
+                    <span style="font-weight:600;color:#1a1a2e;">${fraisActuels.toLocaleString()} FCFA</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-top:6px;padding-top:6px;border-top:2px solid #2d7d46;">
                     <span style="color:#1a1a2e;">TOTAL</span>
                     <span style="color:#2d7d46;">${total.toLocaleString()} FCFA</span>
                 </div>
             </div>
-            <div style="margin-top:12px;padding-top:10px;border-top:2px solid #e8ecf4;">
+            <div style="margin-top:12px;padding-top:10px;border-top:2px solid rgba(45,125,70,0.1);">
                 <div style="font-size:14px;color:#555;">
                     <strong>📍 Adresse de livraison</strong>
                 </div>
@@ -677,6 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     recapConfirmBtn.addEventListener('click', async function() {
         hideRecapOverlay();
+        loaderOverlay.classList.add('active');
 
         const nom = optionActive === 'chezmoi' ? document.getElementById('nomComplet').value.trim() : document.getElementById('nomCompletAdresse').value.trim();
         const telephone = optionActive === 'chezmoi' ? document.getElementById('telephone').value.trim() : document.getElementById('telephoneAdresse').value.trim();
@@ -714,7 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('📦 Données de la commande:', commandeData);
 
-        confirmOverlay.classList.add('active');
         confirmerBtn.disabled = true;
 
         try {
@@ -730,17 +726,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'DELETE'
                 });
                 setTimeout(() => {
-                    confirmOverlay.classList.remove('active');
+                    loaderOverlay.classList.remove('active');
                     window.location.href = '/mescommandes';
                 }, 500);
             } else {
+                loaderOverlay.classList.remove('active');
                 showMessage('❌', 'Erreur', data.error || 'Erreur lors de la création de la commande.');
-                confirmOverlay.classList.remove('active');
                 confirmerBtn.disabled = false;
             }
         } catch (error) {
+            loaderOverlay.classList.remove('active');
             showMessage('❌', 'Erreur', 'Connexion au serveur impossible.');
-            confirmOverlay.classList.remove('active');
             confirmerBtn.disabled = false;
         }
     });

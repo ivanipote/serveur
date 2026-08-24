@@ -3,27 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmer ma commande | Nature+</title>
+    <title>Confirmer ma commande | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/passcommande.css">
 </head>
 <body>
 
-    <!-- HEADER FIXE -->
+    <!-- HEADER FIXE (Glassmorphisme) -->
     <header class="commande-header">
         <button class="back-btn" onclick="window.location.href='/panier'">
             <i class="fas fa-arrow-left"></i>
         </button>
         <span class="commande-title">📦 Confirmer ma commande</span>
+        <button class="home-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-home"></i>
+        </button>
     </header>
 
     <!-- MAIN SCROLLABLE -->
     <main class="commande-main" id="commandeMain">
         <div class="commande-container">
 
-            <!-- RÉCAPITULATIF -->
+            <!-- RÉCAPITULATIF (style glass) -->
             <div class="recap-card">
-                <div class="recap-title"><i class="fas fa-receipt" style="color:#2d7d46;"></i> Récapitulatif</div>
+                <div class="recap-title"><i class="fas fa-receipt"></i> Récapitulatif</div>
                 <div id="recapItems">
                     <div class="recap-item">
                         <span class="label">Chargement...</span>
@@ -35,10 +38,10 @@
                 </div>
             </div>
 
-            <!-- ADRESSE DE LIVRAISON -->
+            <!-- ADRESSE DE LIVRAISON (style glass) -->
             <div class="adresse-card">
                 <div class="adresse-title">
-                    <i class="fas fa-map-pin" style="color:#2d7d46;"></i> Adresse de livraison
+                    <i class="fas fa-map-pin"></i> Adresse de livraison
                     <span class="gps-status" id="gpsStatus"></span>
                 </div>
 
@@ -48,13 +51,11 @@
                     <button data-option="adresse" id="adresseBtn">✏️ Adresse</button>
                 </div>
 
-                <!-- ========================================= -->
-                <!-- FORMULAIRE CHEZ MOI (détails complets)      -->
-                <!-- ========================================= -->
+                <!-- FORMULAIRE CHEZ MOI -->
                 <div class="form-section active" id="formChezMoi">
                     <div class="form-group">
                         <label>📍 Adresse complète</label>
-                        <input type="text" id="gpsAdresse" placeholder="Détection en cours..." disabled style="min-height:60px;height:auto;padding:10px 14px;white-space:normal;word-wrap:break-word;">
+                        <input type="text" id="gpsAdresse" placeholder="Détection en cours..." disabled>
                     </div>
                     <div class="form-group">
                         <label>📍 Commune / Ville</label>
@@ -69,7 +70,7 @@
                         <input type="text" id="gpsRue" placeholder="Détection en cours..." disabled>
                     </div>
                     <div class="form-group">
-                        <label>📏 Distance estimée (depuis Nature+)</label>
+                        <label>📏 Distance estimée</label>
                         <input type="text" id="distanceEstimee" value="Calcul en cours..." disabled>
                     </div>
                     <div class="form-group">
@@ -99,13 +100,11 @@
                     </div>
                 </div>
 
-                <!-- ========================================= -->
-                <!-- FORMULAIRE ADRESSE                        -->
-                <!-- ========================================= -->
+                <!-- FORMULAIRE ADRESSE -->
                 <div class="form-section" id="formAdresse">
                     <div class="form-group">
                         <label>📍 Adresse complète</label>
-                        <input type="text" id="gpsAdresseAdresse" placeholder="Détection en cours..." disabled style="min-height:60px;height:auto;padding:10px 14px;white-space:normal;word-wrap:break-word;">
+                        <input type="text" id="gpsAdresseAdresse" placeholder="Détection en cours..." disabled>
                     </div>
                     <div class="form-group">
                         <label>📍 Préciser la commune</label>
@@ -116,7 +115,7 @@
                     </div>
                     <div class="form-group">
                         <label>📍 Lieu de livraison (précision)</label>
-                        <input type="text" id="lieuLivraison" placeholder="Ex: École primaire, Marché central, Chez Mamie...">
+                        <input type="text" id="lieuLivraison" placeholder="Ex: École primaire, Marché central...">
                     </div>
                     <div class="form-group">
                         <label>👤 Nom complet</label>
@@ -147,10 +146,21 @@
 
             </div>
 
+            <!-- CARTE MESSAGE ComPlus -->
+            <div class="message-card">
+                <div class="message-content">
+                    <div class="message-icon">🌿</div>
+                    <div class="message-text">
+                        <h3>ComPlus</h3>
+                        <p>Commander plus et recevez votre commande en toute bonne état.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <!-- FOOTER FIXE -->
+    <!-- FOOTER FIXE (Fond vert + total blanc) -->
     <footer class="commande-footer">
         <div class="footer-content">
             <div class="footer-summary">
@@ -213,10 +223,13 @@
         </div>
     </div>
 
-    <!-- OVERLAY CONFIRMATION (spinner) -->
-    <div class="confirm-overlay" id="confirmOverlay">
-        <div class="spinner"></div>
-        <p>🔄 Création de votre commande...</p>
+    <!-- OVERLAY LOADER (Commande en cours) -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-box">
+            <div class="loader-spinner"></div>
+            <h3>⏳ Commande en cours de création...</h3>
+            <p>Veuillez patienter quelques instants</p>
+        </div>
     </div>
 
     <!-- OVERLAY MESSAGE -->

@@ -2,6 +2,11 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
 }
 
 html, body {
@@ -18,11 +23,16 @@ body {
     padding-bottom: 0;
 }
 
-/* ===== HEADER ===== */
+/* =============================================================
+   HEADER FIXE (Glassmorphisme)
+   ============================================================= */
+
 .commande-header {
-    background: white;
+    background: rgba(45, 125, 70, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(45, 125, 70, 0.12);
     padding: 12px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -37,8 +47,8 @@ body {
 }
 
 .back-btn {
-    background: #e8e8f0;
-    border: none;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: #1a1a2e;
     width: 40px;
     height: 40px;
@@ -53,7 +63,28 @@ body {
 }
 
 .back-btn:hover {
-    background: #d0d0da;
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.05);
+}
+
+.home-btn {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #1a1a2e;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.home-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
     transform: scale(1.05);
 }
 
@@ -65,7 +96,10 @@ body {
     text-align: center;
 }
 
-/* ===== MAIN ===== */
+/* =============================================================
+   MAIN SCROLLABLE
+   ============================================================= */
+
 .commande-main {
     flex: 1;
     overflow-y: auto;
@@ -83,13 +117,18 @@ body {
     padding-bottom: 20px;
 }
 
-/* ===== RECAP ===== */
+/* =============================================================
+   RECAP CARD (Glassmorphisme)
+   ============================================================= */
+
 .recap-card {
-    background: white;
+    background: rgba(45, 125, 70, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(45, 125, 70, 0.1);
     border-radius: 16px;
     padding: 18px 20px;
-    border: 1px solid #f0f0f5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(45, 125, 70, 0.04);
 }
 
 .recap-card .recap-title {
@@ -106,7 +145,7 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 6px 0;
-    border-bottom: 1px solid #f5f5fa;
+    border-bottom: 1px solid rgba(45, 125, 70, 0.06);
 }
 
 .recap-item .label {
@@ -140,13 +179,18 @@ body {
     color: #2d7d46;
 }
 
-/* ===== ADRESSE ===== */
+/* =============================================================
+   ADRESSE CARD (Glassmorphisme)
+   ============================================================= */
+
 .adresse-card {
-    background: white;
+    background: rgba(45, 125, 70, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(45, 125, 70, 0.1);
     border-radius: 16px;
     padding: 18px 20px;
-    border: 1px solid #f0f0f5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(45, 125, 70, 0.04);
 }
 
 .adresse-card .adresse-title {
@@ -184,9 +228,9 @@ body {
 .options-livraison button {
     flex: 1;
     padding: 10px;
-    border: 2px solid #e8e8f0;
+    border: 2px solid rgba(45, 125, 70, 0.15);
     border-radius: 12px;
-    background: #f8f9fc;
+    background: rgba(255,255,255,0.3);
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
@@ -196,8 +240,13 @@ body {
 
 .options-livraison button.active {
     border-color: #2d7d46;
-    background: #e8f5ec;
+    background: rgba(45, 125, 70, 0.08);
     color: #2d7d46;
+}
+
+.options-livraison button:hover {
+    border-color: #2d7d46;
+    background: rgba(45, 125, 70, 0.04);
 }
 
 /* ===== FORMULAIRES ===== */
@@ -213,48 +262,31 @@ body {
     margin-bottom: 4px;
 }
 
-.form-group input,
-.form-group textarea {
+.form-group input {
     width: 100%;
     padding: 10px 14px;
-    border: 2px solid #e8e8f0;
+    border: 2px solid rgba(45, 125, 70, 0.12);
     border-radius: 12px;
     font-size: 14px;
-    background: #f8f9fc;
+    background: rgba(255,255,255,0.5);
     outline: none;
-    transition: border-color 0.3s;
+    transition: all 0.3s;
     color: #1a1a2e;
     font-family: inherit;
 }
 
-/* ===== CHAMPS ADRESSE - MULTILIGNES ===== */
-.form-group input[id="gpsAdresse"],
-.form-group input[id="gpsAdresseAdresse"] {
-    min-height: 60px;
-    height: auto;
-    padding: 10px 14px;
-    white-space: normal;
-    word-wrap: break-word;
-    line-height: 1.6;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
+.form-group input:focus {
     border-color: #2d7d46;
     background: white;
+    box-shadow: 0 0 0 4px rgba(45, 125, 70, 0.06);
 }
 
 .form-group input:disabled {
-    background: #f8f9fc;
+    background: rgba(255,255,255,0.3);
     color: #1a1a2e;
-    opacity: 0.85;
+    opacity: 0.8;
     cursor: not-allowed;
-    border-color: #e0e4ec;
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 60px;
+    border-color: rgba(45, 125, 70, 0.08);
 }
 
 .form-group .code-hint {
@@ -274,22 +306,23 @@ body {
 /* ===== PHONE INPUT ===== */
 .phone-input {
     width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #e8e8f0;
+    padding: 12px 16px;
+    border: 2px solid rgba(45, 125, 70, 0.12);
     border-radius: 12px;
     font-size: 18px;
     font-weight: 600;
     color: #1a1a2e;
-    background: white;
+    background: rgba(255,255,255,0.5);
     outline: none;
-    transition: border-color 0.3s;
+    transition: all 0.3s;
     letter-spacing: 4px;
     text-align: center;
 }
 
 .phone-input:focus {
     border-color: #2d7d46;
-    box-shadow: 0 0 0 4px rgba(45, 125, 70, 0.12);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(45, 125, 70, 0.06);
 }
 
 .phone-input::placeholder {
@@ -300,13 +333,11 @@ body {
 
 .phone-input.error {
     border-color: #e74c3c;
-    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.12);
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
     animation: shake 0.4s ease;
 }
 
-/* ==========================================
-   CODE BOXES
-   ========================================== */
+/* ===== CODE BOXES ===== */
 .code-boxes-container {
     display: flex;
     justify-content: center;
@@ -363,9 +394,7 @@ body {
     -webkit-text-fill-color: #ccc;
 }
 
-/* ==========================================
-   TOGGLE CODE
-   ========================================== */
+/* ===== TOGGLE CODE ===== */
 .code-wrapper {
     display: flex;
     align-items: center;
@@ -391,13 +420,13 @@ body {
 
 .toggle-code-btn:hover {
     color: #2d7d46;
-    background: #e8f5ec;
+    background: rgba(45, 125, 70, 0.08);
 }
 
 /* ===== COMMUNE BTN ===== */
 .btn-commune {
-    background: #e8f5ec;
-    border: 2px solid #2d7d46;
+    background: rgba(45, 125, 70, 0.08);
+    border: 2px solid rgba(45, 125, 70, 0.15);
     color: #2d7d46;
     padding: 10px 14px;
     border-radius: 12px;
@@ -413,7 +442,7 @@ body {
 }
 
 .btn-commune:hover {
-    background: #d4edda;
+    background: rgba(45, 125, 70, 0.15);
 }
 
 .btn-commune .selected {
@@ -421,7 +450,349 @@ body {
     font-weight: 400;
 }
 
-/* ===== OVERLAY COMMUNES ===== */
+/* =============================================================
+   CARTE MESSAGE ComPlus
+   ============================================================= */
+
+.message-card {
+    background: rgba(45, 125, 70, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(45, 125, 70, 0.1);
+    border-radius: 16px;
+    padding: 16px 20px;
+}
+
+.message-card .message-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.message-card .message-icon {
+    font-size: 30px;
+    flex-shrink: 0;
+}
+
+.message-card .message-text h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a5a33;
+}
+
+.message-card .message-text p {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+}
+
+/* =============================================================
+   FOOTER FIXE (Fond vert + total blanc)
+   ============================================================= */
+
+.commande-footer {
+    background: #2d7d46;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 16px 20px 24px 20px;
+    box-shadow: 0 -4px 30px rgba(45, 125, 70, 0.2);
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    flex-shrink: 0;
+}
+
+.commande-footer .footer-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.commande-footer .footer-summary {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.commande-footer .footer-summary .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #555;
+}
+
+.commande-footer .footer-summary .row.total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-top: 2px solid #2d7d46;
+    padding-top: 6px;
+    margin-top: 2px;
+}
+
+.commande-footer .footer-summary .row.total .value {
+    color: #2d7d46;
+}
+
+.commande-footer .btn-confirmer {
+    background: white;
+    color: #1a5a33;
+    border: none;
+    padding: 16px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.commande-footer .btn-confirmer:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.commande-footer .btn-confirmer:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* =============================================================
+   OVERLAY POSITION
+   ============================================================= */
+
+.position-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 300;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.position-overlay.active {
+    display: flex;
+}
+
+.position-box {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 32px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.position-box .position-spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(45, 125, 70, 0.15);
+    border-top-color: #2d7d46;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px auto;
+}
+
+.position-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.position-box p {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.btn-retry-position {
+    margin-top: 16px;
+    background: #2d7d46;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-retry-position:hover {
+    background: #1a5a33;
+    transform: scale(1.02);
+}
+
+/* =============================================================
+   OVERLAY RÉCAPITULATIF
+   ============================================================= */
+
+.recap-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 350;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.recap-overlay.active {
+    display: flex;
+}
+
+.recap-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px 28px 28px;
+    max-width: 440px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.recap-box .recap-icon {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.recap-box h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.recap-box .recap-detail {
+    margin-bottom: 20px;
+}
+
+.recap-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.recap-actions .btn-recap-cancel {
+    flex: 1;
+    background: #e8e8f0;
+    color: #666;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.recap-actions .btn-recap-cancel:hover {
+    background: #d5d5e0;
+}
+
+.recap-actions .btn-recap-confirm {
+    flex: 2;
+    background: linear-gradient(135deg, #2d7d46, #1a5a33);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.recap-actions .btn-recap-confirm:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
+}
+
+/* =============================================================
+   LOADER OVERLAY (Commande en cours)
+   ============================================================= */
+
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 400;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.loader-overlay.active {
+    display: flex;
+}
+
+.loader-box {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 32px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.loader-box .loader-spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(45, 125, 70, 0.15);
+    border-top-color: #2d7d46;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px auto;
+}
+
+.loader-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+}
+
+.loader-box p {
+    font-size: 14px;
+    color: #888;
+}
+
+/* =============================================================
+   OVERLAY COMMUNES
+   ============================================================= */
+
 .commune-overlay {
     position: fixed;
     top: 0;
@@ -430,7 +801,6 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     z-index: 150;
     display: none;
     justify-content: center;
@@ -523,292 +893,14 @@ body {
 }
 
 .commune-item.selected {
-    background: #e8f5ec;
+    background: rgba(45, 125, 70, 0.08);
     border-left: 4px solid #2d7d46;
 }
 
-@keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
+/* =============================================================
+   OVERLAY MESSAGE
+   ============================================================= */
 
-/* ===== FOOTER AMÉLIORÉ ===== */
-.commande-footer {
-    background: white;
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-    padding: 16px 20px 24px 20px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-    position: sticky;
-    bottom: 0;
-    z-index: 50;
-    flex-shrink: 0;
-}
-
-.commande-footer .footer-content {
-    max-width: 600px;
-    margin: 0 auto;
-    background: #f8f9fc;
-    border-radius: 16px;
-    padding: 14px 18px;
-}
-
-.commande-footer .footer-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 10px;
-}
-
-.commande-footer .footer-summary .row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    color: #555;
-}
-
-.commande-footer .footer-summary .row.total {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a2e;
-    border-top: 2px solid #2d7d46;
-    padding-top: 6px;
-    margin-top: 2px;
-}
-
-.commande-footer .footer-summary .row.total .value {
-    color: #2d7d46;
-}
-
-.commande-footer .btn-confirmer {
-    background: linear-gradient(135deg, #2d7d46, #1a5a33);
-    color: white;
-    border: none;
-    padding: 16px;
-    border-radius: 30px;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.commande-footer .btn-confirmer:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
-}
-
-.commande-footer .btn-confirmer:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* ===== OVERLAY POSITION ===== */
-.position-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    z-index: 300;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.position-overlay.active {
-    display: flex;
-}
-
-.position-box {
-    background: white;
-    border-radius: 24px;
-    padding: 40px 32px;
-    max-width: 380px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    animation: scaleIn 0.3s ease;
-}
-
-.position-box .position-spinner {
-    width: 56px;
-    height: 56px;
-    border: 4px solid rgba(45, 125, 70, 0.15);
-    border-top-color: #2d7d46;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px auto;
-}
-
-.position-box h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1a1a2e;
-    margin-bottom: 8px;
-}
-
-.position-box p {
-    font-size: 15px;
-    color: #666;
-    line-height: 1.5;
-}
-
-.btn-retry-position {
-    margin-top: 16px;
-    background: #2d7d46;
-    color: white;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 30px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-retry-position:hover {
-    background: #1a5a33;
-    transform: scale(1.02);
-}
-
-/* ===== OVERLAY RÉCAPITULATIF ===== */
-.recap-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    z-index: 350;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.recap-overlay.active {
-    display: flex;
-}
-
-.recap-box {
-    background: white;
-    border-radius: 24px;
-    padding: 32px 28px 28px 28px;
-    max-width: 440px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    animation: scaleIn 0.3s ease;
-}
-
-.recap-box .recap-icon {
-    font-size: 48px;
-    text-align: center;
-    margin-bottom: 8px;
-}
-
-.recap-box h3 {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1a2e;
-    text-align: center;
-    margin-bottom: 16px;
-}
-
-.recap-box .recap-detail {
-    margin-bottom: 20px;
-}
-
-.recap-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.recap-actions .btn-recap-cancel {
-    flex: 1;
-    background: #e8e8f0;
-    color: #666;
-    border: none;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.recap-actions .btn-recap-cancel:hover {
-    background: #d5d5e0;
-}
-
-.recap-actions .btn-recap-confirm {
-    flex: 2;
-    background: linear-gradient(135deg, #2d7d46, #1a5a33);
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.recap-actions .btn-recap-confirm:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
-}
-
-/* ===== OVERLAY CONFIRMATION ===== */
-.confirm-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 200;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.confirm-overlay.active {
-    display: flex;
-}
-
-.confirm-overlay .spinner {
-    width: 56px;
-    height: 56px;
-    border: 4px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #4ade80;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-.confirm-overlay p {
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.3);
-}
-
-/* ===== OVERLAY MESSAGE ===== */
 .message-overlay {
     position: fixed;
     top: 0;
@@ -817,7 +909,6 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     z-index: 250;
     display: none;
     justify-content: center;
@@ -836,7 +927,7 @@ body {
     max-width: 380px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     animation: scaleIn 0.3s ease;
 }
 
@@ -876,7 +967,10 @@ body {
     transform: scale(1.02);
 }
 
-/* ===== ANIMATIONS ===== */
+/* =============================================================
+   ANIMATIONS
+   ============================================================= */
+
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20% { transform: translateX(-8px); }
@@ -889,13 +983,24 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* ==========================================
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* =============================================================
    RESPONSIVE
-   ========================================== */
+   ============================================================= */
+
 @media (max-width: 600px) {
     body { padding-top: 68px; }
     .commande-header { padding: 10px 14px; gap: 10px; }
-    .back-btn { width: 36px; height: 36px; font-size: 16px; }
+    .back-btn, .home-btn { width: 36px; height: 36px; font-size: 16px; }
     .commande-title { font-size: 16px; }
     .commande-main { padding: 12px 14px 12px 14px; }
     .commande-container { gap: 12px; }
@@ -903,67 +1008,41 @@ body {
     .adresse-card { padding: 14px 16px; }
     .options-livraison button { font-size: 13px; padding: 8px; }
     .btn-confirmer { font-size: 16px; padding: 14px; }
-    .commande-footer { padding: 12px 16px 20px 16px; }
-    .commande-footer .footer-content { padding: 12px 14px; }
-    .commande-footer .footer-summary .row.total { font-size: 16px; }
-    .commune-overlay .commune-box { padding: 18px 14px 14px 14px; max-height: 85vh; }
-    .commune-item { padding: 10px 12px; }
-    .phone-input { font-size: 16px; padding: 12px; }
-    .code-box { width: 38px; height: 46px; font-size: 22px; min-width: 32px; }
-    .code-boxes { gap: 6px; max-width: 180px; }
-    .message-box { padding: 24px 18px 20px 18px; }
-
-    /* Footer arrondi mobile */
-    .commande-footer {
+    .commande-footer { 
         border-top-left-radius: 24px;
         border-top-right-radius: 24px;
-        padding: 12px 14px 18px 14px;
+        padding: 12px 16px 20px 16px; 
     }
-
-    .commande-footer .btn-confirmer {
-        font-size: 16px;
-        padding: 14px;
-    }
-
-    .form-group input[id="gpsAdresse"],
-    .form-group input[id="gpsAdresseAdresse"] {
-        min-height: 50px;
-        font-size: 13px;
-    }
+    .commande-footer .footer-summary { padding: 12px 14px; }
+    .commande-footer .footer-summary .row.total { font-size: 16px; }
+    .code-box { width: 38px; height: 46px; font-size: 22px; min-width: 32px; }
+    .code-boxes { gap: 6px; max-width: 180px; }
+    .phone-input { font-size: 16px; padding: 12px; }
+    .message-card { padding: 14px 16px; }
+    .message-card .message-icon { font-size: 24px; }
+    .message-card .message-text h3 { font-size: 15px; }
+    .message-card .message-text p { font-size: 12px; }
+    .commune-overlay .commune-box { padding: 18px 14px 14px 14px; max-height: 85vh; }
+    .commune-item { padding: 10px 12px; }
+    .loader-box { padding: 30px 24px; }
+    .loader-box .loader-spinner { width: 44px; height: 44px; }
+    .loader-box h3 { font-size: 18px; }
 }
 
 @media (max-width: 400px) {
-    .phone-input { font-size: 14px; padding: 10px; letter-spacing: 2px; }
     .code-box { width: 30px; height: 38px; font-size: 18px; min-width: 26px; }
     .code-boxes { gap: 4px; max-width: 140px; }
-    .commande-footer {
+    .commande-footer { 
         border-top-left-radius: 20px;
         border-top-right-radius: 20px;
-        padding: 10px 12px 16px 12px;
+        padding: 10px 12px 16px 12px; 
     }
-    .commande-footer .footer-content { padding: 10px 12px; }
+    .commande-footer .footer-summary { padding: 10px 12px; }
     .commande-footer .btn-confirmer { font-size: 15px; padding: 12px; }
-}
-/* ========================================== */
-/* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC   */
-/* ========================================== */
-
-* {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
-
-/* Pour les éléments cliquables (boutons, liens) */
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-/* Si tu veux garder la sélection de texte sur certains éléments */
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
+    .phone-input { font-size: 14px; padding: 10px; letter-spacing: 2px; }
+    .recap-total .value { font-size: 19px; }
+    .recap-box { padding: 24px 18px 20px 18px; }
+    .recap-box h3 { font-size: 19px; }
+    .recap-actions .btn-recap-cancel,
+    .recap-actions .btn-recap-confirm { font-size: 14px; padding: 12px; }
 }
