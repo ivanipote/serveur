@@ -17,11 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('togglePassword');
     const message = document.getElementById('message');
 
-    const numBtns = document.querySelectorAll('.num-btn');
-    const clearBtn = document.getElementById('clearBtn');
-
-    let phoneValue = '';
-    let passwordValue = '';
+    let isLoggingIn = false;
 
     // ==========================================
     // FOCUS AUTO SUR LE TÉLÉPHONE
@@ -38,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
     phoneInput.addEventListener('input', function() {
         const val = this.value.replace(/\D/g, '');
         this.value = val;
-        phoneValue = val;
 
         if (val.length === 10) {
             phoneStatus.textContent = '✓';
@@ -65,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordInput.addEventListener('input', function() {
         const val = this.value.replace(/\D/g, '');
         this.value = val;
-        passwordValue = val;
 
         if (val.length === 4) {
             passwordStatus.textContent = '✓';
@@ -101,95 +95,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // PAVÉ NUMÉRIQUE
-    // ==========================================
-
-    numBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const value = this.dataset.value;
-
-            if (this.classList.contains('btn-clear')) return;
-
-            // Ajouter au champ actif (téléphone ou password)
-            const activeElement = document.activeElement;
-
-            if (activeElement === phoneInput) {
-                if (phoneValue.length < 10) {
-                    phoneValue += value;
-                    phoneInput.value = phoneValue;
-                    phoneInput.dispatchEvent(new Event('input'));
-                }
-            } else if (activeElement === passwordInput) {
-                if (passwordValue.length < 4) {
-                    passwordValue += value;
-                    passwordInput.value = passwordValue;
-                    passwordInput.dispatchEvent(new Event('input'));
-                }
-            } else {
-                // Par défaut: si rien n'est focus, on met sur le téléphone
-                if (phoneValue.length < 10) {
-                    phoneValue += value;
-                    phoneInput.value = phoneValue;
-                    phoneInput.dispatchEvent(new Event('input'));
-                }
-            }
-        });
-    });
-
-    // ==========================================
-    // BOUTON EFFACER
-    // ==========================================
-
-    clearBtn.addEventListener('click', function() {
-        const activeElement = document.activeElement;
-
-        if (activeElement === phoneInput || activeElement === passwordInput) {
-            if (activeElement === phoneInput && phoneValue.length > 0) {
-                phoneValue = phoneValue.slice(0, -1);
-                phoneInput.value = phoneValue;
-                phoneInput.dispatchEvent(new Event('input'));
-            } else if (activeElement === passwordInput && passwordValue.length > 0) {
-                passwordValue = passwordValue.slice(0, -1);
-                passwordInput.value = passwordValue;
-                passwordInput.dispatchEvent(new Event('input'));
-            }
-        } else {
-            // Par défaut: effacer le téléphone
-            if (phoneValue.length > 0) {
-                phoneValue = phoneValue.slice(0, -1);
-                phoneInput.value = phoneValue;
-                phoneInput.dispatchEvent(new Event('input'));
-            }
-        }
-    });
-
-    // ==========================================
-    // CLIC SUR LE CHAMP → FOCUS
-    // ==========================================
-
-    phoneInput.addEventListener('focus', function() {
-        this.select();
-    });
-
-    passwordInput.addEventListener('focus', function() {
-        this.select();
-    });
-
-    // ==========================================
     // VÉRIFICATION AUTOMATIQUE
     // ==========================================
 
     function checkAndLogin() {
-        const phone = phoneValue;
-        const password = passwordValue;
+        const phone = phoneInput.value.replace(/\D/g, '');
+        const password = passwordInput.value;
 
         // Masquer le message précédent
         message.className = 'message';
         message.textContent = '';
 
-        // Vérifier que les deux champs sont remplis
-        if (phone.length === 10 && password.length === 4) {
-            // Validation automatique → connexion
+        // Vérifier que les deux champs sont remplis et valides
+        if (phone.length === 10 && password.length === 4 && !isLoggingIn) {
             login(phone, password);
         }
     }
@@ -199,6 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     async function login(phone, password) {
+        if (isLoggingIn) return;
+        isLoggingIn = true;
+
         console.log('🔐 Tentative de connexion vendeur:', phone);
 
         try {
@@ -206,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: phone, // L'API utilise 'email' mais on envoie le téléphone
+                    email: phone,
                     password: password
                 })
             });
@@ -234,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 message.textContent = '❌ ' + (data.error || 'Numéro ou code incorrect');
 
                 // Réinitialiser le mot de passe
-                passwordValue = '';
                 passwordInput.value = '';
                 passwordInput.dispatchEvent(new Event('input'));
 
@@ -242,6 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     phoneInput.focus();
                 }, 300);
+
+                isLoggingIn = false;
             }
 
         } catch (error) {
@@ -249,9 +171,10 @@ document.addEventListener('DOMContentLoaded', function() {
             message.className = 'message error';
             message.textContent = '❌ Erreur de connexion au serveur.';
 
-            passwordValue = '';
             passwordInput.value = '';
             passwordInput.dispatchEvent(new Event('input'));
+
+            isLoggingIn = false;
         }
     }
 
@@ -261,23 +184,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            const phone = phoneValue;
-            const password = passwordValue;
+            const phone = phoneInput.value.replace(/\D/g, '');
+            const password = passwordInput.value;
 
-            if (phone.length === 10 && password.length === 4) {
+            if (phone.length === 10 && password.length === 4 && !isLoggingIn) {
                 login(phone, password);
             }
-        }
-
-        // Effacer avec Backspace
-        if (e.key === 'Backspace') {
-            const activeElement = document.activeElement;
-            if (activeElement === phoneInput || activeElement === passwordInput) {
-                // Laisse l'input gérer
-                return;
-            }
-            // Sinon, effacer le champ actif
-            clearBtn.click();
         }
     });
 
