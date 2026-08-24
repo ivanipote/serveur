@@ -462,10 +462,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function startVerification(commandeId) {
         stopVerification(commandeId);
 
-        console.log(`🔍 Début vérification continue pour commande #${commandeId}`);
-
-        checkAndUpdateStatus(commandeId);
-
         verificationIntervals[commandeId] = setInterval(() => {
             checkAndUpdateStatus(commandeId);
         }, VERIFICATION_INTERVAL);
@@ -475,7 +471,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (verificationIntervals[commandeId]) {
             clearInterval(verificationIntervals[commandeId]);
             delete verificationIntervals[commandeId];
-            console.log(`⏹️ Vérification arrêtée pour commande #${commandeId}`);
         }
     }
 
@@ -555,7 +550,6 @@ document.addEventListener('DOMContentLoaded', function() {
             await showMessage('📱', 'Numéro manquant', 'Veuillez renseigner votre numéro Wave dans votre profil.');
             return;
         }
-
         await generatePaymentLink(commandeId, amount, reference, phone);
     }
 
@@ -601,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES COMMANDES AVEC COULEURS INLINE
+    // RENDRE LES COMMANDES (VERSION COMPLETE)
     // ==========================================
 
     function renderCommandes() {
@@ -617,50 +611,121 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const statusLabels = {
+            'en_attente': { label: 'En attente', icon: '⏳', class: 'en_attente' },
+            'accepter': { label: 'Paiement requis', icon: '💳', class: 'accepter' },
+            'paiement_en_cours': { label: 'En cours...', icon: '⏳', class: 'paiement_en_cours' },
+            'pending': { label: 'pending', icon: '⏳', class: 'pending' },
+            'processing': { label: 'processing', icon: '⏳', class: 'processing' },
+            'paiement_effectue': { label: 'Payée', icon: '✅', class: 'paiement_effectue' },
+            'success': { label: 'success', icon: '✅', class: 'success' },
+            'failed': { label: 'failed', icon: '❌', class: 'failed' },
+            'cancelled': { label: 'cancelled', icon: '⏰', class: 'cancelled' },
+            'expired': { label: 'expired', icon: '⏳', class: 'expired' },
+            'refunded': { label: 'refunded', icon: '🔄', class: 'refunded' },
+            'verification_en_cours': { label: 'Vérification en cours', icon: '🔍', class: 'verification_en_cours' },
+            'livraison_en_cours': { label: 'En livraison', icon: '🚚', class: 'livraison_en_cours' },
+            'disponible': { label: 'Disponible', icon: '📍', class: 'disponible' },
+            'recuperee': { label: 'Récupérée', icon: '✅', class: 'recuperee' },
+            'annulee': { label: 'Annulée', icon: '❌', class: 'annulee' },
+            'refuse': { label: 'Refusée', icon: '❌', class: 'refuse' }
+        };
+
         const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
 
         let html = '';
 
         commandes.forEach((c) => {
-            // ✅ Récupérer le vrai statut
             let statusKey = c.genius_status || c.status || 'en_attente';
-            
-            // ✅ Mapper wave_manual → success, wave_refunded → refunded
             if (statusKey === 'wave_manual') statusKey = 'success';
             if (statusKey === 'wave_refunded') statusKey = 'refunded';
             
+            const statusInfo = statusLabels[statusKey] || statusLabels['en_attente'];
             const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG['en_attente'];
+
             const date = new Date(c.created_at);
             const dateStr = date.toLocaleDateString('fr-FR', dateOptions);
             const refDisplay = c.reference || `NAT-${c.id}`;
             const isPayable = c.status === 'accepter';
             const isPaymentInProgress = ['paiement_en_cours', 'pending', 'processing'].includes(c.status);
             const isVerificationInProgress = c.status === 'verification_en_cours';
-            const isTerminal = ['recuperee', 'annulee', 'refuse', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.status);
+            const isTerminal = ['recuperee', 'annulee', 'refuse', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'success'].includes(c.status);
             const hasPaymentLink = c.checkout_url || c.genius_reference;
             const isGenerating = generatingLinks[c.id] === true;
+            const showContinue = isPaymentInProgress;
 
-            // ✅ Construire la carte avec style inline pour forcer les couleurs
+            // ✅ Timer
+            let timerHtml = '';
+            if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && c.payment_created_at) {
+                const paymentDateObj = new Date(c.payment_created_at);
+                const expiryTime = paymentDateObj.getTime() + TIMEOUT_MS;
+                const diff = expiryTime - Date.now();
+                if (diff > 0) {
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</div>`;
+                } else {
+                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
+                }
+            }
+
+            // ✅ Action hint
+            let actionHint = '';
+            if (isPayable && hasPaymentLink) {
+                actionHint = '📩 Lien de paiement disponible dans vos notifications';
+            } else if (isPayable && !hasPaymentLink && isGenerating) {
+                actionHint = '⏳ Génération du lien...';
+            } else if (isPayable && !hasPaymentLink) {
+                actionHint = '💳 Cliquez sur "Générer le lien" pour payer';
+            } else if (isVerificationInProgress) {
+                actionHint = '🔍 En attente de la confirmation de l\'admin...';
+            } else if (c.status === 'en_attente') {
+                actionHint = '⏳ En attente de validation par l\'admin';
+            } else if (c.status === 'paiement_effectue' || c.status === 'success') {
+                actionHint = '✅ Commande payée - En préparation';
+            } else if (c.status === 'livraison_en_cours') {
+                actionHint = '🚚 Votre commande est en route';
+            } else if (c.status === 'disponible') {
+                actionHint = '📍 Votre commande vous attend';
+            } else if (c.status === 'recuperee') {
+                actionHint = '✅ Merci pour votre commande !';
+            } else if (c.status === 'annulee' || c.status === 'refuse') {
+                actionHint = `❌ ${c.cause_refus || 'Commande annulée'}`;
+            } else if (isTerminal) {
+                actionHint = '📋 Commande terminée';
+            }
+
+            // ✅ Boutons
+            let buttonsHtml = '';
+            if (isPayable) {
+                buttonsHtml = `
+                    <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" 
+                            data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}"
+                            ${isGenerating ? 'disabled' : ''}>
+                        <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
+                    </button>
+                    <button class="btn btn-wave" data-id="${c.id}">
+                        <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon" /> Wave
+                    </button>
+                `;
+            }
+
+            // ✅ Construction de la carte avec couleurs inline
             html += `
-                <div class="commande-card" style="background: ${config.bg}; border-color: ${config.border}; border-width: 2px; border-style: solid;">
-                    <span class="badge-top" style="background: ${config.border}; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; position: absolute; top: 14px; right: 16px;">${config.label}</span>
+                <div class="commande-card status-${statusInfo.class}" style="background: ${config.bg}; border-color: ${config.border}; border-width: 2px; border-style: solid; border-radius: 20px; padding: 18px 18px 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; margin-bottom: 14px;">
+                    <span class="badge-top ${statusInfo.class}" style="background: ${config.border}; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; position: absolute; top: 14px; right: 16px;">${statusInfo.icon} ${statusInfo.label}</span>
                     <div class="id" style="font-size: 15px; font-weight: 700; color: #1a2a6c; margin-top: 4px;">#${c.id}</div>
                     <span class="ref" style="font-size: 11px; color: #666; display: block;">${refDisplay}</span>
                     <span class="date" style="font-size: 11px; color: #888; display: block;">${dateStr}</span>
                     <div class="total" style="font-size: 24px; font-weight: 700; color: #1a5a33; margin: 6px 0 2px 0;">${(c.total || 0).toLocaleString()} FCFA</div>
                     <div class="status-transition" style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin: 4px 0 6px 0; flex-wrap: wrap;">
-                        <span class="new-status ${statusKey}" style="color: ${config.border}; font-weight: 700;">${config.label}</span>
+                        <span class="new-status ${statusInfo.class}" style="color: ${config.border}; font-weight: 700;">${statusInfo.icon} ${statusInfo.label}</span>
                     </div>
+                    ${timerHtml}
+                    ${actionHint ? `<div class="action-hint" style="font-size: 13px; color: #444; font-weight: 500; margin: 2px 0 6px 0; padding: 6px 12px; background: rgba(255,255,255,0.5); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); display: inline-block; align-self: flex-start;">${actionHint}</div>` : ''}
                     <div class="actions" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); align-items: center; min-height: 44px;">
-                        ${isPayable ? `
-                            <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}" ${isGenerating ? 'disabled' : ''} style="background: ${hasPaymentLink ? '#2d7d46' : 'linear-gradient(135deg, #1a2a6c, #2d4373)'}; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
-                                <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
-                            </button>
-                            <button class="btn btn-wave" data-id="${c.id}" style="background: #1a2a6c; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
-                                <img src="/client/images/wave-logo.png" alt="Wave" style="width: 20px; height: 20px; object-fit: contain;" /> Wave
-                            </button>
-                        ` : ''}
-                        ${isPaymentInProgress ? `
+                        ${buttonsHtml}
+                        ${showContinue && !isTerminal && !isVerificationInProgress ? `
                             <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}" style="background: #e67e22; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
                                 <i class="fas fa-arrow-right"></i> Continuer
                             </button>
@@ -682,8 +747,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ✅ Démarrer les timers
         commandes.forEach((c) => {
-            if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
-                startVerification(c.id);
+            if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && c.payment_created_at) {
+                startTimer(c.id, c.payment_created_at);
             }
         });
 
