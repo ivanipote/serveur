@@ -366,52 +366,6 @@
             pointer-events: none;
         }
 
-        /* ===== FILTRES ===== */
-        .sidebar-clients .filter-section {
-            padding: 8px 16px 12px 16px;
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .sidebar-clients .filter-section .filter-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--ink-400);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 6px;
-        }
-
-        .sidebar-clients .filter-switch {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .sidebar-clients .filter-switch .filter-btn {
-            padding: 5px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 20px;
-            background: var(--surface);
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--ink-500);
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .sidebar-clients .filter-switch .filter-btn:hover {
-            border-color: var(--brand);
-            color: var(--brand-dark);
-        }
-
-        .sidebar-clients .filter-switch .filter-btn.active {
-            background: var(--brand);
-            color: white;
-            border-color: var(--brand);
-        }
-
         /* ===== MINI STATS ===== */
         .sidebar-clients .mini-stats {
             padding: 8px 16px 12px 16px;
@@ -465,120 +419,6 @@
             font-weight: 600;
             font-family: var(--font-mono);
             color: var(--brand-dark);
-        }
-
-        /* ===== CLIENT LIST ===== */
-        .sidebar-clients .client-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 12px 12px 12px;
-        }
-
-        .sidebar-clients .client-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .sidebar-clients .client-list::-webkit-scrollbar-thumb {
-            background: var(--border-strong);
-            border-radius: 10px;
-        }
-
-        .sidebar-clients .client-item {
-            padding: 10px 14px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-clients .client-item:hover {
-            background: var(--surface-alt);
-            transform: translateX(2px);
-        }
-
-        .sidebar-clients .client-item.active {
-            background: var(--brand-tint);
-            border-color: var(--brand-line);
-        }
-
-        .sidebar-clients .client-item .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .sidebar-clients .client-item .status-dot.verified {
-            background: #34D399;
-        }
-
-        .sidebar-clients .client-item .status-dot.unverified {
-            background: #F87171;
-        }
-
-        .sidebar-clients .client-item .item-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .sidebar-clients .client-item .item-info .name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--ink-900);
-        }
-
-        .sidebar-clients .client-item .item-info .email {
-            font-size: 11px;
-            color: var(--ink-400);
-            display: block;
-        }
-
-        .sidebar-clients .client-item .item-right {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .sidebar-clients .client-item .item-right .date {
-            font-size: 10px;
-            color: var(--ink-400);
-            font-family: var(--font-mono);
-            display: block;
-        }
-
-        .sidebar-clients .client-item .item-right .badge-verified {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 999px;
-            display: inline-block;
-        }
-
-        .sidebar-clients .client-item .item-right .badge-verified.yes {
-            background: var(--green-tint);
-            color: var(--brand-dark);
-        }
-
-        .sidebar-clients .client-item .item-right .badge-verified.no {
-            background: var(--red-tint);
-            color: var(--red);
-        }
-
-        .sidebar-clients .empty-list {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--ink-400);
-            font-size: 14px;
-        }
-
-        .sidebar-clients .empty-list i {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 8px;
-            color: var(--border-strong);
         }
 
         /* =============================================================
@@ -650,7 +490,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            min-width: 700px;
+            min-width: 600px;
         }
 
         .content-clients .table-wrapper th {
@@ -682,28 +522,6 @@
 
         .content-clients .table-wrapper tr:hover td {
             background: var(--surface-alt);
-        }
-
-        /* ===== STATUS BADGES ===== */
-        .status-badge {
-            padding: 3px 12px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-            border: 1px solid transparent;
-        }
-
-        .status-badge.verified {
-            background: var(--green-tint);
-            color: var(--brand-dark);
-            border-color: var(--brand-line);
-        }
-
-        .status-badge.unverified {
-            background: var(--red-tint);
-            color: var(--red);
-            border-color: #F3C6C2;
         }
 
         /* ===== COPY BUTTON ===== */
@@ -824,11 +642,6 @@
                 font-size: 14px;
             }
 
-            .sidebar-clients .filter-switch .filter-btn {
-                font-size: 11px;
-                padding: 4px 10px;
-            }
-
             .content-clients .table-wrapper table {
                 min-width: 500px;
                 font-size: 12px;
@@ -891,11 +704,6 @@
                 font-size: 12px;
             }
 
-            .sidebar-clients .filter-switch .filter-btn {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-
             .sidebar-clients .mini-stats .mini-item {
                 font-size: 12px;
             }
@@ -916,11 +724,6 @@
 
             .stats-card .stats-content .stat-item .stat-value {
                 font-size: 13px;
-            }
-
-            .status-badge {
-                font-size: 10px;
-                padding: 2px 8px;
             }
 
             .copy-btn-mini {
@@ -978,11 +781,6 @@
                     <span class="stat-value" id="statTotal">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-icon">✅</span>
-                    <span>Vérifiés :</span>
-                    <span class="stat-value" id="statVerified">0</span>
-                </div>
-                <div class="stat-item">
                     <span class="stat-icon">📅</span>
                     <span>Ce mois :</span>
                     <span class="stat-value" id="statThisMonth">0</span>
@@ -1009,16 +807,6 @@
                     <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un client..." />
                 </div>
 
-                <!-- Filtres -->
-                <div class="filter-section">
-                    <div class="filter-label">📊 Statut</div>
-                    <div class="filter-switch" id="filterSwitch">
-                        <button class="filter-btn active" data-filter="all">📋 Tous</button>
-                        <button class="filter-btn" data-filter="verified">✅ Vérifiés</button>
-                        <button class="filter-btn" data-filter="unverified">❌ Non vérifiés</button>
-                    </div>
-                </div>
-
                 <!-- Mini stats -->
                 <div class="mini-stats">
                     <div class="mini-title">📊 Répartition</div>
@@ -1026,14 +814,6 @@
                         <div class="mini-item">
                             <span class="mini-label">👤 Total</span>
                             <span class="mini-count" id="miniTotal">0</span>
-                        </div>
-                        <div class="mini-item">
-                            <span class="mini-label">✅ Vérifiés</span>
-                            <span class="mini-count" id="miniVerified">0</span>
-                        </div>
-                        <div class="mini-item">
-                            <span class="mini-label">❌ Non vérifiés</span>
-                            <span class="mini-count" id="miniUnverified">0</span>
                         </div>
                     </div>
                 </div>
@@ -1060,14 +840,11 @@
                                 <th>Nom</th>
                                 <th>Email</th>
                                 <th>Téléphone</th>
-                                <th>Statut</th>
-                                <th>Total achats</th>
-                                <th>Dernière connexion</th>
                                 <th>Date inscription</th>
                             </tr>
                         </thead>
                         <tbody id="clientsTableBody">
-                            <tr><td colspan="8" class="empty-table">
+                            <tr><td colspan="5" class="empty-table">
                                 <i class="fas fa-users"></i>
                                 <p>Aucun client trouvé</p>
                             </td></tr>
@@ -1097,19 +874,14 @@
 
             const clientsTableBody = document.getElementById('clientsTableBody');
             const searchInput = document.getElementById('searchInput');
-            const filterBtns = document.querySelectorAll('#filterSwitch .filter-btn');
             const clientCount = document.getElementById('clientCount');
 
             const statTotal = document.getElementById('statTotal');
-            const statVerified = document.getElementById('statVerified');
             const statThisMonth = document.getElementById('statThisMonth');
 
             const miniTotal = document.getElementById('miniTotal');
-            const miniVerified = document.getElementById('miniVerified');
-            const miniUnverified = document.getElementById('miniUnverified');
 
             let allClients = [];
-            let currentFilter = 'all';
             let searchTerm = '';
 
             // ==========================================
@@ -1149,16 +921,6 @@
             function renderClients() {
                 let filtered = allClients;
 
-                // Filtre par statut
-                if (currentFilter !== 'all') {
-                    filtered = filtered.filter(c => {
-                        const isVerified = c.is_verified === true || c.is_verified === 1;
-                        if (currentFilter === 'verified') return isVerified;
-                        if (currentFilter === 'unverified') return !isVerified;
-                        return true;
-                    });
-                }
-
                 // Recherche
                 if (searchTerm) {
                     const term = searchTerm.toLowerCase();
@@ -1186,7 +948,7 @@
             function renderTable(clients) {
                 if (clients.length === 0) {
                     clientsTableBody.innerHTML = `
-                        <tr><td colspan="8" class="empty-table">
+                        <tr><td colspan="5" class="empty-table">
                             <i class="fas fa-users"></i>
                             <p>Aucun client trouvé</p>
                         </td></tr>
@@ -1198,10 +960,7 @@
 
                 let html = '';
                 clients.forEach(c => {
-                    const isVerified = c.is_verified === true || c.is_verified === 1;
-                    const totalAchats = c.total_achats || 0;
                     const dateInscription = new Date(c.created_at);
-                    const derniereConnexion = c.derniere_connexion ? new Date(c.derniere_connexion) : null;
 
                     html += `
                         <tr>
@@ -1228,17 +987,6 @@
                                 <button class="copy-btn-mini" data-copy="${c.phone || ''}" title="Copier le téléphone">
                                     <i class="fas fa-copy"></i>
                                 </button>
-                            </td>
-                            <td>
-                                <span class="status-badge ${isVerified ? 'verified' : 'unverified'}">
-                                    ${isVerified ? '✅ Vérifié' : '❌ Non vérifié'}
-                                </span>
-                            </td>
-                            <td style="font-weight:600;color:var(--brand-dark);font-family:var(--font-mono);">
-                                ${totalAchats.toLocaleString()} FCFA
-                            </td>
-                            <td style="font-size:12px;color:var(--ink-400);">
-                                ${derniereConnexion ? derniereConnexion.toLocaleDateString('fr-FR', dateOptions) : 'Jamais'}
                             </td>
                             <td style="font-size:12px;color:var(--ink-400);">
                                 ${dateInscription.toLocaleDateString('fr-FR', dateOptions)}
@@ -1287,8 +1035,6 @@
 
             function updateStats() {
                 const total = allClients.length;
-                const verified = allClients.filter(c => c.is_verified === true || c.is_verified === 1).length;
-                const unverified = total - verified;
 
                 // Clients inscrits ce mois
                 const now = new Date();
@@ -1298,12 +1044,9 @@
                 }).length;
 
                 statTotal.textContent = total;
-                statVerified.textContent = verified;
                 statThisMonth.textContent = thisMonth;
 
                 miniTotal.textContent = total;
-                miniVerified.textContent = verified;
-                miniUnverified.textContent = unverified;
             }
 
             // ==========================================
@@ -1312,7 +1055,7 @@
 
             function renderEmpty() {
                 clientsTableBody.innerHTML = `
-                    <tr><td colspan="8" class="empty-table">
+                    <tr><td colspan="5" class="empty-table">
                         <i class="fas fa-users"></i>
                         <p>Aucun client trouvé</p>
                     </td></tr>
@@ -1320,26 +1063,10 @@
                 clientCount.textContent = '0 clients';
 
                 statTotal.textContent = '0';
-                statVerified.textContent = '0';
                 statThisMonth.textContent = '0';
 
                 miniTotal.textContent = '0';
-                miniVerified.textContent = '0';
-                miniUnverified.textContent = '0';
             }
-
-            // ==========================================
-            // FILTRES
-            // ==========================================
-
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentFilter = this.dataset.filter;
-                    renderClients();
-                });
-            });
 
             // ==========================================
             // RECHERCHE
