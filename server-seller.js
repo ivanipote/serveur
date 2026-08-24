@@ -210,8 +210,9 @@ app.post('/api/seller/register', async (req, res) => {
         return res.status(400).json({ error: 'Tous les champs sont requis.' });
     }
 
-    if (password.length < 6) {
-        return res.status(400).json({ error: 'Mot de passe minimum 6 caractères.' });
+    // ✅ CORRIGÉ : 4 chiffres, pas 6 caractères
+    if (password.length !== 4 || !/^\d{4}$/.test(password)) {
+        return res.status(400).json({ error: 'Le mot de passe doit être un code à 4 chiffres.' });
     }
 
     try {
