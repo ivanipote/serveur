@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const cartCount = document.getElementById('cartCount');
     const totalPrice = document.getElementById('totalPrice');
     const toastContainer = document.getElementById('toastContainer');
+    const suggestionsSection = document.getElementById('suggestionsSection');
+    const suggestionsGrid = document.getElementById('suggestionsGrid');
 
     // Overlays
     const overlay = document.getElementById('confirmOverlay');
@@ -37,30 +39,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let pendingAction = null;
     let pendingIndex = null;
     let currentUser = null;
+    let allProducts = [];
 
     // ==========================================
-    // TOAST (notification)
+    // TOAST
     // ==========================================
 
     function showToast(message, type = 'success') {
-        if (!toastContainer) {
-            console.warn('⚠️ Toast container non trouvé');
-            return;
-        }
+        if (!toastContainer) return;
         const toast = document.createElement('div');
-        toast.style.cssText = `
-            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#1a2a6c'};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 15px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s ease;
-            pointer-events: auto;
-            max-width: 90%;
-            text-align: center;
-        `;
+        toast.className = 'toast' + (type === 'error' ? ' error' : type === 'warning' ? ' warning' : type === 'info' ? ' info' : '');
         toast.textContent = message;
         toastContainer.appendChild(toast);
 
@@ -73,11 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // VÉRIFICATION CONNEXION (session + fallback)
+    // VÉRIFICATION CONNEXION
     // ==========================================
 
     async function checkAuth() {
-        // 1. Essayer avec la session
         try {
             const res = await fetch('/api/client/me');
             const data = await res.json();
@@ -94,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('❌ Erreur session:', error);
         }
 
-        // 2. Fallback localStorage
         const userId = localStorage.getItem('userId');
         const userName = localStorage.getItem('userName');
         const userEmail = localStorage.getItem('userEmail');
@@ -111,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         }
 
-        // 3. Redirection vers login
         console.warn('❌ Non authentifié, redirection vers login');
         window.location.href = '/login';
         return false;
@@ -195,8 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success && data.panier.length > 0) {
                 panier = data.panier;
                 renderPanier();
+                loadSuggestions();
             } else {
                 renderEmpty();
+                suggestionsSection.style.display = 'none';
             }
         } catch (error) {
             console.error('Erreur chargement panier:', error);
@@ -205,33 +192,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // PANIER VIDE STYLISÉ
+    // CHARGER LES PRODUITS POUR SUGGESTIONS
+    // ==========================================
+
+    async function loadSuggestions() {
+        try {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+            if (res.ok && data.length > 0) {
+                allProducts = data;
+                renderSuggestions();
+            }
+        } catch (error) {
+            console.error('Erreur suggestions:', error);
+        }
+    }
+
+    // ==========================================
+    // PANIER VIDE STYLÉ
     // ==========================================
 
     function renderEmpty() {
         if (!container) return;
         container.innerHTML = `
             <div class="cart-empty">
-                <i class="fas fa-shopping-cart"></i>
+                <span class="empty-icon">🛒</span>
                 <h3>Votre panier est vide</h3>
-                <p style="color:#888;font-size:15px;margin-bottom:16px;">
-                    Découvrez nos produits et commencez vos achats !
-                </p>
-                <a href="/dashboard" class="btn-shop" style="
-                    display:inline-block;
-                    background:#2d7d46;
-                    color:white;
-                    padding:14px 36px;
-                    border-radius:30px;
-                    text-decoration:none;
-                    font-weight:600;
-                    font-size:16px;
-                    transition:background 0.3s;
-                ">🛍️ Voir les produits</a>
+                <p>Découvrez nos produits et commencez vos achats !</p>
+                <a href="/dashboard" class="btn-shop">🛍️ Voir les produits</a>
             </div>
         `;
         if (cartCount) cartCount.textContent = '(0)';
-        if (totalPrice) totalPrice.textContent = '0 FCFA';
+        if (totalPrice) {
+            totalPrice.textContent = '0 FCFA';
+            totalPrice.classList.remove('pop');
+        }
         if (checkoutBtn) {
             checkoutBtn.disabled = true;
             checkoutBtn.style.opacity = '0.5';
@@ -240,6 +235,81 @@ document.addEventListener('DOMContentLoaded', function() {
             clearBtn.disabled = true;
             clearBtn.style.opacity = '0.5';
         }
+        suggestionsSection.style.display = 'none';
+    }
+
+    // ==========================================
+    // RENDER SUGGESTIONS
+    // ==========================================
+
+    function renderSuggestions() {
+        if (!panier.length) return;
+
+        // Exclure les produits déjà dans le panier
+        const panierIds = panier.map(p => p.product_id || p.id);
+        const suggestions = allProducts
+            .filter(p => !panierIds.includes(p.id))
+            .slice(0, 4);
+
+        if (suggestions.length === 0) {
+            suggestionsSection.style.display = 'none';
+            return;
+        }
+
+        suggestionsSection.style.display = 'block';
+        suggestionsGrid.innerHTML = suggestions.map(p => `
+            <div class="suggestion-item" data-id="${p.id}">
+                <img src="${p.image1 || 'https://via.placeholder.com/150'}" alt="${p.name}" loading="lazy">
+                <div class="s-name">${p.name}</div>
+                <div class="s-price">${p.price.toLocaleString()} FCFA</div>
+                <button class="s-add" data-id="${p.id}">➕ Ajouter</button>
+            </div>
+        `).join('');
+
+        // Événements pour les suggestions
+        document.querySelectorAll('.s-add').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = this.dataset.id;
+                addToCart(id);
+            });
+        });
+
+        document.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const id = this.dataset.id;
+                window.location.href = `/infoproduit?id=${id}`;
+            });
+        });
+    }
+
+    // ==========================================
+    // AJOUTER AU PANIER (depuis suggestion)
+    // ==========================================
+
+    async function addToCart(productId) {
+        try {
+            const res = await fetch('/api/panier/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, quantity: 1 })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('✅ Produit ajouté au panier !', 'success');
+                loadPanier();
+                updateBadge();
+            } else if (data.error === 'Non authentifié') {
+                window.location.href = '/login';
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+            }
+        } catch (error) {
+            console.error('Erreur ajout suggestion:', error);
+            showToast('❌ Erreur de connexion', 'error');
+        }
     }
 
     function goToProduct(productId) {
@@ -247,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LE PANIER (AMÉLIORÉ)
+    // AFFICHER LE PANIER
     // ==========================================
 
     function renderPanier() {
@@ -266,30 +336,41 @@ document.addEventListener('DOMContentLoaded', function() {
         panier.forEach((item, index) => {
             const imgSrc = item.image1 || 'https://via.placeholder.com/50';
             const totalLigne = item.price * item.quantity;
-            const stockDispo = item.stock || 'N/A';
+            const stockDispo = item.stock || 999;
+            let stockClass = '';
+            let stockLabel = '📦 En stock';
+            if (stockDispo <= 0) {
+                stockClass = 'out';
+                stockLabel = '🚫 Rupture';
+            } else if (stockDispo <= 5) {
+                stockClass = 'low';
+                stockLabel = '⚠️ Stock limité';
+            }
+
+            const promoBadge = item.promotion ? '<span class="promo-badge">Promo</span>' : '';
+            const oldPriceHtml = item.prix_promotion ? `<span class="old-price">${item.prix_promotion.toLocaleString()} FCFA</span>` : '';
 
             html += `
                 <div class="cart-item" data-index="${index}" data-id="${item.product_id || item.id}">
                     <div class="item-header">
                         <img src="${imgSrc}" alt="${item.name}" class="item-img" loading="lazy">
-                        <span class="item-name">${item.name}</span>
+                        <span class="item-name">${item.name} ${promoBadge}</span>
                     </div>
                     <div class="item-main">
                         <div class="item-price">
                             ${totalLigne.toLocaleString()} FCFA
+                            ${oldPriceHtml}
                             <span style="font-size:13px;color:#aaa;font-weight:400;display:block;">
                                 (${item.price.toLocaleString()} × ${item.quantity})
                             </span>
                         </div>
                         <div class="item-desc">${item.description || ''}</div>
-                        <div class="item-stock" style="font-size:13px;color:#888;margin-top:4px;">
-                            📦 Stock: ${stockDispo}
-                        </div>
+                        <div class="item-stock ${stockClass}">${stockLabel}</div>
                     </div>
                     <div class="item-footer">
                         <div class="item-qty">
                             <button class="qty-minus" data-index="${index}">−</button>
-                            <span>${item.quantity}</span>
+                            <span id="qty-${index}">${item.quantity}</span>
                             <button class="qty-plus" data-index="${index}">+</button>
                         </div>
                         <button class="item-remove" data-index="${index}">
@@ -302,7 +383,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.innerHTML = html;
         if (cartCount) cartCount.textContent = `(${totalItems})`;
-        if (totalPrice) totalPrice.textContent = total.toLocaleString() + ' FCFA';
+        if (totalPrice) {
+            totalPrice.textContent = total.toLocaleString() + ' FCFA';
+            totalPrice.classList.remove('pop');
+            // Force reflow pour déclencher l'animation
+            void totalPrice.offsetWidth;
+            totalPrice.classList.add('pop');
+        }
         if (checkoutBtn) {
             checkoutBtn.disabled = false;
             checkoutBtn.style.opacity = '1';
@@ -404,6 +491,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 item.quantity = newQty;
+                // Animation sur la quantité
+                const qtyEl = document.getElementById(`qty-${index}`);
+                if (qtyEl) {
+                    qtyEl.classList.remove('pop');
+                    void qtyEl.offsetWidth;
+                    qtyEl.classList.add('pop');
+                }
                 renderPanier();
                 updateBadge();
                 showToast(`✅ Quantité mise à jour (${newQty})`, 'success');
@@ -429,10 +523,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await res.json();
             if (data.success) {
-                panier.splice(index, 1);
-                if (panier.length === 0) renderEmpty();
-                else renderPanier();
-                updateBadge();
+                // Animation de suppression
+                const items = document.querySelectorAll('.cart-item');
+                if (items[index]) {
+                    items[index].classList.add('removing');
+                    setTimeout(() => {
+                        panier.splice(index, 1);
+                        if (panier.length === 0) renderEmpty();
+                        else renderPanier();
+                        updateBadge();
+                        loadSuggestions();
+                    }, 300);
+                } else {
+                    panier.splice(index, 1);
+                    if (panier.length === 0) renderEmpty();
+                    else renderPanier();
+                    updateBadge();
+                    loadSuggestions();
+                }
                 showToast('✅ Article retiré du panier', 'success');
             } else {
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
@@ -454,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 panier = [];
                 renderEmpty();
                 updateBadge();
+                suggestionsSection.style.display = 'none';
                 showToast('🗑️ Panier vidé avec succès', 'success');
             } else {
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
