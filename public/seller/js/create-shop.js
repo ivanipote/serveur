@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Create Shop - Production');
+    console.log('✅ Create Shop - Version complète');
 
     // ==========================================
     // RÉFÉRENCES
@@ -33,6 +33,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         return true;
+    }
+
+    function getToken() {
+        return localStorage.getItem('sellerToken');
     }
 
     // ==========================================
@@ -88,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 gpsBtn.classList.add('active');
                 manualBtn.classList.remove('active');
 
+                // Récupérer l'adresse via Nominatim
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`)
                     .then(res => res.json())
                     .then(data => {
@@ -134,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CRÉER LA BOUTIQUE - VERSION PRODUCTION
+    // CRÉER LA BOUTIQUE
     // ==========================================
 
     createBtn.addEventListener('click', async function() {
@@ -143,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const location = shopLocation.value.trim();
         const imageFile = shopImage.files[0];
 
+        // Validation
         if (!name) {
             shopName.focus();
             shopName.style.borderColor = '#e74c3c';
@@ -157,13 +163,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const token = getToken();
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
         createBtn.disabled = true;
         createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
         overlay.classList.add('active');
 
         try {
-            const token = localStorage.getItem('sellerToken');
-
             const formData = new FormData();
             formData.append('name', name);
             formData.append('description', description || '');
@@ -184,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.success) {
                 setTimeout(function() {
-                    window.location.href = '/shop?id=' + data.shopId;
+                    window.location.href = '/dashboard';
                 }, 1200);
             } else {
                 overlay.classList.remove('active');
@@ -221,6 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!checkAuth()) return;
 
-    console.log('✅ Create Shop - Production prêt');
+    console.log('✅ Create Shop - Prêt');
 
 });

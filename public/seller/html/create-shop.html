@@ -10,31 +10,31 @@
 <body>
 
     <!-- ========================================== -->
-    <!-- HEADER                                       -->
+    <!-- HEADER                                     -->
     <!-- ========================================== -->
     <header class="create-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="header-title">🛒 ComPlus Vendeur</span>
+        <span class="header-title">🛒 Créer ma boutique</span>
     </header>
 
     <!-- ========================================== -->
-    <!-- MAIN                                        -->
+    <!-- MAIN                                       -->
     <!-- ========================================== -->
     <main class="create-main" id="createMain">
 
         <!-- TEXTE -->
         <div class="welcome-section">
-            <span class="icon">🛒</span>
-            <h1>Créer une boutique avec <span>ComPlus</span></h1>
+            <span class="icon">🏪</span>
+            <h1>Créer votre boutique <span>ComPlus</span></h1>
             <p>Remplissez les informations ci-dessous pour lancer votre boutique</p>
         </div>
 
         <!-- CHAMP 1 : Nom -->
         <div class="form-card">
             <div class="form-group">
-                <label><i class="fas fa-store"></i> Nom de la boutique</label>
+                <label><i class="fas fa-store"></i> Nom de la boutique <span class="required">*</span></label>
                 <input type="text" id="shopName" placeholder="Ex: Ma Boutique" maxlength="50" />
             </div>
         </div>
@@ -63,7 +63,7 @@
         <!-- CHAMP 4 : Localisation -->
         <div class="form-card">
             <div class="form-group">
-                <label><i class="fas fa-map-pin"></i> Localisation</label>
+                <label><i class="fas fa-map-pin"></i> Localisation <span class="required">*</span></label>
                 <input type="text" id="shopLocation" placeholder="Ex: Yopougon, Abidjan" />
             </div>
         </div>
@@ -90,7 +90,7 @@
     </main>
 
     <!-- ========================================== -->
-    <!-- FOOTER - Bord arrondi                       -->
+    <!-- FOOTER                                     -->
     <!-- ========================================== -->
     <footer class="create-footer">
         <button class="btn-create" id="createBtn">
@@ -99,7 +99,7 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- OVERLAY                                     -->
+    <!-- OVERLAY                                    -->
     <!-- ========================================== -->
     <div class="overlay" id="overlay">
         <div class="overlay-box">
@@ -109,9 +109,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- SCRIPT                                      -->
-    <!-- ========================================== -->
     <script src="/seller/js/create-shop.js"></script>
 </body>
 </html>

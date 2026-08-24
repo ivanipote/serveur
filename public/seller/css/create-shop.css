@@ -12,7 +12,7 @@ html, body {
 
 body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: #f5f5f5;
+    background: #f0f2f5;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -21,18 +21,18 @@ body {
 }
 
 /* ==========================================
-   HEADER - Rouge
+   HEADER - VERT
    ========================================== */
 
 .create-header {
-    background: #c62828;
+    background: #17A464;
     padding: 12px 20px;
     display: flex;
     align-items: center;
     gap: 12px;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    box-shadow: 0 2px 10px rgba(198, 40, 40, 0.15);
+    box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
     flex-shrink: 0;
 }
 
@@ -81,11 +81,11 @@ body {
 }
 
 .create-main::-webkit-scrollbar-thumb {
-    background: #ddd;
+    background: #d0d0da;
     border-radius: 10px;
 }
 
-/* ===== TEXTE DE BIENVENUE ===== */
+/* ===== TEXTE ===== */
 .welcome-section {
     text-align: center;
     margin-bottom: 20px;
@@ -105,7 +105,7 @@ body {
 }
 
 .welcome-section h1 span {
-    color: #c62828;
+    color: #17A464;
 }
 
 .welcome-section p {
@@ -123,13 +123,13 @@ body {
     border-radius: 16px;
     padding: 14px 16px 16px 16px;
     margin-bottom: 12px;
-    border: 1px solid rgba(198, 40, 40, 0.06);
+    border: 1px solid rgba(23, 164, 100, 0.08);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
     transition: border-color 0.3s;
 }
 
 .form-card:focus-within {
-    border-color: rgba(198, 40, 40, 0.15);
+    border-color: rgba(23, 164, 100, 0.2);
 }
 
 .form-group {
@@ -145,15 +145,20 @@ body {
 }
 
 .form-group label i {
-    color: #c62828;
+    color: #17A464;
     margin-right: 6px;
+}
+
+.form-group label .required {
+    color: #e74c3c;
+    font-weight: 700;
 }
 
 .form-group input,
 .form-group textarea {
     width: 100%;
     padding: 10px 14px;
-    border: 2px solid #e8e8f0;
+    border: 2px solid #e8ecf4;
     border-radius: 12px;
     font-size: 14px;
     background: #f8f9fc;
@@ -165,9 +170,9 @@ body {
 
 .form-group input:focus,
 .form-group textarea:focus {
-    border-color: #c62828;
+    border-color: #17A464;
     background: white;
-    box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.06);
+    box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
 }
 
 .form-group input::placeholder,
@@ -187,7 +192,7 @@ body {
     align-items: center;
     gap: 12px;
     background: #f8f9fc;
-    border: 2px solid #e8e8f0;
+    border: 2px solid #e8ecf4;
     border-radius: 12px;
     padding: 8px 14px;
     transition: all 0.3s;
@@ -195,7 +200,7 @@ body {
 }
 
 .file-input-wrapper:hover {
-    border-color: #c62828;
+    border-color: #17A464;
 }
 
 .file-input-wrapper input[type="file"] {
@@ -223,7 +228,7 @@ body {
 }
 
 .file-input-wrapper .file-icon {
-    color: #c62828;
+    color: #17A464;
     font-size: 18px;
 }
 
@@ -238,7 +243,7 @@ body {
 .gps-btn {
     flex: 1;
     padding: 10px 14px;
-    border: 2px solid #e8e8f0;
+    border: 2px solid #e8ecf4;
     border-radius: 12px;
     background: #f8f9fc;
     font-size: 14px;
@@ -254,14 +259,14 @@ body {
 }
 
 .gps-btn:hover {
-    border-color: #c62828;
-    background: #fef5f5;
+    border-color: #17A464;
+    background: #f0faf5;
 }
 
 .gps-btn.active {
-    border-color: #c62828;
-    background: #fce4ec;
-    color: #c62828;
+    border-color: #17A464;
+    background: #e6f7ee;
+    color: #0E7A49;
 }
 
 .gps-btn i {
@@ -276,7 +281,7 @@ body {
 .gps-input-wrapper input {
     width: 100%;
     padding: 10px 40px 10px 14px;
-    border: 2px solid #e8e8f0;
+    border: 2px solid #e8ecf4;
     border-radius: 12px;
     font-size: 14px;
     background: #f8f9fc;
@@ -286,9 +291,9 @@ body {
 }
 
 .gps-input-wrapper input:focus {
-    border-color: #c62828;
+    border-color: #17A464;
     background: white;
-    box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.06);
+    box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
 }
 
 .gps-input-wrapper .gps-status {
@@ -314,15 +319,15 @@ body {
 }
 
 /* ==========================================
-   FOOTER - Bord arrondi
+   FOOTER
    ========================================== */
 
 .create-footer {
-    background: #c62828;
+    background: #17A464;
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 16px 20px 20px 20px;
-    box-shadow: 0 -4px 20px rgba(198, 40, 40, 0.15);
+    box-shadow: 0 -4px 20px rgba(23, 164, 100, 0.15);
     flex-shrink: 0;
 }
 
@@ -330,7 +335,7 @@ body {
     width: 100%;
     padding: 14px;
     background: white;
-    color: #c62828;
+    color: #0E7A49;
     border: none;
     border-radius: 30px;
     font-size: 18px;
@@ -391,8 +396,8 @@ body {
 .overlay-box .spinner {
     width: 56px;
     height: 56px;
-    border: 4px solid rgba(198, 40, 40, 0.15);
-    border-top-color: #c62828;
+    border: 4px solid rgba(23, 164, 100, 0.15);
+    border-top-color: #17A464;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 0 auto 16px auto;
