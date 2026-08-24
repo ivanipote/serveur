@@ -364,7 +364,6 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
 // ========================================================
 // ROUTES : BOUTIQUES
 // ========================================================
-
 // Créer une boutique AVEC IMAGE (Cloudinary)
 app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
     console.log('📥 Création boutique reçue');
@@ -379,9 +378,12 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
     }
 
     try {
-        const existing = await db.get('SELECT * FROM shops WHERE seller_id = $1', [sellerId]);
-        if (existing) {
-            return res.status(400).json({ error: 'Vous avez déjà une boutique.' });
+        // ✅ Vérifier le nombre de boutiques (limite 5)
+        const count = await db.get('SELECT COUNT(*) as count FROM shops WHERE seller_id = $1', [sellerId]);
+        if (count && count.count >= 5) {
+            return res.status(400).json({ 
+                error: 'Vous avez atteint la limite de 5 boutiques.' 
+            });
         }
 
         const imageUrl = req.file ? req.file.path : null;
@@ -413,7 +415,6 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
         res.status(500).json({ error: 'Erreur lors de la création de la boutique.' });
     }
 });
-
 // Récupérer sa boutique
 app.get('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
     const sellerId = req.seller.id;
