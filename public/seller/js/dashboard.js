@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let shops = [];
 
     // ==========================================
-    // RÉCUPÉRER LES DONNÉES (localStorage - mode démo)
+    // RÉCUPÉRER LES DONNÉES (localStorage)
     // ==========================================
 
     function getShops() {
@@ -31,7 +31,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHAGE CAROUSEL (1/1 horizontal)
+    // METTRE À JOUR L'IMAGE DE FOND (sans image)
+    // ==========================================
+
+    function updateBackground(index) {
+        if (!shops || shops.length === 0 || !shops[index]) {
+            shopCardBg.style.backgroundImage = 'none';
+            shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
+            return;
+        }
+        // Si la boutique a une image, on l'utilise, sinon dégradé rouge
+        const shop = shops[index];
+        if (shop.image && shop.image !== '') {
+            shopCardBg.style.backgroundImage = `url(${shop.image})`;
+            shopCardBg.style.background = 'none';
+        } else {
+            shopCardBg.style.backgroundImage = 'none';
+            shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
+        }
+    }
+
+    // ==========================================
+    // AFFICHAGE CAROUSEL
     // ==========================================
 
     function renderCarousel(shopsData) {
@@ -50,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             shopCounter.textContent = '0 / 0';
             prevBtn.disabled = true;
             nextBtn.disabled = true;
-            shopCardBg.style.backgroundImage = 'url(https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop)';
+            updateBackground(0);
             return;
         }
 
@@ -78,20 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-    }
-
-    // ==========================================
-    // METTRE À JOUR L'IMAGE DE FOND
-    // ==========================================
-
-    function updateBackground(index) {
-        if (!shops || shops.length === 0 || !shops[index]) {
-            shopCardBg.style.backgroundImage = 'url(https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop)';
-            return;
-        }
-        const shop = shops[index];
-        const imageUrl = shop.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop';
-        shopCardBg.style.backgroundImage = `url(${imageUrl})`;
     }
 
     // ==========================================
