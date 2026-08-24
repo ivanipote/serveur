@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Dashboard ComPlus chargé');
 
     // ==========================================
-    // DONNÉES PRODUITS (via API)
+    // DONNÉES PRODUITS
     // ==========================================
 
     let products = [];
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isAuthenticated = false;
 
     // ==========================================
-    // RÉFÉRENCES
+    // RÉFÉRENCES DOM
     // ==========================================
 
     const productName = document.getElementById('productName');
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AUTH
+    // AUTHENTIFICATION
     // ==========================================
 
     async function checkAuth() {
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHAGE CARTE DYNAMIQUE
+    // CARTE DYNAMIQUE
     // ==========================================
 
     function renderDynamicCard() {
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // INIT
+    // INITIALISATION
     // ==========================================
 
     (async function init() {
