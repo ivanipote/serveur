@@ -10,52 +10,61 @@
 <body>
 
     <!-- HEADER -->
-    <header class="login-header">
-        <button class="back-btn" onclick="window.location.href='/register'">
+    <header>
+        <button onclick="window.location.href='/register'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="header-title">🛒 ComPlus Vendeur</span>
+        <div class="header-email-container">
+            <input type="email" id="emailInput" class="header-email" placeholder="Email" autocomplete="email" />
+            <button type="button" id="editEmailBtn" class="edit-email-btn" style="display:none;">
+                <i class="fas fa-pencil-alt"></i>
+            </button>
+            <span id="emailStatus" class="email-status"></span>
+        </div>
     </header>
 
-    <!-- ZONE CENTRALE -->
-    <main class="login-main">
+    <!-- ZONE FLOUÉE -->
+    <div id="blurArea" class="blur-area">
 
-        <!-- CADRE TÉLÉPHONE -->
-        <div class="form-card">
-            <div class="form-group">
-                <label for="phoneInput">
-                    <i class="fas fa-phone"></i> Numéro de téléphone
-                </label>
-                <div class="input-wrapper">
-                    <span class="input-prefix">+225</span>
-                    <input type="tel" id="phoneInput" class="phone-input"
-                           placeholder="05 03 58 83 36" maxlength="10" inputmode="numeric" autofocus />
-                    <span id="phoneStatus" class="input-status"></span>
-                </div>
+        <!-- TEXTE -->
+        <div class="header-title">
+            <h1>Entrer votre code secret</h1>
+        </div>
+
+        <!-- CHAMP CODE -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <input type="password" id="codeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="_ _ _ _" readonly />
+                <button type="button" id="clearBtn" class="clear-btn">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" id="togglePassword" class="toggle-btn">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
         </div>
 
-        <!-- CADRE CODE SECRET -->
-        <div class="form-card">
-            <div class="form-group">
-                <label for="passwordInput">
-                    <i class="fas fa-lock"></i> Code secret (4 chiffres)
-                </label>
-                <div class="input-wrapper password-wrapper">
-                    <input type="password" id="passwordInput"
-                           placeholder="••••" maxlength="4" inputmode="numeric" />
-                    <button type="button" class="toggle-password" id="togglePassword">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <span id="passwordStatus" class="input-status"></span>
-                </div>
+        <!-- PAVÉ NUMÉRIQUE -->
+        <div class="pave-container">
+            <div class="pave pave-round">
+                <button class="num-btn" data-value="1">1</button>
+                <button class="num-btn" data-value="2">2</button>
+                <button class="num-btn" data-value="3">3</button>
+                <button class="num-btn" data-value="4">4</button>
+                <button class="num-btn" data-value="5">5</button>
+                <button class="num-btn" data-value="6">6</button>
+                <button class="num-btn" data-value="7">7</button>
+                <button class="num-btn" data-value="8">8</button>
+                <button class="num-btn" data-value="9">9</button>
+                <button class="num-btn btn-zero" data-value="0">0</button>
             </div>
         </div>
 
-        <!-- MESSAGE D'ERREUR -->
-        <div id="message" class="message"></div>
+        <p class="register-link">
+            Pas encore inscrit ? <a href="/register">Créer un compte</a>
+        </p>
 
-    </main>
+    </div>
 
     <script src="/seller/js/login.js"></script>
 </body>

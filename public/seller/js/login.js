@@ -6,197 +6,225 @@ document.addEventListener('DOMContentLoaded', function() {
     // RÉFÉRENCES
     // ==========================================
 
-    const phoneInput = document.getElementById('phoneInput');
-    const phoneStatus = document.getElementById('phoneStatus');
-    const phoneWrapper = phoneInput.closest('.input-wrapper');
+    const codeInput = document.getElementById('codeInput');
+    const emailInput = document.getElementById('emailInput');
+    const emailStatus = document.getElementById('emailStatus');
+    const editEmailBtn = document.getElementById('editEmailBtn');
+    const blurArea = document.getElementById('blurArea');
+    const toggleBtn = document.getElementById('togglePassword');
+    const clearBtn = document.getElementById('clearBtn');
+    const numBtns = document.querySelectorAll('.num-btn');
 
-    const passwordInput = document.getElementById('passwordInput');
-    const passwordStatus = document.getElementById('passwordStatus');
-    const passwordWrapper = passwordInput.closest('.input-wrapper');
-
-    const togglePassword = document.getElementById('togglePassword');
-    const message = document.getElementById('message');
-
+    let isEmailLocked = false;
     let isLoggingIn = false;
 
-    // ==========================================
-    // FOCUS AUTO SUR LE TÉLÉPHONE
-    // ==========================================
+    // ========================================
+    // BOUTON RETOUR VERS REGISTER
+    // ========================================
 
-    setTimeout(() => {
-        phoneInput.focus();
-    }, 300);
+    const backBtn = document.querySelector('header button');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            window.location.href = '/register';
+        });
+    }
 
-    // ==========================================
-    // TÉLÉPHONE
-    // ==========================================
+    // ========================================
+    // PRÉ-REMPLIR L'EMAIL DEPUIS L'URL
+    // ========================================
 
-    phoneInput.addEventListener('input', function() {
-        const val = this.value.replace(/\D/g, '');
-        this.value = val;
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailFromUrl = urlParams.get('email');
 
-        if (val.length === 10) {
-            phoneStatus.textContent = '✓';
-            phoneStatus.className = 'input-status visible valid';
-            phoneWrapper.classList.remove('invalid');
-            phoneWrapper.classList.add('valid');
-        } else if (val.length > 0 && val.length < 10) {
-            phoneStatus.textContent = '✗';
-            phoneStatus.className = 'input-status visible invalid';
-            phoneWrapper.classList.remove('valid');
-            phoneWrapper.classList.add('invalid');
+    function lockEmail(email) {
+        emailInput.value = email;
+        emailInput.disabled = true;
+        emailInput.classList.add('locked');
+        emailStatus.textContent = '✓';
+        emailStatus.className = 'email-status visible valid';
+        blurArea.classList.remove('blurred');
+        isEmailLocked = true;
+        editEmailBtn.style.display = 'block';
+        codeInput.focus();
+    }
+
+    function unlockEmail() {
+        emailInput.disabled = false;
+        emailInput.classList.remove('locked');
+        isEmailLocked = false;
+        editEmailBtn.style.display = 'none';
+        emailInput.focus();
+        emailInput.select();
+        emailStatus.className = 'email-status';
+        emailInput.classList.remove('valid', 'invalid');
+        blurArea.classList.add('blurred');
+    }
+
+    if (emailFromUrl) {
+        lockEmail(emailFromUrl);
+    } else {
+        const savedEmail = localStorage.getItem('sellerEmail');
+        if (savedEmail) {
+            lockEmail(savedEmail);
         } else {
-            phoneStatus.className = 'input-status';
-            phoneWrapper.classList.remove('valid', 'invalid');
-        }
-
-        checkAndLogin();
-    });
-
-    // ==========================================
-    // PASSWORD (4 chiffres)
-    // ==========================================
-
-    passwordInput.addEventListener('input', function() {
-        const val = this.value.replace(/\D/g, '');
-        this.value = val;
-
-        if (val.length === 4) {
-            passwordStatus.textContent = '✓';
-            passwordStatus.className = 'input-status visible valid';
-            passwordWrapper.classList.remove('invalid');
-            passwordWrapper.classList.add('valid');
-        } else if (val.length > 0 && val.length < 4) {
-            passwordStatus.textContent = '✗';
-            passwordStatus.className = 'input-status visible invalid';
-            passwordWrapper.classList.remove('valid');
-            passwordWrapper.classList.add('invalid');
-        } else {
-            passwordStatus.className = 'input-status';
-            passwordWrapper.classList.remove('valid', 'invalid');
-        }
-
-        checkAndLogin();
-    });
-
-    // ==========================================
-    // TOGGLE PASSWORD
-    // ==========================================
-
-    togglePassword.addEventListener('click', function() {
-        const icon = this.querySelector('i');
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.className = 'fas fa-eye-slash';
-        } else {
-            passwordInput.type = 'password';
-            icon.className = 'fas fa-eye';
-        }
-    });
-
-    // ==========================================
-    // VÉRIFICATION AUTOMATIQUE
-    // ==========================================
-
-    function checkAndLogin() {
-        const phone = phoneInput.value.replace(/\D/g, '');
-        const password = passwordInput.value;
-
-        // Masquer le message précédent
-        message.className = 'message';
-        message.textContent = '';
-
-        // Vérifier que les deux champs sont remplis et valides
-        if (phone.length === 10 && password.length === 4 && !isLoggingIn) {
-            login(phone, password);
+            emailInput.disabled = false;
+            blurArea.classList.add('blurred');
+            emailInput.focus();
+            editEmailBtn.style.display = 'none';
         }
     }
 
-    // ==========================================
-    // CONNEXION
-    // ==========================================
+    editEmailBtn.addEventListener('click', function() {
+        unlockEmail();
+    });
 
-    async function login(phone, password) {
+    emailInput.addEventListener('input', function() {
+        if (this.disabled) return;
+        const email = this.value.trim();
+
+        if (email === '') {
+            emailStatus.className = 'email-status';
+            this.classList.remove('valid', 'invalid');
+            blurArea.classList.add('blurred');
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (emailRegex.test(email)) {
+            emailStatus.textContent = '✓';
+            emailStatus.className = 'email-status visible valid';
+            this.classList.remove('invalid');
+            this.classList.add('valid');
+            blurArea.classList.remove('blurred');
+        } else {
+            emailStatus.textContent = '✗';
+            emailStatus.className = 'email-status visible invalid';
+            this.classList.remove('valid');
+            this.classList.add('invalid');
+            blurArea.classList.add('blurred');
+        }
+    });
+
+    codeInput.addEventListener('focus', function() {
+        this.blur();
+    });
+
+    codeInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            clearBtn.classList.add('visible');
+        } else {
+            clearBtn.classList.remove('visible');
+        }
+    });
+
+    clearBtn.addEventListener('click', function() {
+        codeInput.value = '';
+        codeInput.classList.remove('error', 'success');
+        clearBtn.classList.remove('visible');
+        codeInput.focus();
+    });
+
+    numBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (codeInput.value.length < 4) {
+                codeInput.value += this.dataset.value;
+                clearBtn.classList.add('visible');
+            }
+            if (codeInput.value.length === 4) {
+                verifierCode();
+            }
+        });
+    });
+
+    // ========================================
+    // CONNEXION
+    // ========================================
+
+    async function verifierCode() {
         if (isLoggingIn) return;
+
+        const code = codeInput.value;
+        const email = emailInput.value.trim();
+
+        if (code.length !== 4) return;
+
+        if (!email) {
+            emailInput.classList.add('invalid');
+            emailStatus.textContent = '✗';
+            emailStatus.className = 'email-status visible invalid';
+            blurArea.classList.add('blurred');
+            if (navigator.vibrate) navigator.vibrate(200);
+            setTimeout(() => {
+                emailInput.classList.remove('invalid');
+                emailInput.focus();
+            }, 700);
+            return;
+        }
+
         isLoggingIn = true;
 
-        console.log('🔐 Tentative de connexion vendeur:', phone);
-
         try {
-            const res = await fetch('/api/seller/login', {
+            const response = await fetch('/api/seller/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: phone,
-                    password: password
-                })
+                body: JSON.stringify({ email, password: code })
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (data.success) {
-                // ✅ Connexion réussie
+            if (response.ok) {
+                // ✅ STOCKER DANS localStorage
                 localStorage.setItem('sellerToken', data.token);
                 localStorage.setItem('sellerId', data.seller.id);
                 localStorage.setItem('sellerName', data.seller.name);
+                localStorage.setItem('sellerEmail', data.seller.email);
                 localStorage.setItem('sellerPhone', data.seller.phone);
                 localStorage.setItem('sellerStatus', data.seller.status);
 
-                message.className = 'message success';
-                message.textContent = '✅ Connexion réussie ! Redirection...';
+                console.log('✅ Connexion vendeur réussie - sellerId:', data.seller.id);
+
+                codeInput.classList.add('success');
+                codeInput.classList.remove('error');
 
                 setTimeout(() => {
                     window.location.href = '/dashboard';
-                }, 800);
-
+                }, 600);
             } else {
-                // ❌ Erreur
-                message.className = 'message error';
-                message.textContent = '❌ ' + (data.error || 'Numéro ou code incorrect');
+                codeInput.classList.add('error');
+                codeInput.classList.remove('success');
+                if (navigator.vibrate) navigator.vibrate(200);
 
-                // Réinitialiser le mot de passe
-                passwordInput.value = '';
-                passwordInput.dispatchEvent(new Event('input'));
-
-                // Focus sur le téléphone
                 setTimeout(() => {
-                    phoneInput.focus();
-                }, 300);
-
-                isLoggingIn = false;
+                    codeInput.value = '';
+                    codeInput.classList.remove('error');
+                    clearBtn.classList.remove('visible');
+                    codeInput.focus();
+                    isLoggingIn = false;
+                }, 700);
             }
-
         } catch (error) {
-            console.error('Erreur connexion:', error);
-            message.className = 'message error';
-            message.textContent = '❌ Erreur de connexion au serveur.';
-
-            passwordInput.value = '';
-            passwordInput.dispatchEvent(new Event('input'));
-
-            isLoggingIn = false;
+            console.error('Erreur:', error);
+            codeInput.classList.add('error');
+            setTimeout(() => {
+                codeInput.value = '';
+                codeInput.classList.remove('error');
+                clearBtn.classList.remove('visible');
+                codeInput.focus();
+                isLoggingIn = false;
+            }, 700);
         }
     }
 
-    // ==========================================
-    // KEYBOARD - ENTRÉE
-    // ==========================================
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            const phone = phoneInput.value.replace(/\D/g, '');
-            const password = passwordInput.value;
-
-            if (phone.length === 10 && password.length === 4 && !isLoggingIn) {
-                login(phone, password);
-            }
+    toggleBtn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (codeInput.type === 'password') {
+            codeInput.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            codeInput.type = 'password';
+            icon.className = 'fas fa-eye';
         }
     });
-
-    // ==========================================
-    // INIT
-    // ==========================================
-
-    console.log('✅ Login vendeur prêt');
 
 });
