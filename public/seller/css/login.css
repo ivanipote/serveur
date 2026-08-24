@@ -1,0 +1,449 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+
+.login-header {
+    background: white;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    min-height: 68px;
+}
+
+.back-btn {
+    background: #e8e8f0;
+    border: none;
+    color: #1a1a2e;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.back-btn:hover {
+    background: #d0d0da;
+    transform: scale(1.05);
+}
+
+.header-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+}
+
+/* ==========================================
+   MAIN
+   ========================================== */
+
+.login-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 20px 12px 20px;
+    overflow: hidden;
+}
+
+/* ==========================================
+   FORM CARD
+   ========================================== */
+
+.form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(45, 125, 70, 0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-card:focus-within {
+    border-color: rgba(45, 125, 70, 0.15);
+    box-shadow: 0 4px 20px rgba(45, 125, 70, 0.04);
+}
+
+.form-group {
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3a4152;
+    margin-bottom: 5px;
+}
+
+.form-group label i {
+    color: #2d7d46;
+    margin-right: 4px;
+}
+
+/* ==========================================
+   INPUT WRAPPER
+   ========================================== */
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f8f9fc;
+    border-radius: 12px;
+    border: 2px solid #e8e8f0;
+    transition: all 0.3s;
+}
+
+.input-wrapper:focus-within {
+    border-color: #2d7d46;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(45, 125, 70, 0.06);
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    background: transparent;
+    outline: none;
+    color: #1a1a2e;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.input-wrapper input::placeholder {
+    color: #aaa;
+}
+
+/* ===== PREFIXE TÉLÉPHONE ===== */
+.input-prefix {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1a1a2e;
+    padding-left: 14px;
+    flex-shrink: 0;
+}
+
+.input-wrapper:has(.input-prefix) input {
+    padding-left: 6px;
+}
+
+.phone-input {
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+/* ===== PASSWORD WRAPPER ===== */
+.password-wrapper input {
+    padding-right: 50px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: color 0.2s;
+}
+
+.toggle-password:hover {
+    color: #2d7d46;
+}
+
+/* ==========================================
+   STATUS
+   ========================================== */
+
+.input-status {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.input-status.visible {
+    opacity: 1;
+}
+
+.input-status.valid {
+    color: #27ae60;
+}
+
+.input-status.invalid {
+    color: #e74c3c;
+}
+
+.input-wrapper.valid {
+    border-color: #27ae60;
+    background: #f0fff4;
+}
+
+.input-wrapper.valid .input-status {
+    color: #27ae60;
+}
+
+.input-wrapper.invalid {
+    border-color: #e74c3c;
+    background: #fff5f5;
+}
+
+.input-wrapper.invalid .input-status {
+    color: #e74c3c;
+}
+
+/* ==========================================
+   MESSAGE
+   ========================================== */
+
+.message {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.message.error {
+    display: block;
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+.message.success {
+    display: block;
+    background: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #a5d6a7;
+}
+
+/* ==========================================
+   PAVÉ NUMÉRIQUE
+   ========================================== */
+
+.pave-container {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: 8px 20px 20px 20px;
+    background: white;
+    border-top: 1px solid #f0f0f5;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.04);
+}
+
+.pave {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 280px;
+    width: 100%;
+}
+
+.pave-round button {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50% !important;
+    border: none;
+    font-size: 24px;
+    font-weight: 700;
+    background: #f0f0f5;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06), inset 0 -2px 4px rgba(0,0,0,0.04), inset 0 2px 4px rgba(255,255,255,0.8);
+    min-width: 52px;
+    min-height: 52px;
+    max-width: 70px;
+    max-height: 70px;
+    margin: 0 auto;
+}
+
+.pave-round button:active {
+    transform: scale(0.92);
+    background: #dcdce6;
+}
+
+.pave-round .btn-zero {
+    grid-column: 2;
+    justify-self: center;
+    background: linear-gradient(145deg, #f0f0f5, #e4e4ec);
+    box-shadow: 0 4px 12px rgba(45, 125, 70, 0.10), inset 0 -2px 4px rgba(0,0,0,0.04), inset 0 2px 4px rgba(255,255,255,0.8);
+    font-size: 26px;
+}
+
+.pave-round .btn-clear {
+    background: #fff0ee;
+    color: #e74c3c;
+    font-size: 20px;
+}
+
+.pave-round .btn-clear:active {
+    background: #fce4e2;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 480px) {
+    .login-header {
+        padding: 10px 14px;
+        min-height: 60px;
+    }
+
+    .back-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .header-title {
+        font-size: 16px;
+    }
+
+    .login-main {
+        padding: 12px 14px 8px 14px;
+    }
+
+    .form-card {
+        padding: 12px 14px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+    }
+
+    .input-wrapper input {
+        font-size: 14px;
+        padding: 10px 36px 10px 12px;
+    }
+
+    .input-prefix {
+        font-size: 14px;
+        padding-left: 10px;
+    }
+
+    .pave-round button {
+        min-width: 44px;
+        min-height: 44px;
+        max-width: 56px;
+        max-height: 56px;
+        font-size: 20px;
+    }
+
+    .pave-round .btn-zero {
+        font-size: 22px;
+    }
+
+    .pave-round .btn-clear {
+        font-size: 17px;
+    }
+
+    .pave {
+        gap: 10px;
+        max-width: 220px;
+    }
+
+    .pave-container {
+        padding: 6px 12px 16px 12px;
+    }
+
+    .toggle-password {
+        font-size: 14px;
+        right: 10px;
+    }
+}
+
+@media (max-width: 380px) {
+    .pave-round button {
+        min-width: 38px;
+        min-height: 38px;
+        max-width: 48px;
+        max-height: 48px;
+        font-size: 17px;
+    }
+
+    .pave {
+        gap: 8px;
+        max-width: 180px;
+    }
+
+    .login-main {
+        padding: 8px 10px 4px 10px;
+    }
+
+    .form-card {
+        padding: 10px 10px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .input-wrapper input {
+        font-size: 13px;
+        padding: 8px 32px 8px 10px;
+    }
+
+    .header-title {
+        font-size: 14px;
+    }
+
+    .back-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
