@@ -3,14 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Résultat | Nature+</title>
+    <title>Résultats | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* --- Reset & base --- */
+        /* =============================================================
+           RESULTS - STYLES AMÉLIORÉS
+           ============================================================= */
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
         }
 
         body {
@@ -22,11 +40,16 @@
             padding-top: 76px;
         }
 
-        /* --- Header --- */
+        /* =============================================================
+           HEADER - GLASSMORPHISME
+           ============================================================= */
+
         .results-header {
-            background: white;
+            background: rgba(45, 125, 70, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(45, 125, 70, 0.12);
             padding: 12px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -41,8 +64,8 @@
         }
 
         .back-btn {
-            background: #e8e8f0;
-            border: none;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: #1a1a2e;
             width: 40px;
             height: 40px;
@@ -55,8 +78,9 @@
             transition: all 0.2s;
             flex-shrink: 0;
         }
+
         .back-btn:hover {
-            background: #d0d0da;
+            background: rgba(255, 255, 255, 0.9);
             transform: scale(1.05);
         }
 
@@ -65,37 +89,40 @@
             position: relative;
             display: flex;
             align-items: center;
-            cursor: pointer;
         }
+
         .search-bar-wrapper .search-icon {
             position: absolute;
-            left: 14px;
+            left: 16px;
             color: #aaa;
             font-size: 16px;
         }
+
         .search-bar-wrapper input {
             width: 100%;
             height: 46px;
             padding: 0 16px 0 46px;
-            border: 2px solid #e8e8f0;
+            border: 2px solid rgba(45, 125, 70, 0.12);
             border-radius: 25px;
             font-size: 15px;
-            background: #f8f9fc;
+            background: rgba(255, 255, 255, 0.6);
             outline: none;
             cursor: pointer;
             transition: all 0.3s;
             color: #1a1a2e;
         }
+
         .search-bar-wrapper input:hover {
             border-color: #2d7d46;
         }
+
         .search-bar-wrapper input::placeholder {
             color: #aaa;
         }
 
         .cart-btn {
-            background: #e8e8f0;
-            border: none;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: #1a1a2e;
             width: 40px;
             height: 40px;
@@ -109,11 +136,13 @@
             flex-shrink: 0;
             position: relative;
         }
+
         .cart-btn:hover {
-            background: #d0d0da;
+            background: rgba(255, 255, 255, 0.9);
             transform: scale(1.05);
         }
-        .cart-badge {
+
+        .cart-btn .cart-badge {
             position: absolute;
             top: -4px;
             right: -4px;
@@ -130,76 +159,117 @@
             padding: 0 4px;
         }
 
-        /* --- Contenu des résultats --- */
+        /* =============================================================
+           CONTENU
+           ============================================================= */
+
         .results-container {
             flex: 1;
             padding: 20px 20px 30px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
         }
-        .result-title {
+
+        /* ===== HEADER RÉSULTATS ===== */
+        .results-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            margin-bottom: 16px;
+        }
+
+        .results-title {
             font-size: 20px;
             font-weight: 700;
             color: #1a1a2e;
-            margin-bottom: 4px;
-        }
-        .result-count {
-            font-size: 14px;
-            color: #888;
         }
 
-        /* --- Grille de produits --- */
+        .results-title .query {
+            color: #2d7d46;
+        }
+
+        .results-count {
+            font-size: 14px;
+            color: #888;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 4px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        /* ===== GRILLE PRODUITS ===== */
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 20px;
-            margin-top: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .product-card {
-            background: white;
+            background: rgba(45, 125, 70, 0.04);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(45, 125, 70, 0.06);
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-            border: 1px solid #f0f0f5;
             transition: all 0.3s;
-            position: relative;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
         }
+
         .product-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            border-color: rgba(45, 125, 70, 0.15);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
         }
+
         .product-card .card-img {
             width: 100%;
             height: 200px;
             object-fit: cover;
             display: block;
             background: #f0f2f5;
-            cursor: pointer;
         }
+
         .product-card .card-body {
-            padding: 16px 18px 18px 18px;
+            padding: 14px 16px 16px 16px;
             flex: 1;
             display: flex;
             flex-direction: column;
+            background: white;
         }
+
         .product-card .card-body .name {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 700;
             color: #1a1a2e;
             margin-bottom: 2px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
+
         .product-card .card-body .price {
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 800;
             color: #2d7d46;
-            margin: 2px 0 6px 0;
+            margin: 2px 0 4px 0;
         }
+
         .product-card .card-body .desc {
-            font-size: 14px;
+            font-size: 13px;
             color: #888;
             line-height: 1.4;
             margin-bottom: 10px;
@@ -209,56 +279,75 @@
             overflow: hidden;
             flex: 1;
         }
+
         .product-card .card-body .stock-info {
-            font-size: 13px;
+            font-size: 12px;
             color: #aaa;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
+
+        .product-card .card-body .stock-info.low {
+            color: #e67e22;
+        }
+
+        .product-card .card-body .stock-info.out {
+            color: #e74c3c;
+        }
+
         .product-card .card-body .add-btn {
             background: linear-gradient(135deg, #2d7d46, #1a5a33);
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 10px 16px;
             border-radius: 30px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            width: 100%;
             justify-content: center;
+            gap: 8px;
+            width: 100%;
         }
+
         .product-card .card-body .add-btn:hover {
             transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(45,125,70,0.25);
+            box-shadow: 0 4px 16px rgba(45, 125, 70, 0.2);
         }
-        .product-card .card-body .add-btn i {
-            font-size: 15px;
-        }
+
         .product-card .card-body .add-btn.added {
             background: #27ae60;
         }
 
-        /* --- États vides --- */
+        /* ===== AUCUN RÉSULTAT ===== */
         .no-result {
             text-align: center;
             padding: 60px 20px;
             color: #888;
             grid-column: 1 / -1;
         }
+
         .no-result i {
             font-size: 56px;
             color: #ddd;
             display: block;
             margin-bottom: 16px;
         }
+
         .no-result h3 {
             font-size: 20px;
             color: #1a1a2e;
             margin-bottom: 6px;
         }
+
+        .no-result p {
+            font-size: 15px;
+            color: #aaa;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
         .no-result .btn-back-search {
             display: inline-block;
             margin-top: 16px;
@@ -268,45 +357,162 @@
             border-radius: 30px;
             text-decoration: none;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
+
         .no-result .btn-back-search:hover {
             background: #1a5a33;
+            transform: scale(1.02);
         }
 
-        /* --- Responsive --- */
-        @media (max-width: 600px) {
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+
+        @media (max-width: 768px) {
             body { padding-top: 68px; }
-            .results-header { padding: 10px 14px; gap: 10px; flex-wrap: nowrap; }
-            .search-bar-wrapper input { height: 40px; font-size: 14px; padding: 0 12px 0 40px; }
-            .search-bar-wrapper .search-icon { left: 12px; font-size: 14px; }
-            .back-btn, .cart-btn { width: 36px; height: 36px; font-size: 16px; }
-            .product-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
-            .product-card .card-img { height: 150px; }
-            .product-card .card-body .name { font-size: 15px; }
-            .product-card .card-body .price { font-size: 17px; }
-            .product-card .card-body .add-btn { font-size: 13px; padding: 8px 14px; }
-        }
-        @media (max-width: 400px) {
-            .product-grid { grid-template-columns: 1fr; }
-        }
-        * {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
 
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
+            .results-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-bottom-left-radius: 16px;
+                border-bottom-right-radius: 16px;
+            }
 
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-}
+            .search-bar-wrapper input {
+                height: 40px;
+                font-size: 14px;
+                padding: 0 12px 0 40px;
+                border-radius: 20px;
+            }
+
+            .search-bar-wrapper .search-icon {
+                font-size: 14px;
+                left: 12px;
+            }
+
+            .back-btn, .cart-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 14px;
+            }
+
+            .product-card .card-img {
+                height: 150px;
+            }
+
+            .product-card .card-body .name {
+                font-size: 14px;
+            }
+
+            .product-card .card-body .price {
+                font-size: 17px;
+            }
+
+            .product-card .card-body .add-btn {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+
+            .results-title {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body { padding-top: 60px; }
+
+            .results-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-bottom-left-radius: 14px;
+                border-bottom-right-radius: 14px;
+            }
+
+            .search-bar-wrapper input {
+                height: 34px;
+                font-size: 13px;
+                padding: 0 8px 0 34px;
+                border-radius: 18px;
+            }
+
+            .search-bar-wrapper .search-icon {
+                font-size: 12px;
+                left: 10px;
+            }
+
+            .back-btn, .cart-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .product-card .card-img {
+                height: 120px;
+            }
+
+            .product-card .card-body {
+                padding: 10px 10px 12px 10px;
+            }
+
+            .product-card .card-body .name {
+                font-size: 13px;
+            }
+
+            .product-card .card-body .price {
+                font-size: 15px;
+            }
+
+            .product-card .card-body .desc {
+                font-size: 11px;
+                -webkit-line-clamp: 1;
+            }
+
+            .product-card .card-body .add-btn {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
+            .results-title {
+                font-size: 15px;
+            }
+
+            .results-count {
+                font-size: 12px;
+                padding: 2px 12px;
+            }
+
+            .results-container {
+                padding: 12px 10px 20px 10px;
+            }
+
+            .no-result i {
+                font-size: 40px;
+            }
+
+            .no-result h3 {
+                font-size: 17px;
+            }
+
+            .no-result p {
+                font-size: 13px;
+            }
+
+            .no-result .btn-back-search {
+                font-size: 14px;
+                padding: 10px 24px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -330,9 +536,11 @@ input, textarea {
 
     <!-- ===== RÉSULTATS ===== -->
     <div class="results-container" id="resultsContainer">
-        <div>
-            <div class="result-title">🔍 Résultats pour <span id="searchTerm">"..."</span></div>
-            <span class="result-count" id="resultCount">0 produit(s) trouvé(s)</span>
+        <div class="results-header-info">
+            <div class="results-title">
+                🔍 Résultats pour <span class="query" id="searchTerm">"..."</span>
+            </div>
+            <span class="results-count" id="resultCount">0 produit(s)</span>
         </div>
 
         <div class="product-grid" id="productGrid">
@@ -343,16 +551,22 @@ input, textarea {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
+            console.log('✅ results.html chargé');
+
             // ==========================================
-            // 1. BADGE PANIER (si connecté)
+            // 1. BADGE PANIER
             // ==========================================
+
             async function loadPanierCount() {
                 try {
                     const res = await fetch('/api/panier/count');
                     const data = await res.json();
                     if (data.success) {
                         const badge = document.getElementById('cartBadge');
-                        if (badge) badge.textContent = data.count || 0;
+                        if (badge) {
+                            badge.textContent = data.count || 0;
+                            badge.style.display = data.count > 0 ? 'flex' : 'none';
+                        }
                     }
                 } catch (e) {
                     console.warn('Erreur badge panier:', e);
@@ -362,34 +576,35 @@ input, textarea {
             // ==========================================
             // 2. AFFICHAGE DES RÉSULTATS
             // ==========================================
+
             const urlParams = new URLSearchParams(window.location.search);
             const query = urlParams.get('q') || '';
 
-            // Pré‑remplir la barre de recherche
             const searchInput = document.getElementById('searchInput');
             if (searchInput) searchInput.value = query;
 
-            // Afficher le terme recherché
             document.getElementById('searchTerm').textContent = '"' + query + '"';
 
-            async function loadAndDisplayResults() {
-                const grid = document.getElementById('productGrid');
-                const count = document.getElementById('resultCount');
+            const grid = document.getElementById('productGrid');
+            const countEl = document.getElementById('resultCount');
 
+            async function loadAndDisplayResults() {
                 try {
                     const res = await fetch('/api/products');
                     const data = await res.json();
+
                     if (!res.ok || !data.length) {
-                        grid.innerHTML = `<div class="no-result">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <h3>Aucun produit disponible</h3>
-                            <p>Veuillez réessayer plus tard.</p>
-                        </div>`;
-                        count.textContent = '0 produit trouvé';
+                        grid.innerHTML = `
+                            <div class="no-result">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <h3>Aucun produit disponible</h3>
+                                <p>Veuillez réessayer plus tard.</p>
+                            </div>
+                        `;
+                        countEl.textContent = '0 produit';
                         return;
                     }
 
-                    // Filtrer les produits
                     let filtered = data;
                     if (query) {
                         const lowerQuery = query.toLowerCase();
@@ -400,17 +615,19 @@ input, textarea {
                     }
 
                     if (filtered.length === 0) {
-                        grid.innerHTML = `<div class="no-result">
-                            <i class="fas fa-search"></i>
-                            <h3>Aucun résultat pour "${query}"</h3>
-                            <p>Essayez un autre mot‑clé ou retournez à la recherche.</p>
-                            <a href="/searchproduct" class="btn-back-search">🔍 Nouvelle recherche</a>
-                        </div>`;
-                        count.textContent = '0 produit trouvé';
+                        grid.innerHTML = `
+                            <div class="no-result">
+                                <i class="fas fa-search"></i>
+                                <h3>Aucun résultat</h3>
+                                <p>Aucun produit ne correspond à "<strong>${query}</strong>"</p>
+                                <a href="/searchproduct" class="btn-back-search">🔍 Nouvelle recherche</a>
+                            </div>
+                        `;
+                        countEl.textContent = '0 produit';
                         return;
                     }
 
-                    count.textContent = filtered.length + ' produit(s) trouvé(s)';
+                    countEl.textContent = filtered.length + ' produit' + (filtered.length > 1 ? 's' : '');
 
                     grid.innerHTML = filtered.map(p => `
                         <div class="product-card" data-id="${p.id}">
@@ -418,8 +635,8 @@ input, textarea {
                             <div class="card-body">
                                 <div class="name">${p.name}</div>
                                 <div class="price">${p.price.toLocaleString()} FCFA</div>
-                                <div class="desc">${p.description || 'Aucune description'}</div>
-                                <div class="stock-info">📦 ${p.quantity || 0} en stock</div>
+                                <div class="desc">${p.description || ''}</div>
+                                <div class="stock-info ${p.quantity <= 0 ? 'out' : p.quantity <= 5 ? 'low' : ''}">📦 ${p.quantity || 0} en stock</div>
                                 <button class="add-btn" data-id="${p.id}">
                                     <i class="fas fa-plus-circle"></i> Ajouter au panier
                                 </button>
@@ -427,7 +644,7 @@ input, textarea {
                         </div>
                     `).join('');
 
-                    // ===== CLIC SUR LA CARTE → infoproduit =====
+                    // ✅ Clic sur la carte → infoproduit
                     document.querySelectorAll('.product-card').forEach(card => {
                         card.addEventListener('click', function(e) {
                             if (e.target.closest('.add-btn')) return;
@@ -436,7 +653,7 @@ input, textarea {
                         });
                     });
 
-                    // ===== AJOUTER AU PANIER =====
+                    // ✅ Ajouter au panier
                     document.querySelectorAll('.add-btn').forEach(btn => {
                         btn.addEventListener('click', async function(e) {
                             e.stopPropagation();
@@ -459,31 +676,32 @@ input, textarea {
                                     }, 1500);
                                 } else if (data.error === 'Non authentifié') {
                                     window.location.href = '/login';
-                                } else {
-                                    alert('❌ ' + (data.error || 'Erreur'));
                                 }
                             } catch (error) {
                                 console.error('Erreur ajout panier:', error);
-                                alert('❌ Erreur de connexion');
                             }
                         });
                     });
 
                 } catch (error) {
                     console.error('Erreur chargement produits:', error);
-                    grid.innerHTML = `<div class="no-result">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h3>Erreur de chargement</h3>
-                        <p>Veuillez réessayer plus tard.</p>
-                    </div>`;
+                    grid.innerHTML = `
+                        <div class="no-result">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Erreur de chargement</h3>
+                            <p>Veuillez réessayer plus tard.</p>
+                        </div>
+                    `;
                 }
             }
 
             // ==========================================
             // 3. INITIALISATION
             // ==========================================
+
             loadPanierCount();
             loadAndDisplayResults();
+
             console.log('✅ results.html initialisé');
 
         });
