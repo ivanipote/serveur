@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const productPrice = document.getElementById('productPrice');
     const productStock = document.getElementById('productStock');
     const productImage = document.getElementById('productImage');
+    const productImagePlaceholder = document.getElementById('productImagePlaceholder');
     const prevBtn = document.getElementById('prevProduct');
     const nextBtn = document.getElementById('nextProduct');
     const addToCartBtn = document.getElementById('addToCartBtn');
@@ -198,29 +199,52 @@ document.addEventListener('DOMContentLoaded', function() {
             productName.textContent = 'Aucun produit';
             productPrice.textContent = '0 FCFA';
             productStock.textContent = '🚫 Indisponible';
-            productImage.src = '';
+            productImage.style.display = 'none';
+            productImagePlaceholder.style.display = 'flex';
+            productImagePlaceholder.innerHTML = `
+                <i class="fas fa-exclamation-circle" style="font-size:36px;color:#ccc;"></i>
+                <span>Aucun produit</span>
+            `;
             return;
         }
 
+        // ✅ Mise à jour des infos
         productName.textContent = product.name;
         productPrice.textContent = product.price.toLocaleString() + ' FCFA';
         productStock.textContent = product.stock > 0 ? `📦 ${product.stock} en stock` : '🚫 Rupture de stock';
         productStock.style.color = product.stock > 0 ? '#4ade80' : '#f87171';
-        productImage.src = product.image || '';
 
+        // ✅ Gestion image / placeholder
+        if (product.image) {
+            productImage.src = product.image;
+            productImage.style.display = 'block';
+            productImagePlaceholder.style.display = 'none';
+        } else {
+            productImage.style.display = 'none';
+            productImagePlaceholder.style.display = 'flex';
+            productImagePlaceholder.innerHTML = `
+                <i class="fas fa-image" style="font-size:36px;color:#ccc;"></i>
+                <span>Pas d'image</span>
+            `;
+        }
+
+        // ✅ Image de fond
         const bgImage = product.image ? `url(${product.image})` : 'none';
         dashboardHeader.style.backgroundImage = bgImage;
         carouselHeader.style.backgroundImage = bgImage;
         carouselFooter.style.backgroundImage = bgImage;
 
+        // ✅ Indicateur
         currentIndexEl.textContent = index + 1;
         totalProductsEl.textContent = products.length;
 
+        // ✅ Navigation
         prevBtn.disabled = index === 0;
         nextBtn.disabled = index === products.length - 1;
         prevBtn.style.opacity = index === 0 ? '0.3' : '1';
         nextBtn.style.opacity = index === products.length - 1 ? '0.3' : '1';
 
+        // ✅ Reset zoom
         productImage.classList.remove('zoomed');
     }
 
@@ -351,7 +375,12 @@ document.addEventListener('DOMContentLoaded', function() {
             productName.textContent = 'Aucun produit disponible';
             productPrice.textContent = '0 FCFA';
             productStock.textContent = '🚫 Aucun produit';
-            productImage.src = '';
+            productImage.style.display = 'none';
+            productImagePlaceholder.style.display = 'flex';
+            productImagePlaceholder.innerHTML = `
+                <i class="fas fa-exclamation-circle" style="font-size:36px;color:#ccc;"></i>
+                <span>Aucun produit disponible</span>
+            `;
             currentIndexEl.textContent = '0';
             totalProductsEl.textContent = '0';
             prevBtn.disabled = true;
