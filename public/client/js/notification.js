@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    title: 'Message client',
+                    title: '💬 Message client',
                     content: content
                 })
             });
@@ -128,6 +128,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 sendMessageResult.style.display = 'block';
                 messageInput.value = '';
                 autoResizeTextarea();
+                
+                // ✅ Ajouter le message envoyé dans la liste (optimiste)
+                const newNotif = {
+                    id: Date.now(),
+                    type: 'client_message',
+                    title: '💬 Vous → Admin',
+                    content: content,
+                    is_read: 1,
+                    created_at: new Date().toISOString()
+                };
+                
+                // Ajouter en haut de la liste
+                notifications.unshift(newNotif);
+                renderNotifications();
+                updateBadge();
                 
                 setTimeout(() => {
                     sendMessageResult.style.display = 'none';
@@ -387,6 +402,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return labels[type] || type;
     }
 
+    // ✅ Fonction pour obtenir le titre affiché (modifié pour client_message)
+    function getDisplayTitle(notification) {
+        if (notification.type === 'client_message') {
+            return '💬 Vous → Admin';
+        }
+        return notification.title || 'Notification';
+    }
+
     // ==========================================
     // CHARGER LES NOTIFICATIONS
     // ==========================================
@@ -429,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS
+    // RENDRE LES NOTIFICATIONS (MODIFIÉ)
     // ==========================================
 
     function renderNotifications() {
@@ -462,6 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const avatarClass = getAvatarClass(n.type);
             const badgeClass = getBadgeClass(n.type);
             const contentClass = getContentClass(n.type);
+            const displayTitle = getDisplayTitle(n);
 
             let contentHtml = n.content || 'Aucun contenu';
             const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
@@ -479,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
                     <div class="avatar ${avatarClass}">${avatarIcon}</div>
                     <div class="body">
-                        <div class="title">${n.title || 'Notification'}</div>
+                        <div class="title">${displayTitle}</div>
                         <div class="content ${contentClass}">${contentHtml}</div>
                         <div class="date">${dateStr}</div>
                         <span class="badge-type ${badgeClass}">${typeLabel}</span>
