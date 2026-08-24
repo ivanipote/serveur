@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Vendeur | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/seller/css/register.css">
+</head>
+<body>
+
+    <!-- ========================================= -->
+    <!-- CONTENEUR PRINCIPAL                       -->
+    <!-- ========================================= -->
+    <div class="register-container">
+
+        <!-- ===== TEXTE DE BIENVENUE ===== -->
+        <div class="welcome-section">
+            <div class="welcome-icon">🛒</div>
+            <h1>Bienvenue sur <span>ComPlus</span></h1>
+            <p>Créez votre boutique, affichez vos produits pour obtenir plus de visibilité.</p>
+            <p class="sub">Créez un compte pour commencer...</p>
+        </div>
+
+        <!-- ===== FORMULAIRE ===== -->
+        <form id="registerForm" class="register-form">
+
+            <!-- Numéro de téléphone -->
+            <div class="form-group">
+                <label for="phoneInput">
+                    <i class="fas fa-phone"></i> Numéro de téléphone
+                </label>
+                <div class="phone-container">
+                    <span class="phone-prefix">+225</span>
+                    <div class="phone-boxes" id="phoneBoxes">
+                        <!-- 10 cases générées par JS -->
+                    </div>
+                    <input type="tel" id="phoneHidden" maxlength="10" inputmode="numeric" autocomplete="off" />
+                    <span id="phoneStatus" class="input-status"></span>
+                </div>
+            </div>
+
+            <!-- Nom complet -->
+            <div class="form-group">
+                <label for="nameInput">
+                    <i class="fas fa-user"></i> Nom complet
+                </label>
+                <div class="input-wrapper">
+                    <input type="text" id="nameInput" placeholder="Jean Dupont" autocomplete="name" />
+                    <span id="nameStatus" class="input-status"></span>
+                </div>
+            </div>
+
+            <!-- Email (optionnel) -->
+            <div class="form-group">
+                <label for="emailInput">
+                    <i class="fas fa-envelope"></i> Email <span class="optional">(optionnel)</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="email" id="emailInput" placeholder="exemple@email.com" autocomplete="email" />
+                    <span id="emailStatus" class="input-status"></span>
+                </div>
+            </div>
+
+            <!-- Code secret (4 chiffres) -->
+            <div class="form-group">
+                <label for="passwordInput">
+                    <i class="fas fa-lock"></i> Code secret
+                </label>
+                <div class="password-wrapper">
+                    <div class="password-boxes-container">
+                        <div class="password-boxes" id="passwordBoxes">
+                            <!-- 4 cases générées par JS -->
+                        </div>
+                        <input type="hidden" id="passwordHidden" maxlength="4" />
+                    </div>
+                    <button type="button" id="clearPwdBtn" class="clear-pwd-btn" style="display:none;">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+                <div class="code-hint">Entrez un code à 4 chiffres</div>
+            </div>
+
+            <!-- Confirmation code -->
+            <div class="form-group">
+                <label for="confirmInput">
+                    <i class="fas fa-check-circle"></i> Confirmer le code
+                </label>
+                <div class="password-wrapper">
+                    <div class="password-boxes-container">
+                        <div class="password-boxes" id="confirmBoxes">
+                            <!-- 4 cases générées par JS -->
+                        </div>
+                        <input type="hidden" id="confirmHidden" maxlength="4" />
+                    </div>
+                    <button type="button" id="clearConfirmBtn" class="clear-pwd-btn" style="display:none;">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BOUTON CRÉER -->
+            <button type="submit" class="btn-register" id="registerBtn" disabled>
+                <i class="fas fa-user-plus"></i> Créer mon compte
+            </button>
+
+            <!-- MESSAGE -->
+            <div id="message" class="message"></div>
+
+            <!-- LIEN LOGIN -->
+            <p class="login-link">
+                Déjà inscrit ? <a href="/login">Se connecter</a>
+            </p>
+
+        </form>
+
+        <!-- ===== PAVÉ NUMÉRIQUE ===== -->
+        <div class="pave-container" id="paveContainer">
+            <div class="pave pave-round">
+                <button class="num-btn-pwd" data-value="1">1</button>
+                <button class="num-btn-pwd" data-value="2">2</button>
+                <button class="num-btn-pwd" data-value="3">3</button>
+                <button class="num-btn-pwd" data-value="4">4</button>
+                <button class="num-btn-pwd" data-value="5">5</button>
+                <button class="num-btn-pwd" data-value="6">6</button>
+                <button class="num-btn-pwd" data-value="7">7</button>
+                <button class="num-btn-pwd" data-value="8">8</button>
+                <button class="num-btn-pwd" data-value="9">9</button>
+                <button class="num-btn-pwd btn-zero" data-value="0">0</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/seller/js/register.js"></script>
+</body>
+</html>

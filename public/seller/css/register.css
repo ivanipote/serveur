@@ -1,0 +1,482 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.register-container {
+    max-width: 420px;
+    width: 100%;
+    background: white;
+    border-radius: 24px;
+    padding: 30px 24px 24px 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+    border: 1px solid rgba(45,125,70,0.06);
+}
+
+/* ===== BIENVENUE ===== */
+.welcome-section {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.welcome-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.welcome-section h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.welcome-section h1 span {
+    color: #2d7d46;
+}
+
+.welcome-section p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+.welcome-section .sub {
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* ===== FORMULAIRE ===== */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3a4152;
+    margin-bottom: 5px;
+}
+
+.form-group label i {
+    color: #2d7d46;
+    margin-right: 4px;
+}
+
+.form-group label .optional {
+    font-weight: 400;
+    color: #999;
+    font-size: 12px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f8f9fc;
+    border-radius: 12px;
+    border: 2px solid #e8e8f0;
+    transition: all 0.3s;
+}
+
+.input-wrapper:focus-within {
+    border-color: #2d7d46;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(45,125,70,0.08);
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    background: transparent;
+    outline: none;
+    color: #1a1a2e;
+}
+
+.input-wrapper input::placeholder {
+    color: #aaa;
+}
+
+.input-status {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.input-status.visible {
+    opacity: 1;
+}
+
+.input-status.valid {
+    color: #27ae60;
+}
+
+.input-status.invalid {
+    color: #e74c3c;
+}
+
+.input-wrapper.valid {
+    border-color: #27ae60;
+    background: #f0fff4;
+}
+
+.input-wrapper.invalid {
+    border-color: #e74c3c;
+    background: #fff5f5;
+}
+
+/* ===== TÉLÉPHONE ===== */
+.phone-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f9fc;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 2px solid #e8e8f0;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.phone-container:focus-within {
+    border-color: #2d7d46;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(45,125,70,0.08);
+}
+
+.phone-container.valid {
+    border-color: #27ae60;
+    background: #f0fff4;
+}
+
+.phone-container.invalid {
+    border-color: #e74c3c;
+    background: #fff5f5;
+}
+
+.phone-prefix {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1a1a2e;
+    flex-shrink: 0;
+}
+
+.phone-boxes {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+}
+
+.phone-box {
+    width: 28px;
+    height: 38px;
+    border: 2px solid #d0d0da;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    background: white;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.phone-box.filled {
+    border-color: #2d7d46;
+    background: #f0f8f2;
+}
+
+.phone-box.active {
+    border-color: #2d7d46;
+    box-shadow: 0 0 0 3px rgba(45,125,70,0.15);
+}
+
+#phoneHidden {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ===== PASSWORD BOXES ===== */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-boxes-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.password-boxes {
+    display: flex;
+    gap: 8px;
+}
+
+.password-box {
+    width: 44px;
+    height: 50px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    background: white;
+    transition: all 0.3s;
+    user-select: none;
+}
+
+.password-box.filled {
+    border-color: #2d7d46;
+    background: #f0f8f2;
+}
+
+.password-box.active {
+    border-color: #2d7d46;
+    box-shadow: 0 0 0 3px rgba(45,125,70,0.12);
+}
+
+.password-box.match {
+    border-color: #2d7d46;
+    background: #f0fff4;
+}
+
+.password-box.error {
+    border-color: #e74c3c;
+    background: #fff5f5;
+    animation: shake 0.4s ease;
+}
+
+.clear-pwd-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.clear-pwd-btn:hover {
+    color: #e74c3c;
+}
+
+.clear-pwd-btn.visible {
+    display: block !important;
+}
+
+.code-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* ===== PAVÉ NUMÉRIQUE ===== */
+.pave-container {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0 4px 0;
+}
+
+.pave {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 260px;
+    width: 100%;
+}
+
+.pave-round button {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 50% !important;
+    border: none;
+    font-size: 22px;
+    font-weight: 700;
+    background: #f0f0f5;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    min-width: 48px;
+    min-height: 48px;
+    max-width: 70px;
+    max-height: 70px;
+    margin: 0 auto;
+}
+
+.pave-round button:active {
+    transform: scale(0.92);
+    background: #dcdce6;
+}
+
+.pave-round .btn-zero {
+    grid-column: 2;
+    justify-self: center;
+}
+
+/* ===== BOUTON ===== */
+.btn-register {
+    width: 100%;
+    padding: 14px;
+    background: #d0d0da;
+    color: #aaa;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: not-allowed;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.btn-register.active {
+    background: #2d7d46;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(45,125,70,0.2);
+}
+
+.btn-register.active:hover {
+    background: #1a5a33;
+    transform: scale(1.02);
+}
+
+/* ===== MESSAGE ===== */
+.message {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+}
+
+.message.success {
+    display: block;
+    background: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #a5d6a7;
+}
+
+.message.error {
+    display: block;
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+/* ===== LIEN LOGIN ===== */
+.login-link {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 14px;
+    color: #888;
+}
+
+.login-link a {
+    color: #2d7d46;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .register-container {
+        padding: 20px 16px;
+        border-radius: 20px;
+    }
+
+    .welcome-section h1 {
+        font-size: 19px;
+    }
+
+    .password-box {
+        width: 38px;
+        height: 44px;
+        font-size: 18px;
+    }
+
+    .password-boxes {
+        gap: 6px;
+    }
+
+    .phone-box {
+        width: 24px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .pave-round button {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 20px;
+    }
+
+    .pave {
+        gap: 8px;
+        max-width: 220px;
+    }
+
+    .btn-register {
+        font-size: 15px;
+        padding: 12px;
+    }
+}
