@@ -16,7 +16,6 @@ const pool = new Pool({
 async function ensureFlexColumns(tableName) {
     const client = await pool.connect();
     try {
-        // Vérifier si la table existe
         const tableCheck = await client.query(`
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.tables 
@@ -29,7 +28,6 @@ async function ensureFlexColumns(tableName) {
             return;
         }
 
-        // Vérifier les colonnes flex1-8
         for (let i = 1; i <= 8; i++) {
             const colName = `flex${i}`;
             const colCheck = await client.query(`
@@ -394,6 +392,42 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
+        // ✅ TABLE SELLER_LIKES (NOUVEAU)
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS seller_likes (
+                id SERIAL PRIMARY KEY,
+                seller_id INTEGER NOT NULL,
+                shop_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
+                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(shop_id, user_id)
+            )
+        `);
+
+        // ========================================================
+        // ✅ TABLE SELLER_STATS (NOUVEAU)
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS seller_stats (
+                id SERIAL PRIMARY KEY,
+                seller_id INTEGER NOT NULL,
+                shop_id INTEGER NOT NULL,
+                total_views INTEGER DEFAULT 0,
+                total_likes INTEGER DEFAULT 0,
+                total_messages INTEGER DEFAULT 0,
+                total_orders INTEGER DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
+                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+                UNIQUE(shop_id)
+            )
+        `);
+
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
@@ -407,7 +441,8 @@ async function initializeDatabase() {
             'admins', 'products', 'users', 'panier', 'payments',
             'frais_livraison', 'commandes', 'messages', 'updates',
             'session', 'wave_verifications',
-            'sellers', 'shops', 'seller_products', 'seller_orders', 'seller_messages'
+            'sellers', 'shops', 'seller_products', 'seller_orders', 'seller_messages',
+            'seller_likes', 'seller_stats'
         ];
 
         for (const table of tables) {
@@ -444,6 +479,15 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_user_id ON seller_orders(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_seller_id ON seller_messages(seller_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_user_id ON seller_messages(user_id)`);
+
+        // ✅ Index pour seller_likes
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_shop_id ON seller_likes(shop_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_user_id ON seller_likes(user_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_seller_id ON seller_likes(seller_id)`);
+
+        // ✅ Index pour seller_stats
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_seller_id ON seller_stats(seller_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_shop_id ON seller_stats(shop_id)`);
 
         console.log('   - Index créés');
 
