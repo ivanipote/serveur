@@ -30,10 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function getSellerName() {
-        return localStorage.getItem('sellerName') || 'Vendeur';
-    }
-
     // ==========================================
     // AFFICHAGE CAROUSEL (1/1 horizontal)
     // ==========================================
@@ -46,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="shop-slide">
                     <div class="shop-empty">
                         <i class="fas fa-store"></i>
-                        <p>Aucune boutique créée</p>
-                        <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">Cliquez sur + pour créer votre première boutique</p>
+                        <p>Vous n'avez pas encore de boutique</p>
+                        <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">Créez votre première boutique pour commencer</p>
                     </div>
                 </div>
             `;
@@ -78,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
             slide.addEventListener('click', function() {
                 const id = this.dataset.id;
                 if (id) {
-                    window.location.href = `/shop.html?id=${id}`;
+                    window.location.href = `/seller/shop.html?id=${id}`;
                 }
             });
         });
@@ -197,26 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalMessages = allShops.reduce((sum, shop) => sum + (shop.messages || 0), 0);
         messageBadge.textContent = totalMessages > 0 ? totalMessages : '0';
     }
-
-    // ==========================================
-    // BOUTONS HEADER
-    // ==========================================
-
-    document.getElementById('messagesBtn').addEventListener('click', function() {
-        window.location.href = '/messages.html';
-    });
-
-    document.getElementById('productsBtn').addEventListener('click', function() {
-        window.location.href = '/profil.html';
-    });
-
-    document.getElementById('profileBtn').addEventListener('click', function() {
-        window.location.href = '/profil.html';
-    });
-
-    document.getElementById('addShopBtn').addEventListener('click', function() {
-        window.location.href = '/create-shop.html';
-    });
 
     // ==========================================
     // INITIALISATION

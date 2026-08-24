@@ -23,19 +23,19 @@
             </div>
         </div>
         <div class="header-right">
-            <button class="header-btn" id="messagesBtn" title="Messages">
+            <a href="/seller/messages.html" class="header-btn" title="Messages">
                 <i class="fas fa-envelope"></i>
                 <span class="badge" id="messageBadge">0</span>
-            </button>
-            <button class="header-btn" id="productsBtn" title="Mes produits">
+            </a>
+            <a href="/seller/products.html" class="header-btn" title="Mes produits">
                 <i class="fas fa-box"></i>
-            </button>
-            <button class="header-btn" id="profileBtn" title="Mon profil">
+            </a>
+            <a href="/seller/profil.html" class="header-btn" title="Mon profil">
                 <i class="fas fa-user-circle"></i>
-            </button>
-            <button class="header-btn add-shop-btn" id="addShopBtn" title="Ajouter une boutique">
+            </a>
+            <a href="/seller/create-shop.html" class="header-btn add-shop-btn" title="Ajouter une boutique">
                 <i class="fas fa-plus-circle"></i>
-            </button>
+            </a>
         </div>
     </header>
 
@@ -52,16 +52,16 @@
             <div class="shop-card-overlay">
                 <div class="card-header">
                     <h2><i class="fas fa-store"></i> Mes boutiques</h2>
-                    <span class="shop-counter" id="shopCounter">1 / 1</span>
+                    <span class="shop-counter" id="shopCounter">0 / 0</span>
                 </div>
                 <div class="shop-carousel-wrapper">
-                    <button class="carousel-btn prev" id="prevShop">
+                    <button class="carousel-btn prev" id="prevShop" disabled>
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="shop-carousel" id="shopCarousel">
                         <!-- Injecté par JS -->
                     </div>
-                    <button class="carousel-btn next" id="nextShop">
+                    <button class="carousel-btn next" id="nextShop" disabled>
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
