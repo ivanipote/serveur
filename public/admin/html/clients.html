@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-common.css">
     <style>
         /* =============================================================
            CLIENTS - STYLES DÉDIÉS
@@ -71,7 +72,7 @@
         }
 
         /* =============================================================
-           HEADER COMMUN
+           HEADER COMMUN (admin-common)
            ============================================================= */
 
         .admin-header {
@@ -223,7 +224,7 @@
         .stats-card {
             background: var(--surface);
             border-radius: 16px;
-            padding: 14px 24px;
+            padding: 16px 24px;
             border: 1px solid var(--border);
             box-shadow: 0 1px 2px rgba(16,20,31,0.05);
             flex-shrink: 0;
@@ -245,7 +246,7 @@
         }
 
         .stats-card .stats-title i {
-            color: var(--violet);
+            color: var(--brand);
         }
 
         .stats-card .stats-content {
@@ -268,7 +269,7 @@
             font-family: var(--font-mono);
             font-size: 18px;
             font-weight: 700;
-            color: var(--violet);
+            color: var(--brand-dark);
         }
 
         .stats-card .stats-content .stat-item .stat-icon {
@@ -347,7 +348,7 @@
         }
 
         .sidebar-clients .search-wrapper .search-input:focus {
-            border-color: var(--violet);
+            border-color: var(--brand);
             background: var(--surface);
         }
 
@@ -401,21 +402,30 @@
         }
 
         .sidebar-clients .filter-switch .filter-btn:hover {
-            border-color: var(--violet);
-            color: var(--violet);
+            border-color: var(--brand);
+            color: var(--brand-dark);
         }
 
         .sidebar-clients .filter-switch .filter-btn.active {
-            background: var(--violet);
+            background: var(--brand);
             color: white;
-            border-color: var(--violet);
+            border-color: var(--brand);
         }
 
         /* ===== MINI STATS ===== */
         .sidebar-clients .mini-stats {
             padding: 8px 16px 12px 16px;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar-clients .mini-stats::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-clients .mini-stats::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
         }
 
         .sidebar-clients .mini-stats .mini-title {
@@ -424,7 +434,7 @@
             color: var(--ink-400);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         .sidebar-clients .mini-stats .mini-grid {
@@ -438,7 +448,7 @@
             justify-content: space-between;
             align-items: center;
             font-size: 13px;
-            padding: 3px 0;
+            padding: 4px 0;
             border-bottom: 1px solid var(--surface-alt);
         }
 
@@ -448,15 +458,16 @@
 
         .sidebar-clients .mini-stats .mini-item .mini-label {
             color: var(--ink-500);
+            font-weight: 500;
         }
 
         .sidebar-clients .mini-stats .mini-item .mini-count {
             font-weight: 600;
             font-family: var(--font-mono);
-            color: var(--violet);
+            color: var(--brand-dark);
         }
 
-        /* ===== LISTE SCROLLABLE ===== */
+        /* ===== CLIENT LIST ===== */
         .sidebar-clients .client-list {
             flex: 1;
             overflow-y: auto;
@@ -472,7 +483,6 @@
             border-radius: 10px;
         }
 
-        /* ===== CLIENT ITEM ===== */
         .sidebar-clients .client-item {
             padding: 10px 14px;
             border-radius: 10px;
@@ -491,22 +501,23 @@
         }
 
         .sidebar-clients .client-item.active {
-            background: var(--violet-tint);
-            border-color: #DBCBFC;
+            background: var(--brand-tint);
+            border-color: var(--brand-line);
         }
 
-        .sidebar-clients .client-item .client-avatar {
-            width: 36px;
-            height: 36px;
+        .sidebar-clients .client-item .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--violet-tint);
-            color: var(--violet);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
             flex-shrink: 0;
+        }
+
+        .sidebar-clients .client-item .status-dot.verified {
+            background: #34D399;
+        }
+
+        .sidebar-clients .client-item .status-dot.unverified {
+            background: #F87171;
         }
 
         .sidebar-clients .client-item .item-info {
@@ -524,9 +535,6 @@
             font-size: 11px;
             color: var(--ink-400);
             display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .sidebar-clients .client-item .item-right {
@@ -539,6 +547,24 @@
             color: var(--ink-400);
             font-family: var(--font-mono);
             display: block;
+        }
+
+        .sidebar-clients .client-item .item-right .badge-verified {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        .sidebar-clients .client-item .item-right .badge-verified.yes {
+            background: var(--green-tint);
+            color: var(--brand-dark);
+        }
+
+        .sidebar-clients .client-item .item-right .badge-verified.no {
+            background: var(--red-tint);
+            color: var(--red);
         }
 
         .sidebar-clients .empty-list {
@@ -593,7 +619,7 @@
         }
 
         .content-clients .content-header .content-title i {
-            color: var(--violet);
+            color: var(--brand);
         }
 
         .content-clients .content-header .content-count {
@@ -624,7 +650,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            min-width: 750px;
+            min-width: 700px;
         }
 
         .content-clients .table-wrapper th {
@@ -658,7 +684,29 @@
             background: var(--surface-alt);
         }
 
-        /* ===== COPY BTN ===== */
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            border: 1px solid transparent;
+        }
+
+        .status-badge.verified {
+            background: var(--green-tint);
+            color: var(--brand-dark);
+            border-color: var(--brand-line);
+        }
+
+        .status-badge.unverified {
+            background: var(--red-tint);
+            color: var(--red);
+            border-color: #F3C6C2;
+        }
+
+        /* ===== COPY BUTTON ===== */
         .copy-btn-mini {
             background: none;
             border: none;
@@ -671,17 +719,17 @@
             opacity: 0.4;
             display: inline-flex;
             align-items: center;
-            margin-left: 4px;
+            margin-left: 6px;
         }
 
         .copy-btn-mini:hover {
             background: var(--surface-alt);
-            color: var(--violet);
+            color: var(--brand);
             opacity: 1;
         }
 
         .copy-btn-mini.copied {
-            color: var(--violet);
+            color: var(--brand);
             opacity: 1;
         }
 
@@ -770,6 +818,10 @@
 
             .stats-card .stats-content .stat-item {
                 font-size: 13px;
+            }
+
+            .stats-card .stats-content .stat-item .stat-value {
+                font-size: 14px;
             }
 
             .sidebar-clients .filter-switch .filter-btn {
@@ -863,7 +915,17 @@
             }
 
             .stats-card .stats-content .stat-item .stat-value {
-                font-size: 14px;
+                font-size: 13px;
+            }
+
+            .status-badge {
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+
+            .copy-btn-mini {
+                font-size: 10px;
+                padding: 1px 4px;
             }
         }
     </style>
@@ -890,14 +952,6 @@
                 <i class="fas fa-credit-card"></i> Paiements
                 <span class="badge-dot" id="headerBadgePayments">0</span>
             </a>
-            <a href="/admin/produits.html" class="header-badge">
-                <i class="fas fa-box"></i> Produits
-                <span class="badge-dot zero" id="headerBadgeProducts">0</span>
-            </a>
-            <a href="/admin/clients.html" class="header-badge active">
-                <i class="fas fa-users"></i> Clients
-                <span class="badge-dot zero" id="headerBadgeClients">0</span>
-            </a>
         </div>
         <div class="header-right">
             <span class="admin-name" id="adminName">Admin</span>
@@ -908,7 +962,7 @@
     </header>
 
     <!-- ============================================================= -->
-    <!-- PAGE CONTENT                                                   -->
+    <!-- CONTENU DE LA PAGE                                             -->
     <!-- ============================================================= -->
     <div class="page-container">
 
@@ -924,14 +978,14 @@
                     <span class="stat-value" id="statTotal">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-icon">📅</span>
-                    <span>Nouveaux (7j) :</span>
-                    <span class="stat-value" id="statNew">0</span>
-                </div>
-                <div class="stat-item">
                     <span class="stat-icon">✅</span>
                     <span>Vérifiés :</span>
                     <span class="stat-value" id="statVerified">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">📅</span>
+                    <span>Ce mois :</span>
+                    <span class="stat-value" id="statThisMonth">0</span>
                 </div>
             </div>
         </div>
@@ -957,12 +1011,11 @@
 
                 <!-- Filtres -->
                 <div class="filter-section">
-                    <div class="filter-label">📊 Trier par</div>
+                    <div class="filter-label">📊 Statut</div>
                     <div class="filter-switch" id="filterSwitch">
                         <button class="filter-btn active" data-filter="all">📋 Tous</button>
                         <button class="filter-btn" data-filter="verified">✅ Vérifiés</button>
-                        <button class="filter-btn" data-filter="unverified">⏳ Non vérifiés</button>
-                        <button class="filter-btn" data-filter="recent">🆕 Récents</button>
+                        <button class="filter-btn" data-filter="unverified">❌ Non vérifiés</button>
                     </div>
                 </div>
 
@@ -979,21 +1032,9 @@
                             <span class="mini-count" id="miniVerified">0</span>
                         </div>
                         <div class="mini-item">
-                            <span class="mini-label">⏳ Non vérifiés</span>
+                            <span class="mini-label">❌ Non vérifiés</span>
                             <span class="mini-count" id="miniUnverified">0</span>
                         </div>
-                        <div class="mini-item">
-                            <span class="mini-label">🆕 7 derniers jours</span>
-                            <span class="mini-count" id="miniRecent">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Liste des clients (scrollable) -->
-                <div class="client-list" id="clientList">
-                    <div class="loading-state" id="loadingState">
-                        <i class="fas fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:8px;"></i>
-                        <p style="color:var(--ink-400);">Chargement...</p>
                     </div>
                 </div>
 
@@ -1019,13 +1060,14 @@
                                 <th>Nom</th>
                                 <th>Email</th>
                                 <th>Téléphone</th>
-                                <th>Vérifié</th>
+                                <th>Statut</th>
                                 <th>Total achats</th>
-                                <th>Date</th>
+                                <th>Dernière connexion</th>
+                                <th>Date inscription</th>
                             </tr>
                         </thead>
                         <tbody id="clientsTableBody">
-                            <tr><td colspan="7" class="empty-table">
+                            <tr><td colspan="8" class="empty-table">
                                 <i class="fas fa-users"></i>
                                 <p>Aucun client trouvé</p>
                             </td></tr>
@@ -1053,26 +1095,22 @@
             // RÉFÉRENCES
             // ==========================================
 
-            const clientList = document.getElementById('clientList');
-            const loadingState = document.getElementById('loadingState');
             const clientsTableBody = document.getElementById('clientsTableBody');
             const searchInput = document.getElementById('searchInput');
             const filterBtns = document.querySelectorAll('#filterSwitch .filter-btn');
             const clientCount = document.getElementById('clientCount');
 
             const statTotal = document.getElementById('statTotal');
-            const statNew = document.getElementById('statNew');
             const statVerified = document.getElementById('statVerified');
+            const statThisMonth = document.getElementById('statThisMonth');
 
             const miniTotal = document.getElementById('miniTotal');
             const miniVerified = document.getElementById('miniVerified');
             const miniUnverified = document.getElementById('miniUnverified');
-            const miniRecent = document.getElementById('miniRecent');
 
             let allClients = [];
             let currentFilter = 'all';
             let searchTerm = '';
-            let currentClientId = null;
 
             // ==========================================
             // NOM ADMIN
@@ -1092,22 +1130,15 @@
 
                     if (res.ok && data.length > 0) {
                         allClients = data;
-                        loadingState.style.display = 'none';
                         renderClients();
                         updateStats();
                     } else {
                         allClients = [];
-                        loadingState.style.display = 'none';
                         renderEmpty();
                     }
                 } catch (error) {
                     console.error('❌ Erreur chargement clients:', error);
-                    loadingState.innerHTML = `
-                        <div class="empty-list">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <p>Erreur de chargement</p>
-                        </div>
-                    `;
+                    renderEmpty();
                 }
             }
 
@@ -1118,23 +1149,22 @@
             function renderClients() {
                 let filtered = allClients;
 
-                // Filtres
-                if (currentFilter === 'verified') {
-                    filtered = filtered.filter(c => c.is_verified === 1 || c.is_verified === true);
-                } else if (currentFilter === 'unverified') {
-                    filtered = filtered.filter(c => c.is_verified === 0 || c.is_verified === false);
-                } else if (currentFilter === 'recent') {
-                    const sevenDaysAgo = new Date();
-                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                    filtered = filtered.filter(c => new Date(c.created_at) >= sevenDaysAgo);
+                // Filtre par statut
+                if (currentFilter !== 'all') {
+                    filtered = filtered.filter(c => {
+                        const isVerified = c.is_verified === true || c.is_verified === 1;
+                        if (currentFilter === 'verified') return isVerified;
+                        if (currentFilter === 'unverified') return !isVerified;
+                        return true;
+                    });
                 }
 
                 // Recherche
                 if (searchTerm) {
                     const term = searchTerm.toLowerCase();
                     filtered = filtered.filter(c =>
-                        (c.name && c.name.toLowerCase().includes(term)) ||
-                        (c.email && c.email.toLowerCase().includes(term)) ||
+                        c.name.toLowerCase().includes(term) ||
+                        c.email.toLowerCase().includes(term) ||
                         (c.phone && c.phone.includes(term))
                     );
                 }
@@ -1145,59 +1175,8 @@
                 // Mettre à jour le compte
                 clientCount.textContent = filtered.length + ' clients';
 
-                // Rendre la sidebar
-                renderSidebar(filtered);
-
                 // Rendre le tableau
                 renderTable(filtered);
-            }
-
-            // ==========================================
-            // SIDEBAR
-            // ==========================================
-
-            function renderSidebar(clients) {
-                if (clients.length === 0) {
-                    clientList.innerHTML = `
-                        <div class="empty-list">
-                            <i class="fas fa-inbox"></i>
-                            <p>Aucun client trouvé</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                clients.forEach(c => {
-                    const isActive = currentClientId === c.id;
-                    const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
-                    const date = new Date(c.created_at);
-                    const dateStr = date.toLocaleDateString('fr-FR');
-
-                    html += `
-                        <div class="client-item ${isActive ? 'active' : ''}" data-id="${c.id}">
-                            <div class="client-avatar">${initials}</div>
-                            <div class="item-info">
-                                <div class="name">${c.name || 'Inconnu'}</div>
-                                <span class="email">${c.email || '-'}</span>
-                            </div>
-                            <div class="item-right">
-                                <span class="date">${dateStr}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                clientList.innerHTML = html;
-
-                // Événements click
-                document.querySelectorAll('.client-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        const id = parseInt(this.dataset.id);
-                        currentClientId = id;
-                        renderClients();
-                    });
-                });
             }
 
             // ==========================================
@@ -1207,7 +1186,7 @@
             function renderTable(clients) {
                 if (clients.length === 0) {
                     clientsTableBody.innerHTML = `
-                        <tr><td colspan="7" class="empty-table">
+                        <tr><td colspan="8" class="empty-table">
                             <i class="fas fa-users"></i>
                             <p>Aucun client trouvé</p>
                         </td></tr>
@@ -1219,14 +1198,21 @@
 
                 let html = '';
                 clients.forEach(c => {
-                    const isVerified = c.is_verified === 1 || c.is_verified === true;
-                    const date = new Date(c.created_at);
+                    const isVerified = c.is_verified === true || c.is_verified === 1;
+                    const totalAchats = c.total_achats || 0;
+                    const dateInscription = new Date(c.created_at);
+                    const derniereConnexion = c.derniere_connexion ? new Date(c.derniere_connexion) : null;
 
                     html += `
-                        <tr data-id="${c.id}" class="${currentClientId === c.id ? 'active-row' : ''}">
-                            <td>#${c.id}</td>
+                        <tr>
                             <td>
-                                ${c.name || 'Inconnu'}
+                                #${c.id}
+                                <button class="copy-btn-mini" data-copy="${c.id}" title="Copier l'ID">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                            <td>
+                                ${c.name || '-'}
                                 <button class="copy-btn-mini" data-copy="${c.name || ''}" title="Copier le nom">
                                     <i class="fas fa-copy"></i>
                                 </button>
@@ -1245,14 +1231,17 @@
                             </td>
                             <td>
                                 <span class="status-badge ${isVerified ? 'verified' : 'unverified'}">
-                                    ${isVerified ? '✅ Vérifié' : '⏳ En attente'}
+                                    ${isVerified ? '✅ Vérifié' : '❌ Non vérifié'}
                                 </span>
                             </td>
-                            <td style="font-family:var(--font-mono);">
-                                ${c.total_achats || 0} FCFA
+                            <td style="font-weight:600;color:var(--brand-dark);font-family:var(--font-mono);">
+                                ${totalAchats.toLocaleString()} FCFA
                             </td>
                             <td style="font-size:12px;color:var(--ink-400);">
-                                ${date.toLocaleDateString('fr-FR', dateOptions)}
+                                ${derniereConnexion ? derniereConnexion.toLocaleDateString('fr-FR', dateOptions) : 'Jamais'}
+                            </td>
+                            <td style="font-size:12px;color:var(--ink-400);">
+                                ${dateInscription.toLocaleDateString('fr-FR', dateOptions)}
                             </td>
                         </tr>
                     `;
@@ -1298,21 +1287,23 @@
 
             function updateStats() {
                 const total = allClients.length;
-                const verified = allClients.filter(c => c.is_verified === 1 || c.is_verified === true).length;
+                const verified = allClients.filter(c => c.is_verified === true || c.is_verified === 1).length;
                 const unverified = total - verified;
 
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                const recent = allClients.filter(c => new Date(c.created_at) >= sevenDaysAgo).length;
+                // Clients inscrits ce mois
+                const now = new Date();
+                const thisMonth = allClients.filter(c => {
+                    const date = new Date(c.created_at);
+                    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                }).length;
 
                 statTotal.textContent = total;
-                statNew.textContent = recent;
                 statVerified.textContent = verified;
+                statThisMonth.textContent = thisMonth;
 
                 miniTotal.textContent = total;
                 miniVerified.textContent = verified;
                 miniUnverified.textContent = unverified;
-                miniRecent.textContent = recent;
             }
 
             // ==========================================
@@ -1320,14 +1311,8 @@
             // ==========================================
 
             function renderEmpty() {
-                clientList.innerHTML = `
-                    <div class="empty-list">
-                        <i class="fas fa-inbox"></i>
-                        <p>Aucun client trouvé</p>
-                    </div>
-                `;
                 clientsTableBody.innerHTML = `
-                    <tr><td colspan="7" class="empty-table">
+                    <tr><td colspan="8" class="empty-table">
                         <i class="fas fa-users"></i>
                         <p>Aucun client trouvé</p>
                     </td></tr>
@@ -1335,12 +1320,12 @@
                 clientCount.textContent = '0 clients';
 
                 statTotal.textContent = '0';
-                statNew.textContent = '0';
                 statVerified.textContent = '0';
+                statThisMonth.textContent = '0';
+
                 miniTotal.textContent = '0';
                 miniVerified.textContent = '0';
                 miniUnverified.textContent = '0';
-                miniRecent.textContent = '0';
             }
 
             // ==========================================
@@ -1406,9 +1391,10 @@
                         }, 3000);
                     });
 
-                    socket.on('nouvelle-commande', function(data) {
-                        console.log('🆕 Nouvelle commande (clients):', data);
+                    socket.on('commande-update', function(data) {
+                        console.log('📦 Mise à jour commande (clients):', data);
                         loadClients();
+                        if (window.updateBadges) window.updateBadges();
                     });
 
                 } catch (error) {
