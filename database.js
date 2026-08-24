@@ -30,10 +30,14 @@ async function initializeDatabase() {
                 merchant_name TEXT NOT NULL,
                 logo TEXT,
                 contact TEXT,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -60,10 +64,14 @@ async function initializeDatabase() {
                 stock_min INTEGER DEFAULT NULL,
                 fournisseur TEXT DEFAULT NULL,
                 date_peremption DATE DEFAULT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (admin_id) REFERENCES admins(id)
             )
@@ -88,10 +96,14 @@ async function initializeDatabase() {
                 avatar TEXT DEFAULT NULL,
                 total_achats INTEGER DEFAULT 0,
                 derniere_connexion TIMESTAMP DEFAULT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -105,10 +117,14 @@ async function initializeDatabase() {
                 user_id INTEGER NOT NULL,
                 product_id INTEGER NOT NULL,
                 quantity INTEGER DEFAULT 1,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id),
                 FOREIGN KEY (product_id) REFERENCES products(id),
@@ -143,10 +159,14 @@ async function initializeDatabase() {
                 net_recu INTEGER DEFAULT NULL,
                 date_validation TIMESTAMP DEFAULT NULL,
                 validateur_id INTEGER DEFAULT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
@@ -174,16 +194,20 @@ async function initializeDatabase() {
                 id SERIAL PRIMARY KEY,
                 commune TEXT UNIQUE NOT NULL,
                 tarif INTEGER NOT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
         // ========================================================
-        // TABLE COMMANDES (avec colonnes flexibles)
+        // TABLE COMMANDES
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS commandes (
@@ -215,10 +239,14 @@ async function initializeDatabase() {
                 zone_livraison TEXT DEFAULT NULL,
                 poids DECIMAL DEFAULT NULL,
                 volume DECIMAL DEFAULT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
@@ -236,10 +264,14 @@ async function initializeDatabase() {
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
                 is_read BOOLEAN DEFAULT FALSE,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id),
                 FOREIGN KEY (commande_id) REFERENCES commandes(id) ON DELETE CASCADE
@@ -256,10 +288,14 @@ async function initializeDatabase() {
                 commit_message TEXT NOT NULL,
                 commit_date TEXT,
                 commit_url TEXT,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -272,10 +308,14 @@ async function initializeDatabase() {
                 "sid" varchar NOT NULL COLLATE "default",
                 "sess" json NOT NULL,
                 "expire" timestamp(6) NOT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL
             )
         `);
 
@@ -306,14 +346,150 @@ async function initializeDatabase() {
                 date_validation TIMESTAMP DEFAULT NULL,
                 validateur_id INTEGER DEFAULT NULL,
                 notes_validation TEXT DEFAULT NULL,
-                extra1 TEXT DEFAULT NULL,
-                extra2 TEXT DEFAULT NULL,
-                extra3 TEXT DEFAULT NULL,
-                extra4 TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (commande_id) REFERENCES commandes(id),
                 FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+
+        // ========================================================
+        // ✅ TABLE SELLERS (Vendeurs) - FLEX 8
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS sellers (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // ========================================================
+        // ✅ TABLE SHOPS (Boutiques des vendeurs) - FLEX 8
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS shops (
+                id SERIAL PRIMARY KEY,
+                seller_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                location TEXT NOT NULL,
+                description TEXT,
+                logo TEXT,
+                status TEXT DEFAULT 'active',
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE
+            )
+        `);
+
+        // ========================================================
+        // ✅ TABLE SELLER_PRODUCTS (Produits des vendeurs) - FLEX 8
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS seller_products (
+                id SERIAL PRIMARY KEY,
+                shop_id INTEGER NOT NULL,
+                seller_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                price INTEGER NOT NULL,
+                image TEXT,
+                description TEXT,
+                stock INTEGER DEFAULT 0,
+                category TEXT DEFAULT NULL,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE
+            )
+        `);
+
+        // ========================================================
+        // ✅ TABLE SELLER_ORDERS (Commandes des vendeurs) - FLEX 8
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS seller_orders (
+                id SERIAL PRIMARY KEY,
+                seller_id INTEGER NOT NULL,
+                shop_id INTEGER NOT NULL,
+                product_id INTEGER,
+                user_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL,
+                total INTEGER NOT NULL,
+                status TEXT DEFAULT 'pending',
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
+                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        // ========================================================
+        // ✅ TABLE SELLER_MESSAGES (Messages vendeur-client) - FLEX 8
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS seller_messages (
+                id SERIAL PRIMARY KEY,
+                seller_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                shop_id INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                is_from_seller BOOLEAN DEFAULT FALSE,
+                is_read BOOLEAN DEFAULT FALSE,
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
             )
         `);
 
@@ -333,25 +509,43 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
 
-        // ✅ Index pour les colonnes flexibles (si besoin un jour)
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_extra1 ON commandes(extra1) WHERE extra1 IS NOT NULL`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_users_extra1 ON users(extra1) WHERE extra1 IS NOT NULL`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_products_extra1 ON products(extra1) WHERE extra1 IS NOT NULL`);
+        // ✅ Index pour les colonnes flexibles
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_commandes_flex1 ON commandes(flex1) WHERE flex1 IS NOT NULL`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_users_flex1 ON users(flex1) WHERE flex1 IS NOT NULL`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_products_flex1 ON products(flex1) WHERE flex1 IS NOT NULL`);
+
+        // ✅ Index pour les tables vendeur
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_sellers_email ON sellers(email)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_sellers_status ON sellers(status)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_shops_seller_id ON shops(seller_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_shops_status ON shops(status)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_products_shop_id ON seller_products(shop_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_products_seller_id ON seller_products(seller_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_seller_id ON seller_orders(seller_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_shop_id ON seller_orders(shop_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_user_id ON seller_orders(user_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_seller_id ON seller_messages(seller_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_user_id ON seller_messages(user_id)`);
 
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
-        console.log('   - admins (flex: 4)');
-        console.log('   - products (flex: 4)');
-        console.log('   - users (flex: 4)');
-        console.log('   - panier (flex: 4)');
-        console.log('   - payments (flex: 4)');
-        console.log('   - frais_livraison (flex: 4)');
-        console.log('   - commandes (flex: 4)');
-        console.log('   - messages (flex: 4)');
-        console.log('   - updates (flex: 4)');
-        console.log('   - session (flex: 4)');
-        console.log('   - wave_verifications (flex: 4)');
+        console.log('   - admins (flex: 8)');
+        console.log('   - products (flex: 8)');
+        console.log('   - users (flex: 8)');
+        console.log('   - panier (flex: 8)');
+        console.log('   - payments (flex: 8)');
+        console.log('   - frais_livraison (flex: 8)');
+        console.log('   - commandes (flex: 8)');
+        console.log('   - messages (flex: 8)');
+        console.log('   - updates (flex: 8)');
+        console.log('   - session (flex: 8)');
+        console.log('   - wave_verifications (flex: 8)');
+        console.log('   ✅ sellers (flex: 8)');
+        console.log('   ✅ shops (flex: 8)');
+        console.log('   ✅ seller_products (flex: 8)');
+        console.log('   ✅ seller_orders (flex: 8)');
+        console.log('   ✅ seller_messages (flex: 8)');
         console.log('   - Index créés');
 
     } catch (error) {
