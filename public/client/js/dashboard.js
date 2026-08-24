@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // BADGES (avec cache pour éviter clignotement)
+    // BADGES (avec cache)
     // ==========================================
 
     let lastBadgeData = {
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO - Écouter les mises à jour
+    // SOCKET.IO
     // ==========================================
 
     let socket = null;
@@ -291,19 +291,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
-            // ✅ Nouvelle commande → mettre à jour le badge commandes
             socket.on('nouvelle-commande', function(data) {
                 console.log('🆕 Nouvelle commande (dashboard):', data);
                 loadBadges();
             });
 
-            // ✅ Mise à jour commande → mettre à jour les badges
             socket.on('commande-update', function(data) {
                 console.log('📦 Mise à jour commande (dashboard):', data);
                 loadBadges();
             });
 
-            // ✅ Nouvelle notification → mettre à jour le badge notifications
             socket.on('notification', function(data) {
                 console.log('🔔 Notification (dashboard):', data);
                 loadBadges();
@@ -368,26 +365,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CARROUSEL
+    // CARROUSEL (redesign)
     // ==========================================
 
     function renderCarousel() {
         if (!track) return;
         track.innerHTML = '';
+
         products.forEach((p) => {
             const item = document.createElement('div');
             item.className = 'carousel-item';
-            const imgSrc = p.image1 || 'https://via.placeholder.com/800x600';
+            const imgSrc = p.image1 || 'https://via.placeholder.com/600x400';
+
             item.innerHTML = `
-                <img src="${imgSrc}" alt="${p.name}" loading="lazy" data-product-id="${p.id}">
-                <div class="product-footer">
-                    <span class="product-name">${p.name}</span>
+                <img src="${imgSrc}" alt="${p.name}" class="carousel-image" loading="lazy" data-product-id="${p.id}">
+                <div class="carousel-info">
+                    <div class="info-top">
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-desc">${p.description || 'Aucune description'}</div>
+                        <div class="product-price">${p.price.toLocaleString()} FCFA</div>
+                    </div>
+                    <div class="info-bottom">
+                        <button class="btn-add" data-id="${p.id}">
+                            <i class="fas fa-plus-circle"></i> Ajouter
+                        </button>
+                        <button class="btn-view" data-id="${p.id}">
+                            <i class="fas fa-eye"></i> Voir
+                        </button>
+                    </div>
                 </div>
             `;
+
             track.appendChild(item);
         });
 
-        document.querySelectorAll('.carousel-item img').forEach(img => {
+        // ✅ Événements sur le carrousel
+        document.querySelectorAll('.carousel-image').forEach(img => {
             img.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const productId = parseInt(this.dataset.productId);
@@ -406,7 +419,65 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        // ✅ Bouton Ajouter
+        document.querySelectorAll('.btn-add').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = this.dataset.id;
+                addToCart(productId, this);
+            });
+        });
+
+        // ✅ Bouton Voir
+        document.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = this.dataset.id;
+                if (productId) {
+                    window.location.href = `/infoproduit?id=${productId}`;
+                }
+            });
+        });
+
         updateNavButtons();
+    }
+
+    // ==========================================
+    // AJOUTER AU PANIER (depuis carrousel)
+    // ==========================================
+
+    async function addToCart(productId, button) {
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/panier/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, quantity: 1 })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                button.classList.add('added');
+                button.innerHTML = '<i class="fas fa-check"></i> Ajouté !';
+                await loadBadges();
+                setTimeout(() => {
+                    button.classList.remove('added');
+                    button.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter';
+                }, 1500);
+            } else if (data.error === 'Non authentifié') {
+                window.location.href = '/login';
+            } else {
+                // Silencieux pour éviter des alertes intempestives
+                console.warn('Erreur ajout:', data.error);
+            }
+        } catch (error) {
+            console.error('Erreur ajout panier:', error);
+        }
     }
 
     function goToSlide(index) {
@@ -468,7 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // DÉTAIL PRODUIT
+    // DÉTAIL PRODUIT (footer)
     // ==========================================
 
     function updateDetail(index) {
@@ -495,11 +566,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AJOUTER AU PANIER
+    // AJOUTER AU PANIER (détail)
     // ==========================================
 
     if (detailAddBtn) {
         detailAddBtn.addEventListener('click', async function() {
+            if (!isAuthenticated) {
+                window.location.href = '/login';
+                return;
+            }
+
             const productId = this.dataset.productId;
             if (!productId) return;
 
@@ -523,11 +599,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (data.error === 'Non authentifié') {
                     window.location.href = '/login';
                 } else {
-                    alert('❌ ' + (data.error || 'Erreur'));
+                    // Silencieux
+                    console.warn('Erreur ajout:', data.error);
                 }
             } catch (error) {
                 console.error('Erreur:', error);
-                alert('❌ Erreur de connexion');
             }
         });
     }
