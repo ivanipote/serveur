@@ -132,10 +132,14 @@
     </div>
 
     <!-- ===== OVERLAY VÉRIFICATION ===== -->
-    <div class="loading-overlay" id="verifyOverlay" style="display:none;">
-        <div class="spinner"></div>
-        <p id="verifyOverlayMessage">🔍 Envoi de votre demande...</p>
+   <!-- OVERLAY LOADER (Commande en cours) -->
+<div class="loader-overlay" id="loaderOverlay">
+    <div class="loader-box">
+        <div class="loader-spinner"></div>
+        <h3>⏳ Demande de vérification en cours d'envoi...</h3>
+        <p>Veuillez patienter quelques instants</p>
     </div>
+</div>
 
     <script src="/client/js/paywithwave.js"></script>
 </body>

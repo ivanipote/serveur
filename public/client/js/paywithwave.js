@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingOverlay = document.getElementById('loadingOverlay');
     const verifyOverlay = document.getElementById('verifyOverlay');
     const verifyOverlayMessage = document.getElementById('verifyOverlayMessage');
+    const loaderOverlay = document.getElementById('loaderOverlay');
 
     // Onglets
     const ongletPayer = document.getElementById('ongletPayer');
@@ -36,6 +37,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
     let isVerifying = false;
     let verificationStatusChecked = false;
+
+    // ==========================================
+    // LOADER OVERLAY
+    // ==========================================
+
+    function showLoader() {
+        if (loaderOverlay) loaderOverlay.classList.add('active');
+    }
+
+    function hideLoader() {
+        if (loaderOverlay) loaderOverlay.classList.remove('active');
+    }
 
     // ==========================================
     // CODE BOXES - PAYER
@@ -630,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (AVEC REDIRECTION)
+    // VÉRIFIER LE PAIEMENT (AVEC REDIRECTION + LOADER)
     // ==========================================
 
     verifyBtn.addEventListener('click', async function() {
@@ -674,7 +687,8 @@ document.addEventListener('DOMContentLoaded', function() {
         verifyBtn.classList.add('loading');
         verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
-        showVerifyOverlay('🔍 Envoi de votre demande de vérification...');
+        // ✅ AFFICHER LE LOADER OVERLAY
+        showLoader();
 
         try {
             const res = await fetch(`${WAVE_API_URL}/api/wave/verify`, {
@@ -689,12 +703,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await res.json();
 
-            hideVerifyOverlay();
-
             if (data.success) {
-                // ✅ REDIRECTION VERS detailcom.html AVEC L'ID DE LA COMMANDE
+                // ✅ REDIRECTION VERS detailcom.html
                 window.location.href = `/detailcom?id=${commandeId}`;
             } else {
+                hideLoader();
                 showError('❌ ' + (data.error || 'Erreur lors de l\'envoi.'), 'verifier');
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('loading');
@@ -704,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Erreur envoi vérification:', error);
-            hideVerifyOverlay();
+            hideLoader();
             showError('❌ Erreur de connexion au serveur.', 'verifier');
             verifyBtn.disabled = false;
             verifyBtn.classList.remove('loading');
