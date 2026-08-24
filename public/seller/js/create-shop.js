@@ -23,6 +23,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let isGpsLoading = false;
 
     // ==========================================
+    // VÉRIFICATION CONNEXION
+    // ==========================================
+
+    function checkAuth() {
+        const token = localStorage.getItem('sellerToken');
+        if (!token) {
+            window.location.href = '/login';
+            return false;
+        }
+        return true;
+    }
+
+    // ==========================================
     // IMAGE - Affichage nom fichier
     // ==========================================
 
@@ -75,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 gpsBtn.classList.add('active');
                 manualBtn.classList.remove('active');
 
-                // Récupérer l'adresse via Nominatim
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`)
                     .then(res => res.json())
                     .then(data => {
@@ -122,15 +134,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CRÉER LA BOUTIQUE
+    // CRÉER LA BOUTIQUE - VERSION PRODUCTION
     // ==========================================
 
-    createBtn.addEventListener('click', function() {
+    createBtn.addEventListener('click', async function() {
         const name = shopName.value.trim();
         const description = shopDescription.value.trim();
         const location = shopLocation.value.trim();
-        const gps = gpsInput.value.trim();
-        const image = shopImage.files && shopImage.files[0] ? shopImage.files[0].name : '';
+        const imageFile = shopImage.files[0];
 
         if (!name) {
             shopName.focus();
@@ -146,29 +157,49 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        createBtn.disabled = true;
+        createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
         overlay.classList.add('active');
 
-        const shops = JSON.parse(localStorage.getItem('sellerShops') || '[]');
+        try {
+            const token = localStorage.getItem('sellerToken');
 
-        const newShop = {
-            id: Date.now(),
-            name: name,
-            description: description || '',
-            location: location,
-            image: image || '',
-            gps: gps || '',
-            articles: 0,
-            messages: 0,
-            likes: 0,
-            created_at: new Date().toISOString()
-        };
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('description', description || '');
+            formData.append('location', location);
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
 
-        shops.push(newShop);
-        localStorage.setItem('sellerShops', JSON.stringify(shops));
+            const response = await fetch('/api/seller/shop', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                body: formData
+            });
 
-        setTimeout(function() {
-            window.location.href = '/seller/shop.html?id=' + newShop.id;
-        }, 1200);
+            const data = await response.json();
+
+            if (data.success) {
+                setTimeout(function() {
+                    window.location.href = '/shop?id=' + data.shopId;
+                }, 1200);
+            } else {
+                overlay.classList.remove('active');
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="fas fa-rocket"></i> Créer la boutique';
+                alert('❌ ' + (data.error || 'Erreur lors de la création.'));
+            }
+
+        } catch (error) {
+            console.error('❌ Erreur création:', error);
+            overlay.classList.remove('active');
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="fas fa-rocket"></i> Créer la boutique';
+            alert('❌ Erreur de connexion au serveur.');
+        }
     });
 
     // ==========================================
@@ -183,6 +214,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // ==========================================
+    // INITIALISATION
+    // ==========================================
+
+    if (!checkAuth()) return;
 
     console.log('✅ Create Shop - Production prêt');
 
