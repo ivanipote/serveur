@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncBtn = document.getElementById('syncBtn');
     const syncStatus = document.getElementById('syncStatus');
 
-    // ✅ Footer message
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const sendMessageResult = document.getElementById('sendMessageResult');
@@ -33,6 +32,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let isFirstLoad = true;
     let hasNewNotification = false;
     let isSendingMessage = false;
+
+    // ==========================================
+    // COULEURS PAR TYPE
+    // ==========================================
+
+    const TYPE_COLORS = {
+        'commande': { bg: '#e3f2fd', border: '#64b5f6', badge: '#64b5f6', text: '#0d47a1', avatar: '#0d47a1' },
+        'paiement': { bg: '#e8f5e9', border: '#66bb6a', badge: '#66bb6a', text: '#1b5e20', avatar: '#1b5e20' },
+        'admin': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d', text: '#e65100', avatar: '#e65100' },
+        'systeme': { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' },
+        'client_message': { bg: '#f3e5f5', border: '#ce93d8', badge: '#ce93d8', text: '#4a148c', avatar: '#4a148c' }
+    };
+
+    const DEFAULT_COLORS = { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' };
+
+    function getTypeColors(type) {
+        return TYPE_COLORS[type] || DEFAULT_COLORS;
+    }
 
     // ==========================================
     // TOAST
@@ -64,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
             max-width: 90%;
             animation: slideUp 0.3s ease;
         `;
-        toast.textContent = message;
+        toast.textMessage = message;
         document.body.appendChild(toast);
         
         setTimeout(() => {
@@ -129,7 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageInput.value = '';
                 autoResizeTextarea();
                 
-                // ✅ Ajouter le message envoyé dans la liste (optimiste)
                 const newNotif = {
                     id: Date.now(),
                     type: 'client_message',
@@ -139,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     created_at: new Date().toISOString()
                 };
                 
-                // Ajouter en haut de la liste
                 notifications.unshift(newNotif);
                 renderNotifications();
                 updateBadge();
@@ -180,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // BOUTON SYNC - GESTION
+    // BOUTON SYNC
     // ==========================================
 
     function updateSyncUI() {
@@ -209,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SYNC EN PERMANENCE
+    // SYNC
     // ==========================================
 
     function startSync() {
@@ -237,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO - Connexion
+    // SOCKET.IO
     // ==========================================
 
     let socket = null;
@@ -358,39 +373,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return icons[type] || '🌿';
     }
 
-    function getAvatarClass(type) {
-        const classes = {
-            'commande': 'commande',
-            'paiement': 'paiement',
-            'admin': 'admin',
-            'systeme': 'systeme',
-            'client_message': 'admin'
-        };
-        return classes[type] || 'systeme';
-    }
-
-    function getBadgeClass(type) {
-        const classes = {
-            'commande': 'commande',
-            'paiement': 'paiement',
-            'admin': 'admin',
-            'systeme': 'systeme',
-            'client_message': 'admin'
-        };
-        return classes[type] || 'systeme';
-    }
-
-    function getContentClass(type) {
-        const classes = {
-            'commande': 'commande',
-            'paiement': 'paiement',
-            'admin': 'admin',
-            'systeme': 'systeme',
-            'client_message': 'admin'
-        };
-        return classes[type] || 'systeme';
-    }
-
     function getTypeLabel(type) {
         const labels = {
             'commande': '📦 Commande',
@@ -402,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return labels[type] || type;
     }
 
-    // ✅ Fonction pour obtenir le titre affiché (modifié pour client_message)
     function getDisplayTitle(notification) {
         if (notification.type === 'client_message') {
             return '💬 Vous → Admin';
@@ -452,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (MODIFIÉ)
+    // RENDRE LES NOTIFICATIONS (AVEC COULEURS)
     // ==========================================
 
     function renderNotifications() {
@@ -478,14 +459,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         filtered.forEach(n => {
             const isUnread = n.is_read === 0 || n.is_read === false;
-            const typeClass = n.type || 'systeme';
-            const typeLabel = getTypeLabel(n.type);
+            const type = n.type || 'systeme';
+            const typeLabel = getTypeLabel(type);
             const dateStr = timeAgo(n.created_at);
-            const avatarIcon = getAvatarIcon(n.type);
-            const avatarClass = getAvatarClass(n.type);
-            const badgeClass = getBadgeClass(n.type);
-            const contentClass = getContentClass(n.type);
+            const avatarIcon = getAvatarIcon(type);
             const displayTitle = getDisplayTitle(n);
+            const colors = getTypeColors(type);
 
             let contentHtml = n.content || 'Aucun contenu';
             const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
@@ -499,26 +478,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
 
+            // ✅ Carte avec couleurs inline
             html += `
-                <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
-                    <div class="avatar ${avatarClass}">${avatarIcon}</div>
-                    <div class="body">
-                        <div class="title">${displayTitle}</div>
-                        <div class="content ${contentClass}">${contentHtml}</div>
-                        <div class="date">${dateStr}</div>
-                        <span class="badge-type ${badgeClass}">${typeLabel}</span>
+                <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
+                     data-id="${n.id}"
+                     style="background: ${colors.bg}; border-color: ${colors.border}; border-width: 2px; border-style: solid; border-radius: 16px; padding: 16px 18px 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.3s ease; display: flex; gap: 14px; align-items: flex-start; position: relative; margin-bottom: 12px;">
+                    
+                    <div class="avatar" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: ${colors.bg}; color: ${colors.avatar};">
+                        ${avatarIcon}
                     </div>
-                    <div class="header-actions">
+                    
+                    <div class="body" style="flex: 1; min-width: 0;">
+                        <div class="title" style="font-size: 15px; font-weight: 700; color: ${colors.text};">${displayTitle}</div>
+                        <div class="content" style="font-size: 14px; line-height: 1.5; margin-top: 2px; color: ${colors.text};">${contentHtml}</div>
+                        <div class="date" style="font-size: 12px; color: #999; margin-top: 4px;">${dateStr}</div>
+                        <span class="badge-type" style="display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-top: 6px; letter-spacing: 0.3px; background: ${colors.badge}; color: white;">${typeLabel}</span>
+                    </div>
+                    
+                    <div class="header-actions" style="position: absolute; top: 14px; right: 16px; display: flex; gap: 6px; align-items: center;">
                         ${isUnread ? `
-                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu" style="background: none; border: none; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 50%; transition: all 0.3s; color: #2d7d46; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;">
                                 <i class="fas fa-check"></i>
                             </button>
                         ` : `
-                            <button class="btn btn-read already" disabled title="Déjà lu">
+                            <button class="btn btn-read already" disabled title="Déjà lu" style="background: none; border: none; font-size: 14px; cursor: default; padding: 4px 6px; border-radius: 50%; color: #ccc; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;">
                                 <i class="fas fa-check"></i>
                             </button>
                         `}
-                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer" style="background: none; border: none; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 50%; transition: all 0.3s; color: #bbb; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
