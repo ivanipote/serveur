@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentIndex = 0;
     let shops = [];
-    let sellerId = null;
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -40,20 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const token = localStorage.getItem('sellerToken');
 
-            // Récupérer le profil du vendeur
-            const meRes = await fetch('/api/seller/me', {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            });
-            const meData = await meRes.json();
-
-            if (meData.success) {
-                sellerId = meData.seller.id;
-                localStorage.setItem('sellerId', sellerId);
-                localStorage.setItem('sellerName', meData.seller.name);
-            }
-
             // Récupérer la boutique du vendeur
             const shopRes = await fetch('/api/seller/shop', {
                 headers: {
@@ -63,26 +48,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const shopData = await shopRes.json();
 
             if (shopData.success && shopData.hasShop) {
-                // Une boutique existe
                 const shop = shopData.shop;
                 const products = shopData.products || [];
 
-                // Construire les données pour l'affichage
-                const shopDataFormatted = {
+                const shopFormatted = {
                     id: shop.id,
                     name: shop.name,
                     location: shop.location,
                     description: shop.description || '',
                     logo: shop.logo || '',
                     articles: products.length,
-                    messages: 0, // À récupérer séparément
-                    likes: 0, // À récupérer séparément
+                    messages: 0,
+                    likes: 0,
                     products: products
                 };
 
-                shops = [shopDataFormatted];
+                shops = [shopFormatted];
 
-                // Récupérer les stats (likes, messages)
+                // Récupérer les stats
                 try {
                     const statsRes = await fetch('/api/seller/stats', {
                         headers: {
@@ -98,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 } catch (statsError) {
-                    console.warn('⚠️ Erreur récupération stats:', statsError);
+                    console.warn('⚠️ Erreur stats:', statsError);
                 }
 
                 renderCarousel(shops);
@@ -106,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateMessageBadge();
 
             } else {
-                // Aucune boutique
                 shops = [];
                 renderCarousel(shops);
                 renderStats(shops);
@@ -114,27 +96,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
         } catch (error) {
-            console.error('❌ Erreur chargement données:', error);
-            // En cas d'erreur, on essaie de charger depuis localStorage (fallback)
-            const fallbackShops = getLocalShops();
-            if (fallbackShops.length > 0) {
-                shops = fallbackShops;
-                renderCarousel(shops);
-                renderStats(shops);
-                updateMessageBadge();
-            }
-        }
-    }
-
-    // ==========================================
-    // FALLBACK : LOCALSTORAGE (mode démo)
-    // ==========================================
-
-    function getLocalShops() {
-        try {
-            return JSON.parse(localStorage.getItem('sellerShops')) || [];
-        } catch {
-            return [];
+            console.error('❌ Erreur chargement:', error);
+            shops = [];
+            renderCarousel(shops);
+            renderStats(shops);
+            updateMessageBadge();
         }
     }
 
@@ -152,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const shop = shops[index];
-        const imageUrl = shop.logo || shop.image || '';
+        const imageUrl = shop.logo || '';
 
         if (imageUrl && imageUrl !== '' && imageUrl !== 'null' && imageUrl !== 'undefined') {
             shopCardBg.style.backgroundImage = `url(${imageUrl})`;
@@ -338,11 +304,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const sellerIdLocal = localStorage.getItem('sellerId') || '1';
+            const sellerId = localStorage.getItem('sellerId') || '1';
 
             socket = io({
                 auth: {
-                    sellerId: parseInt(sellerIdLocal)
+                    sellerId: parseInt(sellerId)
                 },
                 transports: ['websocket', 'polling'],
                 timeout: 5000,
@@ -371,11 +337,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 refreshData();
             });
 
-            socket.on('new-message', function(data) {
-                console.log('💬 Nouveau message reçu:', data);
-                refreshData();
-            });
-
         } catch (error) {
             console.error('❌ Erreur Socket.IO:', error);
             setTimeout(() => connectSocketIO(), 5000);
@@ -386,20 +347,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // INITIALISATION
     // ==========================================
 
-    (async function init() {
-        if (!checkAuth()) return;
+    if (!checkAuth()) return;
 
-        await loadSellerData();
+    await loadSellerData();
+    connectSocketIO();
 
-        // Connecter Socket.IO
-        connectSocketIO();
+    // Rafraîchir toutes les 30 secondes
+    setInterval(() => {
+        refreshData();
+    }, 30000);
 
-        // Rafraîchir toutes les 30 secondes
-        setInterval(() => {
-            refreshData();
-        }, 30000);
-
-        console.log('✅ Dashboard vendeur - Production prêt');
-    })();
+    console.log('✅ Dashboard vendeur - Production prêt');
 
 });
