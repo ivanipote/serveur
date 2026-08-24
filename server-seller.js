@@ -78,10 +78,8 @@ global.io = io;
 
 app.use(express.json());
 
-// ✅ Servir le dossier public ENTIER (pour que /seller/css soit accessible)
+// ✅ Servir le dossier public ENTIER
 app.use(express.static(path.join(__dirname, 'public')));
-
-// ✅ Servir aussi spécifiquement le dossier seller pour être sûr
 app.use('/seller', express.static(path.join(__dirname, 'public', 'seller')));
 
 // CORS complet
@@ -119,7 +117,10 @@ app.use((req, res, next) => {
 
 const pgPool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000
 });
 
 app.use(session({
@@ -210,12 +211,13 @@ app.post('/api/seller/register', async (req, res) => {
         return res.status(400).json({ error: 'Tous les champs sont requis.' });
     }
 
-    // ✅ CORRIGÉ : 4 chiffres, pas 6 caractères
+    // ✅ 4 chiffres
     if (password.length !== 4 || !/^\d{4}$/.test(password)) {
         return res.status(400).json({ error: 'Le mot de passe doit être un code à 4 chiffres.' });
     }
 
     try {
+        // Vérifier si l'email existe déjà
         const existing = await db.get('SELECT * FROM sellers WHERE email = $1', [email]);
         if (existing) {
             return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
@@ -253,7 +255,8 @@ app.post('/api/seller/register', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Erreur inscription vendeur:', error);
-        res.status(500).json({ error: 'Erreur lors de l\'inscription.' });
+        console.error('📄 Stack:', error.stack);
+        res.status(500).json({ error: 'Erreur lors de l\'inscription.', details: error.message });
     }
 });
 
@@ -697,25 +700,39 @@ app.get('/edit-shop', (req, res) => {
 });
 
 // ========================================================
-// INITIALISATION DE LA BASE DE DONNÉES
+// INITIALISATION DE LA BASE DE DONNÉES (AVEC RETRY)
 // ========================================================
 
-(async function initDatabase() {
-    try {
-        console.log('🔄 Initialisation de la base de données (seller)...');
-        await db.initialize();
-        console.log('✅ Base de données (seller) initialisée avec succès');
-    } catch (error) {
-        console.log('⚠️ Base déjà initialisée ou erreur:', error.message);
-        console.log('📌 Continuation du démarrage...');
+async function initDatabaseWithRetry() {
+    let retries = 5;
+    let delay = 2000;
+    
+    while (retries > 0) {
+        try {
+            console.log(`🔄 Initialisation de la base de données (seller)... Tentative ${6 - retries}/5`);
+            await db.initialize();
+            console.log('✅ Base de données (seller) initialisée avec succès');
+            return true;
+        } catch (error) {
+            console.log(`⚠️ Erreur: ${error.message}`);
+            retries--;
+            if (retries > 0) {
+                console.log(`⏳ Attente ${delay/1000}s avant réessayer...`);
+                await new Promise(r => setTimeout(r, delay));
+                delay = Math.min(delay * 1.5, 10000);
+            }
+        }
     }
-})();
+    console.log('⚠️ Échec de l\'initialisation de la base après 5 tentatives.');
+    console.log('📌 Continuation du démarrage...');
+    return false;
+}
 
 // ========================================================
 // DÉMARRAGE
 // ========================================================
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
     console.log(`========================================`);
     console.log(`🛒 SERVEUR VENDEUR - ComPlus`);
     console.log(`📍 Port: ${PORT}`);
@@ -724,4 +741,6 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`📍 Socket.IO: actif`);
     console.log(`📍 ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`========================================`);
+    // ✅ Lancer l'initialisation après le démarrage
+    await initDatabaseWithRetry();
 });
