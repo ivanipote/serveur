@@ -48,6 +48,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const VERIFICATION_INTERVAL = 10000;
 
     // ==========================================
+    // CONFIGURATION DES STATUTS AVEC COULEURS
+    // ==========================================
+
+    const STATUS_CONFIG = {
+        'en_attente': { label: '⏳ En attente', bg: '#f5f5f5', border: '#d0d0d0', text: '#555' },
+        'accepter': { label: '💳 Paiement requis', bg: '#e3f2fd', border: '#64b5f6', text: '#0d47a1' },
+        'paiement_en_cours': { label: '⏳ En cours...', bg: '#fff3e0', border: '#ffb74d', text: '#e65100' },
+        'pending': { label: '⏳ En attente', bg: '#fff3e0', border: '#ffb74d', text: '#e65100' },
+        'processing': { label: '⏳ Traitement', bg: '#fff3e0', border: '#ffb74d', text: '#e65100' },
+        'paiement_effectue': { label: '✅ Payée', bg: '#e8f5e9', border: '#66bb6a', text: '#1b5e20' },
+        'success': { label: '✅ Succès', bg: '#e8f5e9', border: '#66bb6a', text: '#1b5e20' },
+        'failed': { label: '❌ Échoué', bg: '#ffebee', border: '#ef5350', text: '#b71c1c' },
+        'cancelled': { label: '⏰ Annulé', bg: '#ffcdd2', border: '#ef5350', text: '#b71c1c' },
+        'expired': { label: '⏳ Expiré', bg: '#ffebee', border: '#ef5350', text: '#b71c1c' },
+        'refunded': { label: '🔄 Remboursé', bg: '#ffccbc', border: '#ff8a65', text: '#bf360c' },
+        'verification_en_cours': { label: '🔍 Vérification...', bg: '#fff8e1', border: '#ffd54f', text: '#f57f17' },
+        'livraison_en_cours': { label: '🚚 En livraison', bg: '#e0f7fa', border: '#4dd0e1', text: '#00695c' },
+        'disponible': { label: '📍 Disponible', bg: '#c8e6c9', border: '#43a047', text: '#1b5e20' },
+        'recuperee': { label: '✅ Récupérée', bg: '#a5d6a7', border: '#2d7d46', text: '#1b5e20' },
+        'annulee': { label: '❌ Annulée', bg: '#ffcdd2', border: '#e53935', text: '#b71c1c' },
+        'refuse': { label: '❌ Refusée', bg: '#ffebee', border: '#ef5350', text: '#b71c1c' }
+    };
+
+    // ==========================================
     // UI SYNC
     // ==========================================
 
@@ -577,46 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // HISTORIQUE DES STATUTS
-    // ==========================================
-
-    function getStatusHistory(commande) {
-        const currentStatus = commande.genius_status || commande.status || 'en_attente';
-        
-        const statusFlow = [
-            'en_attente', 'accepter', 
-            'pending', 'processing', 
-            'paiement_effectue', 'success',
-            'failed', 'cancelled', 'expired', 'refunded',
-            'livraison_en_cours', 'disponible', 'recuperee', 'annulee', 'refuse'
-        ];
-
-        if (currentStatus === 'en_attente' || currentStatus === 'accepter') {
-            return { old: null, current: currentStatus };
-        }
-
-        const currentIndex = statusFlow.indexOf(currentStatus);
-        let oldStatus = null;
-
-        if (currentIndex > 0) {
-            for (let i = currentIndex - 1; i >= 0; i--) {
-                const candidate = statusFlow[i];
-                if (candidate === commande.status || candidate === commande.genius_status) {
-                    oldStatus = candidate;
-                    break;
-                }
-            }
-            
-            if (!oldStatus && currentStatus !== 'en_attente') {
-                oldStatus = 'en_attente';
-            }
-        }
-
-        return { old: oldStatus, current: currentStatus };
-    }
-
-    // ==========================================
-    // RENDRE LES COMMANDES
+    // RENDRE LES COMMANDES AVEC COULEURS INLINE
     // ==========================================
 
     function renderCommandes() {
@@ -632,211 +617,59 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const statusLabels = {
-            'en_attente': { label: 'En attente', icon: '⏳', class: 'en_attente' },
-            'accepter': { label: 'Paiement requis', icon: '💳', class: 'accepter' },
-            'paiement_en_cours': { label: 'En cours...', icon: '⏳', class: 'paiement_en_cours' },
-            'pending': { label: 'pending', icon: '⏳', class: 'pending' },
-            'processing': { label: 'processing', icon: '⏳', class: 'processing' },
-            'paiement_effectue': { label: 'Payée', icon: '✅', class: 'paiement_effectue' },
-            'success': { label: 'success', icon: '✅', class: 'success' },
-            'failed': { label: 'failed', icon: '❌', class: 'failed' },
-            'cancelled': { label: 'cancelled', icon: '⏰', class: 'cancelled' },
-            'expired': { label: 'expired', icon: '⏳', class: 'expired' },
-            'refunded': { label: 'refunded', icon: '🔄', class: 'refunded' },
-            'verification_en_cours': { label: 'Vérification en cours', icon: '🔍', class: 'verification_en_cours' },
-            'livraison_en_cours': { label: 'En livraison', icon: '🚚', class: 'livraison_en_cours' },
-            'disponible': { label: 'Disponible', icon: '📍', class: 'disponible' },
-            'recuperee': { label: 'Récupérée', icon: '✅', class: 'recuperee' },
-            'annulee': { label: 'Annulée', icon: '❌', class: 'annulee' },
-            'refuse': { label: 'Refusée', icon: '❌', class: 'refuse' }
-        };
-
-        const statusColors = {
-            'en_attente': 'en_attente',
-            'accepter': 'accepter',
-            'paiement_en_cours': 'paiement_en_cours',
-            'pending': 'pending',
-            'processing': 'processing',
-            'paiement_effectue': 'paiement_effectue',
-            'success': 'success',
-            'failed': 'failed',
-            'cancelled': 'cancelled',
-            'expired': 'expired',
-            'refunded': 'refunded',
-            'verification_en_cours': 'verification_en_cours',
-            'livraison_en_cours': 'livraison_en_cours',
-            'disponible': 'disponible',
-            'recuperee': 'recuperee',
-            'annulee': 'annulee',
-            'refuse': 'refuse'
-        };
+        const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
 
         let html = '';
 
         commandes.forEach((c) => {
-            const statusKey = c.genius_status || c.status || 'en_attente';
-            const statusInfo = statusLabels[statusKey] || { label: statusKey, icon: '📋', class: 'en_attente' };
-            const history = getStatusHistory(c);
-
-            const paymentDate = c.payment_created_at || c.created_at;
-            const isExpired = statusKey === 'expired' || 
-                              (c.status === 'paiement_en_cours' && 
-                               new Date(paymentDate).getTime() + TIMEOUT_MS < Date.now());
-
-            const isPayable = c.status === 'accepter';
-            const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
-            const isVerificationInProgress = c.status === 'verification_en_cours';
-            const showContinue = isPaymentInProgress && !isExpired;
-            const isTerminal = ['success', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'annulee', 'refuse', 'livraison_en_cours', 'disponible', 'recuperee'].includes(c.status) || 
-                              ['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.genius_status);
-
-            const hasPaymentLink = c.checkout_url || c.genius_reference;
-
+            // ✅ Récupérer le vrai statut
+            let statusKey = c.genius_status || c.status || 'en_attente';
+            
+            // ✅ Mapper wave_manual → success, wave_refunded → refunded
+            if (statusKey === 'wave_manual') statusKey = 'success';
+            if (statusKey === 'wave_refunded') statusKey = 'refunded';
+            
+            const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG['en_attente'];
             const date = new Date(c.created_at);
-            const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = date.toLocaleDateString('fr-FR', dateOptions);
             const refDisplay = c.reference || `NAT-${c.id}`;
+            const isPayable = c.status === 'accepter';
+            const isPaymentInProgress = ['paiement_en_cours', 'pending', 'processing'].includes(c.status);
+            const isVerificationInProgress = c.status === 'verification_en_cours';
+            const isTerminal = ['recuperee', 'annulee', 'refuse', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.status);
+            const hasPaymentLink = c.checkout_url || c.genius_reference;
+            const isGenerating = generatingLinks[c.id] === true;
 
-            // Timer
-            let timerHtml = '';
-            if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && !isExpired) {
-                const paymentDateObj = new Date(paymentDate);
-                const expiryTime = paymentDateObj.getTime() + TIMEOUT_MS;
-                const now = Date.now();
-                const diff = expiryTime - now;
-
-                if (diff > 0) {
-                    const minutes = Math.floor(diff / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    const displayMinutes = String(minutes).padStart(2, '0');
-                    const displaySeconds = String(seconds).padStart(2, '0');
-                    timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${displayMinutes}:${displaySeconds}</div>`;
-                } else {
-                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
-                }
-            } else if (isExpired) {
-                timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
-            }
-
-            // ✅ Affichage du statut de paiement
-            let paymentStatusHtml = '';
-            if (isPayable) {
-                const isGenerating = generatingLinks[c.id] === true;
-                if (hasPaymentLink) {
-                    paymentStatusHtml = `
-                        <div class="status-link-available">
-                            <i class="fas fa-envelope"></i> 📩 Lien disponible dans vos notifications
-                        </div>
-                    `;
-                } else if (isGenerating) {
-                    paymentStatusHtml = `
-                        <div class="status-generating" id="generating-${c.id}">
-                            <i class="fas fa-spinner"></i> Lien de paiement en cours de génération...
-                        </div>
-                    `;
-                }
-            }
-
-            // ✅ État vérification en cours
-            let verificationHtml = '';
-            if (isVerificationInProgress) {
-                verificationHtml = `
-                    <div class="status-verification">
-                        <i class="fas fa-spinner"></i> 🔍 Vérification en cours...
-                    </div>
-                `;
-            }
-
-            // ✅ Historique des statuts
-            let statusTransitionHtml = '';
-            if (history.old && history.old !== history.current) {
-                const oldLabel = statusLabels[history.old]?.label || history.old;
-                const newLabel = statusInfo.label;
-                statusTransitionHtml = `
-                    <span class="old-status">${oldLabel}</span>
-                    <span class="arrow">→</span>
-                    <span class="new-status ${statusColors[history.current] || 'en_attente'}">${statusInfo.icon} ${newLabel}</span>
-                `;
-            } else {
-                statusTransitionHtml = `
-                    <span class="new-status ${statusColors[history.current] || 'en_attente'}">${statusInfo.icon} ${statusInfo.label}</span>
-                `;
-            }
-
-            // ✅ Message d'action
-            let actionHint = '';
-            if (isPayable) {
-                if (hasPaymentLink) {
-                    actionHint = '📩 Lien de paiement disponible dans vos notifications';
-                }
-            } else if (isVerificationInProgress) {
-                actionHint = '🔍 En attente de la confirmation de l\'admin...';
-            } else if (showContinue) {
-                actionHint = '⏳ Paiement en cours...';
-            } else if (c.status === 'en_attente') {
-                actionHint = '⏳ En attente de validation';
-            } else if (c.status === 'paiement_effectue') {
-                actionHint = '✅ Commande en préparation';
-            } else if (c.status === 'livraison_en_cours') {
-                actionHint = '🚚 Votre commande est en route';
-            } else if (c.status === 'disponible') {
-                actionHint = '📍 Votre commande vous attend';
-            } else if (c.status === 'recuperee') {
-                actionHint = '✅ Merci pour votre commande !';
-            } else if (c.status === 'annulee' || c.status === 'refuse') {
-                actionHint = `❌ ${c.cause_refus || 'Commande annulée'}`;
-            } else if (c.status === 'success') {
-                actionHint = '✅ Paiement réussi';
-            } else if (c.status === 'failed') {
-                actionHint = '❌ Paiement échoué';
-            } else if (c.status === 'cancelled') {
-                actionHint = '⏰ Paiement annulé';
-            } else if (isExpired || statusKey === 'expired') {
-                actionHint = '⏳ Paiement expiré - Veuillez passer une nouvelle commande';
-            }
-
-            // ✅ Boutons
-            let buttonsHtml = '';
-            if (isPayable && !isVerificationInProgress) {
-                const isGenerating = generatingLinks[c.id] === true;
-                buttonsHtml = `
-                    <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" 
-                            data-id="${c.id}" 
-                            data-total="${c.total}" 
-                            data-ref="${c.reference || c.id}"
-                            ${isGenerating ? 'disabled' : ''}>
-                        <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
-                    </button>
-                    <button class="btn btn-wave" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
-                        <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon" /> Wave
-                    </button>
-                `;
-            }
-
+            // ✅ Construire la carte avec style inline pour forcer les couleurs
             html += `
-                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'} ${isExpired ? 'expired' : ''} ${isVerificationInProgress ? 'verification' : ''}">
-                    <span class="badge-top ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span>
-                    <div class="id">#${c.id}</div>
-                    <span class="ref">${refDisplay}</span>
-                    <span class="date">${dateStr}</span>
-                    <div class="total">${(c.total || 0).toLocaleString()} FCFA</div>
-                    <div class="status-transition">${statusTransitionHtml}</div>
-                    ${timerHtml}
-                    ${paymentStatusHtml}
-                    ${verificationHtml}
-                    ${actionHint ? `<div class="action-hint">${actionHint}</div>` : ''}
-                    <div class="actions">
-                        ${buttonsHtml}
-                        ${showContinue && !isExpired && !isTerminal && !isVerificationInProgress ? `
-                            <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}">
+                <div class="commande-card" style="background: ${config.bg}; border-color: ${config.border}; border-width: 2px; border-style: solid;">
+                    <span class="badge-top" style="background: ${config.border}; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; position: absolute; top: 14px; right: 16px;">${config.label}</span>
+                    <div class="id" style="font-size: 15px; font-weight: 700; color: #1a2a6c; margin-top: 4px;">#${c.id}</div>
+                    <span class="ref" style="font-size: 11px; color: #666; display: block;">${refDisplay}</span>
+                    <span class="date" style="font-size: 11px; color: #888; display: block;">${dateStr}</span>
+                    <div class="total" style="font-size: 24px; font-weight: 700; color: #1a5a33; margin: 6px 0 2px 0;">${(c.total || 0).toLocaleString()} FCFA</div>
+                    <div class="status-transition" style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin: 4px 0 6px 0; flex-wrap: wrap;">
+                        <span class="new-status ${statusKey}" style="color: ${config.border}; font-weight: 700;">${config.label}</span>
+                    </div>
+                    <div class="actions" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); align-items: center; min-height: 44px;">
+                        ${isPayable ? `
+                            <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}" ${isGenerating ? 'disabled' : ''} style="background: ${hasPaymentLink ? '#2d7d46' : 'linear-gradient(135deg, #1a2a6c, #2d4373)'}; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
+                                <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
+                            </button>
+                            <button class="btn btn-wave" data-id="${c.id}" style="background: #1a2a6c; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
+                                <img src="/client/images/wave-logo.png" alt="Wave" style="width: 20px; height: 20px; object-fit: contain;" /> Wave
+                            </button>
+                        ` : ''}
+                        ${isPaymentInProgress ? `
+                            <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}" style="background: #e67e22; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
                                 <i class="fas fa-arrow-right"></i> Continuer
                             </button>
                         ` : ''}
-                        <button class="btn btn-detail" data-id="${c.id}">
+                        <button class="btn btn-detail" data-id="${c.id}" style="background: rgba(255,255,255,0.7); color: #1a1a2e; padding: 8px 20px; border: 1px solid rgba(0,0,0,0.08); border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
                             <i class="fas fa-eye"></i> Détails
                         </button>
-                        ${isPayable && !isVerificationInProgress ? `
-                            <button class="btn btn-check-status" data-id="${c.id}" title="Vérifier le statut du paiement">
+                        ${isPayable ? `
+                            <button class="btn btn-check-status" data-id="${c.id}" title="Vérifier le statut du paiement" style="background: rgba(255,255,255,0.7); color: #1a1a2e; padding: 8px 20px; border: 1px solid rgba(0,0,0,0.08); border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         ` : ''}
@@ -849,11 +682,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ✅ Démarrer les timers
         commandes.forEach((c) => {
-            if ((c.status === 'pending' || c.status === 'processing' || c.status === 'paiement_en_cours') && 
-                !(c.genius_status === 'expired' || new Date(c.payment_created_at || c.created_at).getTime() + TIMEOUT_MS < Date.now())) {
-                startTimer(c.id, c.payment_created_at || c.created_at);
-            }
-            
             if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
                 startVerification(c.id);
             }
