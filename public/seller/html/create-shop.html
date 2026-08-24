@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Créer une boutique | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/seller/css/create-shop.css">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER                                       -->
+    <!-- ========================================== -->
+    <header class="create-header">
+        <button class="back-btn" onclick="window.location.href='/seller/dashboard.html'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="header-title">🛒 ComPlus Vendeur</span>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN                                        -->
+    <!-- ========================================== -->
+    <main class="create-main" id="createMain">
+
+        <!-- TEXTE -->
+        <div class="welcome-section">
+            <span class="icon">🛒</span>
+            <h1>Créer une boutique avec <span>ComPlus</span></h1>
+            <p>Remplissez les informations ci-dessous pour lancer votre boutique</p>
+        </div>
+
+        <!-- CHAMP 1 : Nom -->
+        <div class="form-card">
+            <div class="form-group">
+                <label><i class="fas fa-store"></i> Nom de la boutique</label>
+                <input type="text" id="shopName" placeholder="Ex: Ma Boutique" maxlength="50" />
+            </div>
+        </div>
+
+        <!-- CHAMP 2 : Description -->
+        <div class="form-card">
+            <div class="form-group">
+                <label><i class="fas fa-align-left"></i> Description</label>
+                <textarea id="shopDescription" placeholder="Décrivez votre boutique..." rows="2"></textarea>
+            </div>
+        </div>
+
+        <!-- CHAMP 3 : Image -->
+        <div class="form-card">
+            <div class="form-group">
+                <label><i class="fas fa-image"></i> Image de la boutique</label>
+                <div class="file-input-wrapper">
+                    <i class="fas fa-cloud-upload-alt file-icon"></i>
+                    <span class="file-placeholder" id="filePlaceholder">Choisir une image...</span>
+                    <span class="file-name" id="fileName"></span>
+                    <input type="file" id="shopImage" accept="image/*" />
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAMP 4 : Localisation -->
+        <div class="form-card">
+            <div class="form-group">
+                <label><i class="fas fa-map-pin"></i> Localisation</label>
+                <input type="text" id="shopLocation" placeholder="Ex: Yopougon, Abidjan" />
+            </div>
+        </div>
+
+        <!-- CHAMP 5 : GPS -->
+        <div class="form-card">
+            <div class="form-group">
+                <label><i class="fas fa-satellite"></i> Position GPS</label>
+                <div class="gps-wrapper">
+                    <button class="gps-btn" id="gpsBtn">
+                        <i class="fas fa-location-dot"></i> Obtenir ma position
+                    </button>
+                    <button class="gps-btn" id="manualBtn">
+                        <i class="fas fa-pen"></i> Entrer manuellement
+                    </button>
+                </div>
+                <div class="gps-input-wrapper">
+                    <input type="text" id="gpsInput" placeholder="Cliquez sur un bouton ci-dessus..." />
+                    <span class="gps-status" id="gpsStatus"></span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- FOOTER - Bord arrondi                       -->
+    <!-- ========================================== -->
+    <footer class="create-footer">
+        <button class="btn-create" id="createBtn">
+            <i class="fas fa-rocket"></i> Créer la boutique
+        </button>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY                                     -->
+    <!-- ========================================== -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-box">
+            <div class="spinner"></div>
+            <h3>⏳ Création en cours...</h3>
+            <p>Votre boutique est en cours de création</p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCRIPT                                      -->
+    <!-- ========================================== -->
+    <script src="/seller/js/create-shop.js"></script>
+</body>
+</html>
