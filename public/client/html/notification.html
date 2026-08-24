@@ -3,38 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications | Nature+</title>
+    <title>Notifications | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/notification.css">
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
-    <header class="notif-header">
-        <button class="back-btn" onclick="window.location.href='/dashboard'">
-            <i class="fas fa-arrow-left"></i>
-        </button>
-        <span class="notif-title">🔔 Notifications</span>
-        <span class="badge-count" id="notifBadge">0</span>
-        <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
-            <i class="fas fa-sync-alt"></i>
-            <span class="sync-status" id="syncStatus">●</span>
-        </button>
-        <button class="btn-read-all" id="readAllBtn">
-            <i class="fas fa-check-double"></i> Tout lu
-        </button>
+    <!-- ============================================================= -->
+    <!-- HEADER AVEC 2 RECTANGLES ARRONDIS                              -->
+    <!-- ============================================================= -->
+
+    <header class="notif-header-wrapper">
+
+        <!-- RECTANGLE 1 : HEADER (vert) -->
+        <div class="notif-header">
+            <button class="back-btn" onclick="window.location.href='/dashboard'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <span class="notif-title">🔔 Notifications</span>
+            <span class="badge-count" id="notifBadge">0</span>
+            <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
+                <i class="fas fa-sync-alt"></i>
+                <span class="sync-status" id="syncStatus">●</span>
+            </button>
+            <button class="btn-read-all" id="readAllBtn">
+                <i class="fas fa-check-double"></i> Tout lu
+            </button>
+        </div>
+
+        <!-- RECTANGLE 2 : FILTRES (blanc, scrollable) -->
+        <div class="notif-filter-bar">
+            <div class="filter-bar">
+                <button class="filter-btn active" data-filter="all">📋 Toutes</button>
+                <button class="filter-btn" data-filter="commande">📦 Commandes</button>
+                <button class="filter-btn" data-filter="paiement">💳 Paiements</button>
+                <button class="filter-btn" data-filter="admin">📢 Admin</button>
+                <button class="filter-btn" data-filter="systeme">⚙️ Système</button>
+            </div>
+        </div>
+
     </header>
 
-    <!-- ===== FILTRES ===== -->
-    <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all">📋 Toutes</button>
-        <button class="filter-btn" data-filter="commande">📦 Commandes</button>
-        <button class="filter-btn" data-filter="paiement">💳 Paiements</button>
-        <button class="filter-btn" data-filter="admin">📢 Admin</button>
-        <button class="filter-btn" data-filter="systeme">⚙️ Système</button>
-    </div>
+    <!-- ============================================================= -->
+    <!-- CONTENU                                                        -->
+    <!-- ============================================================= -->
 
-    <!-- ===== CONTENU ===== -->
     <main class="notif-main" id="notifMain">
         <!-- SKELETON LOADER -->
         <div id="skeletonLoader" class="skeleton-loader">
@@ -52,6 +65,7 @@
     <!-- ============================================================= -->
     <!-- FOOTER MESSAGE FIXE                                             -->
     <!-- ============================================================= -->
+
     <footer class="notif-footer" id="notifFooter">
         <div class="footer-container">
             <div class="message-wrapper">
@@ -71,7 +85,10 @@
         </div>
     </footer>
 
-    <!-- ===== OVERLAY CONFIRMATION (suppression) ===== -->
+    <!-- ============================================================= -->
+    <!-- OVERLAY CONFIRMATION (suppression)                             -->
+    <!-- ============================================================= -->
+
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
             <div class="confirm-icon">🗑️</div>
@@ -84,7 +101,12 @@
         </div>
     </div>
 
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/notification.js"></script>
+
 </body>
 </html>
