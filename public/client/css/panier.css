@@ -20,13 +20,15 @@ body {
 }
 
 /* =============================================================
-   HEADER FIXE
+   HEADER FIXE (Glassmorphisme)
    ============================================================= */
 
 .cart-header {
-    background: white;
+    background: rgba(45, 125, 70, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(45, 125, 70, 0.12);
     padding: 12px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -41,8 +43,8 @@ body {
 }
 
 .back-btn {
-    background: #e8e8f0;
-    border: none;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: #1a1a2e;
     width: 40px;
     height: 40px;
@@ -57,7 +59,28 @@ body {
 }
 
 .back-btn:hover {
-    background: #d0d0da;
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.05);
+}
+
+.home-btn {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #1a1a2e;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.home-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
     transform: scale(1.05);
 }
 
@@ -96,33 +119,35 @@ body {
 }
 
 /* =============================================================
-   ARTICLE (avec animations)
+   ARTICLE (Glassmorphisme)
    ============================================================= */
 
 .cart-item {
-    background: white;
+    background: rgba(45, 125, 70, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(45, 125, 70, 0.1);
     border-radius: 16px;
-    border: 1px solid #f0f0f5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(45, 125, 70, 0.04);
     transition: all 0.3s ease;
     overflow: hidden;
     cursor: pointer;
-    animation: fadeInUp 0.3s ease;
+    animation: fadeInUp 0.4s ease;
 }
 
 .cart-item:hover {
-    border-color: #2d7d46;
+    border-color: rgba(45, 125, 70, 0.25);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    box-shadow: 0 6px 24px rgba(45, 125, 70, 0.08);
 }
 
-/* ✅ Animation d'entrée */
+/* Animation entrée */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ✅ Animation de sortie (suppression) */
+/* Animation sortie (suppression) */
 .cart-item.removing {
     animation: slideOut 0.3s ease forwards;
 }
@@ -143,7 +168,7 @@ body {
     height: 50px;
     border-radius: 12px;
     object-fit: cover;
-    background: #f0f2f5;
+    background: rgba(255,255,255,0.5);
     flex-shrink: 0;
     transition: transform 0.3s ease;
 }
@@ -159,7 +184,6 @@ body {
     flex: 1;
 }
 
-/* ✅ Prix barré si promotion */
 .cart-item .item-header .item-name .promo-badge {
     font-size: 9px;
     background: #e74c3c;
@@ -217,7 +241,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px 14px 16px;
-    border-top: 1px solid #f5f5fa;
+    border-top: 1px solid rgba(45, 125, 70, 0.08);
 }
 
 .cart-item .item-footer .item-qty {
@@ -227,8 +251,8 @@ body {
 }
 
 .cart-item .item-footer .item-qty button {
-    background: #e8e8f0;
-    border: none;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(45, 125, 70, 0.1);
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -243,7 +267,7 @@ body {
 }
 
 .cart-item .item-footer .item-qty button:hover {
-    background: #d0d0da;
+    background: rgba(255, 255, 255, 0.9);
     transform: scale(1.05);
 }
 
@@ -257,16 +281,6 @@ body {
     min-width: 30px;
     text-align: center;
     transition: all 0.3s;
-}
-
-.cart-item .item-footer .item-qty span.pop {
-    animation: pop 0.3s ease;
-}
-
-@keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); color: #2d7d46; }
-    100% { transform: scale(1); }
 }
 
 .cart-item .item-footer .item-remove {
@@ -340,6 +354,65 @@ body {
 .cart-empty .btn-shop:hover {
     background: #1a5a33;
     transform: scale(1.02);
+}
+
+/* =============================================================
+   CARTE MESSAGE ComPlus
+   ============================================================= */
+
+.message-card {
+    background: rgba(45, 125, 70, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(45, 125, 70, 0.1);
+    border-radius: 16px;
+    padding: 20px 24px;
+    max-width: 600px;
+    width: 100%;
+    margin: 20px auto 0 auto;
+    animation: fadeInUp 0.5s ease;
+}
+
+.message-card .message-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.message-card .message-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.message-card .message-text h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a5a33;
+    margin-bottom: 4px;
+}
+
+.message-card .message-text p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.message-card .message-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 4px;
+}
+
+.message-card .message-features span {
+    font-size: 12px;
+    font-weight: 500;
+    color: #2d7d46;
+    background: rgba(45, 125, 70, 0.08);
+    padding: 4px 12px;
+    border-radius: 20px;
 }
 
 /* =============================================================
@@ -429,15 +502,15 @@ body {
 }
 
 /* =============================================================
-   FOOTER FIXE (bords arrondis)
+   FOOTER FIXE (Fond vert + total blanc)
    ============================================================= */
 
 .cart-footer {
-    background: white;
+    background: #2d7d46;
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 20px 20px 28px 20px;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 -4px 30px rgba(45, 125, 70, 0.2);
     position: fixed;
     bottom: 0;
     left: 0;
@@ -453,27 +526,37 @@ body {
     gap: 12px;
 }
 
-.footer-total {
+.footer-total-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 
-.footer-total .total-label {
+.footer-total-wrapper .total-label {
     font-size: 17px;
     font-weight: 600;
     color: #1a1a2e;
 }
 
-.footer-total .total-price {
+.footer-total-wrapper .total-price {
     font-size: 28px;
     font-weight: 700;
-    color: #2d7d46;
+    color: #1a5a33;
     transition: all 0.3s;
 }
 
-.footer-total .total-price.pop {
-    animation: pop 0.3s ease;
+.footer-total-wrapper .total-price.pop {
+    animation: popPrice 0.4s ease;
+}
+
+@keyframes popPrice {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.15); color: #2d7d46; }
+    100% { transform: scale(1); }
 }
 
 .footer-actions {
@@ -483,9 +566,9 @@ body {
 
 .footer-actions .btn-clear {
     flex: 0 0 auto;
-    background: #e74c3c;
+    background: rgba(255, 255, 255, 0.15);
     color: white;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 14px 24px;
     border-radius: 30px;
     font-size: 15px;
@@ -498,14 +581,14 @@ body {
 }
 
 .footer-actions .btn-clear:hover {
-    background: #c0392b;
+    background: rgba(255, 255, 255, 0.25);
     transform: scale(1.02);
 }
 
 .footer-actions .btn-checkout {
     flex: 1;
-    background: linear-gradient(135deg, #2d7d46, #1a5a33);
-    color: white;
+    background: white;
+    color: #1a5a33;
     border: none;
     padding: 14px;
     border-radius: 30px;
@@ -517,7 +600,7 @@ body {
 
 .footer-actions .btn-checkout:hover {
     transform: scale(1.02);
-    box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
 }
 
 .footer-actions .btn-checkout:disabled {
@@ -623,31 +706,8 @@ body {
 }
 
 /* =============================================================
-   TOAST
+   ANIMATIONS
    ============================================================= */
-
-.toast {
-    background: #28a745;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 15px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-    animation: slideUp 0.3s ease;
-    pointer-events: auto;
-    max-width: 90%;
-    text-align: center;
-}
-
-.toast.error { background: #dc3545; }
-.toast.warning { background: #e67e22; }
-.toast.info { background: #1a2a6c; }
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -666,7 +726,7 @@ body {
 @media (max-width: 600px) {
     body { padding-top: 68px; padding-bottom: 160px; }
     .cart-header { padding: 10px 14px; gap: 10px; }
-    .back-btn { width: 36px; height: 36px; font-size: 16px; }
+    .back-btn, .home-btn { width: 36px; height: 36px; font-size: 16px; }
     .cart-title { font-size: 16px; }
     .cart-main { padding: 12px 14px 12px 14px; }
 
@@ -682,7 +742,7 @@ body {
     .cart-item .item-footer { padding: 8px 14px 12px 14px; }
     .cart-item .item-footer .item-qty button { width: 28px; height: 28px; font-size: 14px; }
 
-    .footer-total .total-price { font-size: 24px; }
+    .footer-total-wrapper .total-price { font-size: 22px; }
     .footer-actions .btn-checkout { font-size: 15px; padding: 12px; }
     .footer-actions .btn-clear { font-size: 13px; padding: 12px 16px; }
     .cart-footer { 
@@ -690,6 +750,14 @@ body {
         border-top-right-radius: 24px;
         padding: 16px 16px 24px 16px; 
     }
+    .footer-total-wrapper { padding: 12px 16px; }
+
+    .message-card { padding: 16px 18px; }
+    .message-card .message-content { gap: 12px; }
+    .message-card .message-icon { font-size: 28px; }
+    .message-card .message-text h3 { font-size: 16px; }
+    .message-card .message-text p { font-size: 13px; }
+    .message-card .message-features span { font-size: 11px; padding: 3px 10px; }
 
     .suggestions-grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -705,9 +773,14 @@ body {
         padding: 14px 12px 20px 12px; 
     }
 
-    .footer-total .total-price { font-size: 20px; }
+    .footer-total-wrapper .total-price { font-size: 18px; }
     .footer-actions .btn-checkout { font-size: 14px; padding: 10px; }
     .footer-actions .btn-clear { font-size: 12px; padding: 10px 12px; }
+    .footer-total-wrapper { padding: 10px 12px; }
+
+    .message-card { padding: 14px 14px; }
+    .message-card .message-icon { font-size: 24px; }
+    .message-card .message-text h3 { font-size: 14px; }
 
     .suggestions-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon panier | Nature+</title>
+    <title>Mon panier | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/panier.css">
 </head>
 <body>
 
-    <!-- HEADER FIXE -->
+    <!-- HEADER FIXE (Glassmorphisme) -->
     <header class="cart-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
         </button>
         <span class="cart-title">🛒 Mon panier <span class="cart-count" id="cartCount">(0)</span></span>
+        <button class="home-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-home"></i>
+        </button>
     </header>
 
     <!-- CONTENU PRINCIPAL -->
@@ -22,7 +25,23 @@
         <div class="cart-container" id="cartContainer">
             <!-- Les articles seront injectés ici -->
         </div>
-        
+
+        <!-- CARTE MESSAGE ComPlus -->
+        <div class="message-card" id="messageCard" style="display:none;">
+            <div class="message-content">
+                <div class="message-icon">🌿</div>
+                <div class="message-text">
+                    <h3>ComPlus</h3>
+                    <p>Commander plus et recevez votre commande en toute bonne état.</p>
+                    <div class="message-features">
+                        <span>✅ Produits 100% naturels</span>
+                        <span>📦 Livraison rapide</span>
+                        <span>💳 Paiement sécurisé</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- SUGGESTIONS PRODUITS -->
         <div class="suggestions-section" id="suggestionsSection" style="display:none;">
             <div class="suggestions-title">
@@ -34,10 +53,10 @@
         </div>
     </main>
 
-    <!-- FOOTER FIXE (avec bords arrondis) -->
+    <!-- FOOTER FIXE (Fond vert + total blanc) -->
     <footer class="cart-footer" id="cartFooter">
         <div class="footer-content">
-            <div class="footer-total">
+            <div class="footer-total-wrapper">
                 <span class="total-label">Total</span>
                 <span class="total-price" id="totalPrice">0 FCFA</span>
             </div>
@@ -77,9 +96,6 @@
             </div>
         </div>
     </div>
-
-    <!-- TOAST -->
-    <div id="toastContainer" style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;"></div>
 
     <script src="/client/js/panier.js"></script>
 </body>

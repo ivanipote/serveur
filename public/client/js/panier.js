@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ panier.js chargé');
 
     // ==========================================
-    // URL DE L'API PAIEMENT (Render)
+    // URL DE L'API PAIEMENT
     // ==========================================
 
     const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
@@ -15,9 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('cartContainer');
     const cartCount = document.getElementById('cartCount');
     const totalPrice = document.getElementById('totalPrice');
-    const toastContainer = document.getElementById('toastContainer');
     const suggestionsSection = document.getElementById('suggestionsSection');
     const suggestionsGrid = document.getElementById('suggestionsGrid');
+    const messageCard = document.getElementById('messageCard');
 
     // Overlays
     const overlay = document.getElementById('confirmOverlay');
@@ -40,25 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let pendingIndex = null;
     let currentUser = null;
     let allProducts = [];
-
-    // ==========================================
-    // TOAST
-    // ==========================================
-
-    function showToast(message, type = 'success') {
-        if (!toastContainer) return;
-        const toast = document.createElement('div');
-        toast.className = 'toast' + (type === 'error' ? ' error' : type === 'warning' ? ' warning' : type === 'info' ? ' info' : '');
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.transition = 'all 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 2500);
-    }
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -181,9 +162,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 panier = data.panier;
                 renderPanier();
                 loadSuggestions();
+                messageCard.style.display = 'block';
             } else {
                 renderEmpty();
                 suggestionsSection.style.display = 'none';
+                messageCard.style.display = 'none';
             }
         } catch (error) {
             console.error('Erreur chargement panier:', error);
@@ -236,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearBtn.style.opacity = '0.5';
         }
         suggestionsSection.style.display = 'none';
+        messageCard.style.display = 'none';
     }
 
     // ==========================================
@@ -245,7 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderSuggestions() {
         if (!panier.length) return;
 
-        // Exclure les produits déjà dans le panier
         const panierIds = panier.map(p => p.product_id || p.id);
         const suggestions = allProducts
             .filter(p => !panierIds.includes(p.id))
@@ -266,7 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `).join('');
 
-        // Événements pour les suggestions
         document.querySelectorAll('.s-add').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -298,22 +280,53 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (data.success) {
-                showToast('✅ Produit ajouté au panier !', 'success');
                 loadPanier();
                 updateBadge();
             } else if (data.error === 'Non authentifié') {
                 window.location.href = '/login';
-            } else {
-                showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         } catch (error) {
             console.error('Erreur ajout suggestion:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
     function goToProduct(productId) {
         window.location.href = '/infoproduit?id=' + productId;
+    }
+
+    // ==========================================
+    // ANIMATION DU PRIX TOTAL (0 → total)
+    // ==========================================
+
+    function animatePrice(targetValue) {
+        if (!totalPrice) return;
+
+        const startValue = 0;
+        const duration = 400;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (easeOut)
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const currentValue = Math.round(startValue + (targetValue - startValue) * eased);
+            
+            totalPrice.textContent = currentValue.toLocaleString() + ' FCFA';
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                totalPrice.textContent = targetValue.toLocaleString() + ' FCFA';
+                // Animation pop à la fin
+                totalPrice.classList.remove('pop');
+                void totalPrice.offsetWidth;
+                totalPrice.classList.add('pop');
+            }
+        }
+
+        requestAnimationFrame(update);
     }
 
     // ==========================================
@@ -383,13 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.innerHTML = html;
         if (cartCount) cartCount.textContent = `(${totalItems})`;
-        if (totalPrice) {
-            totalPrice.textContent = total.toLocaleString() + ' FCFA';
-            totalPrice.classList.remove('pop');
-            // Force reflow pour déclencher l'animation
-            void totalPrice.offsetWidth;
-            totalPrice.classList.add('pop');
-        }
+        
+        // ✅ Animation du prix total (0 → total)
+        animatePrice(total);
+
         if (checkoutBtn) {
             checkoutBtn.disabled = false;
             checkoutBtn.style.opacity = '1';
@@ -491,22 +501,36 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 item.quantity = newQty;
-                // Animation sur la quantité
+                // Recalculer le total et animer
+                const newTotal = panier.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+                animatePrice(newTotal);
+                
+                // Mettre à jour l'affichage de la quantité
                 const qtyEl = document.getElementById(`qty-${index}`);
                 if (qtyEl) {
-                    qtyEl.classList.remove('pop');
-                    void qtyEl.offsetWidth;
-                    qtyEl.classList.add('pop');
+                    qtyEl.textContent = newQty;
                 }
-                renderPanier();
+                
+                // Mettre à jour le prix de la ligne
+                const items = document.querySelectorAll('.cart-item');
+                if (items[index]) {
+                    const priceEl = items[index].querySelector('.item-price');
+                    if (priceEl) {
+                        const totalLigne = item.price * newQty;
+                        priceEl.innerHTML = `
+                            ${totalLigne.toLocaleString()} FCFA
+                            ${item.prix_promotion ? `<span class="old-price">${item.prix_promotion.toLocaleString()} FCFA</span>` : ''}
+                            <span style="font-size:13px;color:#aaa;font-weight:400;display:block;">
+                                (${item.price.toLocaleString()} × ${newQty})
+                            </span>
+                        `;
+                    }
+                }
+                
                 updateBadge();
-                showToast(`✅ Quantité mise à jour (${newQty})`, 'success');
-            } else {
-                showToast('❌ ' + (data.error || 'Erreur mise à jour'), 'error');
             }
         } catch (error) {
             console.error('Erreur mise à jour:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -523,31 +547,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await res.json();
             if (data.success) {
-                // Animation de suppression
                 const items = document.querySelectorAll('.cart-item');
                 if (items[index]) {
                     items[index].classList.add('removing');
                     setTimeout(() => {
                         panier.splice(index, 1);
-                        if (panier.length === 0) renderEmpty();
-                        else renderPanier();
+                        if (panier.length === 0) {
+                            renderEmpty();
+                            suggestionsSection.style.display = 'none';
+                            messageCard.style.display = 'none';
+                        } else {
+                            renderPanier();
+                            loadSuggestions();
+                        }
                         updateBadge();
-                        loadSuggestions();
                     }, 300);
                 } else {
                     panier.splice(index, 1);
-                    if (panier.length === 0) renderEmpty();
-                    else renderPanier();
+                    if (panier.length === 0) {
+                        renderEmpty();
+                        suggestionsSection.style.display = 'none';
+                        messageCard.style.display = 'none';
+                    } else {
+                        renderPanier();
+                        loadSuggestions();
+                    }
                     updateBadge();
-                    loadSuggestions();
                 }
-                showToast('✅ Article retiré du panier', 'success');
-            } else {
-                showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         } catch (error) {
             console.error('Erreur suppression:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -563,13 +592,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderEmpty();
                 updateBadge();
                 suggestionsSection.style.display = 'none';
-                showToast('🗑️ Panier vidé avec succès', 'success');
-            } else {
-                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+                messageCard.style.display = 'none';
             }
         } catch (error) {
             console.error('Erreur vidage:', error);
-            showToast('❌ Erreur de connexion', 'error');
         }
     }
 
@@ -599,7 +625,6 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadPanier();
             await updateBadge();
 
-            // Rafraîchir le badge toutes les 30 secondes
             setInterval(() => {
                 updateBadge();
             }, 30000);
