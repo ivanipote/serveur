@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // VÉRIFIER LES CHAMPS (activer/désactiver bouton)
+    // VÉRIFIER LES CHAMPS
     // ==========================================
 
     function getCodeVerif() {
@@ -236,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // ✅ GESTION DES STATUTS COMPLÈTE
                 const status = commande.status || 'en_attente';
                 const statusMessages = {
                     'en_attente': {
@@ -249,10 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         `,
                         payDisabled: true
                     },
-                    'accepter': {
-                        html: null,
-                        payDisabled: false
-                    },
+                    'accepter': { html: null, payDisabled: false },
                     'paiement_en_cours': {
                         html: `
                             <div style="text-align:center;padding:20px;color:#e67e22;">
@@ -340,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (statusInfo.html) {
                     recapContent.innerHTML = statusInfo.html;
                     payBtn.disabled = true;
-                    // Désactiver l'onglet payer
                     ongletBtns.forEach(btn => {
                         if (btn.dataset.onglet === 'payer') {
                             btn.style.opacity = '0.5';
@@ -351,12 +346,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // ✅ Si statut = 'accepter', afficher le récapitulatif normal
                 commandeData = commande;
                 renderRecap(commande);
                 payBtn.disabled = false;
 
-                // Vérifier si une demande Wave existe déjà
                 await checkExistingVerification(commandeId);
 
             } else {
@@ -395,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (v.status === 'pending') {
                     showVerificationStatus('pending', '🔍 Vérification en cours... Attendez la confirmation de l\'admin.');
                     verifyBtn.disabled = true;
-                    // Activer l'onglet vérifier
                     ongletBtns.forEach(btn => {
                         if (btn.dataset.onglet === 'verifier') {
                             btn.style.opacity = '1';
@@ -638,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (ENVOI À L'ADMIN)
+    // VÉRIFIER LE PAIEMENT (AVEC REDIRECTION)
     // ==========================================
 
     verifyBtn.addEventListener('click', async function() {
@@ -666,7 +658,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Vérifier le code
         const verifyResult = await verifyCode(code);
 
         if (!verifyResult.success) {
@@ -678,7 +669,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Code valide → envoyer la demande
         isVerifying = true;
         verifyBtn.disabled = true;
         verifyBtn.classList.add('loading');
@@ -702,14 +692,8 @@ document.addEventListener('DOMContentLoaded', function() {
             hideVerifyOverlay();
 
             if (data.success) {
-                showVerificationStatus('pending', '🔍 Vérification en cours... Vous serez informé dès que l\'admin aura confirmé. Durée estimée : 1-10 min.');
-                verifyBtn.style.display = 'none';
-
-                showError('✅ Demande envoyée avec succès ! Vous recevrez une notification.', 'verifier');
-                setTimeout(() => {
-                    hideError('verifier');
-                }, 5000);
-
+                // ✅ REDIRECTION VERS detailcom.html AVEC L'ID DE LA COMMANDE
+                window.location.href = `/detailcom?id=${commandeId}`;
             } else {
                 showError('❌ ' + (data.error || 'Erreur lors de l\'envoi.'), 'verifier');
                 verifyBtn.disabled = false;
