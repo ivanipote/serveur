@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentIndex = 0;
     let shops = [];
-    let sellerData = null;
     let isDataLoaded = false;
 
     // ==========================================
@@ -53,7 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement des données vendeur...');
 
-            const shopRes = await fetch('/api/seller/shop', {
+            // ✅ Utiliser /api/seller/shops pour TOUTES les boutiques
+            const shopRes = await fetch('/api/seller/shops', {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }
@@ -61,27 +61,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const shopData = await shopRes.json();
 
             if (!shopRes.ok) {
-                throw new Error(shopData.error || 'Erreur chargement boutique');
+                throw new Error(shopData.error || 'Erreur chargement boutiques');
             }
 
-            if (shopData.success && shopData.hasShop) {
-                const shop = shopData.shop;
-                const products = shopData.products || [];
+            if (shopData.success && shopData.shops && shopData.shops.length > 0) {
+                // ✅ Toutes les boutiques du vendeur
+                const shopsList = shopData.shops;
 
-                sellerData = {
+                shops = shopsList.map(shop => ({
                     id: shop.id,
                     name: shop.name,
                     location: shop.location,
                     description: shop.description || '',
                     logo: shop.logo || '',
                     status: shop.status || 'active',
-                    articles: products.length,
+                    articles: shop.product_count || 0,
                     messages: 0,
                     likes: 0,
-                    views: 0,
-                    products: products
-                };
+                    views: 0
+                }));
 
+                // Récupérer les stats pour chaque boutique
                 try {
                     const statsRes = await fetch('/api/seller/stats', {
                         headers: {
@@ -91,19 +91,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     const statsData = await statsRes.json();
 
                     if (statsData.success && statsData.stats && statsData.stats.shop_details) {
-                        const shopStats = statsData.stats.shop_details.find(s => s.id === shop.id);
-                        if (shopStats) {
-                            sellerData.messages = shopStats.total_messages || 0;
-                            sellerData.likes = shopStats.total_likes || 0;
-                            sellerData.views = shopStats.total_views || 0;
-                            sellerData.articles = shopStats.total_products || products.length;
-                        }
+                        shops.forEach(shop => {
+                            const shopStats = statsData.stats.shop_details.find(s => s.id === shop.id);
+                            if (shopStats) {
+                                shop.messages = shopStats.total_messages || 0;
+                                shop.likes = shopStats.total_likes || 0;
+                                shop.views = shopStats.total_views || 0;
+                                shop.articles = shopStats.total_products || shop.articles;
+                            }
+                        });
                     }
                 } catch (statsError) {
                     console.warn('⚠️ Erreur stats (non bloquante):', statsError);
                 }
 
-                shops = [sellerData];
                 isDataLoaded = true;
 
                 renderCarousel(shops);
@@ -111,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateMessageBadge();
                 updateBackground(0);
 
-                console.log('✅ Données chargées:', sellerData);
+                console.log('✅ Données chargées:', shops);
 
             } else {
                 shops = [];
@@ -158,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // IMAGE DE FOND (CORRIGÉE)
+    // IMAGE DE FOND
     // ==========================================
 
     function updateBackground(index) {
@@ -428,6 +429,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // RECHARGEMENT AU RETOUR SUR LA PAGE
+    // ==========================================
+
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            console.log('🔄 Page visible, rechargement des données');
+            refreshData();
+        }
+    });
+
+    // ==========================================
     // INITIALISATION
     // ==========================================
 
@@ -444,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.sellerDashboard = {
             refreshData,
             shops,
-            sellerData
+            getShops: () => shops
         };
 
         console.log('✅ Dashboard vendeur - Prêt');
