@@ -17,12 +17,120 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentIndex = 0;
     let shops = [];
+    let sellerId = null;
 
     // ==========================================
-    // RÉCUPÉRER LES DONNÉES (localStorage)
+    // VÉRIFICATION CONNEXION
     // ==========================================
 
-    function getShops() {
+    function checkAuth() {
+        const token = localStorage.getItem('sellerToken');
+        if (!token) {
+            window.location.href = '/login';
+            return false;
+        }
+        return true;
+    }
+
+    // ==========================================
+    // RÉCUPÉRER LES DONNÉES DEPUIS L'API
+    // ==========================================
+
+    async function loadSellerData() {
+        try {
+            const token = localStorage.getItem('sellerToken');
+
+            // Récupérer le profil du vendeur
+            const meRes = await fetch('/api/seller/me', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            const meData = await meRes.json();
+
+            if (meData.success) {
+                sellerId = meData.seller.id;
+                localStorage.setItem('sellerId', sellerId);
+                localStorage.setItem('sellerName', meData.seller.name);
+            }
+
+            // Récupérer la boutique du vendeur
+            const shopRes = await fetch('/api/seller/shop', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            const shopData = await shopRes.json();
+
+            if (shopData.success && shopData.hasShop) {
+                // Une boutique existe
+                const shop = shopData.shop;
+                const products = shopData.products || [];
+
+                // Construire les données pour l'affichage
+                const shopDataFormatted = {
+                    id: shop.id,
+                    name: shop.name,
+                    location: shop.location,
+                    description: shop.description || '',
+                    logo: shop.logo || '',
+                    articles: products.length,
+                    messages: 0, // À récupérer séparément
+                    likes: 0, // À récupérer séparément
+                    products: products
+                };
+
+                shops = [shopDataFormatted];
+
+                // Récupérer les stats (likes, messages)
+                try {
+                    const statsRes = await fetch('/api/seller/stats', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    const statsData = await statsRes.json();
+                    if (statsData.success && statsData.stats && statsData.stats.shop_details) {
+                        const shopStats = statsData.stats.shop_details.find(s => s.id === shop.id);
+                        if (shopStats) {
+                            shops[0].messages = shopStats.total_messages || 0;
+                            shops[0].likes = shopStats.total_likes || 0;
+                        }
+                    }
+                } catch (statsError) {
+                    console.warn('⚠️ Erreur récupération stats:', statsError);
+                }
+
+                renderCarousel(shops);
+                renderStats(shops);
+                updateMessageBadge();
+
+            } else {
+                // Aucune boutique
+                shops = [];
+                renderCarousel(shops);
+                renderStats(shops);
+                updateMessageBadge();
+            }
+
+        } catch (error) {
+            console.error('❌ Erreur chargement données:', error);
+            // En cas d'erreur, on essaie de charger depuis localStorage (fallback)
+            const fallbackShops = getLocalShops();
+            if (fallbackShops.length > 0) {
+                shops = fallbackShops;
+                renderCarousel(shops);
+                renderStats(shops);
+                updateMessageBadge();
+            }
+        }
+    }
+
+    // ==========================================
+    // FALLBACK : LOCALSTORAGE (mode démo)
+    // ==========================================
+
+    function getLocalShops() {
         try {
             return JSON.parse(localStorage.getItem('sellerShops')) || [];
         } catch {
@@ -39,27 +147,21 @@ document.addEventListener('DOMContentLoaded', function() {
             shopCardBg.style.backgroundImage = 'none';
             shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
             shopCardBg.style.filter = 'none';
+            shopCardBg.style.transform = 'none';
             return;
         }
 
         const shop = shops[index];
+        const imageUrl = shop.logo || shop.image || '';
 
-        // ✅ Vérifier si une image existe
-        if (shop.image && shop.image !== '' && shop.image !== 'null' && shop.image !== 'undefined') {
-            // Si l'image est une URL complète (http:// ou https://)
-            if (shop.image.startsWith('http://') || shop.image.startsWith('https://')) {
-                shopCardBg.style.backgroundImage = `url(${shop.image})`;
-            } else {
-                // Sinon, considérer comme un chemin local
-                shopCardBg.style.backgroundImage = `url(/uploads/seller/${shop.image})`;
-            }
+        if (imageUrl && imageUrl !== '' && imageUrl !== 'null' && imageUrl !== 'undefined') {
+            shopCardBg.style.backgroundImage = `url(${imageUrl})`;
             shopCardBg.style.background = 'none';
             shopCardBg.style.filter = 'blur(6px) brightness(0.5)';
             shopCardBg.style.backgroundSize = 'cover';
             shopCardBg.style.backgroundPosition = 'center';
             shopCardBg.style.transform = 'scale(1.05)';
         } else {
-            // ✅ Pas d'image → dégradé rouge
             shopCardBg.style.backgroundImage = 'none';
             shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
             shopCardBg.style.filter = 'none';
@@ -187,15 +289,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchInput.addEventListener('input', function() {
         const query = this.value.toLowerCase().trim();
-        const allShops = getShops();
 
         if (query === '') {
-            renderCarousel(allShops);
-            renderStats(allShops);
+            renderCarousel(shops);
+            renderStats(shops);
             return;
         }
 
-        const filtered = allShops.filter(shop =>
+        const filtered = shops.filter(shop =>
             shop.name.toLowerCase().includes(query) ||
             shop.location.toLowerCase().includes(query) ||
             (shop.description && shop.description.toLowerCase().includes(query))
@@ -210,21 +311,95 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function updateMessageBadge() {
-        const allShops = getShops();
-        const totalMessages = allShops.reduce((sum, shop) => sum + (shop.messages || 0), 0);
+        const totalMessages = shops.reduce((sum, shop) => sum + (shop.messages || 0), 0);
         messageBadge.textContent = totalMessages > 0 ? totalMessages : '0';
+    }
+
+    // ==========================================
+    // RAFRAÎCHIR LES DONNÉES
+    // ==========================================
+
+    async function refreshData() {
+        console.log('🔄 Rafraîchissement des données...');
+        await loadSellerData();
+    }
+
+    // ==========================================
+    // SOCKET.IO - MISE À JOUR EN TEMPS RÉEL
+    // ==========================================
+
+    let socket = null;
+    let isSocketConnected = false;
+
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        try {
+            const sellerIdLocal = localStorage.getItem('sellerId') || '1';
+
+            socket = io({
+                auth: {
+                    sellerId: parseInt(sellerIdLocal)
+                },
+                transports: ['websocket', 'polling'],
+                timeout: 5000,
+                reconnection: true,
+                reconnectionAttempts: 20,
+                reconnectionDelay: 500
+            });
+
+            socket.on('connect', function() {
+                console.log('✅ Socket.IO vendeur connecté');
+                isSocketConnected = true;
+            });
+
+            socket.on('disconnect', function() {
+                console.log('❌ Socket.IO vendeur déconnecté');
+                isSocketConnected = false;
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectSocketIO();
+                    }
+                }, 3000);
+            });
+
+            socket.on('seller-update', function(data) {
+                console.log('🔔 Mise à jour vendeur reçue:', data);
+                refreshData();
+            });
+
+            socket.on('new-message', function(data) {
+                console.log('💬 Nouveau message reçu:', data);
+                refreshData();
+            });
+
+        } catch (error) {
+            console.error('❌ Erreur Socket.IO:', error);
+            setTimeout(() => connectSocketIO(), 5000);
+        }
     }
 
     // ==========================================
     // INITIALISATION
     // ==========================================
 
-    const allShops = getShops();
-    renderCarousel(allShops);
-    renderStats(allShops);
-    updateMessageBadge();
+    (async function init() {
+        if (!checkAuth()) return;
 
-    console.log('✅ Dashboard vendeur - Production prêt');
-    console.log(`📊 ${allShops.length} boutique(s) chargée(s)`);
+        await loadSellerData();
+
+        // Connecter Socket.IO
+        connectSocketIO();
+
+        // Rafraîchir toutes les 30 secondes
+        setInterval(() => {
+            refreshData();
+        }, 30000);
+
+        console.log('✅ Dashboard vendeur - Production prêt');
+    })();
 
 });
