@@ -3,44 +3,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Dashboard ComPlus chargé');
 
     // ==========================================
-    // DONNÉES PRODUITS
+    // DONNÉES PRODUITS (via API)
     // ==========================================
 
-    const products = [
-        {
-            id: 1,
-            name: 'Jus de gingembre bio',
-            description: 'Pur jus de gingembre frais, sans sucre ajouté. Idéal pour la digestion.',
-            price: 1500,
-            stock: 25,
-            image: 'https://picsum.photos/seed/gingembre/600/400'
-        },
-        {
-            id: 2,
-            name: 'Miel de forêt 500g',
-            description: 'Miel pur récolté en forêt, riche en nutriments et antioxydants.',
-            price: 3500,
-            stock: 12,
-            image: 'https://picsum.photos/seed/miel/600/400'
-        },
-        {
-            id: 3,
-            name: 'Tisane detox 20 sachets',
-            description: 'Mélange de plantes bio pour une detox naturelle et équilibrée.',
-            price: 2200,
-            stock: 8,
-            image: 'https://picsum.photos/seed/tisane/600/400'
-        },
-        {
-            id: 4,
-            name: 'Huile de coco vierge 1L',
-            description: 'Huile de coco bio pressée à froid, idéale pour la cuisine et les soins.',
-            price: 4500,
-            stock: 3,
-            image: 'https://picsum.photos/seed/coco/600/400'
-        }
-    ];
-
+    let products = [];
     let currentIndex = 0;
     let autoScrollInterval = null;
     let isAuthenticated = false;
@@ -63,6 +29,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const carouselFooter = document.getElementById('carouselFooter');
     const dashboardHeader = document.getElementById('dashboardHeader');
     const dynamicCard = document.getElementById('dynamicCard');
+    const searchInput = document.getElementById('searchInput');
+
+    const commandeBadge = document.getElementById('commandeBadge');
+    const notifBadge = document.getElementById('notifBadge');
+    const cartBadge = document.getElementById('cartBadge');
+
+    // ==========================================
+    // CHARGER LES PRODUITS DEPUIS L'API
+    // ==========================================
+
+    async function loadProducts() {
+        try {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+            if (res.ok && data.length > 0) {
+                products = data.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    description: p.description || 'Aucune description',
+                    price: p.price || 0,
+                    stock: p.quantity || 0,
+                    image: p.image1 || 'https://picsum.photos/seed/default/600/400'
+                }));
+                console.log(`✅ ${products.length} produits chargés`);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('❌ Erreur chargement produits:', error);
+            return false;
+        }
+    }
 
     // ==========================================
     // AUTH
@@ -79,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return true;
             }
         } catch (error) {
-            console.log('ℹ️ Mode démo - utilisateur non connecté');
+            console.log('ℹ️ Utilisateur non connecté');
         }
 
         const userId = localStorage.getItem('userId');
@@ -95,12 +93,62 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // BADGES
+    // ==========================================
+
+    async function loadBadges() {
+        if (!isAuthenticated) {
+            if (commandeBadge) commandeBadge.style.display = 'none';
+            if (notifBadge) notifBadge.style.display = 'none';
+            try {
+                const res = await fetch('/api/panier/count');
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    cartBadge.textContent = data.count || 0;
+                    cartBadge.style.display = data.count > 0 ? 'flex' : 'none';
+                }
+            } catch (e) { /* ignore */ }
+            return;
+        }
+
+        try {
+            // Commandes
+            const res1 = await fetch('/api/commandes');
+            if (res1.ok) {
+                const data = await res1.json();
+                const count = data.length || 0;
+                commandeBadge.textContent = count;
+                commandeBadge.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            // Notifications
+            const res2 = await fetch('/api/notifications/count');
+            if (res2.ok) {
+                const data = await res2.json();
+                const count = data.count || 0;
+                notifBadge.textContent = count;
+                notifBadge.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            // Panier
+            const res3 = await fetch('/api/panier/count');
+            if (res3.ok) {
+                const data = await res3.json();
+                const count = data.count || 0;
+                cartBadge.textContent = count;
+                cartBadge.style.display = count > 0 ? 'flex' : 'none';
+            }
+        } catch (error) {
+            console.error('❌ Erreur badges:', error);
+        }
+    }
+
+    // ==========================================
     // AFFICHAGE CARTE DYNAMIQUE
     // ==========================================
 
     function renderDynamicCard() {
         if (isAuthenticated) {
-            // ✅ Carte ComPlus
             dynamicCard.innerHTML = `
                 <div class="complus-card">
                     <div class="complus-content">
@@ -108,43 +156,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h2>ComPlus</h2>
                         <p>Local et rapide, 100% fait en Côte d'Ivoire</p>
                         <p class="complus-sub">Commencer à rechercher et commander vos préférences.</p>
-                        <button class="complus-btn" id="complusSearchBtn">
+                        <a href="/searchproduct" class="complus-btn">
                             <i class="fas fa-search"></i> Rechercher
-                        </button>
+                        </a>
                     </div>
                 </div>
             `;
-
-            // ✅ Événement bouton ComPlus
-            const complusBtn = document.getElementById('complusSearchBtn');
-            if (complusBtn) {
-                complusBtn.addEventListener('click', function() {
-                    window.location.href = '/searchproduct';
-                });
-            }
-
         } else {
-            // ✅ Carte Connexion
             dynamicCard.innerHTML = `
                 <div class="connect-card">
                     <div class="connect-content">
                         <div class="connect-icon">🔐</div>
                         <h2>Connectez-vous</h2>
                         <p>Connectez-vous pour passer commande et profiter de toutes nos fonctionnalités.</p>
-                        <button class="connect-btn" id="connectBtn">
+                        <a href="/login" class="connect-btn">
                             <i class="fas fa-sign-in-alt"></i> Se connecter
-                        </button>
+                        </a>
                     </div>
                 </div>
             `;
-
-            // ✅ Événement bouton Connexion
-            const connectBtn = document.getElementById('connectBtn');
-            if (connectBtn) {
-                connectBtn.addEventListener('click', function() {
-                    window.location.href = '/login';
-                });
-            }
         }
     }
 
@@ -154,18 +184,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startAutoScroll() {
         if (autoScrollInterval) clearInterval(autoScrollInterval);
+        if (products.length <= 1) return;
         autoScrollInterval = setInterval(() => {
-            if (currentIndex < products.length - 1) {
-                currentIndex++;
-            } else {
-                currentIndex = 0;
-            }
+            currentIndex = (currentIndex + 1) % products.length;
             updateCarousel(currentIndex);
         }, 8000);
     }
 
     // ==========================================
-    // FONCTIONS CARROUSEL
+    // CARROUSEL
     // ==========================================
 
     function updateCarousel(index) {
@@ -192,8 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.style.opacity = index === products.length - 1 ? '0.3' : '1';
 
         productImage.classList.remove('zoomed');
-
-        console.log(`🔄 Produit affiché : ${product.name}`);
     }
 
     function nextProduct() {
@@ -214,20 +239,86 @@ document.addEventListener('DOMContentLoaded', function() {
         productImage.classList.toggle('zoomed');
     }
 
-    function addToCart() {
+    async function addToCart() {
         const product = products[currentIndex];
         if (!product) return;
-        alert(`🛒 Ajouté au panier : ${product.name} - ${product.price.toLocaleString()} FCFA`);
-        addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Ajouté !';
-        setTimeout(() => {
-            addToCartBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter';
-        }, 1500);
+
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/panier/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: product.id, quantity: 1 })
+            });
+            const data = await res.json();
+            if (data.success) {
+                addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Ajouté !';
+                loadBadges();
+                setTimeout(() => {
+                    addToCartBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter';
+                }, 1500);
+            } else if (data.error === 'Non authentifié') {
+                window.location.href = '/login';
+            }
+        } catch (error) {
+            console.error('Erreur ajout panier:', error);
+        }
     }
 
     function viewDetail() {
         const product = products[currentIndex];
         if (!product) return;
-        alert(`👁️ Détail du produit : ${product.name}\n💰 ${product.price.toLocaleString()} FCFA`);
+        window.location.href = `/infoproduit?id=${product.id}`;
+    }
+
+    // ==========================================
+    // RECHERCHE
+    // ==========================================
+
+    if (searchInput) {
+        searchInput.addEventListener('click', function() {
+            window.location.href = '/searchproduct';
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    window.location.href = `/results?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
+
+    // ==========================================
+    // SOCKET.IO
+    // ==========================================
+
+    let socket = null;
+
+    function connectSocketIO() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        try {
+            const userId = localStorage.getItem('userId') || '1';
+            socket = io({
+                auth: { userId: parseInt(userId), isAdmin: false }
+            });
+
+            socket.on('connect', () => console.log('✅ Socket.IO connecté'));
+            socket.on('commande-update', () => loadBadges());
+            socket.on('notification', () => loadBadges());
+            socket.on('disconnect', () => console.log('❌ Socket.IO déconnecté'));
+        } catch (error) {
+            console.error('❌ Erreur Socket.IO:', error);
+            setTimeout(connectSocketIO, 5000);
+        }
     }
 
     // ==========================================
@@ -246,67 +337,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // HEADER
-    // ==========================================
-
-    const searchInput = document.getElementById('searchInput');
-    const cartBtn = document.getElementById('cartBtn');
-    const mesCommandesBtn = document.getElementById('mesCommandesBtn');
-    const notifBtn = document.getElementById('notifBtn');
-    const profilBtn = document.getElementById('profilBtn');
-
-    if (searchInput) {
-        searchInput.addEventListener('click', function() {
-            window.location.href = '/searchproduct';
-        });
-    }
-
-    if (cartBtn) {
-        cartBtn.addEventListener('click', function() {
-            window.location.href = '/panier';
-        });
-    }
-
-    if (mesCommandesBtn) {
-        mesCommandesBtn.addEventListener('click', function() {
-            if (!isAuthenticated) {
-                window.location.href = '/login';
-                return;
-            }
-            window.location.href = '/mescommandes';
-        });
-    }
-
-    if (notifBtn) {
-        notifBtn.addEventListener('click', function() {
-            if (!isAuthenticated) {
-                window.location.href = '/login';
-                return;
-            }
-            window.location.href = '/notification';
-        });
-    }
-
-    if (profilBtn) {
-        profilBtn.addEventListener('click', function() {
-            if (!isAuthenticated) {
-                window.location.href = '/login';
-                return;
-            }
-            window.location.href = '/profil';
-        });
-    }
-
-    // ==========================================
     // INIT
     // ==========================================
 
     (async function init() {
         await checkAuth();
+
+        const loaded = await loadProducts();
+        if (!loaded || products.length === 0) {
+            // Produits de secours
+            products = [
+                { id: 1, name: 'Produit 1', price: 1500, stock: 25, image: 'https://picsum.photos/seed/1/600/400' },
+                { id: 2, name: 'Produit 2', price: 3500, stock: 12, image: 'https://picsum.photos/seed/2/600/400' },
+                { id: 3, name: 'Produit 3', price: 2200, stock: 8, image: 'https://picsum.photos/seed/3/600/400' }
+            ];
+        }
+
         renderDynamicCard();
         updateCarousel(0);
         startAutoScroll();
-        console.log('✅ Dashboard ComPlus prêt - Mode production');
+        loadBadges();
+        connectSocketIO();
+
+        // Rafraîchir badges toutes les 30s
+        setInterval(loadBadges, 30000);
+
+        console.log('✅ Dashboard ComPlus prêt - Production');
     })();
 
 });
