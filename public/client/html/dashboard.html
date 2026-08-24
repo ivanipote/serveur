@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Nature+</title>
+    <title>Dashboard | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/dashboard.css">
 </head>
 <body>
 
     <!-- ========================================= -->
-    <!-- HEADER FIXE -->
+    <!-- HEADER FIXE (70px / Glassmorphisme)       -->
     <!-- ========================================= -->
     <header class="dashboard-header">
         <!-- Logo (feuille uniquement) -->
@@ -50,18 +50,18 @@
     </header>
 
     <!-- ========================================= -->
-    <!-- CONTENU PRINCIPAL (scrollable) -->
+    <!-- CONTENU PRINCIPAL (scrollable)            -->
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
 
-        <!-- MESSAGE INVITÉ STYLÉ -->
+        <!-- MESSAGE INVITÉ -->
         <div id="guestMessage" class="guest-message" style="display:none;">
             <div class="guest-content">
                 <div class="guest-icon">
                     <i class="fas fa-leaf"></i>
                 </div>
                 <div class="guest-text">
-                    <h3>🌿 Bienvenue sur Nature+</h3>
+                    <h3>🌿 Bienvenue sur ComPlus</h3>
                     <p>Connectez-vous pour passer commande et profiter de toutes nos fonctionnalités.</p>
                 </div>
                 <a href="/login" class="guest-login-btn">
@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        <!-- CARTE 1 : CARROUSEL -->
+        <!-- CARTE 1 : CARROUSEL (redesign) -->
         <div class="card-rectangle" id="productCard">
             <div class="carousel-container">
                 <!-- SKELETON LOADER -->
@@ -101,6 +101,22 @@
             </div>
         </div>
 
+        <!-- CARTE BIENVENUE ComPlus -->
+        <div class="welcome-card" id="welcomeCard">
+            <div class="welcome-content">
+                <div class="welcome-icon">🌿</div>
+                <div class="welcome-text">
+                    <h3>Bienvenue sur ComPlus</h3>
+                    <p>Commander plus et recevez votre commande en toute bonne état.</p>
+                    <div class="welcome-features">
+                        <span>✅ Produits 100% naturels</span>
+                        <span>📦 Livraison rapide</span>
+                        <span>💳 Paiement sécurisé</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- CARTE 2 : DÉTAIL PRODUIT (footer) -->
         <div class="card-detail" id="productDetail">
             <div class="detail-bg" id="detailBg"></div>
@@ -118,6 +134,8 @@
 
     </main>
 
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/dashboard.js"></script>
+
 </body>
 </html>
