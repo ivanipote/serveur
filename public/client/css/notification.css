@@ -939,3 +939,58 @@ body {
         font-size: 13px;
     }
 }
+/* ✅ EMPECHER LE SCROLL HORIZONTAL */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+.notif-main {
+    overflow-x: hidden !important;
+    padding: 16px 20px 20px 20px;
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* ✅ FORCER LES CARTES À NE PAS DEPASSER */
+.notif-card {
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* ✅ CONTENU DES NOTIFICATIONS - COUPURE AUTOMATIQUE */
+.notif-card .body .content {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: 2px;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+}
+
+/* ✅ LIENS DANS LES NOTIFICATIONS - PAS DE DEPASSEMENT */
+.notification-link {
+    display: inline-block;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-all !important;
+    font-size: 13px;
+}
+
+/* ✅ FILTRES - SCROLL HORIZONTAL AUTORISE UNIQUEMENT POUR LES FILTRES */
+.filter-bar {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+/* ✅ BODY - PAS DE SCROLL HORIZONTAL */
+body {
+    overflow-x: hidden !important;
+}
