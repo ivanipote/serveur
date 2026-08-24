@@ -17,6 +17,31 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const axios = require('axios');
 
+// ========================================================
+// CLOUDINARY - Configuration
+// ========================================================
+
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary-v2');
+const multer = require('multer');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'mntaohf8',
+    api_key: process.env.CLOUDINARY_API_KEY || '356219589835121',
+    api_secret: process.env.CLOUDINARY_API_SECRET || 'DtInJyO75sPdqCjjzxENNCASRJI',
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'seller_shops',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+        public_id: (req, file) => `shop_${Date.now()}_${file.originalname.split('.')[0]}`,
+    },
+});
+
+const upload = multer({ storage: storage });
+
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3006;
@@ -217,7 +242,6 @@ app.post('/api/seller/register', async (req, res) => {
     }
 
     try {
-        // Vérifier si l'email existe déjà
         const existing = await db.get('SELECT * FROM sellers WHERE email = $1', [email]);
         if (existing) {
             return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
@@ -331,12 +355,13 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
 // ROUTES : BOUTIQUES
 // ========================================================
 
-// Créer une boutique
-app.post('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
+// Créer une boutique AVEC IMAGE (Cloudinary)
+app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
     console.log('📥 Création boutique reçue');
     console.log('📦 Body:', req.body);
+    console.log('🖼️ Fichier:', req.file);
 
-    const { name, location, description, logo } = req.body;
+    const { name, location, description } = req.body;
     const sellerId = req.seller.id;
 
     if (!name || !location) {
@@ -349,10 +374,12 @@ app.post('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
             return res.status(400).json({ error: 'Vous avez déjà une boutique.' });
         }
 
+        const imageUrl = req.file ? req.file.path : null;
+
         const result = await db.query(
             `INSERT INTO shops (seller_id, name, location, description, logo, status)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [sellerId, name, location, description || null, logo || null, 'active']
+            [sellerId, name, location, description || null, imageUrl, 'active']
         );
 
         const shopId = result.rows[0].id;
@@ -366,7 +393,7 @@ app.post('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
                 name: name,
                 location: location,
                 description: description,
-                logo: logo,
+                logo: imageUrl,
                 status: 'active'
             }
         });
@@ -411,11 +438,12 @@ app.get('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
 });
 
 // Modifier sa boutique
-app.put('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
+app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
     console.log('📥 Modification boutique reçue');
     console.log('📦 Body:', req.body);
+    console.log('🖼️ Fichier:', req.file);
 
-    const { name, location, description, logo } = req.body;
+    const { name, location, description } = req.body;
     const sellerId = req.seller.id;
 
     try {
@@ -425,11 +453,16 @@ app.put('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
             return res.status(404).json({ error: 'Boutique non trouvée.' });
         }
 
+        let imageUrl = shop.logo;
+        if (req.file) {
+            imageUrl = req.file.path;
+        }
+
         await db.query(
             `UPDATE shops 
              SET name = $1, location = $2, description = $3, logo = $4
              WHERE id = $5`,
-            [name || shop.name, location || shop.location, description || shop.description, logo || shop.logo, shop.id]
+            [name || shop.name, location || shop.location, description || shop.description, imageUrl, shop.id]
         );
 
         const updatedShop = await db.get('SELECT * FROM shops WHERE id = $1', [shop.id]);
@@ -487,7 +520,7 @@ app.post('/api/seller/product', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// ✅ MODIFIER UN PRODUIT VENDEUR
+// Modifier un produit vendeur
 app.put('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
     console.log('📥 Modification produit reçue');
     console.log('📦 Body:', req.body);
@@ -531,7 +564,7 @@ app.put('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// ✅ SUPPRIMER UN PRODUIT VENDEUR
+// Supprimer un produit vendeur
 app.delete('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
     console.log(`📥 Suppression produit #${req.params.id}`);
 
@@ -630,7 +663,6 @@ app.get('/api/seller/shop/:id', async (req, res) => {
             [id]
         );
 
-        // Récupérer les likes
         const likeCount = await db.get(
             'SELECT COUNT(*) as count FROM seller_likes WHERE shop_id = $1',
             [id]
@@ -655,7 +687,7 @@ app.get('/api/seller/shop/:id', async (req, res) => {
 // ROUTES : LIKES
 // ========================================================
 
-// ✅ LIKE/UNLIKE UNE BOUTIQUE
+// Like/Unlike une boutique
 app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => {
     console.log(`📥 Like/Unlike boutique #${req.params.shopId}`);
 
@@ -715,7 +747,7 @@ app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => 
     }
 });
 
-// ✅ RÉCUPÉRER LES LIKES D'UNE BOUTIQUE
+// Récupérer les likes d'une boutique
 app.get('/api/seller/likes/:shopId', async (req, res) => {
     console.log(`📥 Récupération likes boutique #${req.params.shopId}`);
 
@@ -743,7 +775,7 @@ app.get('/api/seller/likes/:shopId', async (req, res) => {
 // ROUTES : STATISTIQUES
 // ========================================================
 
-// ✅ STATISTIQUES DU VENDEUR
+// Statistiques du vendeur
 app.get('/api/seller/stats', isAuthenticatedSeller, async (req, res) => {
     console.log('📥 Récupération statistiques vendeur');
 
@@ -863,7 +895,6 @@ app.post('/api/seller/message', isAuthenticatedSeller, async (req, res) => {
             sellerName: req.seller.name
         });
 
-        // Mettre à jour les stats messages
         if (shopId) {
             await db.query(
                 `INSERT INTO seller_stats (seller_id, shop_id, total_messages, updated_at)
