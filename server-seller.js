@@ -487,6 +487,80 @@ app.post('/api/seller/product', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
+// ✅ MODIFIER UN PRODUIT VENDEUR
+app.put('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
+    console.log('📥 Modification produit reçue');
+    console.log('📦 Body:', req.body);
+
+    const { id } = req.params;
+    const { name, price, image, description, stock, category } = req.body;
+    const sellerId = req.seller.id;
+
+    if (!name || !price) {
+        return res.status(400).json({ error: 'Nom et prix requis.' });
+    }
+
+    try {
+        const product = await db.get(
+            'SELECT * FROM seller_products WHERE id = $1 AND seller_id = $2',
+            [id, sellerId]
+        );
+
+        if (!product) {
+            return res.status(404).json({ error: 'Produit non trouvé ou non autorisé.' });
+        }
+
+        await db.query(
+            `UPDATE seller_products 
+             SET name = $1, price = $2, image = $3, description = $4, stock = $5, category = $6
+             WHERE id = $7`,
+            [name, price, image || product.image, description || product.description, stock || 0, category || null, id]
+        );
+
+        const updated = await db.get('SELECT * FROM seller_products WHERE id = $1', [id]);
+
+        res.json({
+            success: true,
+            message: 'Produit modifié avec succès',
+            product: updated
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur modification produit:', error);
+        res.status(500).json({ error: 'Erreur lors de la modification du produit.' });
+    }
+});
+
+// ✅ SUPPRIMER UN PRODUIT VENDEUR
+app.delete('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
+    console.log(`📥 Suppression produit #${req.params.id}`);
+
+    const { id } = req.params;
+    const sellerId = req.seller.id;
+
+    try {
+        const product = await db.get(
+            'SELECT * FROM seller_products WHERE id = $1 AND seller_id = $2',
+            [id, sellerId]
+        );
+
+        if (!product) {
+            return res.status(404).json({ error: 'Produit non trouvé ou non autorisé.' });
+        }
+
+        await db.query('DELETE FROM seller_products WHERE id = $1', [id]);
+
+        res.json({
+            success: true,
+            message: 'Produit supprimé avec succès'
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur suppression produit:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression du produit.' });
+    }
+});
+
 // Récupérer tous les produits d'une boutique (public)
 app.get('/api/seller/products/:shopId', async (req, res) => {
     const { shopId } = req.params;
@@ -556,9 +630,18 @@ app.get('/api/seller/shop/:id', async (req, res) => {
             [id]
         );
 
+        // Récupérer les likes
+        const likeCount = await db.get(
+            'SELECT COUNT(*) as count FROM seller_likes WHERE shop_id = $1',
+            [id]
+        );
+
         res.json({
             success: true,
-            shop: shop,
+            shop: {
+                ...shop,
+                total_likes: parseInt(likeCount?.count || 0)
+            },
             products: products || []
         });
 
@@ -569,10 +652,165 @@ app.get('/api/seller/shop/:id', async (req, res) => {
 });
 
 // ========================================================
+// ROUTES : LIKES
+// ========================================================
+
+// ✅ LIKE/UNLIKE UNE BOUTIQUE
+app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => {
+    console.log(`📥 Like/Unlike boutique #${req.params.shopId}`);
+
+    const { shopId } = req.params;
+    const userId = req.seller.id;
+
+    try {
+        const shop = await db.get('SELECT * FROM shops WHERE id = $1', [shopId]);
+
+        if (!shop) {
+            return res.status(404).json({ error: 'Boutique non trouvée.' });
+        }
+
+        const existing = await db.get(
+            'SELECT * FROM seller_likes WHERE shop_id = $1 AND user_id = $2',
+            [shopId, userId]
+        );
+
+        let liked = false;
+
+        if (existing) {
+            await db.query(
+                'DELETE FROM seller_likes WHERE shop_id = $1 AND user_id = $2',
+                [shopId, userId]
+            );
+            liked = false;
+        } else {
+            await db.query(
+                'INSERT INTO seller_likes (seller_id, shop_id, user_id) VALUES ($1, $2, $3)',
+                [shop.seller_id, shopId, userId]
+            );
+            liked = true;
+        }
+
+        const likeCount = await db.get(
+            'SELECT COUNT(*) as count FROM seller_likes WHERE shop_id = $1',
+            [shopId]
+        );
+
+        await db.query(
+            `INSERT INTO seller_stats (seller_id, shop_id, total_likes, updated_at)
+             VALUES ($1, $2, $3, NOW())
+             ON CONFLICT (shop_id) 
+             DO UPDATE SET total_likes = $3, updated_at = NOW()`,
+            [shop.seller_id, shopId, likeCount.count]
+        );
+
+        res.json({
+            success: true,
+            liked: liked,
+            total_likes: parseInt(likeCount.count)
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur like:', error);
+        res.status(500).json({ error: 'Erreur lors du like.' });
+    }
+});
+
+// ✅ RÉCUPÉRER LES LIKES D'UNE BOUTIQUE
+app.get('/api/seller/likes/:shopId', async (req, res) => {
+    console.log(`📥 Récupération likes boutique #${req.params.shopId}`);
+
+    const { shopId } = req.params;
+
+    try {
+        const likeCount = await db.get(
+            'SELECT COUNT(*) as count FROM seller_likes WHERE shop_id = $1',
+            [shopId]
+        );
+
+        res.json({
+            success: true,
+            shop_id: parseInt(shopId),
+            total_likes: parseInt(likeCount?.count || 0)
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération likes:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des likes.' });
+    }
+});
+
+// ========================================================
+// ROUTES : STATISTIQUES
+// ========================================================
+
+// ✅ STATISTIQUES DU VENDEUR
+app.get('/api/seller/stats', isAuthenticatedSeller, async (req, res) => {
+    console.log('📥 Récupération statistiques vendeur');
+
+    const sellerId = req.seller.id;
+
+    try {
+        const shops = await db.all(
+            'SELECT id, name, status FROM shops WHERE seller_id = $1',
+            [sellerId]
+        );
+
+        const totalProducts = await db.get(
+            'SELECT COUNT(*) as count FROM seller_products WHERE seller_id = $1',
+            [sellerId]
+        );
+
+        const totalOrders = await db.get(
+            'SELECT COUNT(*) as count FROM seller_orders WHERE seller_id = $1',
+            [sellerId]
+        );
+
+        const totalMessages = await db.get(
+            'SELECT COUNT(*) as count FROM seller_messages WHERE seller_id = $1',
+            [sellerId]
+        );
+
+        const totalLikes = await db.get(
+            `SELECT COUNT(*) as count FROM seller_likes WHERE seller_id = $1`,
+            [sellerId]
+        );
+
+        const shopDetails = await db.all(`
+            SELECT 
+                s.id,
+                s.name,
+                s.location,
+                s.status,
+                (SELECT COUNT(*) FROM seller_products WHERE shop_id = s.id) as total_products,
+                (SELECT COUNT(*) FROM seller_likes WHERE shop_id = s.id) as total_likes,
+                (SELECT COUNT(*) FROM seller_messages WHERE shop_id = s.id) as total_messages,
+                (SELECT COUNT(*) FROM seller_orders WHERE shop_id = s.id) as total_orders
+            FROM shops s
+            WHERE s.seller_id = $1
+        `, [sellerId]);
+
+        res.json({
+            success: true,
+            stats: {
+                total_shops: shops.length,
+                total_products: parseInt(totalProducts?.count || 0),
+                total_orders: parseInt(totalOrders?.count || 0),
+                total_messages: parseInt(totalMessages?.count || 0),
+                total_likes: parseInt(totalLikes?.count || 0),
+                shop_details: shopDetails || []
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur statistiques:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des statistiques.' });
+    }
+});
+
+// ========================================================
 // ROUTES : COMMANDES VENDEUR
 // ========================================================
 
-// Récupérer les commandes du vendeur
 app.get('/api/seller/orders', isAuthenticatedSeller, async (req, res) => {
     const sellerId = req.seller.id;
 
@@ -600,7 +838,6 @@ app.get('/api/seller/orders', isAuthenticatedSeller, async (req, res) => {
 // ROUTES : MESSAGES VENDEUR-CLIENT
 // ========================================================
 
-// Envoyer un message
 app.post('/api/seller/message', isAuthenticatedSeller, async (req, res) => {
     console.log('📥 Message vendeur reçu');
     console.log('📦 Body:', req.body);
@@ -626,6 +863,17 @@ app.post('/api/seller/message', isAuthenticatedSeller, async (req, res) => {
             sellerName: req.seller.name
         });
 
+        // Mettre à jour les stats messages
+        if (shopId) {
+            await db.query(
+                `INSERT INTO seller_stats (seller_id, shop_id, total_messages, updated_at)
+                 VALUES ($1, $2, 1, NOW())
+                 ON CONFLICT (shop_id) 
+                 DO UPDATE SET total_messages = seller_stats.total_messages + 1, updated_at = NOW()`,
+                [sellerId, shopId]
+            );
+        }
+
         res.json({
             success: true,
             message: 'Message envoyé',
@@ -638,7 +886,6 @@ app.post('/api/seller/message', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// Récupérer les messages d'un client
 app.get('/api/seller/messages/:userId', isAuthenticatedSeller, async (req, res) => {
     const { userId } = req.params;
     const sellerId = req.seller.id;
@@ -691,12 +938,8 @@ app.get('/create-shop', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-shop.html'));
 });
 
-app.get('/view-shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'view-shop.html'));
-});
-
-app.get('/edit-shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'edit-shop.html'));
+app.get('/shop', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop.html'));
 });
 
 // ========================================================
@@ -741,6 +984,5 @@ server.listen(PORT, '0.0.0.0', async () => {
     console.log(`📍 Socket.IO: actif`);
     console.log(`📍 ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`========================================`);
-    // ✅ Lancer l'initialisation après le démarrage
     await initDatabaseWithRetry();
 });
