@@ -22,25 +22,28 @@
             <p class="sub">Créez un compte pour commencer...</p>
         </div>
 
-        <!-- ===== FORMULAIRE ===== -->
-        <form id="registerForm" class="register-form">
-
-            <!-- Numéro de téléphone -->
+        <!-- ========================================= -->
+        <!-- CADRE 1 : TÉLÉPHONE                       -->
+        <!-- ========================================= -->
+        <div class="form-card">
             <div class="form-group">
                 <label for="phoneInput">
                     <i class="fas fa-phone"></i> Numéro de téléphone
                 </label>
-                <div class="phone-container">
-                    <span class="phone-prefix">+225</span>
-                    <div class="phone-boxes" id="phoneBoxes">
-                        <!-- 10 cases générées par JS -->
-                    </div>
-                    <input type="tel" id="phoneHidden" maxlength="10" inputmode="numeric" autocomplete="off" />
+                <div class="input-wrapper">
+                    <span class="input-prefix">+225</span>
+                    <input type="tel" id="phoneInput" class="phone-input" 
+                           placeholder="05 03 58 83 36" maxlength="10" inputmode="numeric" />
                     <span id="phoneStatus" class="input-status"></span>
                 </div>
+                <div class="input-hint">10 chiffres (ex: 0503588336)</div>
             </div>
+        </div>
 
-            <!-- Nom complet -->
+        <!-- ========================================= -->
+        <!-- CADRE 2 : NOM COMPLET                     -->
+        <!-- ========================================= -->
+        <div class="form-card">
             <div class="form-group">
                 <label for="nameInput">
                     <i class="fas fa-user"></i> Nom complet
@@ -50,8 +53,12 @@
                     <span id="nameStatus" class="input-status"></span>
                 </div>
             </div>
+        </div>
 
-            <!-- Email (optionnel) -->
+        <!-- ========================================= -->
+        <!-- CADRE 3 : EMAIL (optionnel)               -->
+        <!-- ========================================= -->
+        <div class="form-card">
             <div class="form-group">
                 <label for="emailInput">
                     <i class="fas fa-envelope"></i> Email <span class="optional">(optionnel)</span>
@@ -61,74 +68,53 @@
                     <span id="emailStatus" class="input-status"></span>
                 </div>
             </div>
+        </div>
 
-            <!-- Code secret (4 chiffres) -->
+        <!-- ========================================= -->
+        <!-- CADRE 4 : CODE SECRET (4 chiffres)        -->
+        <!-- ========================================= -->
+        <div class="form-card">
             <div class="form-group">
                 <label for="passwordInput">
                     <i class="fas fa-lock"></i> Code secret
                 </label>
-                <div class="password-wrapper">
-                    <div class="password-boxes-container">
-                        <div class="password-boxes" id="passwordBoxes">
-                            <!-- 4 cases générées par JS -->
-                        </div>
-                        <input type="hidden" id="passwordHidden" maxlength="4" />
-                    </div>
-                    <button type="button" id="clearPwdBtn" class="clear-pwd-btn" style="display:none;">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                <div class="input-wrapper">
+                    <input type="password" id="passwordInput" 
+                           placeholder="••••" maxlength="4" inputmode="numeric" />
+                    <span id="passwordStatus" class="input-status"></span>
                 </div>
-                <div class="code-hint">Entrez un code à 4 chiffres</div>
+                <div class="input-hint">4 chiffres</div>
             </div>
+        </div>
 
-            <!-- Confirmation code -->
+        <!-- ========================================= -->
+        <!-- CADRE 5 : CONFIRMATION CODE               -->
+        <!-- ========================================= -->
+        <div class="form-card">
             <div class="form-group">
                 <label for="confirmInput">
                     <i class="fas fa-check-circle"></i> Confirmer le code
                 </label>
-                <div class="password-wrapper">
-                    <div class="password-boxes-container">
-                        <div class="password-boxes" id="confirmBoxes">
-                            <!-- 4 cases générées par JS -->
-                        </div>
-                        <input type="hidden" id="confirmHidden" maxlength="4" />
-                    </div>
-                    <button type="button" id="clearConfirmBtn" class="clear-pwd-btn" style="display:none;">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                <div class="input-wrapper">
+                    <input type="password" id="confirmInput" 
+                           placeholder="••••" maxlength="4" inputmode="numeric" />
+                    <span id="confirmStatus" class="input-status"></span>
                 </div>
             </div>
-
-            <!-- BOUTON CRÉER -->
-            <button type="submit" class="btn-register" id="registerBtn" disabled>
-                <i class="fas fa-user-plus"></i> Créer mon compte
-            </button>
-
-            <!-- MESSAGE -->
-            <div id="message" class="message"></div>
-
-            <!-- LIEN LOGIN -->
-            <p class="login-link">
-                Déjà inscrit ? <a href="/login">Se connecter</a>
-            </p>
-
-        </form>
-
-        <!-- ===== PAVÉ NUMÉRIQUE ===== -->
-        <div class="pave-container" id="paveContainer">
-            <div class="pave pave-round">
-                <button class="num-btn-pwd" data-value="1">1</button>
-                <button class="num-btn-pwd" data-value="2">2</button>
-                <button class="num-btn-pwd" data-value="3">3</button>
-                <button class="num-btn-pwd" data-value="4">4</button>
-                <button class="num-btn-pwd" data-value="5">5</button>
-                <button class="num-btn-pwd" data-value="6">6</button>
-                <button class="num-btn-pwd" data-value="7">7</button>
-                <button class="num-btn-pwd" data-value="8">8</button>
-                <button class="num-btn-pwd" data-value="9">9</button>
-                <button class="num-btn-pwd btn-zero" data-value="0">0</button>
-            </div>
         </div>
+
+        <!-- ===== BOUTON CRÉER ===== -->
+        <button type="submit" class="btn-register" id="registerBtn" disabled>
+            <i class="fas fa-user-plus"></i> Créer mon compte
+        </button>
+
+        <!-- ===== MESSAGE ===== -->
+        <div id="message" class="message"></div>
+
+        <!-- ===== LIEN LOGIN ===== -->
+        <p class="login-link">
+            Déjà inscrit ? <a href="/login">Se connecter</a>
+        </p>
 
     </div>
 

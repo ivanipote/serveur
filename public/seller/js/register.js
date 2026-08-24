@@ -6,10 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // RÉFÉRENCES
     // ==========================================
 
-    const phoneBoxes = document.getElementById('phoneBoxes');
-    const phoneHidden = document.getElementById('phoneHidden');
+    const phoneInput = document.getElementById('phoneInput');
     const phoneStatus = document.getElementById('phoneStatus');
-    const phoneContainer = document.querySelector('.phone-container');
+    const phoneWrapper = phoneInput.closest('.input-wrapper');
 
     const nameInput = document.getElementById('nameInput');
     const nameStatus = document.getElementById('nameStatus');
@@ -19,91 +18,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailStatus = document.getElementById('emailStatus');
     const emailWrapper = emailInput.closest('.input-wrapper');
 
-    const passwordBoxes = document.getElementById('passwordBoxes');
-    const passwordHidden = document.getElementById('passwordHidden');
-    const confirmBoxes = document.getElementById('confirmBoxes');
-    const confirmHidden = document.getElementById('confirmHidden');
-    const clearPwdBtn = document.getElementById('clearPwdBtn');
-    const clearConfirmBtn = document.getElementById('clearConfirmBtn');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordStatus = document.getElementById('passwordStatus');
+    const passwordWrapper = passwordInput.closest('.input-wrapper');
+
+    const confirmInput = document.getElementById('confirmInput');
+    const confirmStatus = document.getElementById('confirmStatus');
+    const confirmWrapper = confirmInput.closest('.input-wrapper');
 
     const registerBtn = document.getElementById('registerBtn');
     const message = document.getElementById('message');
 
-    const numBtns = document.querySelectorAll('.num-btn-pwd');
-
-    const PHONE_LENGTH = 10;
-    const CODE_LENGTH = 4;
-
-    let phoneDigits = '';
-    let passwordValue = '';
-    let confirmValue = '';
-    let isPasswordFocused = true;
-
     // ==========================================
-    // TÉLÉPHONE
+    // VALIDATION EN TEMPS RÉEL
     // ==========================================
 
-    // Créer les cases
-    for (let i = 0; i < PHONE_LENGTH; i++) {
-        const box = document.createElement('div');
-        box.className = 'phone-box';
-        box.dataset.index = i;
-        phoneBoxes.appendChild(box);
-    }
-    const phoneBoxesElements = phoneBoxes.querySelectorAll('.phone-box');
+    // ----- TÉLÉPHONE -----
+    phoneInput.addEventListener('input', function() {
+        const val = this.value.replace(/\D/g, '');
+        this.value = val;
 
-    function updatePhone(value) {
-        const digits = value.replace(/\D/g, '').slice(0, PHONE_LENGTH);
-        phoneHidden.value = digits;
-        phoneDigits = digits;
-
-        phoneBoxesElements.forEach((box, index) => {
-            const char = digits[index] || '';
-            box.textContent = char;
-            box.classList.toggle('filled', char !== '');
-            box.classList.remove('active');
-        });
-
-        if (digits.length < PHONE_LENGTH) {
-            phoneBoxesElements[digits.length].classList.add('active');
-        }
-
-        if (digits.length === PHONE_LENGTH) {
+        if (val.length === 10) {
             phoneStatus.textContent = '✓';
             phoneStatus.className = 'input-status visible valid';
-            phoneContainer.classList.remove('invalid');
-            phoneContainer.classList.add('valid');
-        } else if (digits.length > 0) {
+            phoneWrapper.classList.remove('invalid');
+            phoneWrapper.classList.add('valid');
+        } else if (val.length > 0 && val.length < 10) {
             phoneStatus.textContent = '✗';
             phoneStatus.className = 'input-status visible invalid';
-            phoneContainer.classList.remove('valid');
-            phoneContainer.classList.add('invalid');
+            phoneWrapper.classList.remove('valid');
+            phoneWrapper.classList.add('invalid');
         } else {
             phoneStatus.className = 'input-status';
-            phoneContainer.classList.remove('valid', 'invalid');
+            phoneWrapper.classList.remove('valid', 'invalid');
         }
-
         checkAllValid();
-    }
-
-    phoneHidden.addEventListener('input', function() {
-        updatePhone(this.value);
     });
 
-    phoneContainer.addEventListener('click', function() {
-        phoneHidden.focus();
-        phoneHidden.click();
-    });
-
-    phoneBoxes.addEventListener('click', function() {
-        phoneHidden.focus();
-        phoneHidden.click();
-    });
-
-    // ==========================================
-    // NOM
-    // ==========================================
-
+    // ----- NOM -----
     nameInput.addEventListener('input', function() {
         const val = this.value.trim();
         if (val.length >= 2) {
@@ -123,10 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAllValid();
     });
 
-    // ==========================================
-    // EMAIL (optionnel)
-    // ==========================================
-
+    // ----- EMAIL (optionnel) -----
     emailInput.addEventListener('input', function() {
         const val = this.value.trim();
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -152,161 +101,98 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAllValid();
     });
 
-    // ==========================================
-    // CODE (4 chiffres)
-    // ==========================================
+    // ----- MOT DE PASSE -----
+    passwordInput.addEventListener('input', function() {
+        const val = this.value.replace(/\D/g, '');
+        this.value = val;
 
-    function createCodeBoxes(container, hidden, isPassword) {
-        container.innerHTML = '';
-        for (let i = 0; i < CODE_LENGTH; i++) {
-            const box = document.createElement('div');
-            box.className = 'password-box';
-            box.dataset.index = i;
-            container.appendChild(box);
-        }
-        const boxes = container.querySelectorAll('.password-box');
-
-        function updateBoxes(value) {
-            const digits = value.slice(0, CODE_LENGTH);
-            hidden.value = digits;
-            boxes.forEach((box, index) => {
-                const char = digits[index] || '';
-                box.textContent = char;
-                box.classList.toggle('filled', char !== '');
-                box.classList.remove('active');
-            });
-            if (digits.length < CODE_LENGTH) {
-                boxes[digits.length].classList.add('active');
-            }
-            if (isPassword) {
-                clearPwdBtn.style.display = digits.length > 0 ? 'block' : 'none';
-            } else {
-                clearConfirmBtn.style.display = digits.length > 0 ? 'block' : 'none';
-            }
-            checkPasswordMatch();
-        }
-
-        if (isPassword) {
-            window.updatePasswordBoxes = updateBoxes;
-            window.pwdBoxes = boxes;
-            window.pwdHidden = hidden;
+        if (val.length === 4) {
+            passwordStatus.textContent = '✓';
+            passwordStatus.className = 'input-status visible valid';
+            passwordWrapper.classList.remove('invalid');
+            passwordWrapper.classList.add('valid');
+        } else if (val.length > 0 && val.length < 4) {
+            passwordStatus.textContent = '✗';
+            passwordStatus.className = 'input-status visible invalid';
+            passwordWrapper.classList.remove('valid');
+            passwordWrapper.classList.add('invalid');
         } else {
-            window.updateConfirmBoxes = updateBoxes;
-            window.confirmBoxes = boxes;
-            window.confirmHidden = hidden;
+            passwordStatus.className = 'input-status';
+            passwordWrapper.classList.remove('valid', 'invalid');
         }
-    }
-
-    createCodeBoxes(passwordBoxes, passwordHidden, true);
-    createCodeBoxes(confirmBoxes, confirmHidden, false);
-
-    function handleNumClick(value) {
-        const target = isPasswordFocused ? 'password' : 'confirm';
-        if (target === 'password') {
-            if (passwordValue.length < CODE_LENGTH) {
-                passwordValue += value;
-                window.updatePasswordBoxes(passwordValue);
-            }
-            if (passwordValue.length === CODE_LENGTH) {
-                isPasswordFocused = false;
-                const firstConfirm = document.querySelector('#confirmBoxes .password-box:first-child');
-                if (firstConfirm) firstConfirm.classList.add('active');
-            }
-        } else {
-            if (confirmValue.length < CODE_LENGTH) {
-                confirmValue += value;
-                window.updateConfirmBoxes(confirmValue);
-            }
-            if (confirmValue.length === CODE_LENGTH) {
-                checkPasswordMatch();
-            }
-        }
+        checkPasswordMatch();
         checkAllValid();
-    }
+    });
+
+    // ----- CONFIRMATION -----
+    confirmInput.addEventListener('input', function() {
+        const val = this.value.replace(/\D/g, '');
+        this.value = val;
+
+        if (val.length === 4) {
+            confirmStatus.textContent = '✓';
+            confirmStatus.className = 'input-status visible valid';
+            confirmWrapper.classList.remove('invalid');
+            confirmWrapper.classList.add('valid');
+        } else if (val.length > 0 && val.length < 4) {
+            confirmStatus.textContent = '✗';
+            confirmStatus.className = 'input-status visible invalid';
+            confirmWrapper.classList.remove('valid');
+            confirmWrapper.classList.add('invalid');
+        } else {
+            confirmStatus.className = 'input-status';
+            confirmWrapper.classList.remove('valid', 'invalid');
+        }
+        checkPasswordMatch();
+        checkAllValid();
+    });
+
+    // ==========================================
+    // VÉRIFICATION MOT DE PASSE
+    // ==========================================
 
     function checkPasswordMatch() {
-        if (passwordValue.length === CODE_LENGTH && confirmValue.length === CODE_LENGTH) {
-            if (passwordValue === confirmValue) {
-                // Match
-                document.querySelectorAll('#confirmBoxes .password-box').forEach(box => {
-                    box.classList.remove('error');
-                    box.classList.add('match');
-                });
-                document.querySelectorAll('#passwordBoxes .password-box').forEach(box => {
-                    box.classList.remove('error');
-                    box.classList.add('match');
-                });
-                return true;
+        const pwd = passwordInput.value;
+        const confirm = confirmInput.value;
+
+        if (pwd.length === 4 && confirm.length === 4) {
+            if (pwd === confirm) {
+                // Match ✅
+                passwordWrapper.classList.add('valid');
+                confirmWrapper.classList.add('valid');
+                passwordStatus.textContent = '✓';
+                passwordStatus.className = 'input-status visible valid';
+                confirmStatus.textContent = '✓';
+                confirmStatus.className = 'input-status visible valid';
             } else {
-                // Pas match
-                document.querySelectorAll('#confirmBoxes .password-box').forEach(box => {
-                    box.classList.remove('match');
-                    box.classList.add('error');
-                });
-                document.querySelectorAll('#passwordBoxes .password-box').forEach(box => {
-                    box.classList.remove('match');
-                    box.classList.add('error');
-                });
-                setTimeout(() => {
-                    passwordValue = '';
-                    confirmValue = '';
-                    window.updatePasswordBoxes('');
-                    window.updateConfirmBoxes('');
-                    isPasswordFocused = true;
-                    clearPwdBtn.style.display = 'none';
-                    clearConfirmBtn.style.display = 'none';
-                    document.querySelector('#passwordBoxes .password-box:first-child').classList.add('active');
-                }, 800);
-                return false;
+                // Pas match ❌
+                passwordWrapper.classList.remove('valid');
+                passwordWrapper.classList.add('invalid');
+                confirmWrapper.classList.remove('valid');
+                confirmWrapper.classList.add('invalid');
+                passwordStatus.textContent = '✗';
+                passwordStatus.className = 'input-status visible invalid';
+                confirmStatus.textContent = '✗';
+                confirmStatus.className = 'input-status visible invalid';
             }
         }
-        return false;
     }
-
-    // ==========================================
-    // CLEAR BUTTONS
-    // ==========================================
-
-    clearPwdBtn.addEventListener('click', function() {
-        passwordValue = '';
-        window.updatePasswordBoxes('');
-        this.style.display = 'none';
-        isPasswordFocused = true;
-        document.querySelector('#passwordBoxes .password-box:first-child').classList.add('active');
-        checkAllValid();
-    });
-
-    clearConfirmBtn.addEventListener('click', function() {
-        confirmValue = '';
-        window.updateConfirmBoxes('');
-        this.style.display = 'none';
-        checkAllValid();
-    });
-
-    // ==========================================
-    // PAVÉ NUMÉRIQUE
-    // ==========================================
-
-    numBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            handleNumClick(this.dataset.value);
-        });
-        // Support tactile
-        btn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            handleNumClick(this.dataset.value);
-        }, { passive: false });
-    });
 
     // ==========================================
     // VALIDATION GLOBALE
     // ==========================================
 
     function checkAllValid() {
-        const isPhoneValid = phoneDigits.length === PHONE_LENGTH;
-        const isNameValid = nameInput.value.trim().length >= 2;
-        const isEmailValid = emailInput.value.trim() === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
-        const isPasswordValid = passwordValue.length === CODE_LENGTH && confirmValue.length === CODE_LENGTH && passwordValue === confirmValue;
+        const phone = phoneInput.value;
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const pwd = passwordInput.value;
+        const confirm = confirmInput.value;
+
+        const isPhoneValid = phone.length === 10;
+        const isNameValid = name.length >= 2;
+        const isEmailValid = email === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const isPasswordValid = pwd.length === 4 && confirm.length === 4 && pwd === confirm;
 
         const allValid = isPhoneValid && isNameValid && isEmailValid && isPasswordValid;
 
@@ -328,12 +214,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const name = nameInput.value.trim();
         const email = emailInput.value.trim() || null;
-        const phone = phoneDigits;
-        const password = passwordValue;
+        const phone = phoneInput.value;
+        const password = passwordInput.value;
 
         // Vérification finale
         if (!phone || phone.length !== 10) {
-            showMessage('⚠️ Numéro de téléphone invalide.', 'error');
+            showMessage('⚠️ Numéro de téléphone invalide (10 chiffres).', 'error');
             return;
         }
 
@@ -342,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (password !== confirmValue || password.length !== 4) {
-            showMessage('⚠️ Les codes ne correspondent pas.', 'error');
+        if (password.length !== 4) {
+            showMessage('⚠️ Le code doit être 4 chiffres.', 'error');
             return;
         }
 
@@ -390,11 +276,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // INIT
     // ==========================================
-
-    updatePhone('');
-    window.updatePasswordBoxes('');
-    window.updateConfirmBoxes('');
-    document.querySelector('#passwordBoxes .password-box:first-child').classList.add('active');
 
     console.log('✅ Register vendeur prêt');
 });
