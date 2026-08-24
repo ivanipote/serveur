@@ -1,4 +1,16 @@
 {
+  "name": "nature-plus",
+  "version": "1.0.0",
+  "description": "Nature+ - Plateforme de vente en ligne",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "start-client": "node server.js",
+    "start-pay": "node server-pay.js",
+    "start-wave": "node server-wave.js",
+    "start-seller": "node server-seller.js"
+  },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^1.19.0",
@@ -17,5 +29,16 @@
     "pg": "^8.23.0",
     "socket.io": "^4.8.3",
     "sqlite3": "^6.0.1"
-  }
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "keywords": [
+    "ecommerce",
+    "nature",
+    "cote-divoire",
+    "marketplace"
+  ],
+  "author": "Nature+ Team",
+  "license": "ISC"
 }
