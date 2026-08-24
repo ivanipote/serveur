@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Dashboard vendeur - Production');
+    console.log('✅ Dashboard vendeur - Version complète');
 
     // ==========================================
     // RÉFÉRENCES
@@ -15,8 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('nextShop');
     const shopCardBg = document.getElementById('shopCardBg');
 
+    // ==========================================
+    // ÉTAT
+    // ==========================================
+
     let currentIndex = 0;
     let shops = [];
+    let sellerData = null;
+    let isDataLoaded = false;
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -25,21 +31,29 @@ document.addEventListener('DOMContentLoaded', function() {
     function checkAuth() {
         const token = localStorage.getItem('sellerToken');
         if (!token) {
+            console.warn('⚠️ Non authentifié, redirection vers login');
             window.location.href = '/login';
             return false;
         }
         return true;
     }
 
+    function getToken() {
+        return localStorage.getItem('sellerToken');
+    }
+
     // ==========================================
-    // RÉCUPÉRER LES DONNÉES DEPUIS L'API
+    // CHARGEMENT DES DONNÉES
     // ==========================================
 
     async function loadSellerData() {
-        try {
-            const token = localStorage.getItem('sellerToken');
+        const token = getToken();
+        if (!token) return;
 
-            // Récupérer la boutique du vendeur
+        try {
+            console.log('📥 Chargement des données vendeur...');
+
+            // 1. Récupérer la boutique
             const shopRes = await fetch('/api/seller/shop', {
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -47,25 +61,30 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const shopData = await shopRes.json();
 
+            if (!shopRes.ok) {
+                throw new Error(shopData.error || 'Erreur chargement boutique');
+            }
+
             if (shopData.success && shopData.hasShop) {
                 const shop = shopData.shop;
                 const products = shopData.products || [];
 
-                const shopFormatted = {
+                // Construire l'objet boutique
+                sellerData = {
                     id: shop.id,
                     name: shop.name,
                     location: shop.location,
                     description: shop.description || '',
                     logo: shop.logo || '',
+                    status: shop.status || 'active',
                     articles: products.length,
                     messages: 0,
                     likes: 0,
+                    views: 0,
                     products: products
                 };
 
-                shops = [shopFormatted];
-
-                // Récupérer les stats
+                // 2. Récupérer les stats
                 try {
                     const statsRes = await fetch('/api/seller/stats', {
                         headers: {
@@ -73,45 +92,84 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     const statsData = await statsRes.json();
+
                     if (statsData.success && statsData.stats && statsData.stats.shop_details) {
                         const shopStats = statsData.stats.shop_details.find(s => s.id === shop.id);
                         if (shopStats) {
-                            shops[0].messages = shopStats.total_messages || 0;
-                            shops[0].likes = shopStats.total_likes || 0;
+                            sellerData.messages = shopStats.total_messages || 0;
+                            sellerData.likes = shopStats.total_likes || 0;
+                            sellerData.views = shopStats.total_views || 0;
+                            sellerData.articles = shopStats.total_products || products.length;
                         }
                     }
                 } catch (statsError) {
-                    console.warn('⚠️ Erreur stats:', statsError);
+                    console.warn('⚠️ Erreur stats (non bloquante):', statsError);
                 }
 
+                shops = [sellerData];
+                isDataLoaded = true;
+
                 renderCarousel(shops);
                 renderStats(shops);
                 updateMessageBadge();
+                updateBackground(0);
+
+                console.log('✅ Données chargées:', sellerData);
 
             } else {
+                // Pas de boutique
                 shops = [];
+                isDataLoaded = true;
                 renderCarousel(shops);
                 renderStats(shops);
                 updateMessageBadge();
+                showEmptyState('Vous n\'avez pas encore de boutique', 'Créez votre première boutique pour commencer');
             }
 
         } catch (error) {
             console.error('❌ Erreur chargement:', error);
             shops = [];
+            isDataLoaded = true;
             renderCarousel(shops);
             renderStats(shops);
             updateMessageBadge();
+            showEmptyState('Erreur de chargement', 'Veuillez rafraîchir la page');
         }
     }
 
     // ==========================================
-    // METTRE À JOUR L'IMAGE DE FOND
+    // AFFICHAGE ÉTAT VIDE
+    // ==========================================
+
+    function showEmptyState(title, subtitle) {
+        shopCarousel.innerHTML = `
+            <div class="shop-slide">
+                <div class="shop-empty">
+                    <i class="fas fa-store"></i>
+                    <p>${title}</p>
+                    <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">${subtitle}</p>
+                    <a href="/create-shop" style="display:inline-block;margin-top:12px;padding:8px 24px;background:rgba(255,255,255,0.2);border-radius:30px;color:white;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,0.2);">
+                        <i class="fas fa-plus-circle"></i> Créer ma boutique
+                    </a>
+                </div>
+            </div>
+        `;
+        shopCounter.textContent = '0 / 0';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
+        shopCardBg.style.filter = 'none';
+        shopCardBg.style.transform = 'none';
+    }
+
+    // ==========================================
+    // IMAGE DE FOND
     // ==========================================
 
     function updateBackground(index) {
         if (!shops || shops.length === 0 || !shops[index]) {
             shopCardBg.style.backgroundImage = 'none';
-            shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
+            shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
             shopCardBg.style.filter = 'none';
             shopCardBg.style.transform = 'none';
             return;
@@ -123,39 +181,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (imageUrl && imageUrl !== '' && imageUrl !== 'null' && imageUrl !== 'undefined') {
             shopCardBg.style.backgroundImage = `url(${imageUrl})`;
             shopCardBg.style.background = 'none';
-            shopCardBg.style.filter = 'blur(6px) brightness(0.5)';
             shopCardBg.style.backgroundSize = 'cover';
             shopCardBg.style.backgroundPosition = 'center';
+            shopCardBg.style.filter = 'blur(6px) brightness(0.5)';
             shopCardBg.style.transform = 'scale(1.05)';
         } else {
             shopCardBg.style.backgroundImage = 'none';
-            shopCardBg.style.background = 'linear-gradient(135deg, #c62828, #b71c1c)';
+            shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
             shopCardBg.style.filter = 'none';
             shopCardBg.style.transform = 'none';
         }
     }
 
     // ==========================================
-    // AFFICHAGE CAROUSEL
+    // CAROUSEL
     // ==========================================
 
     function renderCarousel(shopsData) {
         shops = shopsData;
 
         if (!shops || shops.length === 0) {
-            shopCarousel.innerHTML = `
-                <div class="shop-slide">
-                    <div class="shop-empty">
-                        <i class="fas fa-store"></i>
-                        <p>Vous n'avez pas encore de boutique</p>
-                        <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">Créez votre première boutique pour commencer</p>
-                    </div>
-                </div>
-            `;
-            shopCounter.textContent = '0 / 0';
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-            updateBackground(0);
+            showEmptyState('Aucune boutique', 'Créez votre première boutique');
             return;
         }
 
@@ -166,6 +212,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="shop-name">${shop.name}</div>
                     <span class="shop-location">📍 ${shop.location}</span>
                     <div class="shop-desc">${shop.description || ''}</div>
+                    <div style="margin-top:8px;display:flex;gap:16px;justify-content:center;font-size:13px;color:rgba(255,255,255,0.8);">
+                        <span>📦 ${shop.articles || 0} articles</span>
+                        <span>❤️ ${shop.likes || 0}</span>
+                        <span>👁️ ${shop.views || 0}</span>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -173,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentIndex = 0;
         updateCarousel();
 
+        // Clic sur une boutique → /shop?id=...
         document.querySelectorAll('.shop-slide').forEach(slide => {
             slide.addEventListener('click', function() {
                 const id = this.dataset.id;
@@ -182,10 +234,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
-    // ==========================================
-    // CAROUSEL NAVIGATION
-    // ==========================================
 
     function updateCarousel() {
         const slides = shopCarousel.querySelectorAll('.shop-slide');
@@ -210,6 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.disabled = currentIndex === total - 1;
     }
 
+    // Navigation carousel
     prevBtn.addEventListener('click', function() {
         if (currentIndex > 0) {
             currentIndex--;
@@ -226,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // AFFICHAGE STATS
+    // STATS
     // ==========================================
 
     function renderStats(shopsData) {
@@ -247,6 +296,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="stat-number likes">${shop.likes || 0}</td>
             </tr>
         `).join('');
+    }
+
+    // ==========================================
+    // MESSAGE BADGE
+    // ==========================================
+
+    function updateMessageBadge() {
+        const totalMessages = shops.reduce((sum, shop) => sum + (shop.messages || 0), 0);
+        if (messageBadge) {
+            messageBadge.textContent = totalMessages > 0 ? totalMessages : '0';
+        }
     }
 
     // ==========================================
@@ -271,15 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCarousel(filtered);
         renderStats(filtered);
     });
-
-    // ==========================================
-    // MESSAGE BADGE
-    // ==========================================
-
-    function updateMessageBadge() {
-        const totalMessages = shops.reduce((sum, shop) => sum + (shop.messages || 0), 0);
-        messageBadge.textContent = totalMessages > 0 ? totalMessages : '0';
-    }
 
     // ==========================================
     // RAFRAÎCHIR LES DONNÉES
@@ -337,10 +388,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 refreshData();
             });
 
+            socket.on('new-message', function(data) {
+                console.log('💬 Nouveau message reçu:', data);
+                refreshData();
+                showNotification('💬 Nouveau message d\'un client');
+            });
+
         } catch (error) {
             console.error('❌ Erreur Socket.IO:', error);
             setTimeout(() => connectSocketIO(), 5000);
         }
+    }
+
+    // ==========================================
+    // NOTIFICATION TOAST
+    // ==========================================
+
+    function showNotification(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #17A464;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(23, 164, 100, 0.3);
+            z-index: 999;
+            text-align: center;
+            max-width: 90%;
+            animation: slideUp 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
     }
 
     // ==========================================
@@ -349,7 +440,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!checkAuth()) return;
 
+    // Charger les données
     await loadSellerData();
+
+    // Connecter Socket.IO
     connectSocketIO();
 
     // Rafraîchir toutes les 30 secondes
@@ -357,6 +451,13 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshData();
     }, 30000);
 
-    console.log('✅ Dashboard vendeur - Production prêt');
+    // Exposer pour debugging
+    window.sellerDashboard = {
+        refreshData,
+        shops,
+        sellerData
+    };
+
+    console.log('✅ Dashboard vendeur - Prêt');
 
 });
