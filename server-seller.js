@@ -78,8 +78,11 @@ global.io = io;
 
 app.use(express.json());
 
-// ✅ Servir les fichiers statiques depuis public/seller
-app.use(express.static(path.join(__dirname, 'public', 'seller')));
+// ✅ Servir le dossier public ENTIER (pour que /seller/css soit accessible)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ✅ Servir aussi spécifiquement le dossier seller pour être sûr
+app.use('/seller', express.static(path.join(__dirname, 'public', 'seller')));
 
 // CORS complet
 app.use((req, res, next) => {
