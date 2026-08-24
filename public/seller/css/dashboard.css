@@ -21,7 +21,7 @@ body {
 }
 
 /* ==========================================
-   HEADER - VERT (harmonisé)
+   HEADER - VERT
    ========================================== */
 
 .dashboard-header {
@@ -147,7 +147,7 @@ body {
 }
 
 /* ==========================================
-   MAIN - 100vh
+   MAIN
    ========================================== */
 
 .dashboard-main {
@@ -189,6 +189,10 @@ body {
     filter: blur(6px) brightness(0.5);
     transform: scale(1.05);
     transition: background-image 0.5s ease;
+    /* ✅ FORCER L'AFFICHAGE */
+    display: block;
+    opacity: 1;
+    z-index: 1;
 }
 
 .shop-card-overlay {
