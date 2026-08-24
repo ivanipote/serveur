@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👤 Clients | ComPlus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* =============================================================
+           CLIENTS - STYLES DÉDIÉS
+           ============================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+
+        :root {
+            --bg-app: #F5F6F9;
+            --surface: #FFFFFF;
+            --surface-alt: #FAFBFC;
+            --border: #E6E8EF;
+            --border-strong: #D8DBE4;
+            --ink-900: #10141F;
+            --ink-700: #3A4152;
+            --ink-500: #6B7280;
+            --ink-400: #9CA3AF;
+            --sidebar-1: #0A0E1A;
+            --sidebar-line: rgba(255,255,255,0.07);
+            --sidebar-text: rgba(226,230,242,0.62);
+            --sidebar-text-hi: #F3F5FA;
+            --brand: #17A464;
+            --brand-dark: #0E7A49;
+            --brand-tint: #E6F7EE;
+            --brand-line: #BFEBD3;
+            --blue: #2563EB;
+            --blue-tint: #EAF1FF;
+            --amber: #B45309;
+            --amber-tint: #FFF3DF;
+            --red: #C0342A;
+            --red-tint: #FCEBEA;
+            --green: #17A464;
+            --green-tint: #E6F7EE;
+            --violet: #7C3AED;
+            --violet-tint: #F1EBFE;
+            --slate: #475467;
+            --slate-tint: #EEF1F5;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-app);
+            color: var(--ink-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* =============================================================
+           HEADER COMMUN
+           ============================================================= */
+
+        .admin-header {
+            background: var(--sidebar-1);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-line);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-header .header-left .logo {
+            color: var(--sidebar-text-hi);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .admin-header .header-left .logo span {
+            color: #34D399;
+        }
+
+        .admin-header .header-center {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .header-center .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid transparent;
+        }
+
+        .admin-header .header-center .header-badge:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-center .header-badge.active {
+            background: rgba(23,164,100,0.15);
+            color: var(--sidebar-text-hi);
+            border-color: rgba(23,164,100,0.25);
+        }
+
+        .admin-header .header-center .header-badge i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red);
+            color: white;
+            margin-left: 2px;
+        }
+
+        .admin-header .header-center .header-badge .badge-dot.zero {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text);
+        }
+
+        .admin-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-header .header-right .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: var(--sidebar-text);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--sidebar-line);
+        }
+
+        .admin-header .header-right .btn-back:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--sidebar-text-hi);
+        }
+
+        .admin-header .header-right .btn-back i {
+            font-size: 14px;
+        }
+
+        .admin-header .header-right .admin-name {
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* =============================================================
+           PAGE CONTENT
+           ============================================================= */
+
+        .page-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 20px 20px 20px;
+            height: calc(100vh - 76px);
+            overflow: hidden;
+        }
+
+        /* =============================================================
+           CARTE STATS
+           ============================================================= */
+
+        .stats-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 14px 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            flex-shrink: 0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .stats-card .stats-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-card .stats-title i {
+            color: var(--violet);
+        }
+
+        .stats-card .stats-content {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stats-card .stats-content .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink-700);
+        }
+
+        .stats-card .stats-content .stat-item .stat-value {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--violet);
+        }
+
+        .stats-card .stats-content .stat-item .stat-icon {
+            font-size: 16px;
+        }
+
+        /* =============================================================
+           MAIN LAYOUT (sidebar + content)
+           ============================================================= */
+
+        .main-layout {
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* =============================================================
+           SIDEBAR (37%)
+           ============================================================= */
+
+        .sidebar-clients {
+            width: 37%;
+            min-width: 280px;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar-clients .sidebar-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface-alt);
+        }
+
+        .sidebar-clients .sidebar-header .sidebar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-clients .sidebar-header .sidebar-title i {
+            font-size: 14px;
+        }
+
+        /* ===== RECHERCHE ===== */
+        .sidebar-clients .search-wrapper {
+            padding: 12px 16px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .sidebar-clients .search-wrapper .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--surface-alt);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            font-family: var(--font-ui);
+            color: var(--ink-900);
+        }
+
+        .sidebar-clients .search-wrapper .search-input:focus {
+            border-color: var(--violet);
+            background: var(--surface);
+        }
+
+        .sidebar-clients .search-wrapper .search-input::placeholder {
+            color: var(--ink-400);
+        }
+
+        .sidebar-clients .search-wrapper .search-icon {
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ink-400);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* ===== FILTRES ===== */
+        .sidebar-clients .filter-section {
+            padding: 8px 16px 12px 16px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-clients .filter-section .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-400);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-clients .filter-switch {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .sidebar-clients .filter-switch .filter-btn {
+            padding: 5px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-500);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .sidebar-clients .filter-switch .filter-btn:hover {
+            border-color: var(--violet);
+            color: var(--violet);
+        }
+
+        .sidebar-clients .filter-switch .filter-btn.active {
+            background: var(--violet);
+            color: white;
+            border-color: var(--violet);
+        }
+
+        /* ===== MINI STATS ===== */
+        .sidebar-clients .mini-stats {
+            padding: 8px 16px 12px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-clients .mini-stats .mini-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-400);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-clients .mini-stats .mini-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar-clients .mini-stats .mini-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            padding: 3px 0;
+            border-bottom: 1px solid var(--surface-alt);
+        }
+
+        .sidebar-clients .mini-stats .mini-item:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-clients .mini-stats .mini-item .mini-label {
+            color: var(--ink-500);
+        }
+
+        .sidebar-clients .mini-stats .mini-item .mini-count {
+            font-weight: 600;
+            font-family: var(--font-mono);
+            color: var(--violet);
+        }
+
+        /* ===== LISTE SCROLLABLE ===== */
+        .sidebar-clients .client-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px 12px 12px;
+        }
+
+        .sidebar-clients .client-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-clients .client-list::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        /* ===== CLIENT ITEM ===== */
+        .sidebar-clients .client-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-clients .client-item:hover {
+            background: var(--surface-alt);
+            transform: translateX(2px);
+        }
+
+        .sidebar-clients .client-item.active {
+            background: var(--violet-tint);
+            border-color: #DBCBFC;
+        }
+
+        .sidebar-clients .client-item .client-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--violet-tint);
+            color: var(--violet);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-clients .client-item .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-clients .client-item .item-info .name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-900);
+        }
+
+        .sidebar-clients .client-item .item-info .email {
+            font-size: 11px;
+            color: var(--ink-400);
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar-clients .client-item .item-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .sidebar-clients .client-item .item-right .date {
+            font-size: 10px;
+            color: var(--ink-400);
+            font-family: var(--font-mono);
+            display: block;
+        }
+
+        .sidebar-clients .empty-list {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--ink-400);
+            font-size: 14px;
+        }
+
+        .sidebar-clients .empty-list i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+            color: var(--border-strong);
+        }
+
+        /* =============================================================
+           CONTENU PRINCIPAL (63%)
+           ============================================================= */
+
+        .content-clients {
+            flex: 1;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16,20,31,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .content-clients .content-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface-alt);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .content-clients .content-header .content-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-clients .content-header .content-title i {
+            color: var(--violet);
+        }
+
+        .content-clients .content-header .content-count {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-500);
+        }
+
+        /* ===== TABLEAU SCROLLABLE ===== */
+        .content-clients .table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 4px 12px 4px;
+        }
+
+        .content-clients .table-wrapper::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .content-clients .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        .content-clients .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 750px;
+        }
+
+        .content-clients .table-wrapper th {
+            background: var(--surface-alt);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink-500);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .content-clients .table-wrapper td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--surface-alt);
+            color: var(--ink-700);
+            vertical-align: middle;
+        }
+
+        .content-clients .table-wrapper tr:last-child td {
+            border-bottom: none;
+        }
+
+        .content-clients .table-wrapper tr:hover td {
+            background: var(--surface-alt);
+        }
+
+        /* ===== COPY BTN ===== */
+        .copy-btn-mini {
+            background: none;
+            border: none;
+            color: var(--ink-400);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            opacity: 0.4;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+        }
+
+        .copy-btn-mini:hover {
+            background: var(--surface-alt);
+            color: var(--violet);
+            opacity: 1;
+        }
+
+        .copy-btn-mini.copied {
+            color: var(--violet);
+            opacity: 1;
+        }
+
+        /* ===== EMPTY TABLE ===== */
+        .empty-table {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ink-400);
+        }
+
+        .empty-table i {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 12px;
+            color: var(--border-strong);
+        }
+
+        /* =============================================================
+           RESPONSIVE
+           ============================================================= */
+
+        @media (max-width: 992px) {
+            .sidebar-clients {
+                width: 45%;
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 12px 12px 16px 12px;
+                height: calc(100vh - 68px);
+            }
+
+            .admin-header {
+                padding: 8px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .admin-header .header-left {
+                justify-content: center;
+            }
+
+            .admin-header .header-center {
+                justify-content: center;
+                gap: 4px;
+            }
+
+            .admin-header .header-center .header-badge {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+
+            .admin-header .header-right {
+                justify-content: center;
+            }
+
+            .main-layout {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .sidebar-clients {
+                width: 100%;
+                min-width: unset;
+                max-height: 45vh;
+            }
+
+            .content-clients {
+                flex: 1;
+                min-height: 200px;
+            }
+
+            .stats-card {
+                padding: 12px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .stats-card .stats-content {
+                gap: 12px;
+            }
+
+            .stats-card .stats-content .stat-item {
+                font-size: 13px;
+            }
+
+            .sidebar-clients .filter-switch .filter-btn {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .content-clients .table-wrapper table {
+                min-width: 500px;
+                font-size: 12px;
+            }
+
+            .content-clients .table-wrapper th,
+            .content-clients .table-wrapper td {
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+
+            .admin-header .header-left .logo {
+                font-size: 15px;
+            }
+
+            .admin-header .header-center .header-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+                gap: 4px;
+            }
+
+            .admin-header .header-center .header-badge i {
+                font-size: 11px;
+            }
+
+            .admin-header .header-center .header-badge .badge-dot {
+                font-size: 8px;
+                min-width: 14px;
+                height: 14px;
+                padding: 0 4px;
+            }
+
+            .admin-header .header-right .btn-back {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .page-container {
+                padding: 8px 8px 12px 8px;
+                height: calc(100vh - 60px);
+            }
+
+            .sidebar-clients {
+                max-height: 40vh;
+            }
+
+            .sidebar-clients .search-wrapper .search-input {
+                font-size: 13px;
+                padding: 8px 10px 8px 34px;
+            }
+
+            .sidebar-clients .search-wrapper .search-icon {
+                left: 22px;
+                font-size: 12px;
+            }
+
+            .sidebar-clients .filter-switch .filter-btn {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .sidebar-clients .mini-stats .mini-item {
+                font-size: 12px;
+            }
+
+            .content-clients .table-wrapper table {
+                min-width: 400px;
+                font-size: 11px;
+            }
+
+            .content-clients .table-wrapper th,
+            .content-clients .table-wrapper td {
+                padding: 4px 6px;
+            }
+
+            .stats-card .stats-content .stat-item {
+                font-size: 12px;
+            }
+
+            .stats-card .stats-content .stat-item .stat-value {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER COMMUN                                                  -->
+    <!-- ============================================================= -->
+    <header class="admin-header">
+        <div class="header-left">
+            <span class="logo">🌿 Nature<span>+</span></span>
+        </div>
+        <div class="header-center">
+            <a href="/admin/comm.html" class="header-badge">
+                <i class="fas fa-truck"></i> Commandes
+                <span class="badge-dot" id="headerBadgeCommandes">0</span>
+            </a>
+            <a href="/admin/wave.html" class="header-badge">
+                <i class="fas fa-water"></i> Wave
+                <span class="badge-dot" id="headerBadgeWave">0</span>
+            </a>
+            <a href="/admin/paiements.html" class="header-badge">
+                <i class="fas fa-credit-card"></i> Paiements
+                <span class="badge-dot" id="headerBadgePayments">0</span>
+            </a>
+            <a href="/admin/produits.html" class="header-badge">
+                <i class="fas fa-box"></i> Produits
+                <span class="badge-dot zero" id="headerBadgeProducts">0</span>
+            </a>
+            <a href="/admin/clients.html" class="header-badge active">
+                <i class="fas fa-users"></i> Clients
+                <span class="badge-dot zero" id="headerBadgeClients">0</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="adminName">Admin</span>
+            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- PAGE CONTENT                                                   -->
+    <!-- ============================================================= -->
+    <div class="page-container">
+
+        <!-- CARTE STATS -->
+        <div class="stats-card">
+            <div class="stats-title">
+                <i class="fas fa-users"></i> Clients
+            </div>
+            <div class="stats-content">
+                <div class="stat-item">
+                    <span class="stat-icon">👤</span>
+                    <span>Total :</span>
+                    <span class="stat-value" id="statTotal">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">📅</span>
+                    <span>Nouveaux (7j) :</span>
+                    <span class="stat-value" id="statNew">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span>Vérifiés :</span>
+                    <span class="stat-value" id="statVerified">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+
+            <!-- SIDEBAR (37%) -->
+            <aside class="sidebar-clients" id="sidebarClients">
+
+                <!-- Header -->
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <i class="fas fa-filter"></i> Filtres
+                    </div>
+                </div>
+
+                <!-- Recherche -->
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un client..." />
+                </div>
+
+                <!-- Filtres -->
+                <div class="filter-section">
+                    <div class="filter-label">📊 Trier par</div>
+                    <div class="filter-switch" id="filterSwitch">
+                        <button class="filter-btn active" data-filter="all">📋 Tous</button>
+                        <button class="filter-btn" data-filter="verified">✅ Vérifiés</button>
+                        <button class="filter-btn" data-filter="unverified">⏳ Non vérifiés</button>
+                        <button class="filter-btn" data-filter="recent">🆕 Récents</button>
+                    </div>
+                </div>
+
+                <!-- Mini stats -->
+                <div class="mini-stats">
+                    <div class="mini-title">📊 Répartition</div>
+                    <div class="mini-grid" id="miniStatsGrid">
+                        <div class="mini-item">
+                            <span class="mini-label">👤 Total</span>
+                            <span class="mini-count" id="miniTotal">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">✅ Vérifiés</span>
+                            <span class="mini-count" id="miniVerified">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">⏳ Non vérifiés</span>
+                            <span class="mini-count" id="miniUnverified">0</span>
+                        </div>
+                        <div class="mini-item">
+                            <span class="mini-label">🆕 7 derniers jours</span>
+                            <span class="mini-count" id="miniRecent">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liste des clients (scrollable) -->
+                <div class="client-list" id="clientList">
+                    <div class="loading-state" id="loadingState">
+                        <i class="fas fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                        <p style="color:var(--ink-400);">Chargement...</p>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- CONTENU PRINCIPAL (63%) -->
+            <main class="content-clients">
+
+                <!-- Header -->
+                <div class="content-header">
+                    <div class="content-title">
+                        <i class="fas fa-list"></i> Liste des clients
+                    </div>
+                    <span class="content-count" id="clientCount">0 clients</span>
+                </div>
+
+                <!-- Tableau (scrollable) -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Vérifié</th>
+                                <th>Total achats</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientsTableBody">
+                            <tr><td colspan="7" class="empty-table">
+                                <i class="fas fa-users"></i>
+                                <p>Aucun client trouvé</p>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/admin/js/admin-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ clients.js chargé');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const clientList = document.getElementById('clientList');
+            const loadingState = document.getElementById('loadingState');
+            const clientsTableBody = document.getElementById('clientsTableBody');
+            const searchInput = document.getElementById('searchInput');
+            const filterBtns = document.querySelectorAll('#filterSwitch .filter-btn');
+            const clientCount = document.getElementById('clientCount');
+
+            const statTotal = document.getElementById('statTotal');
+            const statNew = document.getElementById('statNew');
+            const statVerified = document.getElementById('statVerified');
+
+            const miniTotal = document.getElementById('miniTotal');
+            const miniVerified = document.getElementById('miniVerified');
+            const miniUnverified = document.getElementById('miniUnverified');
+            const miniRecent = document.getElementById('miniRecent');
+
+            let allClients = [];
+            let currentFilter = 'all';
+            let searchTerm = '';
+            let currentClientId = null;
+
+            // ==========================================
+            // NOM ADMIN
+            // ==========================================
+
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+
+            // ==========================================
+            // CHARGER LES CLIENTS
+            // ==========================================
+
+            async function loadClients() {
+                try {
+                    const res = await fetch('/api/admin/clients');
+                    const data = await res.json();
+
+                    if (res.ok && data.length > 0) {
+                        allClients = data;
+                        loadingState.style.display = 'none';
+                        renderClients();
+                        updateStats();
+                    } else {
+                        allClients = [];
+                        loadingState.style.display = 'none';
+                        renderEmpty();
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur chargement clients:', error);
+                    loadingState.innerHTML = `
+                        <div class="empty-list">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Erreur de chargement</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ==========================================
+            // RENDRE LES CLIENTS
+            // ==========================================
+
+            function renderClients() {
+                let filtered = allClients;
+
+                // Filtres
+                if (currentFilter === 'verified') {
+                    filtered = filtered.filter(c => c.is_verified === 1 || c.is_verified === true);
+                } else if (currentFilter === 'unverified') {
+                    filtered = filtered.filter(c => c.is_verified === 0 || c.is_verified === false);
+                } else if (currentFilter === 'recent') {
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    filtered = filtered.filter(c => new Date(c.created_at) >= sevenDaysAgo);
+                }
+
+                // Recherche
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    filtered = filtered.filter(c =>
+                        (c.name && c.name.toLowerCase().includes(term)) ||
+                        (c.email && c.email.toLowerCase().includes(term)) ||
+                        (c.phone && c.phone.includes(term))
+                    );
+                }
+
+                // Trier par date (plus récent en premier)
+                filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                // Mettre à jour le compte
+                clientCount.textContent = filtered.length + ' clients';
+
+                // Rendre la sidebar
+                renderSidebar(filtered);
+
+                // Rendre le tableau
+                renderTable(filtered);
+            }
+
+            // ==========================================
+            // SIDEBAR
+            // ==========================================
+
+            function renderSidebar(clients) {
+                if (clients.length === 0) {
+                    clientList.innerHTML = `
+                        <div class="empty-list">
+                            <i class="fas fa-inbox"></i>
+                            <p>Aucun client trouvé</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                clients.forEach(c => {
+                    const isActive = currentClientId === c.id;
+                    const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+                    const date = new Date(c.created_at);
+                    const dateStr = date.toLocaleDateString('fr-FR');
+
+                    html += `
+                        <div class="client-item ${isActive ? 'active' : ''}" data-id="${c.id}">
+                            <div class="client-avatar">${initials}</div>
+                            <div class="item-info">
+                                <div class="name">${c.name || 'Inconnu'}</div>
+                                <span class="email">${c.email || '-'}</span>
+                            </div>
+                            <div class="item-right">
+                                <span class="date">${dateStr}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                clientList.innerHTML = html;
+
+                // Événements click
+                document.querySelectorAll('.client-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const id = parseInt(this.dataset.id);
+                        currentClientId = id;
+                        renderClients();
+                    });
+                });
+            }
+
+            // ==========================================
+            // TABLEAU
+            // ==========================================
+
+            function renderTable(clients) {
+                if (clients.length === 0) {
+                    clientsTableBody.innerHTML = `
+                        <tr><td colspan="7" class="empty-table">
+                            <i class="fas fa-users"></i>
+                            <p>Aucun client trouvé</p>
+                        </td></tr>
+                    `;
+                    return;
+                }
+
+                const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+                let html = '';
+                clients.forEach(c => {
+                    const isVerified = c.is_verified === 1 || c.is_verified === true;
+                    const date = new Date(c.created_at);
+
+                    html += `
+                        <tr data-id="${c.id}" class="${currentClientId === c.id ? 'active-row' : ''}">
+                            <td>#${c.id}</td>
+                            <td>
+                                ${c.name || 'Inconnu'}
+                                <button class="copy-btn-mini" data-copy="${c.name || ''}" title="Copier le nom">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                            <td>
+                                ${c.email || '-'}
+                                <button class="copy-btn-mini" data-copy="${c.email || ''}" title="Copier l'email">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                            <td>
+                                ${c.phone || '-'}
+                                <button class="copy-btn-mini" data-copy="${c.phone || ''}" title="Copier le téléphone">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <span class="status-badge ${isVerified ? 'verified' : 'unverified'}">
+                                    ${isVerified ? '✅ Vérifié' : '⏳ En attente'}
+                                </span>
+                            </td>
+                            <td style="font-family:var(--font-mono);">
+                                ${c.total_achats || 0} FCFA
+                            </td>
+                            <td style="font-size:12px;color:var(--ink-400);">
+                                ${date.toLocaleDateString('fr-FR', dateOptions)}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                clientsTableBody.innerHTML = html;
+
+                // Attacher les événements copy
+                document.querySelectorAll('.copy-btn-mini').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const text = this.dataset.copy || '';
+                        if (text && text !== '-') {
+                            navigator.clipboard.writeText(text).then(() => {
+                                this.classList.add('copied');
+                                this.innerHTML = '<i class="fas fa-check"></i>';
+                                setTimeout(() => {
+                                    this.classList.remove('copied');
+                                    this.innerHTML = '<i class="fas fa-copy"></i>';
+                                }, 1500);
+                            }).catch(() => {
+                                const input = document.createElement('input');
+                                input.value = text;
+                                document.body.appendChild(input);
+                                input.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(input);
+                                this.classList.add('copied');
+                                this.innerHTML = '<i class="fas fa-check"></i>';
+                                setTimeout(() => {
+                                    this.classList.remove('copied');
+                                    this.innerHTML = '<i class="fas fa-copy"></i>';
+                                }, 1500);
+                            });
+                        }
+                    });
+                });
+            }
+
+            // ==========================================
+            // STATS
+            // ==========================================
+
+            function updateStats() {
+                const total = allClients.length;
+                const verified = allClients.filter(c => c.is_verified === 1 || c.is_verified === true).length;
+                const unverified = total - verified;
+
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                const recent = allClients.filter(c => new Date(c.created_at) >= sevenDaysAgo).length;
+
+                statTotal.textContent = total;
+                statNew.textContent = recent;
+                statVerified.textContent = verified;
+
+                miniTotal.textContent = total;
+                miniVerified.textContent = verified;
+                miniUnverified.textContent = unverified;
+                miniRecent.textContent = recent;
+            }
+
+            // ==========================================
+            // EMPTY
+            // ==========================================
+
+            function renderEmpty() {
+                clientList.innerHTML = `
+                    <div class="empty-list">
+                        <i class="fas fa-inbox"></i>
+                        <p>Aucun client trouvé</p>
+                    </div>
+                `;
+                clientsTableBody.innerHTML = `
+                    <tr><td colspan="7" class="empty-table">
+                        <i class="fas fa-users"></i>
+                        <p>Aucun client trouvé</p>
+                    </td></tr>
+                `;
+                clientCount.textContent = '0 clients';
+
+                statTotal.textContent = '0';
+                statNew.textContent = '0';
+                statVerified.textContent = '0';
+                miniTotal.textContent = '0';
+                miniVerified.textContent = '0';
+                miniUnverified.textContent = '0';
+                miniRecent.textContent = '0';
+            }
+
+            // ==========================================
+            // FILTRES
+            // ==========================================
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderClients();
+                });
+            });
+
+            // ==========================================
+            // RECHERCHE
+            // ==========================================
+
+            searchInput.addEventListener('input', function() {
+                searchTerm = this.value.trim();
+                renderClients();
+            });
+
+            // ==========================================
+            // SOCKET.IO
+            // ==========================================
+
+            let socket = null;
+            let isSocketConnected = false;
+
+            function connectSocketIO() {
+                if (socket) {
+                    socket.disconnect();
+                    socket = null;
+                }
+
+                try {
+                    const adminId = localStorage.getItem('adminId') || '1';
+
+                    socket = io({
+                        auth: {
+                            userId: parseInt(adminId),
+                            isAdmin: true
+                        },
+                        transports: ['websocket', 'polling'],
+                        timeout: 5000,
+                        reconnection: true,
+                        reconnectionAttempts: 20,
+                        reconnectionDelay: 500
+                    });
+
+                    socket.on('connect', function() {
+                        console.log('✅ Socket.IO admin (clients) connecté');
+                        isSocketConnected = true;
+                    });
+
+                    socket.on('disconnect', function() {
+                        console.log('❌ Socket.IO admin (clients) déconnecté');
+                        isSocketConnected = false;
+                        setTimeout(() => {
+                            if (!isSocketConnected) connectSocketIO();
+                        }, 3000);
+                    });
+
+                    socket.on('nouvelle-commande', function(data) {
+                        console.log('🆕 Nouvelle commande (clients):', data);
+                        loadClients();
+                    });
+
+                } catch (error) {
+                    console.error('❌ Erreur connexion Socket.IO:', error);
+                    setTimeout(() => connectSocketIO(), 5000);
+                }
+            }
+
+            // ==========================================
+            // SYNC AUTO
+            // ==========================================
+
+            let syncInterval = null;
+
+            function startSync() {
+                if (syncInterval) {
+                    clearInterval(syncInterval);
+                }
+                syncInterval = setInterval(() => {
+                    loadClients();
+                }, 30000);
+            }
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadClients();
+            connectSocketIO();
+            startSync();
+
+            console.log('✅ clients.html initialisé');
+
+        });
+    </script>
+
+</body>
+</html>
