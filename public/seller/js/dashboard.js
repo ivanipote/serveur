@@ -153,13 +153,12 @@ document.addEventListener('DOMContentLoaded', function() {
         shopCounter.textContent = '0 / 0';
         prevBtn.disabled = true;
         nextBtn.disabled = true;
+        shopCardBg.style.backgroundImage = 'none';
         shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
-        shopCardBg.style.filter = 'none';
-        shopCardBg.style.transform = 'none';
     }
 
     // ==========================================
-    // IMAGE DE FOND
+    // IMAGE DE FOND (CORRIGÉE)
     // ==========================================
 
     function updateBackground(index) {
@@ -176,11 +175,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (imageUrl && imageUrl !== '' && imageUrl !== 'null' && imageUrl !== 'undefined') {
             shopCardBg.style.backgroundImage = `url(${imageUrl})`;
-            shopCardBg.style.background = 'none';
-            shopCardBg.style.backgroundSize = 'cover';
-            shopCardBg.style.backgroundPosition = 'center';
-            shopCardBg.style.filter = 'blur(6px) brightness(0.5)';
-            shopCardBg.style.transform = 'scale(1.05)';
+            shopCardBg.style.background = `url(${imageUrl}) center center / cover no-repeat`;
+            shopCardBg.style.filter = 'none';
+            shopCardBg.style.transform = 'none';
+            shopCardBg.style.opacity = '1';
+            console.log('🖼️ Image appliquée:', imageUrl);
         } else {
             shopCardBg.style.backgroundImage = 'none';
             shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
@@ -336,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO - MISE À JOUR EN TEMPS RÉEL
+    // SOCKET.IO
     // ==========================================
 
     let socket = null;
@@ -429,12 +428,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // INITIALISATION (CORRIGÉE)
+    // INITIALISATION
     // ==========================================
 
     if (!checkAuth()) return;
 
-    // ✅ IIFE pour éviter l'erreur "await is only valid in async functions"
     (async function init() {
         await loadSellerData();
         connectSocketIO();
