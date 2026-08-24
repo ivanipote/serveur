@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
     }
 
     socket.on('disconnect', () => {
-        console.log(`❌ Vendeur ${sellerId} déconnecté`);
+        console.log(`❌ Vendeur ${socket.sellerId} déconnecté`);
     });
 });
 
@@ -77,7 +77,9 @@ global.io = io;
 // ========================================================
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'seller')));
+
+// ✅ Servir les fichiers statiques depuis public/seller
+app.use(express.static(path.join(__dirname, 'public', 'seller')));
 
 // CORS complet
 app.use((req, res, next) => {
@@ -225,7 +227,6 @@ app.post('/api/seller/register', async (req, res) => {
 
         const sellerId = result.rows[0].id;
 
-        // ✅ Créer un token
         const token = generateToken(sellerId);
 
         req.session.sellerId = sellerId;
@@ -336,7 +337,6 @@ app.post('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
     }
 
     try {
-        // Vérifier si le vendeur a déjà une boutique
         const existing = await db.get('SELECT * FROM shops WHERE seller_id = $1', [sellerId]);
         if (existing) {
             return res.status(400).json({ error: 'Vous avez déjà une boutique.' });
@@ -385,7 +385,6 @@ app.get('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
             });
         }
 
-        // Récupérer les produits de la boutique
         const products = await db.all(
             'SELECT * FROM seller_products WHERE shop_id = $1 ORDER BY created_at DESC',
             [shop.id]
@@ -613,7 +612,6 @@ app.post('/api/seller/message', isAuthenticatedSeller, async (req, res) => {
             [sellerId, userId, shopId || null, message, true, false]
         );
 
-        // Émettre via Socket.IO
         io.to(`user_${userId}`).emit('seller-message', {
             sellerId: sellerId,
             userId: userId,
@@ -645,7 +643,6 @@ app.get('/api/seller/messages/:userId', isAuthenticatedSeller, async (req, res) 
             ORDER BY created_at ASC
         `, [sellerId, userId]);
 
-        // Marquer comme lus
         await db.query(
             `UPDATE seller_messages SET is_read = true
              WHERE seller_id = $1 AND user_id = $2 AND is_from_seller = false`,
@@ -668,31 +665,31 @@ app.get('/api/seller/messages/:userId', isAuthenticatedSeller, async (req, res) 
 // ========================================================
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'login.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'login.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
 });
 
 app.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'register.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'register.html'));
 });
 
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'dashboard.html'));
 });
 
 app.get('/create-shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'create-shop.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-shop.html'));
 });
 
 app.get('/view-shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'view-shop.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'view-shop.html'));
 });
 
 app.get('/edit-shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seller', 'html', 'edit-shop.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'edit-shop.html'));
 });
 
 // ========================================================
@@ -705,7 +702,8 @@ app.get('/edit-shop', (req, res) => {
         await db.initialize();
         console.log('✅ Base de données (seller) initialisée avec succès');
     } catch (error) {
-        console.error('❌ Erreur initialisation base (seller):', error.message);
+        console.log('⚠️ Base déjà initialisée ou erreur:', error.message);
+        console.log('📌 Continuation du démarrage...');
     }
 })();
 
