@@ -333,7 +333,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE SELLER_PRODUCTS (avec image1, image2, image3)
+        // TABLE SELLER_PRODUCTS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_products (
@@ -343,9 +343,6 @@ async function initializeDatabase() {
                 name TEXT NOT NULL,
                 price INTEGER NOT NULL,
                 image TEXT,
-                image1 TEXT,
-                image2 TEXT,
-                image3 TEXT,
                 description TEXT,
                 stock INTEGER DEFAULT 0,
                 category TEXT DEFAULT NULL,
@@ -354,6 +351,25 @@ async function initializeDatabase() {
                 FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE
             )
         `);
+
+        // ========================================================
+        // ✅ AJOUTER LES COLONNES image1, image2, image3
+        // ========================================================
+        await client.query(`
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_products' AND column_name='image1') THEN
+                    ALTER TABLE seller_products ADD COLUMN image1 TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_products' AND column_name='image2') THEN
+                    ALTER TABLE seller_products ADD COLUMN image2 TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_products' AND column_name='image3') THEN
+                    ALTER TABLE seller_products ADD COLUMN image3 TEXT;
+                END IF;
+            END $$;
+        `);
+        console.log('   ✅ Colonnes image1, image2, image3 ajoutées à seller_products');
 
         // ========================================================
         // TABLE SELLER_ORDERS
