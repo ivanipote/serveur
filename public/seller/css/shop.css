@@ -365,10 +365,10 @@ body {
 }
 
 /* ==========================================
-   OVERLAY : PRODUIT
+   SLIDE : MODIFIER PRODUIT (remonte du bas)
    ========================================== */
 
-.product-overlay {
+.slide-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -379,49 +379,61 @@ body {
     z-index: 200;
     display: none;
     justify-content: center;
-    align-items: center;
-    padding: 20px;
+    align-items: flex-end;
+    padding: 0;
 }
 
-.product-overlay.active {
+.slide-overlay.active {
     display: flex;
 }
 
-.product-overlay-box {
+.slide-container {
     background: white;
-    border-radius: 24px;
+    border-radius: 24px 24px 0 0;
     padding: 24px 24px 28px 24px;
     max-width: 480px;
     width: 100%;
-    max-height: 90vh;
+    max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: scaleIn 0.3s ease;
+    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.35s ease-out;
+    transform: translateY(0);
 }
 
-.product-overlay-box::-webkit-scrollbar {
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0.5;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.slide-container::-webkit-scrollbar {
     width: 4px;
 }
 
-.product-overlay-box::-webkit-scrollbar-thumb {
+.slide-container::-webkit-scrollbar-thumb {
     background: #d0d0da;
     border-radius: 10px;
 }
 
-.overlay-header {
+.slide-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
 }
 
-.overlay-header h3 {
+.slide-header h3 {
     font-size: 20px;
     font-weight: 700;
     color: #1a1a2e;
 }
 
-.overlay-header .close-btn {
+.slide-header .slide-close {
     background: none;
     border: none;
     font-size: 24px;
@@ -432,7 +444,7 @@ body {
     transition: all 0.2s;
 }
 
-.overlay-header .close-btn:hover {
+.slide-header .slide-close:hover {
     background: #f0f2f5;
     color: #1a1a2e;
 }
@@ -723,9 +735,10 @@ body {
         height: 110px;
     }
 
-    .product-overlay-box {
+    .slide-container {
         padding: 20px 18px 22px 18px;
         max-width: 100%;
+        border-radius: 20px 20px 0 0;
     }
 }
 
@@ -796,6 +809,20 @@ body {
     .product-card .product-body .product-actions .btn-action {
         font-size: 10px;
         padding: 3px 8px;
+    }
+
+    .slide-container {
+        padding: 16px 14px 18px 14px;
+        border-radius: 16px 16px 0 0;
+        max-height: 90vh;
+    }
+
+    .slide-header h3 {
+        font-size: 17px;
+    }
+
+    .slide-header .slide-close {
+        font-size: 20px;
     }
 
     #productForm .form-row {
