@@ -1,6 +1,6 @@
 // ========================================================
 // SERVEUR VENDEUR - NATURE+ / COMPLUS
-// Version complète avec logs pour debug upload
+// Version complète avec stockage des coordonnées GPS
 // ========================================================
 
 // ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
@@ -43,9 +43,23 @@ const storage = new CloudinaryStorage({
     },
 });
 
+const shopStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'seller_shops',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+        public_id: (req, file) => `shop_${Date.now()}_${file.originalname.split('.')[0]}`,
+    },
+});
+
 const upload = multer({ 
     storage: storage,
     limits: { fileSize: 2 * 1024 * 1024 } // 2MB
+});
+
+const uploadShop = multer({ 
+    storage: shopStorage,
+    limits: { fileSize: 2 * 1024 * 1024 }
 });
 
 const app = express();
@@ -346,11 +360,12 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
 });
 
 // ========================================================
-// ROUTES : BOUTIQUES
+// ROUTES : BOUTIQUES (AVEC COORDONNÉES)
 // ========================================================
 
-app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
-    const { name, location, description } = req.body;
+// Créer une boutique
+app.post('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), async (req, res) => {
+    const { name, location, description, flex1, flex2 } = req.body;
     const sellerId = req.seller.id;
 
     if (!name || !location) {
@@ -365,10 +380,16 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
 
         const imageUrl = req.file ? req.file.path : null;
 
+        // ✅ Stocker les coordonnées dans flex1 et flex2
+        const latitude = flex1 || null;
+        const longitude = flex2 || null;
+
+        console.log('📍 Coordonnées stockées:', { latitude, longitude });
+
         const result = await db.query(
-            `INSERT INTO shops (seller_id, name, location, description, logo, status)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [sellerId, name, location, description || null, imageUrl, 'active']
+            `INSERT INTO shops (seller_id, name, location, description, logo, status, flex1, flex2)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+            [sellerId, name, location, description || null, imageUrl, 'active', latitude, longitude]
         );
 
         const shopId = result.rows[0].id;
@@ -383,7 +404,9 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
                 location: location,
                 description: description,
                 logo: imageUrl,
-                status: 'active'
+                status: 'active',
+                latitude: latitude,
+                longitude: longitude
             }
         });
 
@@ -393,6 +416,7 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
     }
 });
 
+// Récupérer toutes les boutiques d'un vendeur
 app.get('/api/seller/shops', isAuthenticatedSeller, async (req, res) => {
     const sellerId = req.seller.id;
 
@@ -416,6 +440,7 @@ app.get('/api/seller/shops', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
+// Récupérer une boutique spécifique (publique) AVEC COORDONNÉES
 app.get('/api/seller/shop/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -452,7 +477,9 @@ app.get('/api/seller/shop/:id', async (req, res) => {
             success: true,
             shop: {
                 ...shop,
-                total_views: views?.total_views || 0
+                total_views: views?.total_views || 0,
+                latitude: shop.flex1 || null,
+                longitude: shop.flex2 || null
             },
             products: products || []
         });
@@ -463,8 +490,9 @@ app.get('/api/seller/shop/:id', async (req, res) => {
     }
 });
 
-app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
-    const { name, location, description } = req.body;
+// Modifier sa boutique
+app.put('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), async (req, res) => {
+    const { name, location, description, flex1, flex2 } = req.body;
     const sellerId = req.seller.id;
 
     try {
@@ -479,11 +507,14 @@ app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async
             imageUrl = req.file.path;
         }
 
+        const latitude = flex1 || shop.flex1 || null;
+        const longitude = flex2 || shop.flex2 || null;
+
         await db.query(
             `UPDATE shops 
-             SET name = $1, location = $2, description = $3, logo = $4
-             WHERE id = $5`,
-            [name || shop.name, location || shop.location, description || shop.description, imageUrl, shop.id]
+             SET name = $1, location = $2, description = $3, logo = $4, flex1 = $5, flex2 = $6
+             WHERE id = $7`,
+            [name || shop.name, location || shop.location, description || shop.description, imageUrl, latitude, longitude, shop.id]
         );
 
         const updatedShop = await db.get('SELECT * FROM shops WHERE id = $1', [shop.id]);
@@ -501,7 +532,7 @@ app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async
 });
 
 // ========================================================
-// ROUTES : PRODUITS (AVEC LOGS)
+// ROUTES : PRODUITS
 // ========================================================
 
 // Ajouter un produit avec images
@@ -511,7 +542,6 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
     { name: 'image3', maxCount: 1 }
 ]), async (req, res) => {
     
-    // ✅ LOGS POUR DEBUG
     console.log('📦 Body reçu:', req.body);
     console.log('📦 Files reçus:', req.files);
 
@@ -533,12 +563,10 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
             return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
         }
 
-        // ✅ Récupérer les images
         const image1 = req.files?.image1?.[0]?.path || null;
         const image2 = req.files?.image2?.[0]?.path || null;
         const image3 = req.files?.image3?.[0]?.path || null;
 
-        // ✅ LOGS DES IMAGES
         console.log('🖼️ image1:', image1);
         console.log('🖼️ image2:', image2);
         console.log('🖼️ image3:', image3);
@@ -549,7 +577,6 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
             [shop_id, sellerId, name, price, image1, image2, image3, description || null, stock || 0, category || null]
         );
 
-        // ✅ LOG SUCCÈS
         console.log('✅ Produit ajouté avec images:', { image1, image2, image3 });
 
         res.json({
@@ -592,7 +619,6 @@ app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.fields([
             return res.status(404).json({ error: 'Produit non trouvé ou non autorisé.' });
         }
 
-        // Récupérer les nouvelles images si uploadées
         const image1 = req.files?.image1?.[0]?.path || product.image1 || null;
         const image2 = req.files?.image2?.[0]?.path || product.image2 || null;
         const image3 = req.files?.image3?.[0]?.path || product.image3 || null;
