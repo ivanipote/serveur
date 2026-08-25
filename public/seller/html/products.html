@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mes produits | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/seller/css/products.css">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER                                     -->
+    <!-- ========================================== -->
+    <header class="products-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="header-title">📦 Mes produits</span>
+        <span class="products-count-badge" id="totalCount">0</span>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN                                       -->
+    <!-- ========================================== -->
+    <main class="products-main">
+
+        <!-- ===== GRILLE PRODUITS ===== -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Injecté par JS -->
+        </div>
+
+    </main>
+
+    <script src="/seller/js/products.js"></script>
+</body>
+</html>
