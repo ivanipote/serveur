@@ -10,13 +10,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const statsBody = document.getElementById('statsBody');
     const messageBadge = document.getElementById('messageBadge');
     const shopCounter = document.getElementById('shopCounter');
-    const shopIndicator = document.getElementById('shopIndicator');
     const prevBtn = document.getElementById('prevShop');
     const nextBtn = document.getElementById('nextShop');
     const shopCardBg = document.getElementById('shopCardBg');
     const searchInput = document.getElementById('searchInput');
     const statsMarchand = document.getElementById('statsMarchand');
     const sellerNameBadge = document.getElementById('sellerNameBadge');
+
+    // Footer stats
+    const footerTotalProducts = document.getElementById('footerTotalProducts');
+    const footerTotalLikes = document.getElementById('footerTotalLikes');
+    const footerTotalViews = document.getElementById('footerTotalViews');
+    const footerTotalShops = document.getElementById('footerTotalShops');
+    const footerTotalMessages = document.getElementById('footerTotalMessages');
 
     // ==========================================
     // ÉTAT
@@ -134,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderStats(shops);
                 updateMessageBadge();
                 updateBackground(0);
+                updateFooterTotals();
                 startAutoScroll();
 
                 console.log('✅ Données chargées:', shops);
@@ -144,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderCarousel(shops);
                 renderStats(shops);
                 updateMessageBadge();
+                updateFooterTotals();
                 showEmptyState('Vous n\'avez pas encore de boutique', 'Créez votre première boutique pour commencer');
             }
 
@@ -154,8 +162,27 @@ document.addEventListener('DOMContentLoaded', function() {
             renderCarousel(shops);
             renderStats(shops);
             updateMessageBadge();
+            updateFooterTotals();
             showEmptyState('Erreur de chargement', 'Veuillez rafraîchir la page');
         }
+    }
+
+    // ==========================================
+    // METTRE À JOUR LES TOTAUX DU FOOTER
+    // ==========================================
+
+    function updateFooterTotals() {
+        const totalShops = shops.length;
+        const totalProducts = shops.reduce((sum, s) => sum + (parseInt(s.articles) || 0), 0);
+        const totalLikes = shops.reduce((sum, s) => sum + (parseInt(s.likes) || 0), 0);
+        const totalViews = shops.reduce((sum, s) => sum + (parseInt(s.views) || 0), 0);
+        const totalMessages = shops.reduce((sum, s) => sum + (parseInt(s.messages) || 0), 0);
+
+        if (footerTotalShops) footerTotalShops.textContent = totalShops;
+        if (footerTotalProducts) footerTotalProducts.textContent = totalProducts;
+        if (footerTotalLikes) footerTotalLikes.textContent = totalLikes;
+        if (footerTotalViews) footerTotalViews.textContent = totalViews;
+        if (footerTotalMessages) footerTotalMessages.textContent = totalMessages;
     }
 
     // ==========================================
@@ -209,12 +236,12 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         shopCounter.textContent = '0 / 0';
-        shopIndicator.textContent = '📦 0 articles';
         prevBtn.disabled = true;
         nextBtn.disabled = true;
         shopCardBg.style.backgroundImage = 'none';
         shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
         stopAutoScroll();
+        updateFooterTotals();
     }
 
     // ==========================================
@@ -279,6 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentIndex = 0;
         updateCarousel();
         startAutoScroll();
+        updateFooterTotals();
 
         document.querySelectorAll('.shop-slide').forEach(slide => {
             slide.addEventListener('click', function() {
@@ -297,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (total === 0) {
             shopCounter.textContent = '0 / 0';
-            shopIndicator.textContent = '📦 0 articles';
             prevBtn.disabled = true;
             nextBtn.disabled = true;
             stopAutoScroll();
@@ -310,11 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateBackground(currentIndex);
 
-        const currentShop = shops[currentIndex] || {};
-        const totalArticles = shops.reduce((sum, s) => sum + (s.articles || 0), 0);
-
         shopCounter.textContent = `${currentIndex + 1} / ${total}`;
-        shopIndicator.textContent = `📦 ${totalArticles} articles`;
 
         prevBtn.disabled = currentIndex === 0;
         nextBtn.disabled = currentIndex === total - 1;
@@ -329,7 +352,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentIndex > 0) {
             currentIndex--;
             updateCarousel();
-            // Réinitialiser le timer après interaction manuelle
             if (isAutoScrollActive) {
                 startAutoScroll();
             }
@@ -384,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RAFRAÎCHIR LES DONNÉES (avec auto-reload si perte)
+    // RAFRAÎCHIR LES DONNÉES
     // ==========================================
 
     let refreshAttempts = 0;
@@ -406,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO (avec reconnexion automatique)
+    // SOCKET.IO
     // ==========================================
 
     let socket = null;
@@ -442,7 +464,6 @@ document.addEventListener('DOMContentLoaded', function() {
             socket.on('disconnect', function(reason) {
                 console.log('❌ Socket.IO vendeur déconnecté:', reason);
                 isSocketConnected = false;
-                // Tentative de reconnexion après 5s
                 setTimeout(() => {
                     if (!isSocketConnected) {
                         console.log('🔄 Tentative de reconnexion Socket.IO...');
@@ -515,7 +536,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!document.hidden) {
             console.log('🔄 Page visible, rechargement des données');
             refreshData();
-            // Réactiver l'auto-scroll
             if (isAutoScrollActive) {
                 startAutoScroll();
             }
@@ -541,13 +561,13 @@ document.addEventListener('DOMContentLoaded', function() {
             shops,
             getShops: () => shops,
             startAutoScroll,
-            stopAutoScroll
+            stopAutoScroll,
+            updateFooterTotals
         };
 
         console.log('✅ Dashboard vendeur - Prêt');
     })();
 
-    // Nettoyer à la fermeture
     window.addEventListener('beforeunload', function() {
         stopAutoScroll();
         if (socket) socket.disconnect();
