@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         productId = urlParams.get('id');
 
+        console.log('🔍 ID produit recherché:', productId);
+
         if (!productId) {
             showError('ID de produit manquant');
             return;
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement du produit #' + productId);
 
-            // ✅ Route corrigée : /api/seller/shops (toutes les boutiques)
+            // Récupérer toutes les boutiques du vendeur
             const shopRes = await fetch('/api/seller/shops', {
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -82,16 +84,20 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const shopData = await shopRes.json();
 
+            console.log('📦 Boutiques reçues:', shopData);
+
             if (!shopRes.ok) {
                 throw new Error(shopData.error || 'Erreur chargement boutique');
             }
 
             if (shopData.success && shopData.shops && shopData.shops.length > 0) {
-                // ✅ Prendre la première boutique du vendeur
+                // Prendre la première boutique
                 const shop = shopData.shops[0];
                 shopId = shop.id;
 
-                // ✅ Récupérer les produits de cette boutique
+                console.log('🏪 Boutique sélectionnée:', shop);
+
+                // Récupérer les produits de cette boutique
                 const productsRes = await fetch('/api/seller/products/' + shopId, {
                     headers: {
                         'Authorization': 'Bearer ' + token
@@ -99,19 +105,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const productsData = await productsRes.json();
 
+                console.log('📦 Produits reçus:', productsData);
+
                 if (!productsRes.ok) {
                     throw new Error(productsData.error || 'Erreur chargement produits');
                 }
 
                 const products = productsData.products || [];
 
-                // Trouver le produit
-                const product = products.find(p => p.id == productId);
+                console.log('🔍 Recherche du produit #' + productId + ' parmi ' + products.length + ' produits');
+
+                // Trouver le produit (comparer en string car l'ID peut être number ou string)
+                const product = products.find(p => String(p.id) === String(productId));
 
                 if (!product) {
+                    console.error('❌ Produit non trouvé. IDs disponibles:', products.map(p => p.id));
                     showError('Produit non trouvé');
                     return;
                 }
+
+                console.log('✅ Produit trouvé:', product);
 
                 renderProduct(product, shop);
             } else {
@@ -129,6 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function renderProduct(product, shop) {
+        console.log('🎨 Rendu du produit:', product);
+
         currentData = { ...product };
 
         // Infos produit
@@ -160,16 +175,18 @@ document.addEventListener('DOMContentLoaded', function() {
             shopLink.style.display = 'none';
         }
 
-        // Images
+        // ✅ Images - vérifier toutes les colonnes possibles
         images = [];
         if (product.image1) images.push(product.image1);
         if (product.image2) images.push(product.image2);
         if (product.image3) images.push(product.image3);
 
-        // Si aucune image, utiliser l'ancien champ
+        // Fallback : image unique (ancienne méthode)
         if (images.length === 0 && product.image) {
             images.push(product.image);
         }
+
+        console.log('🖼️ Images trouvées:', images);
 
         renderImages();
 
@@ -251,6 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function showError(message) {
+        console.error('❌ Erreur affichée:', message);
         productName.textContent = 'Erreur';
         productPrice.textContent = '0 FCFA';
         productStock.textContent = '⚠️ ' + message;
