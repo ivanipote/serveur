@@ -461,7 +461,8 @@
 
             async function loadShops() {
                 try {
-                    const res = await fetch('/api/seller/shops');
+                    // ✅ Appel à l'API publique du serveur client
+                    const res = await fetch('/api/shops');
 
                     if (!res.ok) {
                         throw new Error('Erreur chargement boutiques');
@@ -523,12 +524,12 @@
             // ==========================================
 
             window.openShop = function(shopId) {
-                // Incrémenter la vue via API
+                // Incrémenter la vue via API (appel silencieux)
                 fetch('/api/seller/shop/' + shopId + '/view', {
                     method: 'POST'
                 }).catch(err => console.warn('Erreur incrément vue:', err));
 
-                // Rediriger vers shop-user.html
+                // Rediriger vers shop-user.html (à créer)
                 window.location.href = '/shop-user.html?id=' + shopId;
             };
 

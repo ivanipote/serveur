@@ -925,6 +925,31 @@ app.get('/api/panier', isAuthenticated, async (req, res) => {
     }
 });
 
+// ============================================================
+// ROUTE : RÉCUPÉRER TOUTES LES BOUTIQUES (public)
+// ============================================================
+
+app.get('/api/shops', async (req, res) => {
+    try {
+        const rows = await db.all(`
+            SELECT 
+                s.id, s.name, s.location, s.description, s.logo,
+                u.name as seller_name,
+                (SELECT COUNT(*) FROM seller_products WHERE shop_id = s.id) as total_products,
+                (SELECT COALESCE(SUM(total_views), 0) FROM seller_stats WHERE shop_id = s.id) as total_views,
+                (SELECT COALESCE(SUM(total_likes), 0) FROM seller_stats WHERE shop_id = s.id) as total_likes
+            FROM shops s
+            JOIN sellers u ON u.id = s.seller_id
+            WHERE s.status = 'active'
+            ORDER BY s.created_at DESC
+        `);
+        res.json({ success: true, shops: rows });
+    } catch (error) {
+        console.error('❌ Erreur boutiques:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 app.get('/api/panier/count', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
