@@ -865,6 +865,34 @@ app.delete('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
+// Mettre à jour le profil du vendeur
+app.put('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
+    const { name, email, phone, flex1, flex2, flex3, flex4, flex5, flex6, flex7 } = req.body;
+    const sellerId = req.seller.id;
+
+    try {
+        await db.query(
+            `UPDATE sellers 
+             SET name = $1, email = $2, phone = $3, 
+                 flex1 = $4, flex2 = $5, flex3 = $6, flex4 = $7, flex5 = $8, flex6 = $9, flex7 = $10
+             WHERE id = $11`,
+            [name, email, phone, flex1, flex2, flex3, flex4, flex5, flex6, flex7, sellerId]
+        );
+
+        const updated = await db.get('SELECT * FROM sellers WHERE id = $1', [sellerId]);
+
+        res.json({
+            success: true,
+            message: 'Profil mis à jour',
+            seller: updated
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur mise à jour profil:', error);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour du profil.' });
+    }
+});
+
 // ========================================================
 // ROUTES : MESSAGES
 // ========================================================

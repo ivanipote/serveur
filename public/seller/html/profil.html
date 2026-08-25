@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mon profil | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ==========================================
+           STYLES PROFIL VENDEUR
+           ========================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .profil-header {
+            background: #17A464;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .profil-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .profil-header .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+
+        .profil-header .header-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+        }
+
+        .profil-header .save-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .profil-header .save-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.02);
+        }
+
+        .profil-header .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== MAIN ===== */
+        .profil-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px 20px 20px;
+        }
+
+        .profil-main::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .profil-main::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        /* ===== AVATAR ===== */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(23, 164, 100, 0.2);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-wrapper .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #17A464;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 12px rgba(23, 164, 100, 0.3);
+        }
+
+        .avatar-upload-btn:hover {
+            background: #0E7A49;
+            transform: scale(1.05);
+        }
+
+        .avatar-upload-btn input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* ===== FORM CARD ===== */
+        .form-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 16px 18px 18px 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            margin-bottom: 12px;
+        }
+
+        .form-card .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-card .card-title i {
+            color: #17A464;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #3a4152;
+            margin-bottom: 4px;
+        }
+
+        .form-group label i {
+            color: #17A464;
+            margin-right: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e8ecf4;
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.5);
+            outline: none;
+            transition: all 0.3s;
+            color: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #17A464;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #aaa;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        /* ===== BOUTON DÉCONNEXION ===== */
+        .logout-section {
+            margin-top: 8px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 14px;
+            background: rgba(220, 38, 38, 0.12);
+            color: #DC2626;
+            border: 1px solid rgba(220, 38, 38, 0.15);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(220, 38, 38, 0.2);
+            transform: scale(1.01);
+        }
+
+        /* ===== LOADING SPINNER ===== */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #6B7280;
+        }
+
+        .loading-spinner i {
+            font-size: 28px;
+            margin-right: 12px;
+            color: #17A464;
+        }
+
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
+        @media (max-width: 768px) {
+            .profil-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .profil-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .profil-header .header-title {
+                font-size: 16px;
+            }
+
+            .profil-header .save-btn {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+
+            .profil-main {
+                padding: 12px 14px 14px 14px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .avatar-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+
+            .avatar-upload-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profil-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .profil-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .profil-header .header-title {
+                font-size: 14px;
+            }
+
+            .profil-header .save-btn {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .profil-main {
+                padding: 8px 10px 10px 10px;
+            }
+
+            .form-card {
+                padding: 12px 12px 14px 12px;
+                border-radius: 16px;
+                margin-bottom: 10px;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+
+            .avatar-wrapper {
+                width: 70px;
+                height: 70px;
+            }
+
+            .avatar-wrapper .avatar-placeholder {
+                font-size: 32px;
+            }
+
+            .avatar-upload-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 10px;
+            }
+
+            .btn-logout {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+
+        /* ========================================== */
+        /* TOAST NOTIFICATION                         */
+        /* ========================================== */
+
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #17A464;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 8px 30px rgba(23, 164, 100, 0.3);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.error {
+            background: #DC2626;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER                                     -->
+    <!-- ========================================== -->
+    <header class="profil-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="header-title">👤 Mon profil</span>
+        <button class="save-btn" id="saveBtn">
+            <i class="fas fa-save"></i> Enregistrer
+        </button>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN                                       -->
+    <!-- ========================================== -->
+    <main class="profil-main" id="profilMain">
+
+        <!-- ===== LOADING ===== -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Chargement du profil...</span>
+        </div>
+
+        <!-- ===== CONTENU ===== -->
+        <div id="profilContent" style="display:none;">
+
+            <!-- AVATAR -->
+            <div class="avatar-section">
+                <div class="avatar-wrapper" id="avatarWrapper">
+                    <div class="avatar-placeholder" id="avatarPlaceholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <img id="avatarImage" style="display:none;" alt="Avatar" />
+                    <button class="avatar-upload-btn" id="avatarUploadBtn">
+                        <i class="fas fa-camera"></i>
+                        <input type="file" id="avatarInput" accept="image/*" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- CARD 1 : INFOS PERSONNELLES -->
+            <div class="form-card">
+                <div class="card-title"><i class="fas fa-user"></i> Informations personnelles</div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-user-circle"></i> Nom complet</label>
+                    <input type="text" id="fullName" placeholder="Jean Dupont" />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="email" placeholder="jean@exemple.com" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Téléphone</label>
+                        <input type="tel" id="phone" placeholder="05 03 58 83 36" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2 : LOCALISATION -->
+            <div class="form-card">
+                <div class="card-title"><i class="fas fa-map-pin"></i> Localisation</div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-location-dot"></i> Adresse physique</label>
+                    <input type="text" id="address" placeholder="124, Rue des Aninguéris, Cocody" />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-city"></i> Ville</label>
+                        <input type="text" id="city" placeholder="Abidjan" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-globe"></i> Pays</label>
+                        <input type="text" id="country" placeholder="Côte d'Ivoire" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3 : PRÉSENTATION -->
+            <div class="form-card">
+                <div class="card-title"><i class="fas fa-align-left"></i> Présentation</div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Bio / Présentation</label>
+                    <textarea id="bio" placeholder="Présentez-vous, vos activités, ce que vous vendez..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- CARD 4 : CONTACT EN LIGNE -->
+            <div class="form-card">
+                <div class="card-title"><i class="fas fa-globe"></i> Présence en ligne</div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> Site web / Réseaux</label>
+                    <input type="url" id="website" placeholder="https://instagram.com/votrecompte" />
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-clock"></i> Horaires d'ouverture</label>
+                    <input type="text" id="hours" placeholder="Lun-Sam: 8h-18h" />
+                </div>
+            </div>
+
+            <!-- DÉCONNEXION -->
+            <div class="logout-section">
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Se déconnecter
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- TOAST                                      -->
+    <!-- ========================================== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ Profil vendeur - Version connectée');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const profilContent = document.getElementById('profilContent');
+
+            const fullName = document.getElementById('fullName');
+            const email = document.getElementById('email');
+            const phone = document.getElementById('phone');
+            const address = document.getElementById('address');
+            const city = document.getElementById('city');
+            const country = document.getElementById('country');
+            const bio = document.getElementById('bio');
+            const website = document.getElementById('website');
+            const hours = document.getElementById('hours');
+
+            const avatarInput = document.getElementById('avatarInput');
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+
+            const saveBtn = document.getElementById('saveBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const toastContainer = document.getElementById('toastContainer');
+
+            // ==========================================
+            // TOAST
+            // ==========================================
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = 'toast' + (type === 'error' ? ' error' : '');
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // ==========================================
+            // AUTH
+            // ==========================================
+
+            function getToken() {
+                return localStorage.getItem('sellerToken');
+            }
+
+            function checkAuth() {
+                const token = getToken();
+                if (!token) {
+                    window.location.href = '/login';
+                    return false;
+                }
+                return true;
+            }
+
+            // ==========================================
+            // CHARGER LE PROFIL
+            // ==========================================
+
+            async function loadProfile() {
+                const token = getToken();
+                if (!token) return;
+
+                try {
+                    const res = await fetch('/api/seller/me', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error('Erreur chargement profil');
+                    }
+
+                    const data = await res.json();
+
+                    if (data.success && data.seller) {
+                        const seller = data.seller;
+
+                        fullName.value = seller.name || '';
+                        email.value = seller.email || '';
+                        phone.value = seller.phone || '';
+
+                        // Charger depuis les flex
+                        address.value = seller.flex1 || '';
+                        city.value = seller.flex2 || '';
+                        country.value = seller.flex3 || '';
+                        bio.value = seller.flex4 || '';
+                        website.value = seller.flex5 || '';
+                        hours.value = seller.flex6 || '';
+
+                        // Avatar
+                        const avatarUrl = seller.flex7 || '';
+                        if (avatarUrl && avatarUrl !== 'null') {
+                            avatarImage.src = avatarUrl;
+                            avatarImage.style.display = 'block';
+                            avatarPlaceholder.style.display = 'none';
+                        } else {
+                            avatarImage.style.display = 'none';
+                            avatarPlaceholder.style.display = 'flex';
+                        }
+
+                        console.log('✅ Profil chargé:', seller);
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erreur chargement profil:', error);
+                    showToast('❌ Erreur de chargement du profil', 'error');
+                } finally {
+                    loadingSpinner.style.display = 'none';
+                    profilContent.style.display = 'block';
+                }
+            }
+
+            // ==========================================
+            // AVATAR - UPLOAD VERS CLOUDINARY
+            // ==========================================
+
+            avatarInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('⚠️ Image trop lourde (max 2MB)', 'error');
+                    this.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarImage.src = e.target.result;
+                    avatarImage.style.display = 'block';
+                    avatarPlaceholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+
+                // Ici tu pourras ajouter l'upload vers Cloudinary
+                // Pour l'instant, on garde juste le preview
+                showToast('📸 Image sélectionnée, cliquez sur "Enregistrer"', 'success');
+            });
+
+            // ==========================================
+            // ENREGISTRER LE PROFIL
+            // ==========================================
+
+            saveBtn.addEventListener('click', async function() {
+                const token = getToken();
+                if (!token) return;
+
+                const data = {
+                    name: fullName.value.trim(),
+                    email: email.value.trim(),
+                    phone: phone.value.trim(),
+                    flex1: address.value.trim(),
+                    flex2: city.value.trim(),
+                    flex3: country.value.trim(),
+                    flex4: bio.value.trim(),
+                    flex5: website.value.trim(),
+                    flex6: hours.value.trim(),
+                    flex7: avatarImage.src || ''
+                };
+
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+
+                try {
+                    // Utiliser la route /api/seller/me avec PUT ou créer une route de mise à jour
+                    // Pour l'instant, on utilise la route PUT /api/seller/update-profile (à créer)
+                    // On va faire une requête PUT sur /api/seller/me
+
+                    const res = await fetch('/api/seller/me', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error('Erreur lors de l\'enregistrement');
+                    }
+
+                    const result = await res.json();
+
+                    if (result.success) {
+                        showToast('✅ Profil enregistré avec succès !');
+                        // Mettre à jour le localStorage
+                        localStorage.setItem('sellerName', data.name);
+                        localStorage.setItem('sellerEmail', data.email);
+                        localStorage.setItem('sellerPhone', data.phone);
+                    } else {
+                        throw new Error(result.error || 'Erreur');
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erreur enregistrement:', error);
+                    showToast('❌ ' + error.message, 'error');
+                }
+
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+            });
+
+            // ==========================================
+            // DÉCONNEXION
+            // ==========================================
+
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                }
+            });
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            if (!checkAuth()) return;
+
+            (async function init() {
+                await loadProfile();
+                console.log('✅ Profil vendeur - Prêt');
+            })();
+
+        });
+    </script>
+
+</body>
+</html>
