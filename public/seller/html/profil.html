@@ -6,10 +6,6 @@
     <title>Mon profil | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* ==========================================
-           STYLES PROFIL VENDEUR
-           ========================================== */
-
         * {
             margin: 0;
             padding: 0;
@@ -125,13 +121,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .avatar-wrapper {
-            position: relative;
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             overflow: hidden;
             border: 3px solid rgba(23, 164, 100, 0.2);
@@ -152,132 +147,93 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 40px;
             color: rgba(255, 255, 255, 0.4);
             background: rgba(0, 0, 0, 0.05);
         }
 
-        .avatar-upload-btn {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: #17A464;
-            color: white;
-            border: 2px solid white;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 2px 12px rgba(23, 164, 100, 0.3);
-        }
-
-        .avatar-upload-btn:hover {
-            background: #0E7A49;
-            transform: scale(1.05);
-        }
-
-        .avatar-upload-btn input {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        /* ===== FORM CARD ===== */
-        .form-card {
+        /* ===== CARD ===== */
+        .profile-card {
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 20px;
-            padding: 16px 18px 18px 18px;
+            padding: 18px 20px 20px 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             margin-bottom: 12px;
         }
 
-        .form-card .card-title {
+        .profile-card .card-title {
             font-size: 14px;
             font-weight: 700;
             color: #1a1a2e;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .form-card .card-title i {
+        .profile-card .card-title i {
             color: #17A464;
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
         }
 
-        .form-group {
-            margin-bottom: 10px;
+        .info-row:last-child {
+            border-bottom: none;
         }
 
-        .form-group:last-child {
-            margin-bottom: 0;
+        .info-row .icon {
+            width: 32px;
+            color: #17A464;
+            font-size: 16px;
+            flex-shrink: 0;
         }
 
-        .form-group label {
-            display: block;
-            font-size: 12px;
+        .info-row .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .info-row .value {
+            flex: 1;
+            font-size: 15px;
             font-weight: 600;
-            color: #3a4152;
-            margin-bottom: 4px;
+            color: #1a1a2e;
+            word-break: break-word;
         }
 
-        .form-group label i {
-            color: #17A464;
-            margin-right: 4px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .info-row .value input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 6px 10px;
             border: 2px solid #e8ecf4;
-            border-radius: 12px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
             background: rgba(255, 255, 255, 0.5);
             outline: none;
             transition: all 0.3s;
-            color: #1a1a2e;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
+        .info-row .value input:focus {
             border-color: #17A464;
             background: white;
             box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
         }
 
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: #aaa;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 70px;
-        }
-
         /* ===== BOUTON DÉCONNEXION ===== */
         .logout-section {
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         .btn-logout {
@@ -302,7 +258,7 @@
             transform: scale(1.01);
         }
 
-        /* ===== LOADING SPINNER ===== */
+        /* ===== LOADING ===== */
         .loading-spinner {
             display: flex;
             justify-content: center;
@@ -317,115 +273,8 @@
             color: #17A464;
         }
 
-        /* ==========================================
-           RESPONSIVE
-           ========================================== */
-
-        @media (max-width: 768px) {
-            .profil-header {
-                padding: 10px 14px;
-                gap: 10px;
-                border-radius: 0 0 16px 16px;
-            }
-
-            .profil-header .back-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-
-            .profil-header .header-title {
-                font-size: 16px;
-            }
-
-            .profil-header .save-btn {
-                font-size: 12px;
-                padding: 6px 14px;
-            }
-
-            .profil-main {
-                padding: 12px 14px 14px 14px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
-
-            .avatar-wrapper {
-                width: 80px;
-                height: 80px;
-            }
-
-            .avatar-upload-btn {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .profil-header {
-                padding: 8px 10px;
-                gap: 8px;
-                border-radius: 0 0 14px 14px;
-            }
-
-            .profil-header .back-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-
-            .profil-header .header-title {
-                font-size: 14px;
-            }
-
-            .profil-header .save-btn {
-                font-size: 11px;
-                padding: 4px 10px;
-            }
-
-            .profil-main {
-                padding: 8px 10px 10px 10px;
-            }
-
-            .form-card {
-                padding: 12px 12px 14px 12px;
-                border-radius: 16px;
-                margin-bottom: 10px;
-            }
-
-            .form-group input,
-            .form-group textarea,
-            .form-group select {
-                font-size: 13px;
-                padding: 8px 12px;
-            }
-
-            .avatar-wrapper {
-                width: 70px;
-                height: 70px;
-            }
-
-            .avatar-wrapper .avatar-placeholder {
-                font-size: 32px;
-            }
-
-            .avatar-upload-btn {
-                width: 24px;
-                height: 24px;
-                font-size: 10px;
-            }
-
-            .btn-logout {
-                font-size: 14px;
-                padding: 12px;
-            }
-        }
-
         /* ========================================== */
-        /* TOAST NOTIFICATION                         */
+        /* TOAST                                      */
         /* ========================================== */
 
         .toast-container {
@@ -469,6 +318,111 @@
                 transform: translateY(0);
             }
         }
+
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
+        @media (max-width: 768px) {
+            .profil-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .profil-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .profil-header .header-title {
+                font-size: 16px;
+            }
+
+            .profil-header .save-btn {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+
+            .profil-main {
+                padding: 12px 14px 14px 14px;
+            }
+
+            .info-row {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            .info-row .label {
+                width: 80px;
+                font-size: 12px;
+            }
+
+            .info-row .value {
+                font-size: 14px;
+            }
+
+            .avatar-wrapper {
+                width: 75px;
+                height: 75px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profil-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .profil-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .profil-header .header-title {
+                font-size: 14px;
+            }
+
+            .profil-header .save-btn {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .profil-main {
+                padding: 8px 10px 10px 10px;
+            }
+
+            .profile-card {
+                padding: 14px 14px 16px 14px;
+                border-radius: 16px;
+            }
+
+            .info-row .label {
+                width: 70px;
+                font-size: 11px;
+            }
+
+            .info-row .value {
+                font-size: 13px;
+            }
+
+            .avatar-wrapper {
+                width: 65px;
+                height: 65px;
+            }
+
+            .avatar-wrapper .avatar-placeholder {
+                font-size: 28px;
+            }
+
+            .btn-logout {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -494,7 +448,7 @@
         <!-- ===== LOADING ===== -->
         <div class="loading-spinner" id="loadingSpinner">
             <i class="fas fa-spinner fa-spin"></i>
-            <span>Chargement du profil...</span>
+            <span>Chargement...</span>
         </div>
 
         <!-- ===== CONTENU ===== -->
@@ -507,77 +461,37 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <img id="avatarImage" style="display:none;" alt="Avatar" />
-                    <button class="avatar-upload-btn" id="avatarUploadBtn">
-                        <i class="fas fa-camera"></i>
-                        <input type="file" id="avatarInput" accept="image/*" />
-                    </button>
                 </div>
             </div>
 
-            <!-- CARD 1 : INFOS PERSONNELLES -->
-            <div class="form-card">
-                <div class="card-title"><i class="fas fa-user"></i> Informations personnelles</div>
+            <!-- CARD : INFOS -->
+            <div class="profile-card">
+                <div class="card-title"><i class="fas fa-id-card"></i> Mes informations</div>
 
-                <div class="form-group">
-                    <label><i class="fas fa-user-circle"></i> Nom complet</label>
-                    <input type="text" id="fullName" placeholder="Jean Dupont" />
+                <div class="info-row">
+                    <span class="icon"><i class="fas fa-user-circle"></i></span>
+                    <span class="label">Nom</span>
+                    <span class="value" id="displayName">-</span>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="email" placeholder="jean@exemple.com" />
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Téléphone</label>
-                        <input type="tel" id="phone" placeholder="05 03 58 83 36" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- CARD 2 : LOCALISATION -->
-            <div class="form-card">
-                <div class="card-title"><i class="fas fa-map-pin"></i> Localisation</div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-location-dot"></i> Adresse physique</label>
-                    <input type="text" id="address" placeholder="124, Rue des Aninguéris, Cocody" />
+                <div class="info-row">
+                    <span class="icon"><i class="fas fa-envelope"></i></span>
+                    <span class="label">Email</span>
+                    <span class="value" id="displayEmail">-</span>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label><i class="fas fa-city"></i> Ville</label>
-                        <input type="text" id="city" placeholder="Abidjan" />
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-globe"></i> Pays</label>
-                        <input type="text" id="country" placeholder="Côte d'Ivoire" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- CARD 3 : PRÉSENTATION -->
-            <div class="form-card">
-                <div class="card-title"><i class="fas fa-align-left"></i> Présentation</div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-comment"></i> Bio / Présentation</label>
-                    <textarea id="bio" placeholder="Présentez-vous, vos activités, ce que vous vendez..." rows="3"></textarea>
-                </div>
-            </div>
-
-            <!-- CARD 4 : CONTACT EN LIGNE -->
-            <div class="form-card">
-                <div class="card-title"><i class="fas fa-globe"></i> Présence en ligne</div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-link"></i> Site web / Réseaux</label>
-                    <input type="url" id="website" placeholder="https://instagram.com/votrecompte" />
+                <div class="info-row">
+                    <span class="icon"><i class="fas fa-phone"></i></span>
+                    <span class="label">Téléphone</span>
+                    <span class="value">
+                        <input type="tel" id="editPhone" placeholder="05 03 58 83 36" />
+                    </span>
                 </div>
 
-                <div class="form-group">
-                    <label><i class="fas fa-clock"></i> Horaires d'ouverture</label>
-                    <input type="text" id="hours" placeholder="Lun-Sam: 8h-18h" />
+                <div class="info-row">
+                    <span class="icon"><i class="fas fa-map-pin"></i></span>
+                    <span class="label">Localisation</span>
+                    <span class="value" id="displayLocation">-</span>
                 </div>
             </div>
 
@@ -600,7 +514,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ Profil vendeur - Version connectée');
+            console.log('✅ Profil vendeur - Version simplifiée');
 
             // ==========================================
             // RÉFÉRENCES
@@ -609,23 +523,19 @@
             const loadingSpinner = document.getElementById('loadingSpinner');
             const profilContent = document.getElementById('profilContent');
 
-            const fullName = document.getElementById('fullName');
-            const email = document.getElementById('email');
-            const phone = document.getElementById('phone');
-            const address = document.getElementById('address');
-            const city = document.getElementById('city');
-            const country = document.getElementById('country');
-            const bio = document.getElementById('bio');
-            const website = document.getElementById('website');
-            const hours = document.getElementById('hours');
+            const displayName = document.getElementById('displayName');
+            const displayEmail = document.getElementById('displayEmail');
+            const displayLocation = document.getElementById('displayLocation');
+            const editPhone = document.getElementById('editPhone');
 
-            const avatarInput = document.getElementById('avatarInput');
-            const avatarImage = document.getElementById('avatarImage');
             const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            const avatarImage = document.getElementById('avatarImage');
 
             const saveBtn = document.getElementById('saveBtn');
             const logoutBtn = document.getElementById('logoutBtn');
             const toastContainer = document.getElementById('toastContainer');
+
+            let currentSeller = {};
 
             // ==========================================
             // TOAST
@@ -684,22 +594,18 @@
                     const data = await res.json();
 
                     if (data.success && data.seller) {
-                        const seller = data.seller;
+                        currentSeller = data.seller;
 
-                        fullName.value = seller.name || '';
-                        email.value = seller.email || '';
-                        phone.value = seller.phone || '';
+                        displayName.textContent = currentSeller.name || '-';
+                        displayEmail.textContent = currentSeller.email || '-';
+                        editPhone.value = currentSeller.phone || '';
 
-                        // Charger depuis les flex
-                        address.value = seller.flex1 || '';
-                        city.value = seller.flex2 || '';
-                        country.value = seller.flex3 || '';
-                        bio.value = seller.flex4 || '';
-                        website.value = seller.flex5 || '';
-                        hours.value = seller.flex6 || '';
+                        // Localisation : flex1 + flex2
+                        const loc = [currentSeller.flex1, currentSeller.flex2].filter(Boolean).join(', ');
+                        displayLocation.textContent = loc || 'Non renseignée';
 
                         // Avatar
-                        const avatarUrl = seller.flex7 || '';
+                        const avatarUrl = currentSeller.flex7 || '';
                         if (avatarUrl && avatarUrl !== 'null') {
                             avatarImage.src = avatarUrl;
                             avatarImage.style.display = 'block';
@@ -709,12 +615,12 @@
                             avatarPlaceholder.style.display = 'flex';
                         }
 
-                        console.log('✅ Profil chargé:', seller);
+                        console.log('✅ Profil chargé:', currentSeller);
                     }
 
                 } catch (error) {
                     console.error('❌ Erreur chargement profil:', error);
-                    showToast('❌ Erreur de chargement du profil', 'error');
+                    showToast('❌ Erreur de chargement', 'error');
                 } finally {
                     loadingSpinner.style.display = 'none';
                     profilContent.style.display = 'block';
@@ -722,68 +628,33 @@
             }
 
             // ==========================================
-            // AVATAR - UPLOAD VERS CLOUDINARY
-            // ==========================================
-
-            avatarInput.addEventListener('change', function() {
-                const file = this.files[0];
-                if (!file) return;
-
-                if (file.size > 2 * 1024 * 1024) {
-                    showToast('⚠️ Image trop lourde (max 2MB)', 'error');
-                    this.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    avatarImage.src = e.target.result;
-                    avatarImage.style.display = 'block';
-                    avatarPlaceholder.style.display = 'none';
-                };
-                reader.readAsDataURL(file);
-
-                // Ici tu pourras ajouter l'upload vers Cloudinary
-                // Pour l'instant, on garde juste le preview
-                showToast('📸 Image sélectionnée, cliquez sur "Enregistrer"', 'success');
-            });
-
-            // ==========================================
-            // ENREGISTRER LE PROFIL
+            // ENREGISTRER LE TÉLÉPHONE
             // ==========================================
 
             saveBtn.addEventListener('click', async function() {
                 const token = getToken();
                 if (!token) return;
 
-                const data = {
-                    name: fullName.value.trim(),
-                    email: email.value.trim(),
-                    phone: phone.value.trim(),
-                    flex1: address.value.trim(),
-                    flex2: city.value.trim(),
-                    flex3: country.value.trim(),
-                    flex4: bio.value.trim(),
-                    flex5: website.value.trim(),
-                    flex6: hours.value.trim(),
-                    flex7: avatarImage.src || ''
-                };
+                const phone = editPhone.value.trim();
+
+                if (!phone) {
+                    showToast('⚠️ Veuillez entrer un numéro de téléphone', 'error');
+                    return;
+                }
 
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
                 try {
-                    // Utiliser la route /api/seller/me avec PUT ou créer une route de mise à jour
-                    // Pour l'instant, on utilise la route PUT /api/seller/update-profile (à créer)
-                    // On va faire une requête PUT sur /api/seller/me
-
                     const res = await fetch('/api/seller/me', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + token
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({
+                            phone: phone
+                        })
                     });
 
                     if (!res.ok) {
@@ -793,11 +664,9 @@
                     const result = await res.json();
 
                     if (result.success) {
-                        showToast('✅ Profil enregistré avec succès !');
-                        // Mettre à jour le localStorage
-                        localStorage.setItem('sellerName', data.name);
-                        localStorage.setItem('sellerEmail', data.email);
-                        localStorage.setItem('sellerPhone', data.phone);
+                        showToast('✅ Téléphone mis à jour !');
+                        currentSeller.phone = phone;
+                        localStorage.setItem('sellerPhone', phone);
                     } else {
                         throw new Error(result.error || 'Erreur');
                     }
