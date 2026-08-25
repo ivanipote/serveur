@@ -1049,6 +1049,9 @@ app.get('/create-product', (req, res) => {
 app.get('/detailproduct', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detailproduct.html'));
 });
+app.get('/boutiques', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
+});
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ========================================================
