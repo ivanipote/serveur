@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const dynamicCard = document.getElementById('dynamicCard');
     const searchInput = document.getElementById('searchInput');
 
+    // ✨ Nouvelle carte boutiques
+    const shopsCard = document.getElementById('shopsCard');
+
     const commandeBadge = document.getElementById('commandeBadge');
     const notifBadge = document.getElementById('notifBadge');
     const cartBadge = document.getElementById('cartBadge');
@@ -190,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CARROUSEL
+    // CARROUSEL + SYNC CARTE BOUTIQUES
     // ==========================================
 
     function updateCarousel(index) {
@@ -208,13 +211,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ✅ Mise à jour des infos
+        // Mise à jour des infos
         productName.textContent = product.name;
         productPrice.textContent = product.price.toLocaleString() + ' FCFA';
         productStock.textContent = product.stock > 0 ? `📦 ${product.stock} en stock` : '🚫 Rupture de stock';
         productStock.style.color = product.stock > 0 ? '#4ade80' : '#f87171';
 
-        // ✅ Gestion image / placeholder
+        // Gestion image / placeholder
         if (product.image) {
             productImage.src = product.image;
             productImage.style.display = 'block';
@@ -228,23 +231,28 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // ✅ Image de fond
+        // Image de fond pour header, footer, header global
         const bgImage = product.image ? `url(${product.image})` : 'none';
         dashboardHeader.style.backgroundImage = bgImage;
         carouselHeader.style.backgroundImage = bgImage;
         carouselFooter.style.backgroundImage = bgImage;
 
-        // ✅ Indicateur
+        // ✨ SYNC : CARTE BOUTIQUES (même image)
+        if (shopsCard) {
+            shopsCard.style.backgroundImage = bgImage;
+        }
+
+        // Indicateur
         currentIndexEl.textContent = index + 1;
         totalProductsEl.textContent = products.length;
 
-        // ✅ Navigation
+        // Navigation
         prevBtn.disabled = index === 0;
         nextBtn.disabled = index === products.length - 1;
         prevBtn.style.opacity = index === 0 ? '0.3' : '1';
         nextBtn.style.opacity = index === products.length - 1 ? '0.3' : '1';
 
-        // ✅ Reset zoom
+        // Reset zoom
         productImage.classList.remove('zoomed');
     }
 
@@ -388,6 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dashboardHeader.style.backgroundImage = 'none';
             carouselHeader.style.backgroundImage = 'none';
             carouselFooter.style.backgroundImage = 'none';
+            if (shopsCard) shopsCard.style.backgroundImage = 'none';
             console.log('⚠️ Aucun produit disponible');
         }
 
