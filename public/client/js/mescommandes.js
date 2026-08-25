@@ -590,7 +590,6 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(timerIntervals[commandeId]);
         }
 
-        // ✅ Si pas de date, utiliser Date.now()
         const createdDate = paymentCreatedAt ? new Date(paymentCreatedAt) : new Date();
         const expiryTime = createdDate.getTime() + TIMEOUT_MS;
 
@@ -662,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES COMMANDES
+    // RENDRE LES COMMANDES - VERSION DEFINITIVE
     // ==========================================
 
     function renderCommandes() {
@@ -686,15 +685,39 @@ document.addEventListener('DOMContentLoaded', function() {
             if (statusKey === 'wave_manual') statusKey = 'success';
             if (statusKey === 'wave_refunded') statusKey = 'refunded';
             
+            const paymentDate = c.payment_created_at || c.created_at;
+            
+            // ✅ GESTION DU TIMER ET DU STATUT
+            let timerHtml = '';
+            let isTimerExpired = false;
+            
+            if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
+                const paymentDateObj = new Date(paymentDate);
+                const expiryTime = paymentDateObj.getTime() + TIMEOUT_MS;
+                const now = Date.now();
+                const diff = expiryTime - now;
+
+                if (diff > 0) {
+                    // ✅ Timer actif → statut paiement_en_cours
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</div>`;
+                    startTimer(c.id, paymentDate);
+                    // ✅ FORCER le statut à paiement_en_cours
+                    statusKey = 'paiement_en_cours';
+                } else {
+                    // ❌ Timer expiré → statut expired
+                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
+                    isTimerExpired = true;
+                    statusKey = 'expired';
+                }
+            }
+            
             const statusInfo = STATUS_LABELS[statusKey] || STATUS_LABELS['en_attente'];
             const colors = STATUS_COLORS[statusKey] || STATUS_COLORS['en_attente'];
             const history = getStatusHistory(c);
 
-            const paymentDate = c.payment_created_at || c.created_at;
-            const isExpired = statusKey === 'expired' || 
-                              (c.status === 'paiement_en_cours' && 
-                               new Date(paymentDate).getTime() + TIMEOUT_MS < Date.now());
-
+            const isExpired = statusKey === 'expired' || isTimerExpired;
             const isPayable = c.status === 'accepter';
             const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
             const isVerificationInProgress = c.status === 'verification_en_cours';
@@ -709,23 +732,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
 
-            // ✅ TIMER - FORCER SI paiement_en_cours, pending, processing
-            let timerHtml = '';
-            if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
-                const paymentDateObj = new Date(paymentDate);
-                const expiryTime = paymentDateObj.getTime() + TIMEOUT_MS;
-                const now = Date.now();
-                const diff = expiryTime - now;
-
-                if (diff > 0) {
-                    const minutes = Math.floor(diff / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</div>`;
-                    // ✅ FORCER LE DEMARRAGE DU TIMER
-                    startTimer(c.id, paymentDate);
-                } else {
-                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
-                }
+            // Historique des statuts
+            let statusTransitionHtml = '';
+            if (history.old && history.old !== history.current) {
+                const oldLabel = STATUS_LABELS[history.old]?.label || history.old;
+                const newLabel = statusInfo.label;
+                statusTransitionHtml = `
+                    <span class="old-status">${oldLabel}</span>
+                    <span class="arrow">→</span>
+                    <span class="new-status ${statusInfo.class}" style="color: ${colors.border}; font-weight: 700;">${statusInfo.icon} ${newLabel}</span>
+                `;
+            } else {
+                statusTransitionHtml = `
+                    <span class="new-status ${statusInfo.class}" style="color: ${colors.border}; font-weight: 700;">${statusInfo.icon} ${statusInfo.label}</span>
+                `;
             }
 
             // Affichage du statut de paiement
@@ -753,22 +773,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="status-verification">
                         <i class="fas fa-spinner"></i> 🔍 Vérification en cours...
                     </div>
-                `;
-            }
-
-            // Historique des statuts
-            let statusTransitionHtml = '';
-            if (history.old && history.old !== history.current) {
-                const oldLabel = STATUS_LABELS[history.old]?.label || history.old;
-                const newLabel = statusInfo.label;
-                statusTransitionHtml = `
-                    <span class="old-status">${oldLabel}</span>
-                    <span class="arrow">→</span>
-                    <span class="new-status ${statusInfo.class}" style="color: ${colors.border}; font-weight: 700;">${statusInfo.icon} ${newLabel}</span>
-                `;
-            } else {
-                statusTransitionHtml = `
-                    <span class="new-status ${statusInfo.class}" style="color: ${colors.border}; font-weight: 700;">${statusInfo.icon} ${statusInfo.label}</span>
                 `;
             }
 
