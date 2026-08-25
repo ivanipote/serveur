@@ -162,11 +162,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 stockLabel = '⚠️ ' + stock + ' restant(s)';
             }
 
-            const imgSrc = p.image || 'https://via.placeholder.com/200x140?text=Produit';
+            // ✅ CORRECTION : utiliser image1 ou image
+            const imgSrc = p.image1 || p.image || null;
 
             return `
                 <div class="product-card" data-id="${p.id}">
-                    <img src="${imgSrc}" alt="${p.name}" class="product-img" loading="lazy" />
+                    ${imgSrc 
+                        ? `<img src="${imgSrc}" alt="${p.name}" class="product-img" loading="lazy" />`
+                        : `<div class="product-img no-image"><i class="fas fa-box"></i></div>`
+                    }
                     <div class="product-body">
                         <div class="product-name">${p.name}</div>
                         <div class="product-price">${p.price.toLocaleString()} FCFA</div>
@@ -187,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // ✅ Clic sur la carte → détail produit
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', function(e) {
-                // Ignorer si le clic est sur un bouton d'action
                 if (e.target.closest('.product-actions')) return;
                 const id = this.dataset.id;
                 window.location.href = '/detailproduct?id=' + id;
@@ -234,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('productName').value = product.name;
         document.getElementById('productPrice').value = product.price;
         document.getElementById('productStock').value = product.stock || 0;
-        document.getElementById('productImage').value = product.image || '';
+        document.getElementById('productImage').value = product.image1 || product.image || '';
         document.getElementById('productDescription').value = product.description || '';
         document.getElementById('productCategory').value = product.category || '';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Modifier';
