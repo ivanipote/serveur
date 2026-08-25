@@ -283,14 +283,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // STATS
+    // STATS (AVEC VUES)
     // ==========================================
 
     function renderStats(shopsData) {
         if (!shopsData || shopsData.length === 0) {
             statsBody.innerHTML = `
                 <tr>
-                    <td colspan="4" class="stats-empty">Aucune donnée disponible</td>
+                    <td colspan="5" class="stats-empty">Aucune donnée disponible</td>
                 </tr>
             `;
             return;
@@ -302,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="stat-number articles">${shop.articles || 0}</td>
                 <td class="stat-number messages">${shop.messages || 0}</td>
                 <td class="stat-number likes">${shop.likes || 0}</td>
+                <td class="stat-number views">${shop.views || 0}</td>
             </tr>
         `).join('');
     }

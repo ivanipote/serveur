@@ -21,7 +21,7 @@ body {
 }
 
 /* ==========================================
-   HEADER - VERT (harmonisé)
+   HEADER - VERT
    ========================================== */
 
 .dashboard-header {
@@ -61,6 +61,7 @@ body {
     position: relative;
     display: flex;
     align-items: center;
+    cursor: pointer;
 }
 
 .search-wrapper i {
@@ -68,6 +69,7 @@ body {
     left: 14px;
     color: rgba(255, 255, 255, 0.6);
     font-size: 14px;
+    pointer-events: none;
 }
 
 .search-wrapper input {
@@ -80,6 +82,7 @@ body {
     color: white;
     outline: none;
     transition: all 0.3s;
+    cursor: pointer;
 }
 
 .search-wrapper input::placeholder {
@@ -202,7 +205,7 @@ body {
     height: 100%;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 
 .shop-card-header {
     background: rgba(0, 0, 0, 0.3);
@@ -272,7 +275,7 @@ body {
     margin-left: 6px;
 }
 
-/* ===== MAIN (IMAGE) ===== */
+/* MAIN (IMAGE) */
 
 .shop-card-main {
     flex: 1;
@@ -301,7 +304,7 @@ body {
     padding: 20px;
 }
 
-/* ===== ITEM ===== */
+/* ITEM */
 
 .shop-item {
     background: rgba(255, 255, 255, 0.08);
@@ -365,7 +368,7 @@ body {
     gap: 4px;
 }
 
-/* ===== FOOTER ===== */
+/* FOOTER */
 
 .shop-card-footer {
     background: rgba(0, 0, 0, 0.3);
@@ -422,21 +425,14 @@ body {
 }
 
 .shop-card-footer .shop-indicator {
-    font-size: 16px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
     margin-left: auto;
 }
 
-.shop-card-footer .shop-indicator span:first-child {
-    color: white;
-    font-weight: 900;
-}
-
-/* ==========================================
-   EMPTY STATE
-   ========================================== */
+/* EMPTY STATE */
 
 .shop-empty {
     text-align: center;
@@ -475,25 +471,28 @@ body {
 }
 
 /* ==========================================
-   CADRE 2 - STATS
+   CADRE 2 - STATS (FOND VERT + FLOU)
    ========================================== */
 
 .stats-card {
-    background: white;
+    background: rgba(23, 164, 100, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(23, 164, 100, 0.15);
     border-radius: 20px;
-    padding: 14px 20px 12px 20px;
-    border: 1px solid #e8ecf4;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    padding: 14px 18px 12px 18px;
     flex: 1;
     min-height: 100px;
     display: flex;
     flex-direction: column;
     margin-top: 10px;
+    box-shadow: 0 4px 20px rgba(23, 164, 100, 0.06);
 }
 
 .stats-card .card-header {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     flex-shrink: 0;
+    padding: 0 4px;
 }
 
 .stats-card .card-header h2 {
@@ -507,94 +506,108 @@ body {
     text-shadow: none;
 }
 
-.stats-table-wrapper {
+/* ===== TABLEAU GLASS (transparent) ===== */
+
+.stats-table-glass {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 16px;
+    overflow: hidden;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     flex: 1;
-    overflow: auto;
-    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-.stats-table-wrapper::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-}
-
-.stats-table-wrapper::-webkit-scrollbar-thumb {
-    background: #d0d0da;
-    border-radius: 10px;
-}
-
-.stats-table-wrapper table {
+.stats-table-glass table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
-    min-width: 300px;
+    flex: 1;
 }
 
-.stats-table-wrapper thead th {
-    padding: 8px 12px;
-    text-align: left;
+.stats-table-glass thead th {
+    padding: 12px 16px;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 2px solid #e8ecf4;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: white;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.08);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
 }
 
-.stats-table-wrapper .col-shop {
-    color: #2563EB;
+.stats-table-glass thead th.col-shop {
+    text-align: left;
+    color: #93C5FD;
 }
 
-.stats-table-wrapper .col-articles {
-    color: #17A464;
+.stats-table-glass thead th.col-articles {
+    color: #6EE7B7;
 }
 
-.stats-table-wrapper .col-messages {
-    color: #EA580C;
+.stats-table-glass thead th.col-messages {
+    color: #FCD34D;
 }
 
-.stats-table-wrapper .col-likes {
-    color: #DC2626;
+.stats-table-glass thead th.col-likes {
+    color: #FCA5A5;
 }
 
-.stats-table-wrapper td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #f0f2f5;
-    color: #1a1a2e;
+.stats-table-glass thead th.col-views {
+    color: #93C5FD;
 }
 
-.stats-table-wrapper tr:last-child td {
+.stats-table-glass tbody td {
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #e5e7eb;
+}
+
+.stats-table-glass tbody tr:last-child td {
     border-bottom: none;
 }
 
-.stats-table-wrapper .shop-name {
-    font-weight: 600;
-    color: #2563EB;
+.stats-table-glass tbody tr:hover {
+    background: rgba(255, 255, 255, 0.08);
 }
 
-.stats-table-wrapper .stat-number {
+.stats-table-glass .shop-name {
+    text-align: left;
+    font-size: 17px;
     font-weight: 700;
+    color: #1a1a2e;
 }
 
-.stats-table-wrapper .stat-number.articles {
-    color: #17A464;
+.stats-table-glass .stat-number {
+    font-weight: 700;
+    font-size: 15px;
 }
 
-.stats-table-wrapper .stat-number.messages {
-    color: #EA580C;
+.stats-table-glass .stat-number.articles {
+    color: #6EE7B7;
 }
 
-.stats-table-wrapper .stat-number.likes {
-    color: #DC2626;
+.stats-table-glass .stat-number.messages {
+    color: #FCD34D;
+}
+
+.stats-table-glass .stat-number.likes {
+    color: #FCA5A5;
+}
+
+.stats-table-glass .stat-number.views {
+    color: #93C5FD;
 }
 
 .stats-empty {
     text-align: center;
-    color: #888;
-    padding: 20px 20px;
+    color: #9ca3af;
+    padding: 30px 20px;
 }
 
 /* ==========================================
@@ -679,11 +692,12 @@ body {
     }
 
     .shop-card-footer .shop-indicator {
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .stats-card {
         padding: 12px 14px 10px 14px;
+        border-radius: 16px;
         margin-top: 10px;
     }
 
@@ -691,14 +705,26 @@ body {
         font-size: 15px;
     }
 
-    .stats-table-wrapper table {
-        font-size: 13px;
-        min-width: 250px;
+    .stats-table-glass {
+        border-radius: 14px;
     }
 
-    .stats-table-wrapper th,
-    .stats-table-wrapper td {
-        padding: 6px 10px;
+    .stats-table-glass thead th {
+        padding: 10px 10px;
+        font-size: 10px;
+    }
+
+    .stats-table-glass tbody td {
+        padding: 10px 10px;
+        font-size: 13px;
+    }
+
+    .stats-table-glass .shop-name {
+        font-size: 15px;
+    }
+
+    .stats-table-glass .stat-number {
+        font-size: 13px;
     }
 }
 
@@ -812,141 +838,6 @@ body {
         font-size: 13px;
     }
 
-    .stats-table-wrapper table {
-        font-size: 12px;
-        min-width: 200px;
-    }
-
-    .stats-table-wrapper th,
-    .stats-table-wrapper td {
-        padding: 5px 6px;
-    }
-}
-/* ==========================================
-   TABLEAU STATS - VARIANTE 2 (verre foncé)
-   ========================================== */
-
-.stats-table-glass {
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 16px;
-    overflow: hidden;
-    width: 100%;
-}
-
-.stats-table-glass table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.stats-table-glass thead th {
-    padding: 12px 16px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-align: center;
-    background: rgba(0, 0, 0, 0.15);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
-}
-
-.stats-table-glass thead th.col-shop {
-    text-align: left;
-    color: #93C5FD;
-}
-
-.stats-table-glass thead th.col-articles {
-    color: #6EE7B7;
-}
-
-.stats-table-glass thead th.col-messages {
-    color: #FCD34D;
-}
-
-.stats-table-glass thead th.col-likes {
-    color: #FCA5A5;
-}
-
-.stats-table-glass tbody td {
-    padding: 12px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    color: #e5e7eb;
-}
-
-.stats-table-glass tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.stats-table-glass tbody tr:hover {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-/* ===== COLONNE BOUTIQUE (gauche) ===== */
-.stats-table-glass .shop-name {
-    text-align: left;
-    font-size: 17px;
-    font-weight: 700;
-    color: #1a1a2e;
-}
-
-/* ===== STATS (centrées) ===== */
-.stats-table-glass .stat-number {
-    font-weight: 700;
-    font-size: 15px;
-}
-
-.stats-table-glass .stat-number.articles {
-    color: #6EE7B7;
-}
-
-.stats-table-glass .stat-number.messages {
-    color: #FCD34D;
-}
-
-.stats-table-glass .stat-number.likes {
-    color: #FCA5A5;
-}
-
-/* ===== ÉTAT VIDE ===== */
-.stats-empty {
-    text-align: center;
-    color: #9ca3af;
-    padding: 30px 20px;
-}
-
-/* ==========================================
-   RESPONSIVE TABLEAU STATS
-   ========================================== */
-
-@media (max-width: 600px) {
-    .stats-table-glass {
-        border-radius: 14px;
-    }
-
-    .stats-table-glass thead th {
-        padding: 10px 10px;
-        font-size: 10px;
-    }
-
-    .stats-table-glass tbody td {
-        padding: 10px 10px;
-        font-size: 13px;
-    }
-
-    .stats-table-glass .shop-name {
-        font-size: 15px;
-    }
-
-    .stats-table-glass .stat-number {
-        font-size: 13px;
-    }
-}
-
-@media (max-width: 400px) {
     .stats-table-glass {
         border-radius: 12px;
     }
