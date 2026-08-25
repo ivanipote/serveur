@@ -865,19 +865,47 @@ app.delete('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// Mettre à jour le profil du vendeur
+// ========================================================
+// ROUTES : PROFIL VENDEUR
+// ========================================================
+
+// Récupérer le profil
+app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
+    res.json({
+        success: true,
+        seller: req.seller
+    });
+});
+
+// Mettre à jour le profil
 app.put('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
     const { name, email, phone, flex1, flex2, flex3, flex4, flex5, flex6, flex7 } = req.body;
     const sellerId = req.seller.id;
 
     try {
-        await db.query(
-            `UPDATE sellers 
-             SET name = $1, email = $2, phone = $3, 
-                 flex1 = $4, flex2 = $5, flex3 = $6, flex4 = $7, flex5 = $8, flex6 = $9, flex7 = $10
-             WHERE id = $11`,
-            [name, email, phone, flex1, flex2, flex3, flex4, flex5, flex6, flex7, sellerId]
-        );
+        const updates = [];
+        const params = [];
+        let idx = 1;
+
+        if (name !== undefined) { updates.push(`name = $${idx++}`); params.push(name); }
+        if (email !== undefined) { updates.push(`email = $${idx++}`); params.push(email); }
+        if (phone !== undefined) { updates.push(`phone = $${idx++}`); params.push(phone); }
+        if (flex1 !== undefined) { updates.push(`flex1 = $${idx++}`); params.push(flex1); }
+        if (flex2 !== undefined) { updates.push(`flex2 = $${idx++}`); params.push(flex2); }
+        if (flex3 !== undefined) { updates.push(`flex3 = $${idx++}`); params.push(flex3); }
+        if (flex4 !== undefined) { updates.push(`flex4 = $${idx++}`); params.push(flex4); }
+        if (flex5 !== undefined) { updates.push(`flex5 = $${idx++}`); params.push(flex5); }
+        if (flex6 !== undefined) { updates.push(`flex6 = $${idx++}`); params.push(flex6); }
+        if (flex7 !== undefined) { updates.push(`flex7 = $${idx++}`); params.push(flex7); }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'Aucune donnée à mettre à jour' });
+        }
+
+        params.push(sellerId);
+        const query = `UPDATE sellers SET ${updates.join(', ')} WHERE id = $${idx}`;
+
+        await db.query(query, params);
 
         const updated = await db.get('SELECT * FROM sellers WHERE id = $1', [sellerId]);
 
@@ -892,7 +920,6 @@ app.put('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du profil.' });
     }
 });
-
 // ========================================================
 // ROUTES : MESSAGES
 // ========================================================
