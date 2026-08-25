@@ -5,408 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Boutiques | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent !important;
-            outline: none !important;
-        }
-
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-height: 100vh;
-        }
-
-        /* ===== HEADER ===== */
-        .page-header {
-            background: #17A464;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
-            flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .page-header .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .page-header .back-btn:hover {
-            background: rgba(255, 255, 255, 0.35);
-            transform: scale(1.05);
-        }
-
-        .page-header .page-title {
-            flex: 1;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-            text-align: center;
-        }
-
-        /* ===== MAIN ===== */
-        .page-main {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 16px 16px 20px 16px;
-        }
-
-        .page-main::-webkit-scrollbar {
-            width: 4px;
-        }
-        .page-main::-webkit-scrollbar-thumb {
-            background: #d0d0da;
-            border-radius: 10px;
-        }
-
-        /* ==========================================
-           CARTE BOUTIQUE
-           ========================================== */
-        .shop-card {
-            border-radius: 24px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: #1a1a2e;
-            min-height: 280px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .shop-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .shop-card-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            z-index: 0;
-        }
-
-        .shop-card-bg .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.45);
-        }
-
-        .shop-card-content {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            min-height: 280px;
-            padding: 0;
-        }
-
-        .shop-card-header {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 56px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .shop-card-header .owner-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .shop-card-header .owner-name i {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .shop-card-center {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px 20px;
-        }
-
-        .shop-card-center .shop-info {
-            background: rgba(255, 255, 255, 0.10);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 20px;
-            padding: 20px 24px;
-            text-align: center;
-            width: 100%;
-            max-width: 300px;
-            transition: all 0.3s ease;
-        }
-
-        .shop-card-center .shop-info:hover {
-            background: rgba(255, 255, 255, 0.18);
-            transform: scale(1.02);
-        }
-
-        .shop-card-center .shop-info .shop-icon {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .shop-card-center .shop-info .shop-name {
-            font-size: 19px;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-        }
-
-        .shop-card-center .shop-info .shop-location {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.85);
-            display: block;
-            margin-top: 2px;
-            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .shop-card-footer {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            min-height: 52px;
-        }
-
-        .shop-card-footer .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 13px;
-            font-weight: 500;
-            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .shop-card-footer .stat-item i {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .shop-card-footer .stat-item .stat-value {
-            font-weight: 700;
-            font-size: 15px;
-            color: white;
-        }
-
-        /* ===== LOADING ===== */
-        .loading-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6B7280;
-        }
-
-        .loading-state i {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 12px;
-            color: #17A464;
-        }
-
-        /* ===== EMPTY ===== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6B7280;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: #d0d0da;
-            display: block;
-            margin-bottom: 12px;
-        }
-
-        .empty-state h3 {
-            font-size: 18px;
-            color: #1a1a2e;
-            margin-bottom: 4px;
-        }
-
-        /* ==========================================
-           RESPONSIVE
-           ========================================== */
-
-        @media (max-width: 768px) {
-            .page-header {
-                padding: 10px 14px;
-                gap: 10px;
-                border-radius: 0 0 16px 16px;
-            }
-            .page-header .back-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-            .page-header .page-title {
-                font-size: 16px;
-            }
-            .page-main {
-                padding: 12px 12px 16px 12px;
-            }
-            .shop-card {
-                min-height: 240px;
-                border-radius: 20px;
-            }
-            .shop-card-content {
-                min-height: 240px;
-            }
-            .shop-card-header {
-                min-height: 48px;
-                padding: 10px 16px;
-            }
-            .shop-card-header .owner-name {
-                font-size: 14px;
-            }
-            .shop-card-center .shop-info {
-                padding: 16px 18px;
-                max-width: 240px;
-            }
-            .shop-card-center .shop-info .shop-name {
-                font-size: 17px;
-            }
-            .shop-card-center .shop-info .shop-location {
-                font-size: 12px;
-            }
-            .shop-card-footer {
-                padding: 10px 16px;
-                gap: 16px;
-                min-height: 44px;
-            }
-            .shop-card-footer .stat-item {
-                font-size: 12px;
-            }
-            .shop-card-footer .stat-item .stat-value {
-                font-size: 13px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .page-header {
-                padding: 8px 10px;
-                gap: 8px;
-                border-radius: 0 0 14px 14px;
-            }
-            .page-header .back-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-            .page-header .page-title {
-                font-size: 14px;
-            }
-            .page-main {
-                padding: 8px 8px 12px 8px;
-            }
-            .shop-card {
-                min-height: 200px;
-                border-radius: 16px;
-                margin-bottom: 14px;
-            }
-            .shop-card-content {
-                min-height: 200px;
-            }
-            .shop-card-header {
-                min-height: 40px;
-                padding: 8px 12px;
-            }
-            .shop-card-header .owner-name {
-                font-size: 12px;
-            }
-            .shop-card-header .owner-name i {
-                font-size: 11px;
-            }
-            .shop-card-center {
-                padding: 10px 12px;
-            }
-            .shop-card-center .shop-info {
-                padding: 12px 14px;
-                max-width: 180px;
-                border-radius: 14px;
-            }
-            .shop-card-center .shop-info .shop-icon {
-                font-size: 24px;
-            }
-            .shop-card-center .shop-info .shop-name {
-                font-size: 14px;
-            }
-            .shop-card-center .shop-info .shop-location {
-                font-size: 11px;
-            }
-            .shop-card-footer {
-                padding: 8px 12px;
-                gap: 12px;
-                min-height: 38px;
-            }
-            .shop-card-footer .stat-item {
-                font-size: 10px;
-                gap: 4px;
-            }
-            .shop-card-footer .stat-item i {
-                font-size: 10px;
-            }
-            .shop-card-footer .stat-item .stat-value {
-                font-size: 11px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/seller/css/boutiques.css">
 </head>
 <body>
 
@@ -414,103 +13,79 @@
         <button class="back-btn" onclick="window.history.back()">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="page-title">🏪 Toutes les boutiques</span>
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Rechercher une boutique..." />
+        </div>
+        <button class="clear-btn" id="clearBtn" style="display:none;">
+            <i class="fas fa-times-circle"></i>
+        </button>
     </header>
 
     <main class="page-main" id="pageMain">
 
-        <div class="loading-state" id="loadingState">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Chargement des boutiques...</p>
+        <!-- SKELETON LOADER -->
+        <div class="skeleton-loader" id="skeletonLoader">
+            <div class="skeleton-card">
+                <div class="skeleton-banner"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="skeleton-footer">
+                    <div class="skeleton-stat"></div>
+                    <div class="skeleton-stat"></div>
+                    <div class="skeleton-stat"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-banner"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="skeleton-footer">
+                    <div class="skeleton-stat"></div>
+                    <div class="skeleton-stat"></div>
+                    <div class="skeleton-stat"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-banner"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="skeleton-footer">
+                    <div class="skeleton-stat"></div>
+                    <div class="skeleton-stat"></div>
+                    <div class="skeleton-stat"></div>
+                </div>
+            </div>
         </div>
 
+        <!-- CONTENEUR CARTES -->
         <div id="shopsContainer" style="display:none;"></div>
 
+        <!-- EMPTY -->
         <div class="empty-state" id="emptyState" style="display:none;">
             <i class="fas fa-store"></i>
-            <h3>Aucune boutique disponible</h3>
-            <p>Revenez plus tard, de nouvelles boutiques arrivent bientôt.</p>
+            <h3>Aucune boutique trouvée</h3>
+            <p id="emptyMessage">Aucune boutique ne correspond à votre recherche.</p>
+        </div>
+
+        <!-- NO RESULTS SEARCH -->
+        <div class="empty-state" id="noResults" style="display:none;">
+            <i class="fas fa-search"></i>
+            <h3>Aucun résultat</h3>
+            <p id="noResultsMessage">Aucune boutique ne correspond à votre recherche.</p>
         </div>
 
     </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            console.log('✅ Boutiques - Connecté à l\'API');
-
-            const loadingState = document.getElementById('loadingState');
-            const shopsContainer = document.getElementById('shopsContainer');
-            const emptyState = document.getElementById('emptyState');
-
-            async function loadShops() {
-                try {
-                    const res = await fetch('/api/shops');
-
-                    if (!res.ok) {
-                        throw new Error('Erreur chargement boutiques');
-                    }
-
-                    const data = await res.json();
-
-                    loadingState.style.display = 'none';
-
-                    if (data.success && data.shops && data.shops.length > 0) {
-                        renderShops(data.shops);
-                    } else {
-                        emptyState.style.display = 'block';
-                    }
-
-                } catch (error) {
-                    console.error('❌ Erreur:', error);
-                    loadingState.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    emptyState.querySelector('p').textContent = 'Erreur de chargement. Veuillez réessayer.';
-                }
-            }
-
-            function renderShops(shops) {
-                shopsContainer.style.display = 'block';
-
-                shopsContainer.innerHTML = shops.map(shop => `
-                    <div class="shop-card" onclick="openShop(${shop.id})">
-                        <div class="shop-card-bg" style="background-image: url('${shop.logo || 'https://picsum.photos/seed/' + shop.id + '/800/400'}');">
-                            <div class="overlay"></div>
-                        </div>
-                        <div class="shop-card-content">
-                            <div class="shop-card-header">
-                                <span class="owner-name"><i class="fas fa-user-circle"></i> ${shop.seller_name || 'Vendeur'}</span>
-                            </div>
-                            <div class="shop-card-center">
-                                <div class="shop-info">
-                                    <span class="shop-icon">🛒</span>
-                                    <span class="shop-name">${shop.name}</span>
-                                    <span class="shop-location">📍 ${shop.location || 'Localisation non renseignée'}</span>
-                                </div>
-                            </div>
-                            <div class="shop-card-footer">
-                                <span class="stat-item"><i class="fas fa-box"></i> <span class="stat-value">${shop.total_products || 0}</span> produits</span>
-                                <span class="stat-item"><i class="fas fa-eye"></i> <span class="stat-value">${shop.total_views || 0}</span> vues</span>
-                                <span class="stat-item"><i class="fas fa-heart"></i> <span class="stat-value">${shop.total_likes || 0}</span> likes</span>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            window.openShop = function(shopId) {
-                fetch('/api/seller/shop/' + shopId + '/view', {
-                    method: 'POST'
-                }).catch(err => console.warn('Erreur incrément vue:', err));
-
-                window.location.href = '/shop-user.html?id=' + shopId;
-            };
-
-            loadShops();
-            console.log('✅ Boutiques - Prêt');
-
-        });
-    </script>
-
+    <script src="/seller/js/boutiques.js"></script>
 </body>
 </html>
