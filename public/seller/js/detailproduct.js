@@ -197,7 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
         editDescription.value = product.description || '';
 
         // ✅ Mettre à jour le message de suppression
-        deleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer "' + product.name + '" ?\nCette action est irréversible.';
+        if (deleteMessage) {
+            deleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer "' + product.name + '" ?\nCette action est irréversible.';
+        }
     }
 
     // ==========================================
@@ -309,180 +311,197 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
     }
 
-    editBtn.addEventListener('click', openEditSlide);
-    editCancel.addEventListener('click', closeEditSlide);
+    if (editBtn) {
+        editBtn.addEventListener('click', openEditSlide);
+    }
 
-    editSlide.addEventListener('click', function(e) {
-        if (e.target === editSlide) {
-            closeEditSlide();
-        }
-    });
+    if (editCancel) {
+        editCancel.addEventListener('click', closeEditSlide);
+    }
+
+    if (editSlide) {
+        editSlide.addEventListener('click', function(e) {
+            if (e.target === editSlide) {
+                closeEditSlide();
+            }
+        });
+    }
 
     // ==========================================
     // CONFIRMER MODIFICATION
     // ==========================================
 
-    editConfirm.addEventListener('click', async function() {
-        const name = editName.value.trim();
-        const price = parseInt(editPrice.value);
-        const stock = parseInt(editStock.value) || 0;
-        const description = editDescription.value.trim();
+    if (editConfirm) {
+        editConfirm.addEventListener('click', async function() {
+            const name = editName.value.trim();
+            const price = parseInt(editPrice.value);
+            const stock = parseInt(editStock.value) || 0;
+            const description = editDescription.value.trim();
 
-        if (!name) {
-            alert('⚠️ Veuillez entrer un nom de produit.');
-            editName.focus();
-            return;
-        }
-
-        if (!price || price <= 0) {
-            alert('⚠️ Veuillez entrer un prix valide.');
-            editPrice.focus();
-            return;
-        }
-
-        const token = getToken();
-        if (!token) return;
-
-        editConfirm.disabled = true;
-        editConfirm.textContent = '⏳ Enregistrement...';
-
-        try {
-            const response = await fetch('/api/seller/product/' + productId, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({
-                    name: name,
-                    price: price,
-                    stock: stock,
-                    description: description || null,
-                    category: currentData.category || null,
-                    image: currentData.image1 || currentData.image || null,
-                    shop_id: shopId
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                currentData.name = name;
-                currentData.price = price;
-                currentData.stock = stock;
-                currentData.description = description;
-
-                productName.textContent = name;
-                productPrice.textContent = price.toLocaleString() + ' FCFA';
-                productDescription.textContent = description || 'Aucune description';
-
-                let stockLabel = '📦 ' + stock + ' en stock';
-                let stockClass = '';
-                if (stock === 0) {
-                    stockClass = 'out';
-                    stockLabel = '🚫 Rupture de stock';
-                } else if (stock <= 5) {
-                    stockClass = 'low';
-                    stockLabel = '⚠️ ' + stock + ' restant(s)';
-                }
-                productStock.textContent = stockLabel;
-                productStock.className = 'stock ' + stockClass;
-
-                // ✅ Mettre à jour le message de suppression
-                deleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer "' + name + '" ?\nCette action est irréversible.';
-
-                closeEditSlide();
-                alert('✅ Produit modifié avec succès !');
-            } else {
-                throw new Error(data.error || 'Erreur');
+            if (!name) {
+                alert('⚠️ Veuillez entrer un nom de produit.');
+                editName.focus();
+                return;
             }
 
-        } catch (error) {
-            console.error('❌ Erreur:', error);
-            alert('❌ ' + error.message);
-        }
+            if (!price || price <= 0) {
+                alert('⚠️ Veuillez entrer un prix valide.');
+                editPrice.focus();
+                return;
+            }
 
-        editConfirm.disabled = false;
-        editConfirm.textContent = '✅ Confirmer';
-    });
+            const token = getToken();
+            if (!token) return;
+
+            editConfirm.disabled = true;
+            editConfirm.textContent = '⏳ Enregistrement...';
+
+            try {
+                const response = await fetch('/api/seller/product/' + productId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        price: price,
+                        stock: stock,
+                        description: description || null,
+                        category: currentData.category || null,
+                        image: currentData.image1 || currentData.image || null,
+                        shop_id: shopId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    currentData.name = name;
+                    currentData.price = price;
+                    currentData.stock = stock;
+                    currentData.description = description;
+
+                    productName.textContent = name;
+                    productPrice.textContent = price.toLocaleString() + ' FCFA';
+                    productDescription.textContent = description || 'Aucune description';
+
+                    let stockLabel = '📦 ' + stock + ' en stock';
+                    let stockClass = '';
+                    if (stock === 0) {
+                        stockClass = 'out';
+                        stockLabel = '🚫 Rupture de stock';
+                    } else if (stock <= 5) {
+                        stockClass = 'low';
+                        stockLabel = '⚠️ ' + stock + ' restant(s)';
+                    }
+                    productStock.textContent = stockLabel;
+                    productStock.className = 'stock ' + stockClass;
+
+                    if (deleteMessage) {
+                        deleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer "' + name + '" ?\nCette action est irréversible.';
+                    }
+
+                    closeEditSlide();
+                    alert('✅ Produit modifié avec succès !');
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                alert('❌ ' + error.message);
+            }
+
+            editConfirm.disabled = false;
+            editConfirm.textContent = '✅ Confirmer';
+        });
+    }
 
     // ==========================================
     // ✅ SUPPRIMER LE PRODUIT
     // ==========================================
 
-    deleteProductBtn.addEventListener('click', function() {
-        deleteOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    });
+    if (deleteProductBtn) {
+        deleteProductBtn.addEventListener('click', function() {
+            deleteOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
 
-    deleteCancel.addEventListener('click', function() {
-        deleteOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    });
-
-    deleteConfirm.addEventListener('click', async function() {
-        const token = getToken();
-        if (!token) return;
-
-        deleteOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-
-        // Loader
-        const loaderOverlay = document.createElement('div');
-        loaderOverlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 16px;
-        `;
-        loaderOverlay.innerHTML = `
-            <div style="width:56px;height:56px;border:4px solid rgba(23,164,100,0.15);border-top-color:#17A464;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-            <p style="color:white;font-size:18px;font-weight:600;">⏳ Suppression en cours...</p>
-            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-        `;
-        document.body.appendChild(loaderOverlay);
-
-        try {
-            const response = await fetch('/api/seller/product/' + productId + '?shop_id=' + shopId, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                loaderOverlay.remove();
-                alert('🗑️ Produit supprimé avec succès !');
-                window.location.href = '/shop?id=' + shopId;
-            } else {
-                throw new Error(data.error || 'Erreur suppression');
-            }
-
-        } catch (error) {
-            console.error('❌ Erreur:', error);
-            loaderOverlay.remove();
-            alert('❌ ' + error.message);
-        }
-    });
-
-    // Fermer l'overlay en cliquant à l'extérieur
-    deleteOverlay.addEventListener('click', function(e) {
-        if (e.target === deleteOverlay) {
+    if (deleteCancel) {
+        deleteCancel.addEventListener('click', function() {
             deleteOverlay.classList.remove('active');
             document.body.style.overflow = '';
-        }
-    });
+        });
+    }
+
+    if (deleteConfirm) {
+        deleteConfirm.addEventListener('click', async function() {
+            const token = getToken();
+            if (!token) return;
+
+            deleteOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+
+            // Loader
+            const loaderOverlay = document.createElement('div');
+            loaderOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(8px);
+                z-index: 999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                gap: 16px;
+            `;
+            loaderOverlay.innerHTML = `
+                <div style="width:56px;height:56px;border:4px solid rgba(23,164,100,0.15);border-top-color:#17A464;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                <p style="color:white;font-size:18px;font-weight:600;">⏳ Suppression en cours...</p>
+                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+            `;
+            document.body.appendChild(loaderOverlay);
+
+            try {
+                const response = await fetch('/api/seller/product/' + productId + '?shop_id=' + shopId, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    loaderOverlay.remove();
+                    alert('🗑️ Produit supprimé avec succès !');
+                    window.location.href = '/shop?id=' + shopId;
+                } else {
+                    throw new Error(data.error || 'Erreur suppression');
+                }
+
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                loaderOverlay.remove();
+                alert('❌ ' + error.message);
+            }
+        });
+    }
+
+    if (deleteOverlay) {
+        deleteOverlay.addEventListener('click', function(e) {
+            if (e.target === deleteOverlay) {
+                deleteOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
 
     // ==========================================
     // INITIALISATION
