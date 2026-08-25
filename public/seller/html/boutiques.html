@@ -6,9 +6,6 @@
     <title>Boutiques | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* ==========================================
-           STYLES
-           ========================================== */
         * {
             margin: 0;
             padding: 0;
@@ -31,7 +28,7 @@
             max-height: 100vh;
         }
 
-        /* ===== HEADER PAGE ===== */
+        /* ===== HEADER ===== */
         .page-header {
             background: #17A464;
             padding: 12px 20px;
@@ -80,6 +77,7 @@
         .page-main {
             flex: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 16px 16px 20px 16px;
         }
 
@@ -111,7 +109,6 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
-        /* ---- IMAGE DE FOND ---- */
         .shop-card-bg {
             position: absolute;
             top: 0;
@@ -132,7 +129,6 @@
             background: rgba(0, 0, 0, 0.45);
         }
 
-        /* ---- CONTENU ---- */
         .shop-card-content {
             position: relative;
             z-index: 1;
@@ -143,7 +139,6 @@
             padding: 0;
         }
 
-        /* ---- HEADER (flou en haut) ---- */
         .shop-card-header {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(12px);
@@ -171,7 +166,6 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        /* ---- CENTRE (carte floue) ---- */
         .shop-card-center {
             flex: 1;
             display: flex;
@@ -219,7 +213,6 @@
             text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
         }
 
-        /* ---- FOOTER (flou en bas) ---- */
         .shop-card-footer {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(12px);
@@ -417,7 +410,6 @@
 </head>
 <body>
 
-    <!-- ===== HEADER PAGE ===== -->
     <header class="page-header">
         <button class="back-btn" onclick="window.history.back()">
             <i class="fas fa-arrow-left"></i>
@@ -425,19 +417,15 @@
         <span class="page-title">🏪 Toutes les boutiques</span>
     </header>
 
-    <!-- ===== MAIN ===== -->
     <main class="page-main" id="pageMain">
 
-        <!-- LOADING -->
         <div class="loading-state" id="loadingState">
             <i class="fas fa-spinner fa-spin"></i>
             <p>Chargement des boutiques...</p>
         </div>
 
-        <!-- CONTENEUR CARTES -->
         <div id="shopsContainer" style="display:none;"></div>
 
-        <!-- EMPTY -->
         <div class="empty-state" id="emptyState" style="display:none;">
             <i class="fas fa-store"></i>
             <h3>Aucune boutique disponible</h3>
@@ -455,13 +443,8 @@
             const shopsContainer = document.getElementById('shopsContainer');
             const emptyState = document.getElementById('emptyState');
 
-            // ==========================================
-            // CHARGER LES BOUTIQUES DEPUIS L'API
-            // ==========================================
-
             async function loadShops() {
                 try {
-                    // ✅ Appel à l'API publique du serveur client
                     const res = await fetch('/api/shops');
 
                     if (!res.ok) {
@@ -485,10 +468,6 @@
                     emptyState.querySelector('p').textContent = 'Erreur de chargement. Veuillez réessayer.';
                 }
             }
-
-            // ==========================================
-            // AFFICHER LES CARTES
-            // ==========================================
 
             function renderShops(shops) {
                 shopsContainer.style.display = 'block';
@@ -519,23 +498,13 @@
                 `).join('');
             }
 
-            // ==========================================
-            // OUVERTURE BOUTIQUE → +1 vue
-            // ==========================================
-
             window.openShop = function(shopId) {
-                // Incrémenter la vue via API (appel silencieux)
                 fetch('/api/seller/shop/' + shopId + '/view', {
                     method: 'POST'
                 }).catch(err => console.warn('Erreur incrément vue:', err));
 
-                // Rediriger vers shop-user.html (à créer)
                 window.location.href = '/shop-user.html?id=' + shopId;
             };
-
-            // ==========================================
-            // INIT
-            // ==========================================
 
             loadShops();
             console.log('✅ Boutiques - Prêt');
