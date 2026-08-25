@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ajouter un produit | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ==========================================
+           STYLES COMPLETS (intégrés)
+           ========================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .product-header {
+            background: #17A464;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .product-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .product-header .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+
+        .product-header .page-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+        }
+
+        /* ===== MAIN ===== */
+        .product-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px 20px 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .product-main::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .product-main::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        /* ===== FORM CARD ===== */
+        .form-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 16px 18px 18px 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            margin-bottom: 10px;
+        }
+
+        .form-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group {
+            width: 100%;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3a4152;
+            margin-bottom: 4px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e8ecf4;
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.6);
+            outline: none;
+            transition: all 0.3s;
+            color: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #17A464;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* ===== UPLOAD IMAGE ===== */
+        .upload-area {
+            border: 2px dashed #e8ecf4;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #17A464;
+            background: rgba(23, 164, 100, 0.04);
+        }
+
+        .upload-area i {
+            font-size: 28px;
+            color: #17A464;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .upload-area .upload-text {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .upload-area .upload-text span {
+            color: #17A464;
+            font-weight: 600;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* ===== PREVIEW IMAGES ===== */
+        .preview-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .preview-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #e8ecf4;
+            background: #f8f9fc;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .remove-img {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .preview-item .remove-img:hover {
+            background: #DC2626;
+            transform: scale(1.1);
+        }
+
+        .preview-item .placeholder-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #d0d0da;
+            font-size: 24px;
+        }
+
+        /* ===== BOUTON ===== */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #17A464;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #0E7A49;
+            transform: scale(1.01);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== OVERLAY LOADER ===== */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .loader-overlay.active {
+            display: flex;
+        }
+
+        .loader-box {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 32px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: scaleIn 0.3s ease;
+        }
+
+        .loader-box .loader-spinner {
+            width: 56px;
+            height: 56px;
+            border: 4px solid rgba(23, 164, 100, 0.15);
+            border-top-color: #17A464;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px auto;
+        }
+
+        .loader-box h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .loader-box p {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
+        @media (max-width: 768px) {
+            .product-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .product-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .product-header .page-title {
+                font-size: 16px;
+            }
+
+            .product-main {
+                padding: 12px 14px 14px 14px;
+            }
+
+            .form-card {
+                padding: 14px 14px 16px 14px;
+                border-radius: 16px;
+            }
+
+            .preview-item {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .product-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .product-header .page-title {
+                font-size: 14px;
+            }
+
+            .product-main {
+                padding: 8px 10px 10px 10px;
+            }
+
+            .form-card {
+                padding: 10px 10px 12px 10px;
+                border-radius: 14px;
+                margin-bottom: 8px;
+            }
+
+            .form-group label {
+                font-size: 12px;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .upload-area {
+                padding: 14px;
+            }
+
+            .upload-area i {
+                font-size: 22px;
+            }
+
+            .upload-area .upload-text {
+                font-size: 12px;
+            }
+
+            .preview-item {
+                width: 60px;
+                height: 60px;
+            }
+
+            .btn-submit {
+                font-size: 15px;
+                padding: 12px;
+            }
+
+            .loader-box {
+                padding: 30px 24px;
+            }
+
+            .loader-box .loader-spinner {
+                width: 44px;
+                height: 44px;
+            }
+
+            .loader-box h3 {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER                                     -->
+    <!-- ========================================== -->
+    <header class="product-header">
+        <button class="back-btn" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="page-title">➕ Ajouter un produit</span>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN                                       -->
+    <!-- ========================================== -->
+    <main class="product-main">
+
+        <form id="productForm">
+
+            <!-- CARD 1 : Nom + Prix + Stock -->
+            <div class="form-card">
+                <div class="form-group">
+                    <label>Nom du produit <span class="required">*</span></label>
+                    <input type="text" id="productName" placeholder="Ex: Jus de gingembre" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prix (FCFA) <span class="required">*</span></label>
+                        <input type="number" id="productPrice" placeholder="500" required min="1" />
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="productStock" placeholder="10" min="0" value="0" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2 : Images -->
+            <div class="form-card">
+                <div class="form-group">
+                    <label>Images du produit <span class="required">*</span></label>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div class="upload-text">
+                            Cliquez pour ajouter des images<br>
+                            <span>JPG, PNG, WEBP</span>
+                        </div>
+                        <input type="file" id="imageInput" accept="image/*" multiple />
+                    </div>
+                    <div class="preview-container" id="previewContainer">
+                        <!-- Injecté par JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3 : Description + Catégorie -->
+            <div class="form-card">
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="productDescription" placeholder="Description du produit..." rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <input type="text" id="productCategory" placeholder="Ex: Boisson" />
+                </div>
+            </div>
+
+            <!-- BOUTON -->
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-plus-circle"></i> Ajouter le produit
+            </button>
+
+        </form>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY LOADER                             -->
+    <!-- ========================================== -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-box">
+            <div class="loader-spinner"></div>
+            <h3>⏳ Création en cours...</h3>
+            <p>Veuillez patienter</p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCRIPT                                     -->
+    <!-- ========================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ Create Product - Prêt');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const form = document.getElementById('productForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const loaderOverlay = document.getElementById('loaderOverlay');
+
+            const productName = document.getElementById('productName');
+            const productPrice = document.getElementById('productPrice');
+            const productStock = document.getElementById('productStock');
+            const productDescription = document.getElementById('productDescription');
+            const productCategory = document.getElementById('productCategory');
+            const imageInput = document.getElementById('imageInput');
+            const previewContainer = document.getElementById('previewContainer');
+
+            // ==========================================
+            // ÉTAT
+            // ==========================================
+
+            let selectedFiles = [];
+            let shopId = null;
+
+            // ==========================================
+            // RÉCUPÉRER shop_id DEPUIS L'URL
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            shopId = urlParams.get('id');
+
+            if (!shopId) {
+                alert('⚠️ ID de boutique manquant.');
+                window.history.back();
+                return;
+            }
+
+            // ==========================================
+            // AUTH
+            // ==========================================
+
+            function getToken() {
+                return localStorage.getItem('sellerToken');
+            }
+
+            function checkAuth() {
+                const token = getToken();
+                if (!token) {
+                    window.location.href = '/login';
+                    return false;
+                }
+                return true;
+            }
+
+            // ==========================================
+            // PREVIEW IMAGES
+            // ==========================================
+
+            imageInput.addEventListener('change', function() {
+                const files = Array.from(this.files);
+
+                // Limiter à 3 images
+                if (selectedFiles.length + files.length > 3) {
+                    alert('⚠️ Maximum 3 images par produit.');
+                    this.value = '';
+                    return;
+                }
+
+                files.forEach(file => {
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('⚠️ Image trop lourde (max 2MB).');
+                        return;
+                    }
+                    selectedFiles.push(file);
+                });
+
+                renderPreviews();
+                this.value = '';
+            });
+
+            function renderPreviews() {
+                previewContainer.innerHTML = '';
+
+                selectedFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'preview-item';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" alt="Aperçu" />
+                            <button class="remove-img" data-index="${index}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        previewContainer.appendChild(div);
+
+                        // Événement suppression
+                        div.querySelector('.remove-img').addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const idx = parseInt(this.dataset.index);
+                            selectedFiles.splice(idx, 1);
+                            renderPreviews();
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                // Si aucune image, afficher un placeholder
+                if (selectedFiles.length === 0) {
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = `
+                        <div class="placeholder-preview">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    `;
+                    previewContainer.appendChild(div);
+                }
+            }
+
+            // Initialiser le placeholder
+            renderPreviews();
+
+            // ==========================================
+            // SOUMISSION
+            // ==========================================
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const name = productName.value.trim();
+                const price = parseInt(productPrice.value);
+                const stock = parseInt(productStock.value) || 0;
+                const description = productDescription.value.trim();
+                const category = productCategory.value.trim();
+
+                // Validation
+                if (!name) {
+                    alert('⚠️ Veuillez entrer un nom de produit.');
+                    productName.focus();
+                    return;
+                }
+
+                if (!price || price <= 0) {
+                    alert('⚠️ Veuillez entrer un prix valide.');
+                    productPrice.focus();
+                    return;
+                }
+
+                if (selectedFiles.length === 0) {
+                    alert('⚠️ Veuillez ajouter au moins une image.');
+                    return;
+                }
+
+                const token = getToken();
+                if (!token) return;
+
+                // ✅ Construire FormData pour l'upload
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('price', price);
+                formData.append('stock', stock);
+                formData.append('description', description || '');
+                formData.append('category', category || '');
+                formData.append('shop_id', shopId);
+
+                // Ajouter les images (max 3)
+                selectedFiles.forEach((file, index) => {
+                    formData.append(`image${index + 1}`, file);
+                });
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
+                loaderOverlay.classList.add('active');
+
+                try {
+                    const response = await fetch('/api/seller/product', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        loaderOverlay.classList.remove('active');
+                        alert('✅ Produit ajouté avec succès !');
+                        window.location.href = '/shop?id=' + shopId;
+                    } else {
+                        throw new Error(data.error || 'Erreur');
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    loaderOverlay.classList.remove('active');
+                    alert('❌ ' + error.message);
+                }
+
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit';
+            });
+
+            // ==========================================
+            // INIT
+            // ==========================================
+
+            if (!checkAuth()) return;
+
+            console.log('✅ Create Product - Prêt, shop_id:', shopId);
+
+        });
+    </script>
+
+</body>
+</html>

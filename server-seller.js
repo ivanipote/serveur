@@ -905,6 +905,9 @@ app.get('/profil', (req, res) => {
 app.get('/search', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'search.html'));
 });
+app.get('/create-product', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-product.html'));
+});
 
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES
