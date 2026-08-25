@@ -11,14 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const shopName = document.getElementById('shopName');
     const shopLocation = document.getElementById('shopLocation');
     const shopDescription = document.getElementById('shopDescription');
-    const statProducts = document.getElementById('statProducts');
-    const statLikes = document.getElementById('statLikes');
-    const statViews = document.getElementById('statViews');
     const productsGrid = document.getElementById('productsGrid');
     const productsCount = document.getElementById('productsCount');
-    const footerProducts = document.getElementById('footerProducts');
-    const footerLikes = document.getElementById('footerLikes');
-    const footerViews = document.getElementById('footerViews');
 
     const addProductBtn = document.getElementById('addProductBtn');
     const productOverlay = document.getElementById('productOverlay');
@@ -86,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement de la boutique #' + shopId);
 
-            // Récupérer la boutique
             const shopRes = await fetch('/api/seller/shop/' + shopId);
             const shopData = await shopRes.json();
 
@@ -100,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 renderShop(currentShop);
                 renderProducts(products);
-                updateFooter(currentShop);
             } else {
                 throw new Error('Boutique non trouvée');
             }
@@ -127,11 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
         shopLocation.textContent = '📍 ' + (shop.location || 'Non renseignée');
         shopDescription.textContent = shop.description || 'Aucune description';
 
-        statProducts.textContent = products.length;
-        statLikes.textContent = shop.total_likes || 0;
-        statViews.textContent = shop.total_views || 0;
-
-        // Bannière
         if (shop.logo && shop.logo !== 'null') {
             shopBanner.innerHTML = `<img src="${shop.logo}" alt="${shop.name}" />`;
         } else {
@@ -209,19 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 openConfirmDelete(id);
             });
         });
-
-        document.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('click', function() {
-                // Optionnel : ouvrir le détail du produit
-                console.log('🔄 Voir détail produit #' + this.dataset.id);
-            });
-        });
-    }
-
-    function updateFooter(shop) {
-        footerProducts.textContent = products.length;
-        footerLikes.textContent = shop.total_likes || 0;
-        footerViews.textContent = shop.total_views || 0;
     }
 
     // ==========================================
@@ -292,6 +266,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const token = getToken();
         if (!token) return;
 
+        // ✅ Récupérer le shop_id depuis l'URL
+        const shop_id = parseInt(shopId);
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
         loaderOverlay.classList.add('active');
@@ -300,20 +277,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = id ? '/api/seller/product/' + id : '/api/seller/product';
             const method = id ? 'PUT' : 'POST';
 
+            const body = {
+                name,
+                price,
+                stock,
+                image: image || null,
+                description: description || null,
+                category: category || null,
+                shop_id: shop_id
+            };
+
             const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({
-                    name,
-                    price,
-                    stock,
-                    image: image || null,
-                    description: description || null,
-                    category: category || null
-                })
+                body: JSON.stringify(body)
             });
 
             const data = await response.json();
@@ -360,10 +340,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const token = getToken();
         if (!token) return;
 
+        const shop_id = parseInt(shopId);
+
         loaderOverlay.classList.add('active');
 
         try {
-            const response = await fetch('/api/seller/product/' + deleteTargetId, {
+            const response = await fetch('/api/seller/product/' + deleteTargetId + '?shop_id=' + shop_id, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Bearer ' + token

@@ -177,21 +177,7 @@ body {
     font-size: 14px;
     color: #4B5563;
     line-height: 1.5;
-    margin-bottom: 10px;
-}
-
-.shop-details .shop-stats {
-    display: flex;
-    gap: 24px;
-    font-size: 14px;
-    color: #6B7280;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.shop-details .shop-stats strong {
-    color: #1a1a2e;
-    font-weight: 700;
+    margin-bottom: 0;
 }
 
 /* ==========================================
@@ -245,7 +231,7 @@ body {
     min-height: 80px;
 }
 
-/* ===== CARTE PRODUIT (style client) ===== */
+/* ===== CARTE PRODUIT ===== */
 
 .product-card {
     background: rgba(255, 255, 255, 0.6);
@@ -376,31 +362,6 @@ body {
 .products-empty p {
     font-size: 14px;
     color: #9CA3AF;
-}
-
-/* ==========================================
-   FOOTER - GLASS
-   ========================================== */
-
-.shop-footer {
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 12px 20px 16px 20px;
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-shrink: 0;
-    color: white;
-    font-size: 14px;
-    font-weight: 500;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
-}
-
-.shop-footer strong {
-    font-weight: 700;
-    color: white;
 }
 
 /* ==========================================
@@ -762,12 +723,6 @@ body {
         height: 110px;
     }
 
-    .shop-footer {
-        gap: 16px;
-        font-size: 12px;
-        padding: 10px 14px 14px 14px;
-    }
-
     .product-overlay-box {
         padding: 20px 18px 22px 18px;
         max-width: 100%;
@@ -812,12 +767,6 @@ body {
         font-size: 17px;
     }
 
-    .shop-details .shop-stats {
-        gap: 14px;
-        font-size: 12px;
-        flex-wrap: wrap;
-    }
-
     .products-section {
         padding: 12px 12px 14px 12px;
         border-radius: 16px;
@@ -847,14 +796,6 @@ body {
     .product-card .product-body .product-actions .btn-action {
         font-size: 10px;
         padding: 3px 8px;
-    }
-
-    .shop-footer {
-        gap: 12px;
-        font-size: 11px;
-        padding: 8px 10px 12px 10px;
-        flex-wrap: wrap;
-        justify-content: center;
     }
 
     #productForm .form-row {
