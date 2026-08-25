@@ -1,6 +1,6 @@
 // ========================================================
 // SERVEUR VENDEUR - NATURE+ / COMPLUS
-// Version complète avec upload d'images
+// Version complète avec upload d'images (fields)
 // ========================================================
 
 // ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
@@ -349,7 +349,6 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
 // ROUTES : BOUTIQUES
 // ========================================================
 
-// Créer une boutique
 app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
     const { name, location, description } = req.body;
     const sellerId = req.seller.id;
@@ -394,7 +393,6 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
     }
 });
 
-// Récupérer toutes les boutiques d'un vendeur
 app.get('/api/seller/shops', isAuthenticatedSeller, async (req, res) => {
     const sellerId = req.seller.id;
 
@@ -418,7 +416,6 @@ app.get('/api/seller/shops', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// Récupérer une boutique spécifique (publique)
 app.get('/api/seller/shop/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -466,7 +463,6 @@ app.get('/api/seller/shop/:id', async (req, res) => {
     }
 });
 
-// Modifier sa boutique
 app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async (req, res) => {
     const { name, location, description } = req.body;
     const sellerId = req.seller.id;
@@ -505,11 +501,15 @@ app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async
 });
 
 // ========================================================
-// ROUTES : PRODUITS (AVEC UPLOAD)
+// ROUTES : PRODUITS (AVEC UPLOAD FIELDS)
 // ========================================================
 
 // Ajouter un produit avec images
-app.post('/api/seller/product', isAuthenticatedSeller, upload.array('image', 3), async (req, res) => {
+app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 }
+]), async (req, res) => {
     const { name, price, description, stock, category, shop_id } = req.body;
     const sellerId = req.seller.id;
 
@@ -528,15 +528,10 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.array('image', 3),
             return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
         }
 
-        // Récupérer les URLs des images uploadées
-        let imageUrls = [];
-        if (req.files && req.files.length > 0) {
-            imageUrls = req.files.map(file => file.path);
-        }
-
-        const image1 = imageUrls[0] || null;
-        const image2 = imageUrls[1] || null;
-        const image3 = imageUrls[2] || null;
+        // ✅ Récupérer les images avec les bons noms
+        const image1 = req.files?.image1?.[0]?.path || null;
+        const image2 = req.files?.image2?.[0]?.path || null;
+        const image3 = req.files?.image3?.[0]?.path || null;
 
         const result = await db.query(
             `INSERT INTO seller_products (shop_id, seller_id, name, price, image1, image2, image3, description, stock, category)
@@ -557,7 +552,11 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.array('image', 3),
 });
 
 // Modifier un produit
-app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.array('image', 3), async (req, res) => {
+app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 }
+]), async (req, res) => {
     const { id } = req.params;
     const { name, price, description, stock, category, shop_id } = req.body;
     const sellerId = req.seller.id;
@@ -581,14 +580,9 @@ app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.array('image', 
         }
 
         // Récupérer les nouvelles images si uploadées
-        let imageUrls = [];
-        if (req.files && req.files.length > 0) {
-            imageUrls = req.files.map(file => file.path);
-        }
-
-        const image1 = imageUrls[0] || product.image1 || null;
-        const image2 = imageUrls[1] || product.image2 || null;
-        const image3 = imageUrls[2] || product.image3 || null;
+        const image1 = req.files?.image1?.[0]?.path || product.image1 || null;
+        const image2 = req.files?.image2?.[0]?.path || product.image2 || null;
+        const image3 = req.files?.image3?.[0]?.path || product.image3 || null;
 
         await db.query(
             `UPDATE seller_products 
@@ -667,7 +661,7 @@ app.get('/api/seller/products/:shopId', async (req, res) => {
 });
 
 // ========================================================
-// ROUTES : LIKES (sur la boutique)
+// ROUTES : LIKES
 // ========================================================
 
 app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => {
@@ -924,7 +918,6 @@ app.get('/search', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'search.html'));
 });
 
-// ✅ Route pour la création de produit
 app.get('/create-product', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-product.html'));
 });
