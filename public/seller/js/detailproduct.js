@@ -91,42 +91,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (shopData.success && shopData.shops && shopData.shops.length > 0) {
-                // Prendre la première boutique
-                const shop = shopData.shops[0];
-                shopId = shop.id;
+                
+                // ✅ Chercher le produit dans TOUTES les boutiques
+                let foundProduct = null;
+                let foundShop = null;
 
-                console.log('🏪 Boutique sélectionnée:', shop);
+                for (const shop of shopData.shops) {
+                    console.log('🔍 Recherche dans la boutique #' + shop.id + ' (' + shop.name + ')');
+                    
+                    const productsRes = await fetch('/api/seller/products/' + shop.id, {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    const productsData = await productsRes.json();
 
-                // Récupérer les produits de cette boutique
-                const productsRes = await fetch('/api/seller/products/' + shopId, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
+                    if (!productsRes.ok) continue;
+
+                    const products = productsData.products || [];
+                    console.log('   Produits trouvés:', products.map(p => p.id));
+
+                    const product = products.find(p => String(p.id) === String(productId));
+                    if (product) {
+                        foundProduct = product;
+                        foundShop = shop;
+                        shopId = shop.id;
+                        console.log('✅ Produit trouvé dans la boutique #' + shop.id);
+                        break;
                     }
-                });
-                const productsData = await productsRes.json();
-
-                console.log('📦 Produits reçus:', productsData);
-
-                if (!productsRes.ok) {
-                    throw new Error(productsData.error || 'Erreur chargement produits');
                 }
 
-                const products = productsData.products || [];
-
-                console.log('🔍 Recherche du produit #' + productId + ' parmi ' + products.length + ' produits');
-
-                // Trouver le produit (comparer en string car l'ID peut être number ou string)
-                const product = products.find(p => String(p.id) === String(productId));
-
-                if (!product) {
-                    console.error('❌ Produit non trouvé. IDs disponibles:', products.map(p => p.id));
+                if (foundProduct && foundShop) {
+                    renderProduct(foundProduct, foundShop);
+                } else {
+                    console.error('❌ Produit non trouvé dans aucune boutique');
                     showError('Produit non trouvé');
-                    return;
                 }
 
-                console.log('✅ Produit trouvé:', product);
-
-                renderProduct(product, shop);
             } else {
                 showError('Aucune boutique trouvée');
             }
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             shopLink.style.display = 'none';
         }
 
-        // ✅ Images - vérifier toutes les colonnes possibles
+        // Images - vérifier toutes les colonnes possibles
         images = [];
         if (product.image1) images.push(product.image1);
         if (product.image2) images.push(product.image2);
