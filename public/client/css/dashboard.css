@@ -837,3 +837,196 @@ body {
     font-size: 36px;
     color: #2d7d46;
 }
+/* ==========================================
+   ✨ CARTE BOUTIQUES (DESIGN UNIFIÉ AVEC CARTE 1)
+   ========================================== */
+
+.shops-card {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 20px 20px;
+    margin: 0 auto 5px auto;
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    transition: background-image 0.5s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.shops-card .shops-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: white;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    flex: 1;
+}
+
+.shops-card .shops-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 12px;
+}
+
+.shops-card .shops-icon {
+    font-size: 32px;
+}
+
+.shops-card h2 {
+    font-size: 20px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.shops-card p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+    max-width: 90%;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    margin: 0;
+}
+
+.shops-card .shops-arrow {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.3s ease;
+    font-weight: 600;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.shops-card:hover .shops-arrow {
+    transform: translateX(6px);
+}
+
+/* ===== BOUTON CHAT ===== */
+.btn-chat-shop {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-chat-shop:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.btn-chat-shop i {
+    font-size: 14px;
+}
+
+/* ==========================================
+   RESPONSIVE - CARTE BOUTIQUES
+   ========================================== */
+
+@media (max-width: 768px) {
+    .shops-card {
+        padding: 16px 14px;
+        min-height: 100px;
+        border-radius: 20px;
+    }
+
+    .shops-card h2 {
+        font-size: 17px;
+    }
+
+    .shops-card p {
+        font-size: 13px;
+    }
+
+    .shops-card .shops-icon {
+        font-size: 28px;
+    }
+
+    .shops-card .shops-arrow {
+        font-size: 13px;
+    }
+
+    .btn-chat-shop {
+        font-size: 11px;
+        padding: 4px 10px;
+        top: 8px;
+        right: 10px;
+    }
+
+    .btn-chat-shop i {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shops-card {
+        padding: 12px 10px;
+        border-radius: 16px;
+        min-height: 80px;
+    }
+
+    .shops-card h2 {
+        font-size: 15px;
+    }
+
+    .shops-card p {
+        font-size: 12px;
+    }
+
+    .shops-card .shops-icon {
+        font-size: 24px;
+    }
+
+    .shops-card .shops-arrow {
+        font-size: 12px;
+    }
+
+    .btn-chat-shop {
+        font-size: 10px;
+        padding: 3px 8px;
+        top: 6px;
+        right: 8px;
+    }
+
+    .btn-chat-shop i {
+        font-size: 10px;
+    }
+}

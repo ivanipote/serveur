@@ -92,10 +92,31 @@
     <div class="separator-8px"></div>
 
     <!-- ========================================= -->
-    <!-- CARTE DYNAMIQUE                           -->
+    <!-- CARTE COMPLUS                             -->
     <!-- ========================================= -->
     <div id="dynamicCard">
         <!-- Injecté par JS -->
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ✨ CARTE BOUTIQUES (NOUVELLE)            -->
+    <!-- ========================================= -->
+    <div class="shops-card" id="shopsCard">
+        <!-- Bouton Chat -->
+        <a href="/chat" class="btn-chat-shop">
+            <i class="fas fa-comment-dots"></i> Chat
+        </a>
+
+        <div class="shops-content" onclick="window.location.href='/boutiques'">
+            <div class="shops-top">
+                <span class="shops-icon">🛍️</span>
+                <h2>Découvrez nos boutiques</h2>
+            </div>
+            <p>Contactez directement les vendeurs</p>
+            <div class="shops-arrow">
+                Voir les boutiques <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
