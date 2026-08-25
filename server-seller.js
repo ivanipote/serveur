@@ -1,6 +1,6 @@
 // ========================================================
 // SERVEUR VENDEUR - NATURE+ / COMPLUS
-// Version complète avec upload d'images (fields)
+// Version complète avec logs pour debug upload
 // ========================================================
 
 // ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
@@ -501,7 +501,7 @@ app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async
 });
 
 // ========================================================
-// ROUTES : PRODUITS (AVEC UPLOAD FIELDS)
+// ROUTES : PRODUITS (AVEC LOGS)
 // ========================================================
 
 // Ajouter un produit avec images
@@ -510,6 +510,11 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
     { name: 'image2', maxCount: 1 },
     { name: 'image3', maxCount: 1 }
 ]), async (req, res) => {
+    
+    // ✅ LOGS POUR DEBUG
+    console.log('📦 Body reçu:', req.body);
+    console.log('📦 Files reçus:', req.files);
+
     const { name, price, description, stock, category, shop_id } = req.body;
     const sellerId = req.seller.id;
 
@@ -528,16 +533,24 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
             return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
         }
 
-        // ✅ Récupérer les images avec les bons noms
+        // ✅ Récupérer les images
         const image1 = req.files?.image1?.[0]?.path || null;
         const image2 = req.files?.image2?.[0]?.path || null;
         const image3 = req.files?.image3?.[0]?.path || null;
+
+        // ✅ LOGS DES IMAGES
+        console.log('🖼️ image1:', image1);
+        console.log('🖼️ image2:', image2);
+        console.log('🖼️ image3:', image3);
 
         const result = await db.query(
             `INSERT INTO seller_products (shop_id, seller_id, name, price, image1, image2, image3, description, stock, category)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
             [shop_id, sellerId, name, price, image1, image2, image3, description || null, stock || 0, category || null]
         );
+
+        // ✅ LOG SUCCÈS
+        console.log('✅ Produit ajouté avec images:', { image1, image2, image3 });
 
         res.json({
             success: true,
@@ -547,7 +560,7 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
 
     } catch (error) {
         console.error('❌ Erreur ajout produit:', error);
-        res.status(500).json({ error: 'Erreur lors de l\'ajout du produit.' });
+        res.status(500).json({ error: 'Erreur lors de l\'ajout du produit.', details: error.message });
     }
 });
 
