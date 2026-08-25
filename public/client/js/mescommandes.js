@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let timerIntervals = {};
     let generatingLinks = {};
     let verificationIntervals = {};
+    let expiredSent = {};
 
     const TIMEOUT_MINUTES = 20;
     const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
@@ -201,8 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (existingIndex !== -1) {
             commandes[existingIndex].status = status;
-            if (['paiement_effectue', 'annulee', 'refuse'].includes(status)) {
+            if (['paiement_effectue', 'annulee', 'refuse', 'expired'].includes(status)) {
                 stopVerification(commandeId);
+                stopTimer(commandeId);
             }
             renderCommandes();
         } else {
@@ -314,6 +316,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // ENVOYER STATUT EXPIRED AU SERVEUR
+    // ==========================================
+
+    async function sendExpiredStatus(commandeId) {
+        if (expiredSent[commandeId]) return;
+        expiredSent[commandeId] = true;
+
+        try {
+            const res = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    commandeId: commandeId,
+                    status: 'expired',
+                    cause: 'Paiement expiré (20 min)'
+                })
+            });
+
+            if (res.ok) {
+                console.log(`✅ Statut expired envoyé pour commande #${commandeId}`);
+                // Mettre à jour localement
+                const cmd = commandes.find(c => c.id === commandeId);
+                if (cmd) {
+                    cmd.status = 'expired';
+                }
+                renderCommandes();
+            } else {
+                expiredSent[commandeId] = false;
+            }
+        } catch (error) {
+            console.error(`❌ Erreur envoi expired pour #${commandeId}:`, error);
+            expiredSent[commandeId] = false;
+        }
+    }
+
+    // ==========================================
     // CHARGER LES COMMANDES
     // ==========================================
 
@@ -331,6 +369,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (badgeTotal) badgeTotal.textContent = data.length;
                 isFirstLoad = false;
                 renderCommandes();
+                
+                // ✅ Démarrer les timers pour les commandes en cours
+                commandes.forEach((c) => {
+                    if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
+                        const paymentDate = c.payment_created_at || c.created_at || new Date().toISOString();
+                        startTimer(c.id, paymentDate);
+                    }
+                });
+                
             } else if (res.ok && data.length === 0) {
                 commandes = [];
                 isFirstLoad = false;
@@ -515,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (geniusStatus === 'success' || geniusStatus === 'paiement_effectue') {
                     commande.status = 'paiement_effectue';
                     stopVerification(commandeId);
+                    stopTimer(commandeId);
                     renderCommandes();
                     await showMessage('✅', 'Paiement réussi !', 'Votre paiement a été confirmé avec succès.');
                     
@@ -522,6 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     commande.status = 'annulee';
                     commande.cause_refus = geniusStatus === 'expired' ? 'Paiement expiré (20 min)' : 'Paiement échoué';
                     stopVerification(commandeId);
+                    stopTimer(commandeId);
                     renderCommandes();
                     await showMessage('⏳', 'Paiement non finalisé', 'Le délai de paiement a expiré ou a été annulé.');
                 }
@@ -582,16 +631,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // TIMER - FORCE 20 MINUTES
+    // TIMER - FRONT END UNIQUEMENT
     // ==========================================
 
     function startTimer(commandeId, paymentCreatedAt) {
-        if (timerIntervals[commandeId]) {
-            clearInterval(timerIntervals[commandeId]);
-        }
+        // ✅ Arrêter le timer existant
+        stopTimer(commandeId);
 
         const createdDate = paymentCreatedAt ? new Date(paymentCreatedAt) : new Date();
         const expiryTime = createdDate.getTime() + TIMEOUT_MS;
+
+        // ✅ Vérifier si déjà expiré
+        if (Date.now() > expiryTime) {
+            const timerElement = document.getElementById(`timer-${commandeId}`);
+            if (timerElement) {
+                timerElement.textContent = '⏳ Expiré';
+                timerElement.className = 'timer expired';
+            }
+            sendExpiredStatus(commandeId);
+            return;
+        }
 
         function updateTimer() {
             const now = Date.now();
@@ -605,6 +664,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerElement.className = 'timer expired';
                 clearInterval(timerIntervals[commandeId]);
                 delete timerIntervals[commandeId];
+                // ✅ ENVOYER LE STATUT EXPIRED AU SERVEUR
+                sendExpiredStatus(commandeId);
                 return;
             }
 
@@ -619,6 +680,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateTimer();
         timerIntervals[commandeId] = setInterval(updateTimer, 1000);
+    }
+
+    function stopTimer(commandeId) {
+        if (timerIntervals[commandeId]) {
+            clearInterval(timerIntervals[commandeId]);
+            delete timerIntervals[commandeId];
+        }
     }
 
     // ==========================================
@@ -661,7 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES COMMANDES - VERSION DEFINITIVE
+    // RENDRE LES COMMANDES
     // ==========================================
 
     function renderCommandes() {
@@ -702,14 +770,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     const minutes = Math.floor(diff / (1000 * 60));
                     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                     timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</div>`;
-                    startTimer(c.id, paymentDate);
-                    // ✅ FORCER le statut à paiement_en_cours
+                    // ✅ Démarrer le timer si pas déjà fait
+                    if (!timerIntervals[c.id]) {
+                        startTimer(c.id, paymentDate);
+                    }
                     statusKey = 'paiement_en_cours';
                 } else {
                     // ❌ Timer expiré → statut expired
                     timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
                     isTimerExpired = true;
                     statusKey = 'expired';
+                    // ✅ Envoyer le statut expired si pas déjà fait
+                    if (!expiredSent[c.id]) {
+                        sendExpiredStatus(c.id);
+                    }
                 }
             }
             
