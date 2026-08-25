@@ -48,6 +48,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const VERIFICATION_INTERVAL = 10000;
 
     // ==========================================
+    // COULEURS DES STATUTS
+    // ==========================================
+
+    const STATUS_COLORS = {
+        'en_attente': { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0' },
+        'accepter': { bg: '#e3f2fd', border: '#64b5f6', badge: '#64b5f6' },
+        'paiement_en_cours': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d' },
+        'pending': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d' },
+        'processing': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d' },
+        'paiement_effectue': { bg: '#e8f5e9', border: '#66bb6a', badge: '#66bb6a' },
+        'success': { bg: '#e8f5e9', border: '#66bb6a', badge: '#66bb6a' },
+        'failed': { bg: '#ffebee', border: '#ef5350', badge: '#ef5350' },
+        'cancelled': { bg: '#ffcdd2', border: '#ef5350', badge: '#ef5350' },
+        'expired': { bg: '#ffebee', border: '#ef5350', badge: '#ef5350' },
+        'refunded': { bg: '#ffccbc', border: '#ff8a65', badge: '#ff8a65' },
+        'verification_en_cours': { bg: '#fff8e1', border: '#ffd54f', badge: '#ffd54f' },
+        'livraison_en_cours': { bg: '#e0f7fa', border: '#4dd0e1', badge: '#4dd0e1' },
+        'disponible': { bg: '#c8e6c9', border: '#43a047', badge: '#43a047' },
+        'recuperee': { bg: '#a5d6a7', border: '#2d7d46', badge: '#2d7d46' },
+        'annulee': { bg: '#ffcdd2', border: '#e53935', badge: '#e53935' },
+        'refuse': { bg: '#ffebee', border: '#ef5350', badge: '#ef5350' }
+    };
+
+    const STATUS_LABELS = {
+        'en_attente': { label: 'En attente', icon: '⏳', class: 'en_attente' },
+        'accepter': { label: 'Paiement requis', icon: '💳', class: 'accepter' },
+        'paiement_en_cours': { label: 'En cours...', icon: '⏳', class: 'paiement_en_cours' },
+        'pending': { label: 'En attente', icon: '⏳', class: 'pending' },
+        'processing': { label: 'Traitement', icon: '⏳', class: 'processing' },
+        'paiement_effectue': { label: 'Payée', icon: '✅', class: 'paiement_effectue' },
+        'success': { label: 'Succès', icon: '✅', class: 'success' },
+        'failed': { label: 'Échoué', icon: '❌', class: 'failed' },
+        'cancelled': { label: 'Annulé', icon: '⏰', class: 'cancelled' },
+        'expired': { label: 'Expiré', icon: '⏳', class: 'expired' },
+        'refunded': { label: 'Remboursé', icon: '🔄', class: 'refunded' },
+        'verification_en_cours': { label: 'Vérification...', icon: '🔍', class: 'verification_en_cours' },
+        'livraison_en_cours': { label: 'En livraison', icon: '🚚', class: 'livraison_en_cours' },
+        'disponible': { label: 'Disponible', icon: '📍', class: 'disponible' },
+        'recuperee': { label: 'Récupérée', icon: '✅', class: 'recuperee' },
+        'annulee': { label: 'Annulée', icon: '❌', class: 'annulee' },
+        'refuse': { label: 'Refusée', icon: '❌', class: 'refuse' }
+    };
+
+    // ==========================================
     // UI SYNC
     // ==========================================
 
@@ -418,6 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderCommandes();
                 
                 startVerification(commandeId);
+                startTimer(commandeId, new Date().toISOString());
                 
             } else {
                 generatingLinks[commandeId] = false;
@@ -545,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(timerIntervals[commandeId]);
         }
 
-        // ✅ Si pas de date, utiliser created_at ou Date.now()
+        // ✅ Si pas de date, utiliser Date.now()
         const createdDate = paymentCreatedAt ? new Date(paymentCreatedAt) : new Date();
         const expiryTime = createdDate.getTime() + TIMEOUT_MS;
 
@@ -617,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES COMMANDES (AVEC TIMER FORCE)
+    // RENDRE LES COMMANDES
     // ==========================================
 
     function renderCommandes() {
@@ -633,64 +678,27 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const statusLabels = {
-            'en_attente': { label: 'En attente', icon: '⏳', class: 'en_attente' },
-            'accepter': { label: 'Paiement requis', icon: '💳', class: 'accepter' },
-            'paiement_en_cours': { label: 'En cours...', icon: '⏳', class: 'paiement_en_cours' },
-            'pending': { label: 'pending', icon: '⏳', class: 'pending' },
-            'processing': { label: 'processing', icon: '⏳', class: 'processing' },
-            'paiement_effectue': { label: 'Payée', icon: '✅', class: 'paiement_effectue' },
-            'success': { label: 'success', icon: '✅', class: 'success' },
-            'failed': { label: 'failed', icon: '❌', class: 'failed' },
-            'cancelled': { label: 'cancelled', icon: '⏰', class: 'cancelled' },
-            'expired': { label: 'expired', icon: '⏳', class: 'expired' },
-            'refunded': { label: 'refunded', icon: '🔄', class: 'refunded' },
-            'verification_en_cours': { label: 'Vérification en cours', icon: '🔍', class: 'verification_en_cours' },
-            'livraison_en_cours': { label: 'En livraison', icon: '🚚', class: 'livraison_en_cours' },
-            'disponible': { label: 'Disponible', icon: '📍', class: 'disponible' },
-            'recuperee': { label: 'Récupérée', icon: '✅', class: 'recuperee' },
-            'annulee': { label: 'Annulée', icon: '❌', class: 'annulee' },
-            'refuse': { label: 'Refusée', icon: '❌', class: 'refuse' }
-        };
-
-        const statusColors = {
-            'en_attente': 'en_attente',
-            'accepter': 'accepter',
-            'paiement_en_cours': 'paiement_en_cours',
-            'pending': 'pending',
-            'processing': 'processing',
-            'paiement_effectue': 'paiement_effectue',
-            'success': 'success',
-            'failed': 'failed',
-            'cancelled': 'cancelled',
-            'expired': 'expired',
-            'refunded': 'refunded',
-            'verification_en_cours': 'verification_en_cours',
-            'livraison_en_cours': 'livraison_en_cours',
-            'disponible': 'disponible',
-            'recuperee': 'recuperee',
-            'annulee': 'annulee',
-            'refuse': 'refuse'
-        };
-
-        const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-
         let html = '';
 
         commandes.forEach((c) => {
-            // ✅ PRIORITE : status en premier, genius_status en second
             let statusKey = c.status || c.genius_status || 'en_attente';
             
-            // ✅ Mapping wave
             if (statusKey === 'wave_manual') statusKey = 'success';
             if (statusKey === 'wave_refunded') statusKey = 'refunded';
             
-            const statusInfo = statusLabels[statusKey] || statusLabels['en_attente'];
+            const statusInfo = STATUS_LABELS[statusKey] || STATUS_LABELS['en_attente'];
+            const colors = STATUS_COLORS[statusKey] || STATUS_COLORS['en_attente'];
             const history = getStatusHistory(c);
+
+            const paymentDate = c.payment_created_at || c.created_at;
+            const isExpired = statusKey === 'expired' || 
+                              (c.status === 'paiement_en_cours' && 
+                               new Date(paymentDate).getTime() + TIMEOUT_MS < Date.now());
 
             const isPayable = c.status === 'accepter';
             const isPaymentInProgress = c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing';
             const isVerificationInProgress = c.status === 'verification_en_cours';
+            const showContinue = isPaymentInProgress && !isExpired;
             const isTerminal = ['success', 'failed', 'cancelled', 'expired', 'refunded', 'paiement_effectue', 'annulee', 'refuse', 'livraison_en_cours', 'disponible', 'recuperee'].includes(c.status) || 
                               ['success', 'failed', 'cancelled', 'expired', 'refunded'].includes(c.genius_status);
 
@@ -703,19 +711,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // ✅ TIMER - FORCER SI paiement_en_cours, pending, processing
             let timerHtml = '';
-            if (isPaymentInProgress) {
-                const paymentDate = c.payment_created_at || c.created_at || new Date().toISOString();
-                const expiryTime = new Date(paymentDate).getTime() + TIMEOUT_MS;
-                const isExpired = Date.now() > expiryTime;
+            if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
+                const paymentDateObj = new Date(paymentDate);
+                const expiryTime = paymentDateObj.getTime() + TIMEOUT_MS;
+                const now = Date.now();
+                const diff = expiryTime - now;
 
-                if (isExpired) {
-                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
-                } else {
-                    const diff = expiryTime - Date.now();
+                if (diff > 0) {
                     const minutes = Math.floor(diff / (1000 * 60));
                     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                     timerHtml = `<div class="timer" id="timer-${c.id}">⏳ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</div>`;
+                    // ✅ FORCER LE DEMARRAGE DU TIMER
                     startTimer(c.id, paymentDate);
+                } else {
+                    timerHtml = `<div class="timer expired" id="timer-${c.id}">⏳ Expiré</div>`;
                 }
             }
 
@@ -750,16 +759,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Historique des statuts
             let statusTransitionHtml = '';
             if (history.old && history.old !== history.current) {
-                const oldLabel = statusLabels[history.old]?.label || history.old;
+                const oldLabel = STATUS_LABELS[history.old]?.label || history.old;
                 const newLabel = statusInfo.label;
                 statusTransitionHtml = `
                     <span class="old-status">${oldLabel}</span>
                     <span class="arrow">→</span>
-                    <span class="new-status ${statusColors[history.current] || 'en_attente'}">${statusInfo.icon} ${newLabel}</span>
+                    <span class="new-status ${statusInfo.class}" style="color: ${colors.border}; font-weight: 700;">${statusInfo.icon} ${newLabel}</span>
                 `;
             } else {
                 statusTransitionHtml = `
-                    <span class="new-status ${statusColors[history.current] || 'en_attente'}">${statusInfo.icon} ${statusInfo.label}</span>
+                    <span class="new-status ${statusInfo.class}" style="color: ${colors.border}; font-weight: 700;">${statusInfo.icon} ${statusInfo.label}</span>
                 `;
             }
 
@@ -771,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else if (isVerificationInProgress) {
                 actionHint = '🔍 En attente de la confirmation de l\'admin...';
-            } else if (isPaymentInProgress) {
+            } else if (showContinue) {
                 actionHint = '⏳ Paiement en cours...';
             } else if (c.status === 'en_attente') {
                 actionHint = '⏳ En attente de validation';
@@ -791,6 +800,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 actionHint = '❌ Paiement échoué';
             } else if (c.status === 'cancelled') {
                 actionHint = '⏰ Paiement annulé';
+            } else if (isExpired || statusKey === 'expired') {
+                actionHint = '⏳ Paiement expiré - Veuillez passer une nouvelle commande';
             }
 
             // Boutons
@@ -811,33 +822,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // ✅ CARTE AVEC COULEURS INLINE
-            const colors = {
-                'en_attente': { bg: '#f5f5f5', border: '#d0d0d0' },
-                'accepter': { bg: '#e3f2fd', border: '#64b5f6' },
-                'paiement_en_cours': { bg: '#fff3e0', border: '#ffb74d' },
-                'pending': { bg: '#fff3e0', border: '#ffb74d' },
-                'processing': { bg: '#fff3e0', border: '#ffb74d' },
-                'paiement_effectue': { bg: '#e8f5e9', border: '#66bb6a' },
-                'success': { bg: '#e8f5e9', border: '#66bb6a' },
-                'failed': { bg: '#ffebee', border: '#ef5350' },
-                'cancelled': { bg: '#ffcdd2', border: '#ef5350' },
-                'expired': { bg: '#ffebee', border: '#ef5350' },
-                'refunded': { bg: '#ffccbc', border: '#ff8a65' },
-                'verification_en_cours': { bg: '#fff8e1', border: '#ffd54f' },
-                'livraison_en_cours': { bg: '#e0f7fa', border: '#4dd0e1' },
-                'disponible': { bg: '#c8e6c9', border: '#43a047' },
-                'recuperee': { bg: '#a5d6a7', border: '#2d7d46' },
-                'annulee': { bg: '#ffcdd2', border: '#e53935' },
-                'refuse': { bg: '#ffebee', border: '#ef5350' }
-            };
-
-            const config = colors[statusKey] || colors['en_attente'];
-
             html += `
-                <div class="commande-card status-${statusColors[statusKey] || 'en_attente'} ${isPaymentInProgress ? 'processing' : ''} ${isVerificationInProgress ? 'verification' : ''}" 
-                     style="background: ${config.bg}; border-color: ${config.border}; border-width: 2px; border-style: solid; border-radius: 20px; padding: 18px 18px 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; margin-bottom: 14px;">
+                <div class="commande-card status-${statusInfo.class} ${isExpired ? 'expired' : ''} ${isVerificationInProgress ? 'verification' : ''}" 
+                     style="background: ${colors.bg}; border-color: ${colors.border}; border-width: 2px; border-style: solid; border-radius: 20px; padding: 18px 18px 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; margin-bottom: 14px;">
                     
-                    <span class="badge-top ${statusInfo.class}" style="background: ${config.border}; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; position: absolute; top: 14px; right: 16px;">${statusInfo.icon} ${statusInfo.label}</span>
+                    <span class="badge-top ${statusInfo.class}" style="background: ${colors.badge}; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; position: absolute; top: 14px; right: 16px;">${statusInfo.icon} ${statusInfo.label}</span>
                     
                     <div class="id" style="font-size: 15px; font-weight: 700; color: #1a2a6c; margin-top: 4px;">#${c.id}</div>
                     <span class="ref" style="font-size: 11px; color: #666; display: block;">${refDisplay}</span>
@@ -855,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     <div class="actions" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); align-items: center; min-height: 44px;">
                         ${buttonsHtml}
-                        ${isPaymentInProgress && !isTerminal && !isVerificationInProgress ? `
+                        ${showContinue && !isExpired && !isTerminal && !isVerificationInProgress ? `
                             <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}" style="background: #e67e22; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
                                 <i class="fas fa-arrow-right"></i> Continuer
                             </button>
@@ -874,6 +863,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         mainContent.innerHTML = html;
+
+        // ✅ Démarrer les vérifications
+        commandes.forEach((c) => {
+            if (c.status === 'paiement_en_cours' || c.status === 'pending' || c.status === 'processing') {
+                startVerification(c.id);
+            }
+        });
+
+        // ✅ Événements - Payer Genius
+        document.querySelectorAll('.btn-pay-genius').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (this.disabled) return;
+                const id = parseInt(this.dataset.id);
+                const total = parseInt(this.dataset.total);
+                const ref = this.dataset.ref;
+                const phone = currentUser?.phone || localStorage.getItem('userPhone');
+                handlePayment(id, total, ref, phone);
+            });
+        });
+
+        // ✅ Événements - Wave
+        document.querySelectorAll('.btn-wave').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.dataset.id);
+                window.location.href = `/paywithwave?id=${id}`;
+            });
+        });
+
+        // ✅ Événements - Continuer
+        document.querySelectorAll('.btn-continue').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.dataset.id);
+                const total = parseInt(this.dataset.total);
+                const ref = this.dataset.ref;
+                const phone = currentUser?.phone || localStorage.getItem('userPhone');
+                openPaymentOverlay(id, total, phone, ref);
+            });
+        });
+
+        // ✅ Événements - Détails
+        document.querySelectorAll('.btn-detail').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                window.location.href = `/detailcom?id=${this.dataset.id}`;
+            });
+        });
+
+        // ✅ Événements - Vérifier statut
+        document.querySelectorAll('.btn-check-status').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.dataset.id);
+                checkAndUpdateStatus(id);
+            });
+        });
     }
 
     // ==========================================
