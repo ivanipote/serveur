@@ -44,65 +44,69 @@
     </header>
 
     <!-- ========================================= -->
-    <!-- CARROUSEL PRODUIT                         -->
+    <!-- MAIN (scrollable)                         -->
     <!-- ========================================= -->
-    <div class="carousel-wrapper">
-        <div class="carousel-card" id="carouselCard">
+    <main class="dashboard-main" id="dashboardMain">
 
-            <div class="carousel-header" id="carouselHeader">
-                <button class="carousel-nav-btn prev" id="prevProduct">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="carousel-title" id="productName">Nom du produit</span>
-                <button class="carousel-nav-btn next" id="nextProduct">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
+        <!-- CARROUSEL PRODUITS -->
+        <div class="carousel-wrapper">
+            <div class="carousel-card" id="carouselCard">
 
-            <div class="carousel-main">
-                <div class="carousel-image-wrapper" id="productImageWrapper">
-                    <div id="productImagePlaceholder" class="image-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>Chargement...</span>
-                    </div>
-                    <img id="productImage" src="" alt="Produit" style="display:none;">
+                <div class="carousel-header" id="carouselHeader">
+                    <button class="carousel-nav-btn prev" id="prevProduct">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="carousel-title" id="productName">Nom du produit</span>
+                    <button class="carousel-nav-btn next" id="nextProduct">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-            </div>
 
-            <div class="carousel-footer" id="carouselFooter">
-                <span class="product-stock" id="productStock">📦 En stock</span>
-                <span class="product-price" id="productPrice">0 FCFA</span>
-                <button class="btn-add-cart" id="addToCartBtn">
-                    <i class="fas fa-plus-circle"></i> Ajouter
-                </button>
-                <button class="btn-view-detail" id="viewDetailBtn">
-                    <i class="fas fa-eye"></i> Voir
-                </button>
-                <span class="carousel-indicator-inline">
-                    <span id="currentIndex">1</span> / <span id="totalProducts">1</span>
-                </span>
-            </div>
+                <div class="carousel-main">
+                    <div class="carousel-image-wrapper" id="productImageWrapper">
+                        <div id="productImagePlaceholder" class="image-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Chargement...</span>
+                        </div>
+                        <img id="productImage" src="" alt="Produit" style="display:none;">
+                    </div>
+                </div>
 
+                <div class="carousel-footer" id="carouselFooter">
+                    <span class="product-stock" id="productStock">📦 En stock</span>
+                    <span class="product-price" id="productPrice">0 FCFA</span>
+                    <button class="btn-add-cart" id="addToCartBtn">
+                        <i class="fas fa-plus-circle"></i> Ajouter
+                    </button>
+                    <button class="btn-view-detail" id="viewDetailBtn">
+                        <i class="fas fa-eye"></i> Voir
+                    </button>
+                    <span class="carousel-indicator-inline">
+                        <span id="currentIndex">1</span> / <span id="totalProducts">1</span>
+                    </span>
+                </div>
+
+            </div>
         </div>
-    </div>
+
+        <!-- SEPARATION 8px -->
+        <div class="separator-8px"></div>
+
+        <!-- CARTE COMPLUS / CONNECT -->
+        <div id="dynamicCard">
+            <!-- Injecté par JS -->
+        </div>
+
+        <!-- ESPACE POUR LA CARTE BOUTIQUES (10px) -->
+        <div class="spacer-10px"></div>
+
+    </main>
 
     <!-- ========================================= -->
-    <!-- SEPARATION 8px                            -->
-    <!-- ========================================= -->
-    <div class="separator-8px"></div>
-
-    <!-- ========================================= -->
-    <!-- CARTE COMPLUS                             -->
-    <!-- ========================================= -->
-    <div id="dynamicCard">
-        <!-- Injecté par JS -->
-    </div>
-
-    <!-- ========================================= -->
-    <!-- ✨ CARTE BOUTIQUES (NOUVELLE)            -->
+    <!-- CARTE BOUTIQUES (FIXE EN BAS)             -->
     <!-- ========================================= -->
     <div class="shops-card" id="shopsCard">
-        <!-- Bouton Chat -->
+
         <a href="/chat" class="btn-chat-shop">
             <i class="fas fa-comment-dots"></i> Chat
         </a>
