@@ -193,7 +193,7 @@ body {
 }
 
 /* ==========================================
-   CARTE BOUTIQUE - GLASSMORPHISME
+   CARTE BOUTIQUE - STYLE DASHBOARD
    ========================================== */
 .shop-card {
     border-radius: 24px;
@@ -202,12 +202,12 @@ body {
     position: relative;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background: rgba(0, 0, 0, 0.20);
+    background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.12);
     min-height: 280px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
     animation: fadeInUp 0.5s ease forwards;
     opacity: 0;
 }
@@ -237,7 +237,7 @@ body {
 .shop-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .shop-card-bg {
@@ -257,7 +257,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .shop-card-content {
@@ -270,16 +270,17 @@ body {
     padding: 0;
 }
 
+/* ---- HEADER (transparent + flou comme dashboard) ---- */
 .shop-card-header {
-    background: rgba(0, 0, 0, 0.20);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     padding: 14px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 56px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .shop-card-header .owner-name {
@@ -290,13 +291,15 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    letter-spacing: 0.3px;
 }
 
 .shop-card-header .owner-name i {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
 }
 
+/* ---- CENTRE (carte floue) ---- */
 .shop-card-center {
     flex: 1;
     display: flex;
@@ -344,15 +347,16 @@ body {
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* ---- FOOTER (transparent + flou comme dashboard) ---- */
 .shop-card-footer {
-    background: rgba(0, 0, 0, 0.20);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     padding: 12px 20px;
     display: flex;
     justify-content: center;
     gap: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     min-height: 52px;
 }
 
@@ -360,7 +364,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 13px;
     font-weight: 500;
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
