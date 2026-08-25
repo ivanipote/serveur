@@ -74,10 +74,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement du produit #' + productId);
 
-            // Récupérer les produits de la boutique (on pourrait faire une API dédiée)
-            // Pour l'instant, on va chercher via la boutique
-            // On suppose que le vendeur n'a qu'une boutique
-            const shopRes = await fetch('/api/seller/shop', {
+            // ✅ Route corrigée : /api/seller/shops (toutes les boutiques)
+            const shopRes = await fetch('/api/seller/shops', {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }
@@ -88,9 +86,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(shopData.error || 'Erreur chargement boutique');
             }
 
-            if (shopData.success && shopData.hasShop) {
-                shopId = shopData.shop.id;
-                const products = shopData.products || [];
+            if (shopData.success && shopData.shops && shopData.shops.length > 0) {
+                // ✅ Prendre la première boutique du vendeur
+                const shop = shopData.shops[0];
+                shopId = shop.id;
+
+                // ✅ Récupérer les produits de cette boutique
+                const productsRes = await fetch('/api/seller/products/' + shopId, {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                const productsData = await productsRes.json();
+
+                if (!productsRes.ok) {
+                    throw new Error(productsData.error || 'Erreur chargement produits');
+                }
+
+                const products = productsData.products || [];
 
                 // Trouver le produit
                 const product = products.find(p => p.id == productId);
@@ -100,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                renderProduct(product, shopData.shop);
+                renderProduct(product, shop);
             } else {
                 showError('Aucune boutique trouvée');
             }
@@ -306,7 +319,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const token = getToken();
         if (!token) return;
 
-        // Désactiver le bouton
         editConfirm.disabled = true;
         editConfirm.textContent = '⏳ Enregistrement...';
 
@@ -331,12 +343,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                // Mettre à jour les données locales
                 currentData.name = name;
                 currentData.price = price;
                 currentData.stock = stock;
 
-                // Mettre à jour l'affichage
                 productName.textContent = name;
                 productPrice.textContent = price.toLocaleString() + ' FCFA';
 
