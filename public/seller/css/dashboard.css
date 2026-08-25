@@ -21,7 +21,7 @@ body {
 }
 
 /* ==========================================
-   HEADER - VERT
+   HEADER - VERT (harmonisé)
    ========================================== */
 
 .dashboard-header {
@@ -152,7 +152,7 @@ body {
 
 .dashboard-main {
     flex: 1;
-    padding: 10px 20px 0 20px;
+    padding: 16px 20px 0 20px;
     max-width: 900px;
     width: 100%;
     margin: 0 auto;
@@ -163,16 +163,18 @@ body {
 }
 
 /* ==========================================
-   CADRE 1 - BOUTIQUES
+   CADRE 1 - BOUTIQUES (STYLE CLIENT)
    ========================================== */
 
 .shop-card {
     background: white;
-    border-radius: 20px;
-    border: 1px solid #e8ecf4;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-    position: relative;
+    border-radius: 24px;
     overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     flex: 0 0 calc(50% - 5px);
     min-height: 180px;
 }
@@ -185,129 +187,140 @@ body {
     height: 100%;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-blend-mode: overlay;
     display: block;
     opacity: 1;
     z-index: 1;
+    transition: background-image 0.5s ease;
 }
 
 .shop-card-overlay {
     position: relative;
     z-index: 2;
-    padding: 18px 20px 16px 20px;
-    height: 100%;
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(2px);
+    height: 100%;
 }
 
-.card-header {
+/* ===== HEADER ===== */
+
+.shop-card-header {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 18px 22px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    gap: 8px;
     flex-shrink: 0;
-}
-
-.card-header h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-.card-header h2 i {
-    color: #ffffff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-.shop-counter {
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 4px 14px;
-    border-radius: 20px;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-}
-
-.shop-carousel-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    min-height: 74px;
     position: relative;
-    flex: 1;
-    min-height: 0;
+    z-index: 2;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    transition: background-image 0.5s ease;
 }
 
-.carousel-btn {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+.shop-card-header .shop-title {
+    font-size: 22px;
+    font-weight: 900;
     color: white;
-    width: 38px;
-    height: 38px;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 10px;
+}
+
+.shop-card-header .nav-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 20px;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
 }
 
-.carousel-btn:hover {
+.shop-card-header .nav-btn:hover {
     background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.05);
 }
 
-.carousel-btn:disabled {
+.shop-card-header .nav-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+    transform: none;
 }
 
-.shop-carousel {
+.shop-card-header .nav-btn.prev {
+    margin-right: 6px;
+}
+
+.shop-card-header .nav-btn.next {
+    margin-left: 6px;
+}
+
+/* ===== MAIN (IMAGE) ===== */
+
+.shop-card-main {
     flex: 1;
-    overflow: hidden;
     display: flex;
-    scroll-behavior: smooth;
-    gap: 0;
-    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    position: relative;
+    min-height: 120px;
 }
 
-.shop-slide {
+.shop-card-main .shop-carousel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+    scroll-behavior: smooth;
+}
+
+.shop-card-main .shop-slide {
     min-width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 4px 0;
+    padding: 20px;
 }
 
+/* ===== ITEM ===== */
+
 .shop-item {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: 16px;
-    padding: 20px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 20px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     width: 100%;
     max-width: 500px;
     text-align: center;
     transition: all 0.3s;
     cursor: pointer;
-    margin: 0 auto;
-    color: #ffffff;
+    color: white;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .shop-item:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.16);
     transform: scale(1.01);
 }
 
@@ -318,29 +331,117 @@ body {
 }
 
 .shop-item .shop-name {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
-    color: #ffffff;
+    color: white;
 }
 
 .shop-item .shop-location {
-    font-size: 13px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.85);
     display: block;
     margin-top: 2px;
 }
 
 .shop-item .shop-desc {
-    font-size: 13px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.9);
     margin-top: 4px;
     line-height: 1.4;
 }
 
+.shop-item .shop-stats {
+    margin-top: 10px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.shop-item .shop-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ===== FOOTER ===== */
+
+.shop-card-footer {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    min-height: 60px;
+    max-height: 60px;
+    height: 60px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    transition: background-image 0.5s ease;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.shop-card-footer::-webkit-scrollbar {
+    height: 4px;
+}
+
+.shop-card-footer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+.shop-card-footer::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.shop-card-footer > * {
+    flex-shrink: 0;
+}
+
+.shop-card-footer .shop-counter {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 16px;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+}
+
+.shop-card-footer .shop-indicator {
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+    margin-left: auto;
+}
+
+.shop-card-footer .shop-indicator span:first-child {
+    color: white;
+    font-weight: 900;
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+
 .shop-empty {
     text-align: center;
-    color: rgba(255, 255, 255, 0.8);
-    padding: 20px 20px;
+    color: white;
+    padding: 20px;
     width: 100%;
 }
 
@@ -353,6 +454,7 @@ body {
 
 .shop-empty p {
     font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .shop-empty a {
@@ -525,34 +627,58 @@ body {
     }
 
     .dashboard-main {
-        padding: 10px 14px 0 14px;
+        padding: 12px 14px 0 14px;
         height: calc(100vh - 72px);
     }
 
     .shop-card {
         flex: 0 0 calc(50% - 5px);
         min-height: 150px;
+        border-radius: 20px;
     }
 
-    .shop-card-overlay {
-        padding: 14px 14px 12px 14px;
+    .shop-card-header {
+        padding: 14px 16px;
+        min-height: 62px;
     }
 
-    .card-header h2 {
+    .shop-card-header .shop-title {
+        font-size: 17px;
+    }
+
+    .shop-card-header .nav-btn {
+        width: 36px;
+        height: 36px;
         font-size: 16px;
+    }
+
+    .shop-card-footer {
+        min-height: 54px;
+        max-height: 54px;
+        height: 54px;
+        padding: 10px 14px;
+        gap: 8px;
     }
 
     .shop-item {
-        padding: 16px 14px;
+        padding: 16px 18px;
     }
 
     .shop-item .shop-name {
-        font-size: 16px;
+        font-size: 17px;
     }
 
-    .carousel-btn {
-        width: 32px;
-        height: 32px;
+    .shop-item .shop-stats {
+        gap: 12px;
+        font-size: 12px;
+    }
+
+    .shop-card-footer .shop-counter {
+        font-size: 12px;
+        padding: 3px 12px;
+    }
+
+    .shop-card-footer .shop-indicator {
         font-size: 14px;
     }
 
@@ -600,35 +726,58 @@ body {
     }
 
     .dashboard-main {
-        padding: 8px 8px 0 8px;
+        padding: 10px 10px 0 10px;
         height: calc(100vh - 64px);
     }
 
     .shop-card {
         flex: 0 0 calc(50% - 4px);
         min-height: 130px;
-        border-radius: 14px;
+        border-radius: 16px;
     }
 
-    .shop-card-overlay {
-        padding: 10px 10px 10px 10px;
+    .shop-card-header {
+        padding: 10px 12px;
+        min-height: 52px;
     }
 
-    .card-header h2 {
-        font-size: 13px;
+    .shop-card-header .shop-title {
+        font-size: 14px;
     }
 
-    .shop-counter {
+    .shop-card-header .nav-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .shop-card-footer {
+        min-height: 48px;
+        max-height: 48px;
+        height: 48px;
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .shop-card-footer .shop-counter {
         font-size: 11px;
-        padding: 2px 10px;
+        padding: 3px 10px;
+    }
+
+    .shop-card-footer .shop-indicator {
+        font-size: 12px;
     }
 
     .shop-item {
-        padding: 12px 10px;
+        padding: 12px 14px;
     }
 
     .shop-item .shop-name {
         font-size: 14px;
+    }
+
+    .shop-item .shop-icon {
+        font-size: 28px;
     }
 
     .shop-item .shop-desc {
@@ -639,14 +788,10 @@ body {
         font-size: 12px;
     }
 
-    .shop-item .shop-icon {
-        font-size: 28px;
-    }
-
-    .carousel-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
+    .shop-item .shop-stats {
+        gap: 10px;
+        font-size: 11px;
+        flex-wrap: wrap;
     }
 
     .shop-empty i {
