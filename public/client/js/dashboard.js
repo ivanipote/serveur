@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dynamicCard = document.getElementById('dynamicCard');
     const searchInput = document.getElementById('searchInput');
 
-    // ✨ Nouvelle carte boutiques
+    // ✨ Carte boutiques
     const shopsCard = document.getElementById('shopsCard');
 
     const commandeBadge = document.getElementById('commandeBadge');
