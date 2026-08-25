@@ -29,6 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const editStock = document.getElementById('editStock');
     const editDescription = document.getElementById('editDescription');
 
+    // ✅ Suppression
+    const deleteProductBtn = document.getElementById('deleteProductBtn');
+    const deleteOverlay = document.getElementById('deleteOverlay');
+    const deleteCancel = document.getElementById('deleteCancel');
+    const deleteConfirm = document.getElementById('deleteConfirm');
+    const deleteMessage = document.getElementById('deleteMessage');
+
     // ==========================================
     // ÉTAT
     // ==========================================
@@ -172,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
             shopLink.style.display = 'none';
         }
 
-        // Images
         images = [];
         if (product.image1) images.push(product.image1);
         if (product.image2) images.push(product.image2);
@@ -185,11 +191,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         renderImages();
 
-        // Pré-remplir le slide de modification
         editName.value = product.name;
         editPrice.value = product.price;
         editStock.value = product.stock || 0;
         editDescription.value = product.description || '';
+
+        // ✅ Mettre à jour le message de suppression
+        deleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer "' + product.name + '" ?\nCette action est irréversible.';
     }
 
     // ==========================================
@@ -311,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CONFIRMER MODIFICATION (avec description)
+    // CONFIRMER MODIFICATION
     // ==========================================
 
     editConfirm.addEventListener('click', async function() {
@@ -380,6 +388,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 productStock.textContent = stockLabel;
                 productStock.className = 'stock ' + stockClass;
 
+                // ✅ Mettre à jour le message de suppression
+                deleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer "' + name + '" ?\nCette action est irréversible.';
+
                 closeEditSlide();
                 alert('✅ Produit modifié avec succès !');
             } else {
@@ -393,6 +404,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
         editConfirm.disabled = false;
         editConfirm.textContent = '✅ Confirmer';
+    });
+
+    // ==========================================
+    // ✅ SUPPRIMER LE PRODUIT
+    // ==========================================
+
+    deleteProductBtn.addEventListener('click', function() {
+        deleteOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    deleteCancel.addEventListener('click', function() {
+        deleteOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+
+    deleteConfirm.addEventListener('click', async function() {
+        const token = getToken();
+        if (!token) return;
+
+        deleteOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+
+        // Loader
+        const loaderOverlay = document.createElement('div');
+        loaderOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 16px;
+        `;
+        loaderOverlay.innerHTML = `
+            <div style="width:56px;height:56px;border:4px solid rgba(23,164,100,0.15);border-top-color:#17A464;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            <p style="color:white;font-size:18px;font-weight:600;">⏳ Suppression en cours...</p>
+            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        `;
+        document.body.appendChild(loaderOverlay);
+
+        try {
+            const response = await fetch('/api/seller/product/' + productId + '?shop_id=' + shopId, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                loaderOverlay.remove();
+                alert('🗑️ Produit supprimé avec succès !');
+                window.location.href = '/shop?id=' + shopId;
+            } else {
+                throw new Error(data.error || 'Erreur suppression');
+            }
+
+        } catch (error) {
+            console.error('❌ Erreur:', error);
+            loaderOverlay.remove();
+            alert('❌ ' + error.message);
+        }
+    });
+
+    // Fermer l'overlay en cliquant à l'extérieur
+    deleteOverlay.addEventListener('click', function(e) {
+        if (e.target === deleteOverlay) {
+            deleteOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     });
 
     // ==========================================
