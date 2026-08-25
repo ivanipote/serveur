@@ -301,7 +301,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SELLERS
+        // TABLE SELLERS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS sellers (
@@ -316,7 +316,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SHOPS
+        // TABLE SHOPS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS shops (
@@ -333,7 +333,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SELLER_PRODUCTS
+        // TABLE SELLER_PRODUCTS (avec image1, image2, image3)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_products (
@@ -343,6 +343,9 @@ async function initializeDatabase() {
                 name TEXT NOT NULL,
                 price INTEGER NOT NULL,
                 image TEXT,
+                image1 TEXT,
+                image2 TEXT,
+                image3 TEXT,
                 description TEXT,
                 stock INTEGER DEFAULT 0,
                 category TEXT DEFAULT NULL,
@@ -353,7 +356,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SELLER_ORDERS
+        // TABLE SELLER_ORDERS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_orders (
@@ -374,7 +377,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SELLER_MESSAGES
+        // TABLE SELLER_MESSAGES
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_messages (
@@ -393,7 +396,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SELLER_LIKES (NOUVEAU)
+        // TABLE SELLER_LIKES
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_likes (
@@ -410,7 +413,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // ✅ TABLE SELLER_STATS (NOUVEAU)
+        // TABLE SELLER_STATS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_stats (
@@ -433,7 +436,7 @@ async function initializeDatabase() {
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
 
         // ========================================================
-        // ✅ AJOUTER LES COLONNES FLEX1-8 À TOUTES LES TABLES
+        // AJOUTER LES COLONNES FLEX1-8 À TOUTES LES TABLES
         // ========================================================
         console.log('🔄 Vérification des colonnes flex...');
 
@@ -467,7 +470,6 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
 
-        // ✅ Index pour les tables vendeur
         await client.query(`CREATE INDEX IF NOT EXISTS idx_sellers_email ON sellers(email)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_sellers_status ON sellers(status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_shops_seller_id ON shops(seller_id)`);
@@ -479,13 +481,9 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_user_id ON seller_orders(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_seller_id ON seller_messages(seller_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_user_id ON seller_messages(user_id)`);
-
-        // ✅ Index pour seller_likes
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_shop_id ON seller_likes(shop_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_user_id ON seller_likes(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_seller_id ON seller_likes(seller_id)`);
-
-        // ✅ Index pour seller_stats
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_seller_id ON seller_stats(seller_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_shop_id ON seller_stats(shop_id)`);
 

@@ -1,6 +1,6 @@
 // ========================================================
 // SERVEUR VENDEUR - NATURE+ / COMPLUS
-// Version complète et propre
+// Version complète avec upload d'images
 // ========================================================
 
 // ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
@@ -37,13 +37,16 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'seller_shops',
+        folder: 'seller_products',
         allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-        public_id: (req, file) => `shop_${Date.now()}_${file.originalname.split('.')[0]}`,
+        public_id: (req, file) => `product_${Date.now()}_${file.originalname.split('.')[0]}`,
     },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 2 * 1024 * 1024 } // 2MB
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -356,7 +359,6 @@ app.post('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), asyn
     }
 
     try {
-        // Limite de 5 boutiques par vendeur
         const count = await db.get('SELECT COUNT(*) as count FROM shops WHERE seller_id = $1', [sellerId]);
         if (count && count.count >= 5) {
             return res.status(400).json({ error: 'Vous avez atteint la limite de 5 boutiques.' });
@@ -439,7 +441,6 @@ app.get('/api/seller/shop/:id', async (req, res) => {
             [id]
         );
 
-        // Incrémenter les vues
         await db.query(
             `INSERT INTO seller_stats (seller_id, shop_id, total_views, updated_at)
              VALUES ($1, $2, 1, NOW())
@@ -504,12 +505,12 @@ app.put('/api/seller/shop', isAuthenticatedSeller, upload.single('image'), async
 });
 
 // ========================================================
-// ROUTES : PRODUITS (CORRIGÉES AVEC shop_id)
+// ROUTES : PRODUITS (AVEC UPLOAD)
 // ========================================================
 
-// Ajouter un produit à une boutique spécifique
-app.post('/api/seller/product', isAuthenticatedSeller, async (req, res) => {
-    const { name, price, image, description, stock, category, shop_id } = req.body;
+// Ajouter un produit avec images
+app.post('/api/seller/product', isAuthenticatedSeller, upload.array('image', 3), async (req, res) => {
+    const { name, price, description, stock, category, shop_id } = req.body;
     const sellerId = req.seller.id;
 
     if (!name || !price) {
@@ -521,17 +522,26 @@ app.post('/api/seller/product', isAuthenticatedSeller, async (req, res) => {
     }
 
     try {
-        // Vérifier que la boutique appartient bien au vendeur
         const shop = await db.get('SELECT * FROM shops WHERE id = $1 AND seller_id = $2', [shop_id, sellerId]);
 
         if (!shop) {
             return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
         }
 
+        // Récupérer les URLs des images uploadées
+        let imageUrls = [];
+        if (req.files && req.files.length > 0) {
+            imageUrls = req.files.map(file => file.path);
+        }
+
+        const image1 = imageUrls[0] || null;
+        const image2 = imageUrls[1] || null;
+        const image3 = imageUrls[2] || null;
+
         const result = await db.query(
-            `INSERT INTO seller_products (shop_id, seller_id, name, price, image, description, stock, category)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-            [shop_id, sellerId, name, price, image || null, description || null, stock || 0, category || null]
+            `INSERT INTO seller_products (shop_id, seller_id, name, price, image1, image2, image3, description, stock, category)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [shop_id, sellerId, name, price, image1, image2, image3, description || null, stock || 0, category || null]
         );
 
         res.json({
@@ -547,9 +557,9 @@ app.post('/api/seller/product', isAuthenticatedSeller, async (req, res) => {
 });
 
 // Modifier un produit
-app.put('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
+app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.array('image', 3), async (req, res) => {
     const { id } = req.params;
-    const { name, price, image, description, stock, category, shop_id } = req.body;
+    const { name, price, description, stock, category, shop_id } = req.body;
     const sellerId = req.seller.id;
 
     if (!name || !price) {
@@ -561,7 +571,6 @@ app.put('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
     }
 
     try {
-        // Vérifier que le produit appartient bien à la boutique du vendeur
         const product = await db.get(
             'SELECT * FROM seller_products WHERE id = $1 AND shop_id = $2 AND seller_id = $3',
             [id, shop_id, sellerId]
@@ -571,11 +580,22 @@ app.put('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
             return res.status(404).json({ error: 'Produit non trouvé ou non autorisé.' });
         }
 
+        // Récupérer les nouvelles images si uploadées
+        let imageUrls = [];
+        if (req.files && req.files.length > 0) {
+            imageUrls = req.files.map(file => file.path);
+        }
+
+        const image1 = imageUrls[0] || product.image1 || null;
+        const image2 = imageUrls[1] || product.image2 || null;
+        const image3 = imageUrls[2] || product.image3 || null;
+
         await db.query(
             `UPDATE seller_products 
-             SET name = $1, price = $2, image = $3, description = $4, stock = $5, category = $6
-             WHERE id = $7`,
-            [name, price, image || product.image, description || product.description, stock || 0, category || null, id]
+             SET name = $1, price = $2, image1 = $3, image2 = $4, image3 = $5,
+                 description = $6, stock = $7, category = $8
+             WHERE id = $9`,
+            [name, price, image1, image2, image3, description || product.description, stock || 0, category || null, id]
         );
 
         const updated = await db.get('SELECT * FROM seller_products WHERE id = $1', [id]);
@@ -650,7 +670,6 @@ app.get('/api/seller/products/:shopId', async (req, res) => {
 // ROUTES : LIKES (sur la boutique)
 // ========================================================
 
-// Like/Unlike une boutique
 app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => {
     const { shopId } = req.params;
     const userId = req.seller.id;
@@ -708,7 +727,6 @@ app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => 
     }
 });
 
-// Récupérer les likes d'une boutique
 app.get('/api/seller/likes/:shopId', async (req, res) => {
     const { shopId } = req.params;
 
@@ -905,6 +923,8 @@ app.get('/profil', (req, res) => {
 app.get('/search', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'search.html'));
 });
+
+// ✅ Route pour la création de produit
 app.get('/create-product', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-product.html'));
 });
