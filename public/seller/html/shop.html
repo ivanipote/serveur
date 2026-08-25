@@ -56,13 +56,15 @@
     </main>
 
     <!-- ========================================== -->
-    <!-- OVERLAY : AJOUTER / MODIFIER PRODUIT       -->
+    <!-- SLIDE : MODIFIER PRODUIT (remonte du bas)  -->
     <!-- ========================================== -->
-    <div class="product-overlay" id="productOverlay">
-        <div class="product-overlay-box">
-            <div class="overlay-header">
-                <h3 id="overlayTitle">Ajouter un produit</h3>
-                <button class="close-btn" id="closeOverlay"><i class="fas fa-times"></i></button>
+    <div class="slide-overlay" id="slideOverlay">
+        <div class="slide-container">
+            <div class="slide-header">
+                <h3 id="slideTitle">Modifier le produit</h3>
+                <button class="slide-close" id="slideClose">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <form id="productForm">
                 <input type="hidden" id="editProductId" value="" />

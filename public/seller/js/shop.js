@@ -15,18 +15,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const productsCount = document.getElementById('productsCount');
 
     const addProductBtn = document.getElementById('addProductBtn');
-    const productOverlay = document.getElementById('productOverlay');
-    const closeOverlay = document.getElementById('closeOverlay');
-    const overlayTitle = document.getElementById('overlayTitle');
+
+    // Slide (modification)
+    const slideOverlay = document.getElementById('slideOverlay');
+    const slideClose = document.getElementById('slideClose');
+    const slideTitle = document.getElementById('slideTitle');
     const editProductId = document.getElementById('editProductId');
     const productForm = document.getElementById('productForm');
     const submitBtn = document.getElementById('submitProductBtn');
 
+    // Confirm
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmCancel = document.getElementById('confirmCancel');
     const confirmOk = document.getElementById('confirmOk');
     const confirmMessage = document.getElementById('confirmMessage');
 
+    // Loader
     const loaderOverlay = document.getElementById('loaderOverlay');
 
     // ==========================================
@@ -137,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="products-empty">
                     <i class="fas fa-box-open"></i>
                     <h3>Aucun produit</h3>
-                    <p>Ajoutez votre premier produit en cliquant sur "Ajouter"</p>
+                    <p>Ajoutez votre premier produit</p>
                 </div>
             `;
             productsCount.textContent = '0 produit';
@@ -180,15 +184,26 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }).join('');
 
-        // Événements
+        // ✅ Clic sur la carte → détail produit
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Ignorer si le clic est sur un bouton d'action
+                if (e.target.closest('.product-actions')) return;
+                const id = this.dataset.id;
+                window.location.href = '/detailproduct?id=' + id;
+            });
+        });
+
+        // ✅ Modifier → slide overlay
         document.querySelectorAll('.product-card .btn-action.edit').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const id = parseInt(this.dataset.id);
-                openEditProduct(id);
+                openEditSlide(id);
             });
         });
 
+        // ✅ Supprimer → confirmation
         document.querySelectorAll('.product-card .btn-action.delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -199,22 +214,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AJOUTER / MODIFIER PRODUIT
+    // BOUTON AJOUTER → REDIRECTION
     // ==========================================
 
-    function openAddProduct() {
-        overlayTitle.textContent = 'Ajouter un produit';
-        editProductId.value = '';
-        productForm.reset();
-        submitBtn.innerHTML = '<i class="fas fa-save"></i> Ajouter';
-        productOverlay.classList.add('active');
-    }
+    addProductBtn.addEventListener('click', function() {
+        window.location.href = '/create-product?id=' + shopId;
+    });
 
-    function openEditProduct(id) {
+    // ==========================================
+    // SLIDE : MODIFIER PRODUIT
+    // ==========================================
+
+    function openEditSlide(id) {
         const product = products.find(p => p.id === id);
         if (!product) return;
 
-        overlayTitle.textContent = 'Modifier le produit';
+        slideTitle.textContent = 'Modifier le produit';
         editProductId.value = id;
         document.getElementById('productName').value = product.name;
         document.getElementById('productPrice').value = product.price;
@@ -223,29 +238,33 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('productDescription').value = product.description || '';
         document.getElementById('productCategory').value = product.category || '';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Modifier';
-        productOverlay.classList.add('active');
+
+        slideOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
 
-    function closeProductOverlay() {
-        productOverlay.classList.remove('active');
+    function closeSlide() {
+        slideOverlay.classList.remove('active');
+        document.body.style.overflow = '';
         productForm.reset();
         editProductId.value = '';
     }
 
-    addProductBtn.addEventListener('click', openAddProduct);
-    closeOverlay.addEventListener('click', closeProductOverlay);
-    productOverlay.addEventListener('click', function(e) {
-        if (e.target === productOverlay) closeProductOverlay();
+    slideClose.addEventListener('click', closeSlide);
+    slideOverlay.addEventListener('click', function(e) {
+        if (e.target === slideOverlay) closeSlide();
     });
 
     // ==========================================
-    // SOUMISSION PRODUIT
+    // SOUMISSION (MODIFICATION)
     // ==========================================
 
     productForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const id = editProductId.value;
+        if (!id) return;
+
         const name = document.getElementById('productName').value.trim();
         const price = parseInt(document.getElementById('productPrice').value);
         const stock = parseInt(document.getElementById('productStock').value) || 0;
@@ -266,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const token = getToken();
         if (!token) return;
 
-        // ✅ Récupérer le shop_id depuis l'URL
         const shop_id = parseInt(shopId);
 
         submitBtn.disabled = true;
@@ -274,35 +292,30 @@ document.addEventListener('DOMContentLoaded', function() {
         loaderOverlay.classList.add('active');
 
         try {
-            const url = id ? '/api/seller/product/' + id : '/api/seller/product';
-            const method = id ? 'PUT' : 'POST';
-
-            const body = {
-                name,
-                price,
-                stock,
-                image: image || null,
-                description: description || null,
-                category: category || null,
-                shop_id: shop_id
-            };
-
-            const response = await fetch(url, {
-                method: method,
+            const response = await fetch('/api/seller/product/' + id, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify(body)
+                body: JSON.stringify({
+                    name,
+                    price,
+                    stock,
+                    image: image || null,
+                    description: description || null,
+                    category: category || null,
+                    shop_id: shop_id
+                })
             });
 
             const data = await response.json();
 
             if (response.ok && data.success) {
-                closeProductOverlay();
+                closeSlide();
                 loaderOverlay.classList.remove('active');
                 await loadShop();
-                alert(id ? '✅ Produit modifié avec succès !' : '✅ Produit ajouté avec succès !');
+                alert('✅ Produit modifié avec succès !');
             } else {
                 throw new Error(data.error || 'Erreur');
             }
@@ -314,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         submitBtn.disabled = false;
-        submitBtn.innerHTML = id ? '<i class="fas fa-save"></i> Modifier' : '<i class="fas fa-save"></i> Ajouter';
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Modifier';
     });
 
     // ==========================================
