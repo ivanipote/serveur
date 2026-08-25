@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CRÉER LA BOUTIQUE
+    // CRÉER LA BOUTIQUE (AVEC COORDONNÉES)
     // ==========================================
 
     createBtn.addEventListener('click', async function() {
@@ -147,6 +147,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const description = shopDescription.value.trim();
         const location = shopLocation.value.trim();
         const imageFile = shopImage.files[0];
+
+        // ✅ Récupérer les coordonnées GPS
+        const gpsValue = gpsInput.value.trim();
+        let latitude = null;
+        let longitude = null;
+
+        if (gpsValue && gpsValue !== '' && gpsValue !== 'GPS non supporté par votre navigateur') {
+            const parts = gpsValue.split(',').map(s => s.trim());
+            if (parts.length === 2) {
+                const lat = parseFloat(parts[0]);
+                const lon = parseFloat(parts[1]);
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    latitude = lat;
+                    longitude = lon;
+                    console.log('📍 Coordonnées GPS détectées:', { latitude, longitude });
+                }
+            }
+        }
 
         // Validation
         if (!name) {
@@ -180,6 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('location', location);
             if (imageFile) {
                 formData.append('image', imageFile);
+            }
+            // ✅ Envoyer les coordonnées
+            if (latitude !== null && longitude !== null) {
+                formData.append('flex1', latitude.toString());
+                formData.append('flex2', longitude.toString());
             }
 
             const response = await fetch('/api/seller/shop', {
