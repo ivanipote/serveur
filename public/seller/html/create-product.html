@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         /* ==========================================
-           STYLES COMPLETS (intégrés)
+           STYLES COMPLETS
            ========================================== */
 
         * {
@@ -625,7 +625,6 @@
             imageInput.addEventListener('change', function() {
                 const files = Array.from(this.files);
 
-                // Limiter à 3 images
                 if (selectedFiles.length + files.length > 3) {
                     alert('⚠️ Maximum 3 images par produit.');
                     this.value = '';
@@ -647,6 +646,18 @@
             function renderPreviews() {
                 previewContainer.innerHTML = '';
 
+                if (selectedFiles.length === 0) {
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = `
+                        <div class="placeholder-preview">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    `;
+                    previewContainer.appendChild(div);
+                    return;
+                }
+
                 selectedFiles.forEach((file, index) => {
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -660,7 +671,6 @@
                         `;
                         previewContainer.appendChild(div);
 
-                        // Événement suppression
                         div.querySelector('.remove-img').addEventListener('click', function(e) {
                             e.stopPropagation();
                             const idx = parseInt(this.dataset.index);
@@ -670,18 +680,6 @@
                     };
                     reader.readAsDataURL(file);
                 });
-
-                // Si aucune image, afficher un placeholder
-                if (selectedFiles.length === 0) {
-                    const div = document.createElement('div');
-                    div.className = 'preview-item';
-                    div.innerHTML = `
-                        <div class="placeholder-preview">
-                            <i class="fas fa-image"></i>
-                        </div>
-                    `;
-                    previewContainer.appendChild(div);
-                }
             }
 
             // Initialiser le placeholder
@@ -700,7 +698,6 @@
                 const description = productDescription.value.trim();
                 const category = productCategory.value.trim();
 
-                // Validation
                 if (!name) {
                     alert('⚠️ Veuillez entrer un nom de produit.');
                     productName.focus();
@@ -721,7 +718,6 @@
                 const token = getToken();
                 if (!token) return;
 
-                // ✅ Construire FormData pour l'upload
                 const formData = new FormData();
                 formData.append('name', name);
                 formData.append('price', price);
@@ -730,7 +726,6 @@
                 formData.append('category', category || '');
                 formData.append('shop_id', shopId);
 
-                // Ajouter les images (max 3)
                 selectedFiles.forEach((file, index) => {
                     formData.append(`image${index + 1}`, file);
                 });
