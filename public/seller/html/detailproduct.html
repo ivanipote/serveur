@@ -27,46 +27,75 @@
     <!-- ========================================== -->
     <main class="detail-main">
 
-        <!-- ===== IMAGES CARROUSEL ===== -->
-        <section class="images-section">
+        <!-- ===== IMAGES ===== -->
+        <section class="images-section" id="imagesSection">
             <div class="image-carousel" id="imageCarousel">
                 <div class="image-slide" id="imageSlide">
                     <!-- Injecté par JS -->
                 </div>
-                <button class="carousel-nav prev" id="prevImage">
+                <button class="carousel-nav prev hidden" id="prevImage">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <button class="carousel-nav next" id="nextImage">
+                <button class="carousel-nav next hidden" id="nextImage">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <div class="image-counter" id="imageCounter">1 / 1</div>
             </div>
         </section>
 
-        <!-- ===== INFOS PRODUIT ===== -->
-        <section class="info-section">
-            <div class="info-header">
-                <h1 id="productName">Nom du produit</h1>
-                <span class="product-price" id="productPrice">0 FCFA</span>
+        <!-- ===== SLIDE INFO (fixe) ===== -->
+        <div class="info-slide" id="infoSlide">
+
+            <div class="slide-handle"></div>
+
+            <div class="slide-header">
+                <h2 id="productName">Nom du produit</h2>
+                <span class="price" id="productPrice">0 FCFA</span>
             </div>
-            <div class="info-meta">
-                <span class="product-stock" id="productStock">📦 En stock</span>
-                <span class="product-category" id="productCategory">Catégorie</span>
+
+            <div class="slide-meta">
+                <span class="stock" id="productStock">📦 En stock</span>
+                <span id="productCategory">🏷️ Catégorie</span>
             </div>
-            <div class="product-description" id="productDescription">
+
+            <div class="slide-description" id="productDescription">
                 Description du produit
             </div>
-        </section>
+
+            <div class="slide-shop">
+                <span class="shop-icon">🏪</span>
+                <span class="shop-name" id="shopName">Nom de la boutique</span>
+                <a href="#" class="shop-link" id="shopLink">Voir la boutique →</a>
+            </div>
+
+        </div>
+
+        <!-- ===== SLIDE MODIFICATION ===== -->
+        <div class="edit-slide" id="editSlide">
+            <div class="edit-handle"></div>
+            <h3>✏️ Modifier le produit</h3>
+
+            <div class="form-group">
+                <label>Nom du produit</label>
+                <input type="text" id="editName" placeholder="Nom du produit" />
+            </div>
+
+            <div class="form-group">
+                <label>Prix (FCFA)</label>
+                <input type="number" id="editPrice" placeholder="0" min="1" />
+            </div>
+
+            <div class="form-group">
+                <label>Stock</label>
+                <input type="number" id="editStock" placeholder="0" min="0" />
+            </div>
+
+            <div class="edit-actions">
+                <button class="btn-cancel" id="editCancel">Annuler</button>
+                <button class="btn-confirm" id="editConfirm">✅ Confirmer</button>
+            </div>
+        </div>
 
     </main>
-
-    <!-- ========================================== -->
-    <!-- FOOTER                                     -->
-    <!-- ========================================== -->
-    <footer class="detail-footer">
-        <span>📦 <strong id="footerStock">0</strong> en stock</span>
-        <span>🏷️ <strong id="footerPrice">0 FCFA</strong></span>
-    </footer>
 
     <script src="/seller/js/detailproduct.js"></script>
 </body>
