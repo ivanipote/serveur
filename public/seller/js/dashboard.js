@@ -8,12 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const shopCarousel = document.getElementById('shopCarousel');
     const statsBody = document.getElementById('statsBody');
-    const searchInput = document.getElementById('searchInput');
     const messageBadge = document.getElementById('messageBadge');
     const shopCounter = document.getElementById('shopCounter');
+    const shopIndicator = document.getElementById('shopIndicator');
     const prevBtn = document.getElementById('prevShop');
     const nextBtn = document.getElementById('nextShop');
     const shopCardBg = document.getElementById('shopCardBg');
+    const searchInput = document.getElementById('searchInput');
 
     // ==========================================
     // ÉTAT
@@ -22,6 +23,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentIndex = 0;
     let shops = [];
     let isDataLoaded = false;
+
+    // ==========================================
+    // RECHERCHE - REDIRECTION
+    // ==========================================
+
+    if (searchInput) {
+        searchInput.addEventListener('click', function() {
+            window.location.href = '/search';
+        });
+    }
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -52,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement des données vendeur...');
 
-            // ✅ Utiliser /api/seller/shops pour TOUTES les boutiques
             const shopRes = await fetch('/api/seller/shops', {
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -65,7 +75,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (shopData.success && shopData.shops && shopData.shops.length > 0) {
-                // ✅ Toutes les boutiques du vendeur
                 const shopsList = shopData.shops;
 
                 shops = shopsList.map(shop => ({
@@ -81,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     views: 0
                 }));
 
-                // Récupérer les stats pour chaque boutique
                 try {
                     const statsRes = await fetch('/api/seller/stats', {
                         headers: {
@@ -152,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         shopCounter.textContent = '0 / 0';
+        shopIndicator.textContent = '📦 0 articles';
         prevBtn.disabled = true;
         nextBtn.disabled = true;
         shopCardBg.style.backgroundImage = 'none';
@@ -208,8 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="shop-name">${shop.name}</div>
                     <span class="shop-location">📍 ${shop.location}</span>
                     <div class="shop-desc">${shop.description || ''}</div>
-                    <div style="margin-top:8px;display:flex;gap:16px;justify-content:center;font-size:13px;color:rgba(255,255,255,0.8);">
-                        <span>📦 ${shop.articles || 0} articles</span>
+                    <div class="shop-stats">
+                        <span>📦 ${shop.articles || 0}</span>
                         <span>❤️ ${shop.likes || 0}</span>
                         <span>👁️ ${shop.views || 0}</span>
                     </div>
@@ -236,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (total === 0) {
             shopCounter.textContent = '0 / 0';
+            shopIndicator.textContent = '📦 0 articles';
             prevBtn.disabled = true;
             nextBtn.disabled = true;
             return;
@@ -247,7 +257,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateBackground(currentIndex);
 
+        const currentShop = shops[currentIndex] || {};
+        const totalArticles = shops.reduce((sum, s) => sum + (s.articles || 0), 0);
+
         shopCounter.textContent = `${currentIndex + 1} / ${total}`;
+        shopIndicator.textContent = `📦 ${totalArticles} articles`;
 
         prevBtn.disabled = currentIndex === 0;
         nextBtn.disabled = currentIndex === total - 1;
@@ -302,29 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
             messageBadge.textContent = totalMessages > 0 ? totalMessages : '0';
         }
     }
-
-    // ==========================================
-    // RECHERCHE
-    // ==========================================
-
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-
-        if (query === '') {
-            renderCarousel(shops);
-            renderStats(shops);
-            return;
-        }
-
-        const filtered = shops.filter(shop =>
-            shop.name.toLowerCase().includes(query) ||
-            shop.location.toLowerCase().includes(query) ||
-            (shop.description && shop.description.toLowerCase().includes(query))
-        );
-
-        renderCarousel(filtered);
-        renderStats(filtered);
-    });
 
     // ==========================================
     // RAFRAÎCHIR LES DONNÉES
