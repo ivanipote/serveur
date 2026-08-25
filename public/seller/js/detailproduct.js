@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const editName = document.getElementById('editName');
     const editPrice = document.getElementById('editPrice');
     const editStock = document.getElementById('editStock');
+    const editDescription = document.getElementById('editDescription');
 
     // ==========================================
     // ÉTAT
@@ -76,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('📥 Chargement du produit #' + productId);
 
-            // Récupérer toutes les boutiques du vendeur
             const shopRes = await fetch('/api/seller/shops', {
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (shopData.success && shopData.shops && shopData.shops.length > 0) {
                 
-                // ✅ Chercher le produit dans TOUTES les boutiques
                 let foundProduct = null;
                 let foundShop = null;
 
@@ -147,13 +146,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         currentData = { ...product };
 
-        // Infos produit
         productName.textContent = product.name;
         productPrice.textContent = product.price.toLocaleString() + ' FCFA';
         productCategory.textContent = '🏷️ ' + (product.category || 'Non catégorisé');
         productDescription.textContent = product.description || 'Aucune description';
 
-        // Stock
         const stock = product.stock || 0;
         let stockLabel = '📦 ' + stock + ' en stock';
         let stockClass = '';
@@ -167,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
         productStock.textContent = stockLabel;
         productStock.className = 'stock ' + stockClass;
 
-        // Boutique
         if (shop) {
             shopName.textContent = shop.name;
             shopLink.href = '/shop?id=' + shop.id;
@@ -176,13 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
             shopLink.style.display = 'none';
         }
 
-        // Images - vérifier toutes les colonnes possibles
+        // Images
         images = [];
         if (product.image1) images.push(product.image1);
         if (product.image2) images.push(product.image2);
         if (product.image3) images.push(product.image3);
-
-        // Fallback : image unique (ancienne méthode)
         if (images.length === 0 && product.image) {
             images.push(product.image);
         }
@@ -195,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         editName.value = product.name;
         editPrice.value = product.price;
         editStock.value = product.stock || 0;
+        editDescription.value = product.description || '';
     }
 
     // ==========================================
@@ -291,6 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         editName.value = currentData.name || '';
         editPrice.value = currentData.price || '';
         editStock.value = currentData.stock || 0;
+        editDescription.value = currentData.description || '';
 
         editSlide.classList.add('active');
         imagesSection.classList.add('dimmed');
@@ -315,13 +311,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CONFIRMER MODIFICATION
+    // CONFIRMER MODIFICATION (avec description)
     // ==========================================
 
     editConfirm.addEventListener('click', async function() {
         const name = editName.value.trim();
         const price = parseInt(editPrice.value);
         const stock = parseInt(editStock.value) || 0;
+        const description = editDescription.value.trim();
 
         if (!name) {
             alert('⚠️ Veuillez entrer un nom de produit.');
@@ -352,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     name: name,
                     price: price,
                     stock: stock,
-                    description: currentData.description || null,
+                    description: description || null,
                     category: currentData.category || null,
                     image: currentData.image1 || currentData.image || null,
                     shop_id: shopId
@@ -365,9 +362,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentData.name = name;
                 currentData.price = price;
                 currentData.stock = stock;
+                currentData.description = description;
 
                 productName.textContent = name;
                 productPrice.textContent = price.toLocaleString() + ' FCFA';
+                productDescription.textContent = description || 'Aucune description';
 
                 let stockLabel = '📦 ' + stock + ' en stock';
                 let stockClass = '';

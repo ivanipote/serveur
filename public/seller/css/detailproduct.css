@@ -647,3 +647,52 @@ body {
         right: 6px;
     }
 }
+/* ==========================================
+   FORM ROW POUR PRIX + STOCK
+   ========================================== */
+
+.edit-slide .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.edit-slide .form-row .form-group {
+    margin-bottom: 0;
+}
+
+/* ==========================================
+   TEXTAREA DESCRIPTION
+   ========================================== */
+
+.edit-slide .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e8ecf4;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #f8f9fc;
+    outline: none;
+    transition: all 0.3s;
+    color: #1a1a2e;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.edit-slide .form-group textarea:focus {
+    border-color: #17A464;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 480px) {
+    .edit-slide .form-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
