@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ma boutique | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/seller/css/shop.css">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- HEADER                                     -->
+    <!-- ========================================== -->
+    <header class="shop-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="shop-title" id="shopTitle">Ma boutique</span>
+        <button class="add-product-btn" id="addProductBtn">
+            <i class="fas fa-plus-circle"></i> Ajouter
+        </button>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN                                       -->
+    <!-- ========================================== -->
+    <main class="shop-main">
+
+        <!-- ===== SECTION BOUTIQUE ===== -->
+        <section class="shop-info" id="shopInfo">
+            <div class="shop-banner" id="shopBanner">
+                <div class="banner-placeholder">
+                    <i class="fas fa-store"></i>
+                    <span>Chargement...</span>
+                </div>
+            </div>
+            <div class="shop-details">
+                <h1 id="shopName">Nom de la boutique</h1>
+                <p class="shop-location" id="shopLocation">📍 Localisation</p>
+                <p class="shop-desc" id="shopDescription">Description de la boutique</p>
+                <div class="shop-stats" id="shopStats">
+                    <span>📦 <strong id="statProducts">0</strong> produits</span>
+                    <span>❤️ <strong id="statLikes">0</strong></span>
+                    <span>👁️ <strong id="statViews">0</strong></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SECTION PRODUITS ===== -->
+        <section class="products-section">
+            <div class="products-header">
+                <h2><i class="fas fa-box"></i> Mes produits</h2>
+                <span class="products-count" id="productsCount">0 produit(s)</span>
+            </div>
+            <div class="products-grid" id="productsGrid">
+                <!-- Injecté par JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- FOOTER (stats globales)                    -->
+    <!-- ========================================== -->
+    <footer class="shop-footer" id="shopFooter">
+        <span>📦 <strong id="footerProducts">0</strong> produits</span>
+        <span>❤️ <strong id="footerLikes">0</strong> likes</span>
+        <span>👁️ <strong id="footerViews">0</strong> vues</span>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY : AJOUTER / MODIFIER PRODUIT       -->
+    <!-- ========================================== -->
+    <div class="product-overlay" id="productOverlay">
+        <div class="product-overlay-box">
+            <div class="overlay-header">
+                <h3 id="overlayTitle">Ajouter un produit</h3>
+                <button class="close-btn" id="closeOverlay"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="editProductId" value="" />
+
+                <div class="form-group">
+                    <label>Nom du produit <span class="required">*</span></label>
+                    <input type="text" id="productName" placeholder="Ex: Jus de gingembre" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prix (FCFA) <span class="required">*</span></label>
+                        <input type="number" id="productPrice" placeholder="500" required min="1" />
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="productStock" placeholder="10" min="0" value="0" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Image (URL)</label>
+                    <input type="text" id="productImage" placeholder="https://exemple.com/image.jpg" />
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="productDescription" placeholder="Description du produit..." rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <input type="text" id="productCategory" placeholder="Ex: Boisson" />
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitProductBtn">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY : CONFIRMATION SUPPRESSION         -->
+    <!-- ========================================== -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon">🗑️</div>
+            <h3>Supprimer le produit</h3>
+            <p id="confirmMessage">Êtes-vous sûr de vouloir supprimer ce produit ?</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" id="confirmCancel">Annuler</button>
+                <button class="confirm-btn ok danger" id="confirmOk">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- OVERLAY : LOADER                           -->
+    <!-- ========================================== -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-box">
+            <div class="loader-spinner"></div>
+            <h3>⏳ Traitement en cours...</h3>
+            <p>Veuillez patienter</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/seller/js/shop.js"></script>
+</body>
+</html>
