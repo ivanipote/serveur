@@ -991,6 +991,9 @@ app.get('/create-product', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-product.html'));
 });
 
+app.get('/detailproduct', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detailproduct.html'));
+});
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ========================================================
