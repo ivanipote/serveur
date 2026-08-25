@@ -17,9 +17,14 @@
             <i class="fas fa-arrow-left"></i>
         </button>
         <span class="shop-title" id="shopTitle">Ma boutique</span>
-        <button class="add-product-btn" id="addProductBtn">
-            <i class="fas fa-plus-circle"></i> Ajouter
-        </button>
+        <div class="header-actions">
+            <button class="delete-shop-btn" id="deleteShopBtn" title="Supprimer la boutique">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            <button class="add-product-btn" id="addProductBtn">
+                <i class="fas fa-plus-circle"></i> Ajouter
+            </button>
+        </div>
     </header>
 
     <!-- ========================================== -->
@@ -27,7 +32,7 @@
     <!-- ========================================== -->
     <main class="shop-main">
 
-        <!-- ===== SECTION BOUTIQUE ===== -->
+        <!-- ===== SECTION BOUTIQUE (fixe) ===== -->
         <section class="shop-info" id="shopInfo">
             <div class="shop-banner" id="shopBanner">
                 <div class="banner-placeholder">
@@ -39,10 +44,13 @@
                 <h1 id="shopName">Nom de la boutique</h1>
                 <p class="shop-location" id="shopLocation">📍 Localisation</p>
                 <p class="shop-desc" id="shopDescription">Description de la boutique</p>
+                <button class="btn-gps" id="gpsBtn" style="display:none;">
+                    <i class="fas fa-map-marker-alt"></i> Itinéraire
+                </button>
             </div>
         </section>
 
-        <!-- ===== SECTION PRODUITS ===== -->
+        <!-- ===== SECTION PRODUITS (scrollable) ===== -->
         <section class="products-section">
             <div class="products-header">
                 <h2><i class="fas fa-box"></i> Mes produits</h2>
@@ -56,7 +64,22 @@
     </main>
 
     <!-- ========================================== -->
-    <!-- SLIDE : MODIFIER PRODUIT (remonte du bas)  -->
+    <!-- OVERLAY CONFIRMATION SUPPRESSION BOUTIQUE  -->
+    <!-- ========================================== -->
+    <div class="confirm-overlay" id="deleteShopOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon">🗑️</div>
+            <h3>Supprimer la boutique</h3>
+            <p>Êtes-vous sûr de vouloir supprimer cette boutique ?<br>Tous les produits seront également supprimés.</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" id="deleteShopCancel">Annuler</button>
+                <button class="confirm-btn ok danger" id="deleteShopConfirm">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE : MODIFIER PRODUIT                   -->
     <!-- ========================================== -->
     <div class="slide-overlay" id="slideOverlay">
         <div class="slide-container">
@@ -108,7 +131,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- OVERLAY : CONFIRMATION SUPPRESSION         -->
+    <!-- OVERLAY : CONFIRMATION SUPPRESSION PRODUIT -->
     <!-- ========================================== -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">

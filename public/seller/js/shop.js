@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const productsCount = document.getElementById('productsCount');
 
     const addProductBtn = document.getElementById('addProductBtn');
+    const deleteShopBtn = document.getElementById('deleteShopBtn');
+    const gpsBtn = document.getElementById('gpsBtn');
 
     // Slide (modification)
     const slideOverlay = document.getElementById('slideOverlay');
@@ -29,6 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmCancel = document.getElementById('confirmCancel');
     const confirmOk = document.getElementById('confirmOk');
     const confirmMessage = document.getElementById('confirmMessage');
+
+    // Delete Shop Confirm
+    const deleteShopOverlay = document.getElementById('deleteShopOverlay');
+    const deleteShopCancel = document.getElementById('deleteShopCancel');
+    const deleteShopConfirm = document.getElementById('deleteShopConfirm');
 
     // Loader
     const loaderOverlay = document.getElementById('loaderOverlay');
@@ -133,6 +140,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
+
+        // ✅ Afficher le bouton GPS si des coordonnées existent
+        const lat = shop.latitude || shop.flex1 || null;
+        const lon = shop.longitude || shop.flex2 || null;
+
+        if (lat && lon) {
+            gpsBtn.style.display = 'inline-flex';
+            gpsBtn.dataset.lat = lat;
+            gpsBtn.dataset.lon = lon;
+        } else {
+            gpsBtn.style.display = 'none';
+        }
     }
 
     function renderProducts(productsList) {
@@ -162,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 stockLabel = '⚠️ ' + stock + ' restant(s)';
             }
 
-            // ✅ CORRECTION : utiliser image1 ou image
             const imgSrc = p.image1 || p.image || null;
 
             return `
@@ -217,11 +235,74 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // BOUTON GPS
+    // ==========================================
+
+    gpsBtn.addEventListener('click', function() {
+        const lat = this.dataset.lat;
+        const lon = this.dataset.lon;
+        if (lat && lon) {
+            const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+            window.open(url, '_blank');
+        }
+    });
+
+    // ==========================================
     // BOUTON AJOUTER → REDIRECTION
     // ==========================================
 
     addProductBtn.addEventListener('click', function() {
         window.location.href = '/create-product?id=' + shopId;
+    });
+
+    // ==========================================
+    // BOUTON SUPPRIMER BOUTIQUE
+    // ==========================================
+
+    deleteShopBtn.addEventListener('click', function() {
+        deleteShopOverlay.classList.add('active');
+    });
+
+    deleteShopCancel.addEventListener('click', function() {
+        deleteShopOverlay.classList.remove('active');
+    });
+
+    deleteShopConfirm.addEventListener('click', async function() {
+        const token = getToken();
+        if (!token) return;
+
+        deleteShopOverlay.classList.remove('active');
+        loaderOverlay.classList.add('active');
+
+        try {
+            const response = await fetch('/api/seller/shop?shop_id=' + shopId, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                loaderOverlay.classList.remove('active');
+                alert('🗑️ Boutique supprimée avec succès !');
+                window.location.href = '/dashboard';
+            } else {
+                throw new Error(data.error || 'Erreur suppression');
+            }
+
+        } catch (error) {
+            console.error('❌ Erreur:', error);
+            loaderOverlay.classList.remove('active');
+            alert('❌ ' + error.message);
+        }
+    });
+
+    deleteShopOverlay.addEventListener('click', function(e) {
+        if (e.target === deleteShopOverlay) {
+            deleteShopOverlay.classList.remove('active');
+        }
     });
 
     // ==========================================
@@ -334,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // SUPPRESSION
+    // SUPPRESSION PRODUIT
     // ==========================================
 
     function openConfirmDelete(id) {

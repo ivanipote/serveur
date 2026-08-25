@@ -835,6 +835,36 @@ app.get('/api/seller/stats', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
+// Supprimer une boutique
+app.delete('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
+    const { shop_id } = req.query;
+    const sellerId = req.seller.id;
+
+    if (!shop_id) {
+        return res.status(400).json({ error: 'shop_id requis.' });
+    }
+
+    try {
+        const shop = await db.get('SELECT * FROM shops WHERE id = $1 AND seller_id = $2', [shop_id, sellerId]);
+
+        if (!shop) {
+            return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
+        }
+
+        // Supprimer la boutique (les produits sont supprimés en cascade)
+        await db.query('DELETE FROM shops WHERE id = $1', [shop_id]);
+
+        res.json({
+            success: true,
+            message: 'Boutique supprimée avec succès'
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur suppression boutique:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression de la boutique.' });
+    }
+});
+
 // ========================================================
 // ROUTES : MESSAGES
 // ========================================================
