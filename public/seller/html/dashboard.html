@@ -44,27 +44,36 @@
     <!-- ========================================== -->
     <main class="dashboard-main">
 
-        <!-- ===== CADRE 1 : BOUTIQUES ===== -->
+        <!-- ===== CADRE 1 : BOUTIQUES (STYLE CLIENT) ===== -->
         <section class="shop-card" id="shopCard">
-            <div class="shop-card-bg" id="shopCardBg">
-                <!-- Image de fond injectée par JS -->
-            </div>
+            <div class="shop-card-bg" id="shopCardBg"></div>
+
             <div class="shop-card-overlay">
-                <div class="card-header">
-                    <h2><i class="fas fa-store"></i> Mes boutiques</h2>
-                    <span class="shop-counter" id="shopCounter">0 / 0</span>
-                </div>
-                <div class="shop-carousel-wrapper">
-                    <button class="carousel-btn prev" id="prevShop" disabled>
+
+                <!-- HEADER -->
+                <div class="shop-card-header">
+                    <button class="nav-btn prev" id="prevShop" disabled>
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <div class="shop-carousel" id="shopCarousel">
-                        <!-- Injecté par JS -->
-                    </div>
-                    <button class="carousel-btn next" id="nextShop" disabled>
+                    <span class="shop-title" id="shopTitle">Mes boutiques</span>
+                    <button class="nav-btn next" id="nextShop" disabled>
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
+
+                <!-- MAIN (carousel) -->
+                <div class="shop-card-main">
+                    <div class="shop-carousel" id="shopCarousel">
+                        <!-- Injecté par JS -->
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="shop-card-footer">
+                    <span class="shop-counter" id="shopCounter">0 / 0</span>
+                    <span class="shop-indicator" id="shopIndicator">📦 0 articles</span>
+                </div>
+
             </div>
         </section>
 
