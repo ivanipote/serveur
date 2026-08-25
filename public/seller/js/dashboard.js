@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('nextShop');
     const shopCardBg = document.getElementById('shopCardBg');
     const searchInput = document.getElementById('searchInput');
+    const statsMarchand = document.getElementById('statsMarchand');
+    const sellerNameBadge = document.getElementById('sellerNameBadge');
 
     // ==========================================
     // ÉTAT
@@ -23,6 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentIndex = 0;
     let shops = [];
     let isDataLoaded = false;
+    let autoScrollInterval = null;
+    let isAutoScrollActive = true;
+
+    // ==========================================
+    // NOM DU VENDEUR
+    // ==========================================
+
+    const sellerName = localStorage.getItem('sellerName') || 'Vendeur';
+    if (sellerNameBadge) sellerNameBadge.textContent = '👤 ' + sellerName;
 
     // ==========================================
     // RECHERCHE - REDIRECTION
@@ -115,10 +126,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 isDataLoaded = true;
 
+                // ✅ Mettre à jour le nom du marchand
+                const marchandNom = shopsList[0]?.seller_name || sellerName;
+                if (statsMarchand) statsMarchand.textContent = '👤 Marchand : ' + marchandNom;
+
                 renderCarousel(shops);
                 renderStats(shops);
                 updateMessageBadge();
                 updateBackground(0);
+                startAutoScroll();
 
                 console.log('✅ Données chargées:', shops);
 
@@ -139,6 +155,39 @@ document.addEventListener('DOMContentLoaded', function() {
             renderStats(shops);
             updateMessageBadge();
             showEmptyState('Erreur de chargement', 'Veuillez rafraîchir la page');
+        }
+    }
+
+    // ==========================================
+    // AUTO-SCROLL (7 secondes)
+    // ==========================================
+
+    function startAutoScroll() {
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+
+        if (!isAutoScrollActive) return;
+        if (!shops || shops.length <= 1) return;
+
+        console.log('🔄 Auto-scroll démarré (7s)');
+
+        autoScrollInterval = setInterval(() => {
+            if (!shops || shops.length === 0) return;
+            
+            const total = shops.length;
+            const nextIndex = (currentIndex + 1) % total;
+            currentIndex = nextIndex;
+            updateCarousel();
+        }, 7000);
+    }
+
+    function stopAutoScroll() {
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+            console.log('⏹️ Auto-scroll arrêté');
         }
     }
 
@@ -165,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.disabled = true;
         shopCardBg.style.backgroundImage = 'none';
         shopCardBg.style.background = 'linear-gradient(135deg, #17A464, #0E7A49)';
+        stopAutoScroll();
     }
 
     // ==========================================
@@ -228,11 +278,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         currentIndex = 0;
         updateCarousel();
+        startAutoScroll();
 
         document.querySelectorAll('.shop-slide').forEach(slide => {
             slide.addEventListener('click', function() {
                 const id = this.dataset.id;
                 if (id) {
+                    stopAutoScroll();
                     window.location.href = '/shop?id=' + id;
                 }
             });
@@ -248,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
             shopIndicator.textContent = '📦 0 articles';
             prevBtn.disabled = true;
             nextBtn.disabled = true;
+            stopAutoScroll();
             return;
         }
 
@@ -265,12 +318,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         prevBtn.disabled = currentIndex === 0;
         nextBtn.disabled = currentIndex === total - 1;
+
+        // Redémarrer l'auto-scroll après une interaction manuelle
+        if (isAutoScrollActive) {
+            startAutoScroll();
+        }
     }
 
     prevBtn.addEventListener('click', function() {
         if (currentIndex > 0) {
             currentIndex--;
             updateCarousel();
+            // Réinitialiser le timer après interaction manuelle
+            if (isAutoScrollActive) {
+                startAutoScroll();
+            }
         }
     });
 
@@ -279,11 +341,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentIndex < total - 1) {
             currentIndex++;
             updateCarousel();
+            if (isAutoScrollActive) {
+                startAutoScroll();
+            }
         }
     });
 
     // ==========================================
-    // STATS (AVEC VUES)
+    // STATS
     // ==========================================
 
     function renderStats(shopsData) {
@@ -319,16 +384,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RAFRAÎCHIR LES DONNÉES
+    // RAFRAÎCHIR LES DONNÉES (avec auto-reload si perte)
     // ==========================================
+
+    let refreshAttempts = 0;
+    const MAX_REFRESH_ATTEMPTS = 5;
 
     async function refreshData() {
         console.log('🔄 Rafraîchissement des données...');
-        await loadSellerData();
+        try {
+            await loadSellerData();
+            refreshAttempts = 0;
+        } catch (error) {
+            console.error('❌ Erreur rafraîchissement:', error);
+            refreshAttempts++;
+            if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
+                console.warn('⚠️ Trop de tentatives, rechargement de la page...');
+                window.location.reload();
+            }
+        }
     }
 
     // ==========================================
-    // SOCKET.IO
+    // SOCKET.IO (avec reconnexion automatique)
     // ==========================================
 
     let socket = null;
@@ -350,23 +428,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 transports: ['websocket', 'polling'],
                 timeout: 5000,
                 reconnection: true,
-                reconnectionAttempts: 20,
-                reconnectionDelay: 500
+                reconnectionAttempts: 10,
+                reconnectionDelay: 500,
+                reconnectionDelayMax: 3000
             });
 
             socket.on('connect', function() {
                 console.log('✅ Socket.IO vendeur connecté');
                 isSocketConnected = true;
+                refreshAttempts = 0;
             });
 
-            socket.on('disconnect', function() {
-                console.log('❌ Socket.IO vendeur déconnecté');
+            socket.on('disconnect', function(reason) {
+                console.log('❌ Socket.IO vendeur déconnecté:', reason);
                 isSocketConnected = false;
+                // Tentative de reconnexion après 5s
                 setTimeout(() => {
                     if (!isSocketConnected) {
+                        console.log('🔄 Tentative de reconnexion Socket.IO...');
                         connectSocketIO();
                     }
-                }, 3000);
+                }, 5000);
+            });
+
+            socket.on('connect_error', function(error) {
+                console.error('❌ Erreur connexion Socket.IO:', error);
+                isSocketConnected = false;
             });
 
             socket.on('seller-update', function(data) {
@@ -428,6 +515,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!document.hidden) {
             console.log('🔄 Page visible, rechargement des données');
             refreshData();
+            // Réactiver l'auto-scroll
+            if (isAutoScrollActive) {
+                startAutoScroll();
+            }
         }
     });
 
@@ -448,10 +539,18 @@ document.addEventListener('DOMContentLoaded', function() {
         window.sellerDashboard = {
             refreshData,
             shops,
-            getShops: () => shops
+            getShops: () => shops,
+            startAutoScroll,
+            stopAutoScroll
         };
 
         console.log('✅ Dashboard vendeur - Prêt');
     })();
+
+    // Nettoyer à la fermeture
+    window.addEventListener('beforeunload', function() {
+        stopAutoScroll();
+        if (socket) socket.disconnect();
+    });
 
 });
