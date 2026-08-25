@@ -253,6 +253,40 @@
             color: white;
         }
 
+        /* ===== LOADING ===== */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+
+        .loading-state i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 12px;
+            color: #17A464;
+        }
+
+        /* ===== EMPTY ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #d0d0da;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
         /* ==========================================
            RESPONSIVE
            ========================================== */
@@ -394,103 +428,90 @@
     <!-- ===== MAIN ===== -->
     <main class="page-main" id="pageMain">
 
-        <!-- Les cartes seront injectées par JS -->
-        <div id="shopsContainer"></div>
+        <!-- LOADING -->
+        <div class="loading-state" id="loadingState">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Chargement des boutiques...</p>
+        </div>
+
+        <!-- CONTENEUR CARTES -->
+        <div id="shopsContainer" style="display:none;"></div>
+
+        <!-- EMPTY -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <i class="fas fa-store"></i>
+            <h3>Aucune boutique disponible</h3>
+            <p>Revenez plus tard, de nouvelles boutiques arrivent bientôt.</p>
+        </div>
 
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ Boutiques - Page client');
+            console.log('✅ Boutiques - Connecté à l\'API');
+
+            const loadingState = document.getElementById('loadingState');
+            const shopsContainer = document.getElementById('shopsContainer');
+            const emptyState = document.getElementById('emptyState');
 
             // ==========================================
-            // DONNÉES EXEMPLES (6 boutiques)
+            // CHARGER LES BOUTIQUES DEPUIS L'API
             // ==========================================
 
-            const shops = [{
-                id: 1,
-                owner: 'Koffi',
-                name: 'Boutique Koffi',
-                location: 'Yopougon, Abidjan',
-                image: 'https://picsum.photos/seed/koffi/800/400',
-                products: 15,
-                views: 42,
-                likes: 8
-            }, {
-                id: 2,
-                owner: 'Koffi',
-                name: 'Boutique Koffi 2',
-                location: 'Cocody, Abidjan',
-                image: 'https://picsum.photos/seed/koffi2/800/400',
-                products: 10,
-                views: 28,
-                likes: 5
-            }, {
-                id: 3,
-                owner: 'Koffi',
-                name: 'Boutique Koffi 3',
-                location: 'Plateau, Abidjan',
-                image: 'https://picsum.photos/seed/koffi3/800/400',
-                products: 8,
-                views: 56,
-                likes: 12
-            }, {
-                id: 4,
-                owner: 'Koffi',
-                name: 'Boutique Koffi 4',
-                location: 'Marcory, Abidjan',
-                image: 'https://picsum.photos/seed/koffi4/800/400',
-                products: 12,
-                views: 35,
-                likes: 7
-            }, {
-                id: 5,
-                owner: 'Koffi',
-                name: 'Boutique Koffi 5',
-                location: 'Treichville, Abidjan',
-                image: 'https://picsum.photos/seed/koffi5/800/400',
-                products: 6,
-                views: 23,
-                likes: 3
-            }, {
-                id: 6,
-                owner: 'Koffi',
-                name: 'Boutique Koffi 6',
-                location: 'Anyama, Abidjan',
-                image: 'https://picsum.photos/seed/koffi6/800/400',
-                products: 9,
-                views: 31,
-                likes: 6
-            }];
+            async function loadShops() {
+                try {
+                    const res = await fetch('/api/seller/shops');
+
+                    if (!res.ok) {
+                        throw new Error('Erreur chargement boutiques');
+                    }
+
+                    const data = await res.json();
+
+                    loadingState.style.display = 'none';
+
+                    if (data.success && data.shops && data.shops.length > 0) {
+                        renderShops(data.shops);
+                    } else {
+                        emptyState.style.display = 'block';
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    loadingState.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    emptyState.querySelector('p').textContent = 'Erreur de chargement. Veuillez réessayer.';
+                }
+            }
 
             // ==========================================
             // AFFICHER LES CARTES
             // ==========================================
 
-            const container = document.getElementById('shopsContainer');
+            function renderShops(shops) {
+                shopsContainer.style.display = 'block';
 
-            function renderShops() {
-                container.innerHTML = shops.map(shop => `
+                shopsContainer.innerHTML = shops.map(shop => `
                     <div class="shop-card" onclick="openShop(${shop.id})">
-                        <div class="shop-card-bg" style="background-image: url('${shop.image}');">
+                        <div class="shop-card-bg" style="background-image: url('${shop.logo || 'https://picsum.photos/seed/' + shop.id + '/800/400'}');">
                             <div class="overlay"></div>
                         </div>
                         <div class="shop-card-content">
                             <div class="shop-card-header">
-                                <span class="owner-name"><i class="fas fa-user-circle"></i> ${shop.owner}</span>
+                                <span class="owner-name"><i class="fas fa-user-circle"></i> ${shop.seller_name || 'Vendeur'}</span>
                             </div>
                             <div class="shop-card-center">
                                 <div class="shop-info">
                                     <span class="shop-icon">🛒</span>
                                     <span class="shop-name">${shop.name}</span>
-                                    <span class="shop-location">📍 ${shop.location}</span>
+                                    <span class="shop-location">📍 ${shop.location || 'Localisation non renseignée'}</span>
                                 </div>
                             </div>
                             <div class="shop-card-footer">
-                                <span class="stat-item"><i class="fas fa-box"></i> <span class="stat-value">${shop.products}</span> produits</span>
-                                <span class="stat-item"><i class="fas fa-eye"></i> <span class="stat-value">${shop.views}</span> vues</span>
-                                <span class="stat-item"><i class="fas fa-heart"></i> <span class="stat-value">${shop.likes}</span> likes</span>
+                                <span class="stat-item"><i class="fas fa-box"></i> <span class="stat-value">${shop.total_products || 0}</span> produits</span>
+                                <span class="stat-item"><i class="fas fa-eye"></i> <span class="stat-value">${shop.total_views || 0}</span> vues</span>
+                                <span class="stat-item"><i class="fas fa-heart"></i> <span class="stat-value">${shop.total_likes || 0}</span> likes</span>
                             </div>
                         </div>
                     </div>
@@ -502,14 +523,12 @@
             // ==========================================
 
             window.openShop = function(shopId) {
-                // Incrémenter la vue
-                const shop = shops.find(s => s.id === shopId);
-                if (shop) {
-                    shop.views += 1;
-                    console.log(`👁️ Boutique #${shopId} - Vue +1 (total: ${shop.views})`);
-                }
+                // Incrémenter la vue via API
+                fetch('/api/seller/shop/' + shopId + '/view', {
+                    method: 'POST'
+                }).catch(err => console.warn('Erreur incrément vue:', err));
 
-                // Rediriger vers shop.html (à créer)
+                // Rediriger vers shop-user.html
                 window.location.href = '/shop-user.html?id=' + shopId;
             };
 
@@ -517,8 +536,8 @@
             // INIT
             // ==========================================
 
-            renderShops();
-            console.log('✅ ' + shops.length + ' boutiques chargées');
+            loadShops();
+            console.log('✅ Boutiques - Prêt');
 
         });
     </script>
