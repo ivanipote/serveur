@@ -1379,6 +1379,9 @@ app.get('/payment-failed', (req, res) => {
 app.get('/paywithwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
+app.get('/boutiques', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
+});
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
@@ -1412,7 +1415,7 @@ app.get('/admin/comm.html', (req, res) => {
 });
 
 app.get('/admin/add-produit.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'add-produit.html'));
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'produit.html'));
 });
 
 app.get('/admin/livraison.html', (req, res) => {
@@ -1454,6 +1457,7 @@ app.get('/admin/message.html', (req, res) => {
 app.get('/admin/message.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'message.html'));
 });
+
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
 // ========================================================
