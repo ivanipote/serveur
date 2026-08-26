@@ -137,15 +137,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // OUVERTURE BOUTIQUE → +1 vue
+    // OUVERTURE BOUTIQUE → +1 vue + redirection
     // ==========================================
 
     window.openShop = function(shopId) {
+        // Incrémenter la vue
         fetch('/api/seller/shop/' + shopId + '/view', {
             method: 'POST'
         }).catch(err => console.warn('Erreur incrément vue:', err));
 
-        window.location.href = '/shop-user.html?id=' + shopId;
+        // ✅ Redirection vers le serveur seller
+        window.location.href = 'https://nature-plus-seller.onrender.com/shop-user?id=' + shopId;
     };
 
     // ==========================================
