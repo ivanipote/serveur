@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Messages | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .page-header {
+            background: #17A464;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .page-header .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+
+        .page-header .page-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .page-header .page-title i {
+            font-size: 16px;
+        }
+
+        /* ===== MAIN ===== */
+        .page-main {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+        }
+
+        .page-main::-webkit-scrollbar {
+            width: 4px;
+        }
+        .page-main::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        /* ==========================================
+           LISTE DES DISCUSSIONS
+           ========================================== */
+        .discussion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .discussion-item {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid #f0f0f3;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+            animation: fadeInUp 0.3s ease forwards;
+            opacity: 0;
+        }
+
+        .discussion-item:nth-child(1) { animation-delay: 0.02s; }
+        .discussion-item:nth-child(2) { animation-delay: 0.04s; }
+        .discussion-item:nth-child(3) { animation-delay: 0.06s; }
+        .discussion-item:nth-child(4) { animation-delay: 0.08s; }
+        .discussion-item:nth-child(5) { animation-delay: 0.10s; }
+        .discussion-item:nth-child(6) { animation-delay: 0.12s; }
+        .discussion-item:nth-child(7) { animation-delay: 0.14s; }
+        .discussion-item:nth-child(8) { animation-delay: 0.16s; }
+        .discussion-item:nth-child(9) { animation-delay: 0.18s; }
+        .discussion-item:nth-child(10) { animation-delay: 0.20s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .discussion-item:hover {
+            background: #f9fafb;
+            transform: translateX(4px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .discussion-item .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: #f0fbf5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            border: 1px solid #f0f0f3;
+        }
+
+        .discussion-item .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .discussion-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .discussion-item .info .name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .discussion-item .info .last-message {
+            font-size: 13px;
+            color: #6B7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .discussion-item .info .last-message i {
+            color: #17A464;
+            margin-right: 4px;
+            font-size: 11px;
+        }
+
+        .discussion-item .time {
+            font-size: 11px;
+            color: #9CA3AF;
+            flex-shrink: 0;
+            align-self: flex-start;
+            margin-top: 2px;
+        }
+
+        .discussion-item .badge-unread {
+            background: #E24C4C;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            flex-shrink: 0;
+        }
+
+        .discussion-item .chevron {
+            color: #d0d0da;
+            font-size: 13px;
+            flex-shrink: 0;
+            margin-left: 2px;
+        }
+
+        /* ==========================================
+           SKELETON LOADER
+           ========================================== */
+        .skeleton-loader {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .skeleton-item {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid #f0f0f3;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+            background-size: 200% 100%;
+            flex-shrink: 0;
+        }
+
+        .skeleton-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .skeleton-line {
+            height: 16px;
+            background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            width: 70%;
+        }
+
+        .skeleton-line.short {
+            width: 45%;
+            height: 12px;
+        }
+
+        .skeleton-time {
+            width: 40px;
+            height: 14px;
+            background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* ==========================================
+           EMPTY STATE
+           ========================================== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #d0d0da;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-radius: 0 0 16px 16px;
+            }
+            .page-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .page-header .page-title {
+                font-size: 16px;
+            }
+            .page-main {
+                padding: 12px;
+            }
+            .discussion-item {
+                padding: 12px 14px;
+                gap: 12px;
+            }
+            .discussion-item .avatar {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+            .discussion-item .info .name {
+                font-size: 14px;
+            }
+            .discussion-item .info .last-message {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 0 0 14px 14px;
+            }
+            .page-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .page-header .page-title {
+                font-size: 14px;
+            }
+            .page-main {
+                padding: 8px;
+            }
+            .discussion-item {
+                padding: 10px 12px;
+                gap: 10px;
+                border-radius: 12px;
+            }
+            .discussion-item .avatar {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+            .discussion-item .info .name {
+                font-size: 13px;
+            }
+            .discussion-item .info .last-message {
+                font-size: 11px;
+            }
+            .discussion-item .time {
+                font-size: 10px;
+            }
+            .discussion-item .chevron {
+                font-size: 11px;
+            }
+            .discussion-item .badge-unread {
+                font-size: 9px;
+                min-width: 16px;
+                height: 16px;
+            }
+            .skeleton-avatar {
+                width: 38px;
+                height: 38px;
+            }
+            .skeleton-line {
+                height: 14px;
+            }
+            .skeleton-line.short {
+                height: 10px;
+            }
+            .skeleton-time {
+                width: 30px;
+                height: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="page-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="page-title"><i class="fas fa-comment-dots"></i> Vos messages</span>
+        <div style="width:40px;"></div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="page-main" id="pageMain">
+
+        <!-- SKELETON LOADER -->
+        <div class="skeleton-loader" id="skeletonLoader">
+            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-time"></div></div>
+            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-time"></div></div>
+            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-time"></div></div>
+            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-time"></div></div>
+            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div><div class="skeleton-time"></div></div>
+        </div>
+
+        <!-- LISTE DES DISCUSSIONS -->
+        <div class="discussion-list" id="discussionList" style="display:none;"></div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ Chat Seller - Liste des discussions');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const skeletonLoader = document.getElementById('skeletonLoader');
+            const discussionList = document.getElementById('discussionList');
+
+            // ==========================================
+            // URL DU SERVEUR
+            // ==========================================
+
+            const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+
+            // ==========================================
+            // RÉCUPÉRER L'ID DE LA BOUTIQUE DEPUIS L'URL
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const shopId = urlParams.get('id');
+
+            // ==========================================
+            // CHARGER LES DISCUSSIONS
+            // ==========================================
+
+            async function loadDiscussions() {
+                try {
+                    // Appel API pour récupérer les discussions
+                    // Pour l'instant, on utilise des données de démonstration
+                    // TODO: remplacer par fetch(SELLER_API_URL + '/api/seller/discussions')
+
+                    skeletonLoader.style.display = 'none';
+
+                    // Données de démonstration
+                    const discussions = getDemoDiscussions();
+
+                    if (discussions.length === 0) {
+                        discussionList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-comment-slash"></i>
+                                <h3>Aucune discussion</h3>
+                                <p>Vous n'avez pas encore de messages.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    discussionList.style.display = 'flex';
+                    renderDiscussions(discussions);
+
+                } catch (error) {
+                    console.error('❌ Erreur chargement discussions:', error);
+                    skeletonLoader.style.display = 'none';
+                    discussionList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Erreur de chargement</h3>
+                            <p>Impossible de charger vos messages.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ==========================================
+            // DONNÉES DE DÉMONSTRATION
+            // ==========================================
+
+            function getDemoDiscussions() {
+                return [{
+                    id: 1,
+                    shopName: 'Boutique Koffi',
+                    shopAvatar: '🛒',
+                    lastMessage: 'Merci pour votre commande !',
+                    time: '14:30',
+                    unread: 2
+                }, {
+                    id: 2,
+                    shopName: 'Tech Store CI',
+                    shopAvatar: '📱',
+                    lastMessage: 'Oui, le produit est disponible',
+                    time: '12:15',
+                    unread: 0
+                }, {
+                    id: 3,
+                    shopName: 'Beauté & Co',
+                    shopAvatar: '💄',
+                    lastMessage: 'Je vous envoie la facture',
+                    time: 'Hier',
+                    unread: 1
+                }, {
+                    id: 4,
+                    shopName: 'Sneaker House',
+                    shopAvatar: '👟',
+                    lastMessage: 'Livraison prévue demain',
+                    time: 'Hier',
+                    unread: 0
+                }, {
+                    id: 5,
+                    shopName: 'Bijoux Élégance',
+                    shopAvatar: '💍',
+                    lastMessage: 'Merci pour votre confiance',
+                    time: 'Lun',
+                    unread: 0
+                }, {
+                    id: 6,
+                    shopName: 'Chez Aya Fashion',
+                    shopAvatar: '👗',
+                    lastMessage: 'Nouvelle collection disponible',
+                    time: 'Lun',
+                    unread: 3
+                }];
+            }
+
+            // ==========================================
+            // AFFICHER LA LISTE
+            // ==========================================
+
+            function renderDiscussions(discussions) {
+                discussionList.innerHTML = discussions.map(d => `
+                    <div class="discussion-item" onclick="openDiscussion(${d.id})">
+                        <div class="avatar">${d.shopAvatar}</div>
+                        <div class="info">
+                            <div class="name">${d.shopName}</div>
+                            <div class="last-message"><i class="fas fa-reply"></i> ${d.lastMessage}</div>
+                        </div>
+                        <span class="time">${d.time}</span>
+                        ${d.unread > 0 ? `<span class="badge-unread">${d.unread}</span>` : ''}
+                        <i class="fas fa-chevron-right chevron"></i>
+                    </div>
+                `).join('');
+            }
+
+            // ==========================================
+            // OUVERTURE DISCUSSION
+            // ==========================================
+
+            window.openDiscussion = function(id) {
+                window.location.href = '/discussion.html?id=' + id + (shopId ? '&shop=' + shopId : '');
+            };
+
+            // ==========================================
+            // INIT
+            // ==========================================
+
+            loadDiscussions();
+            console.log('✅ Chat Seller - Prêt');
+
+        });
+    </script>
+
+</body>
+</html>
