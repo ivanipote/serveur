@@ -1,7 +1,7 @@
-// ========================================================
+// ============================================================
 // SERVEUR VENDEUR - NATURE+ / COMPLUS
 // Version complète avec stockage des coordonnées GPS
-// ========================================================
+// ============================================================
 
 // ✅ FORCER LE FUSEAU HORAIRE À UTC+0 (Côte d'Ivoire)
 process.env.TZ = 'Africa/Abidjan';
@@ -20,9 +20,10 @@ const db = require('./database');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
-// ========================================================
+
+// ============================================================
 // CLOUDINARY - Configuration
-// ========================================================
+// ============================================================
 
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary-v2');
@@ -62,13 +63,19 @@ const uploadShop = multer({
     limits: { fileSize: 2 * 1024 * 1024 }
 });
 
+
+// ============================================================
+// EXPRESS APP
+// ============================================================
+
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3006;
 
-// ========================================================
+
+// ============================================================
 // REDIS - Connexion
-// ========================================================
+// ============================================================
 
 const redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
     tls: process.env.REDIS_URL ? { rejectUnauthorized: false } : undefined,
@@ -81,9 +88,10 @@ redisClient.on('error', (err) => console.error('❌ Redis seller erreur:', err))
 const pubClient = redisClient.duplicate();
 const subClient = redisClient.duplicate();
 
-// ========================================================
+
+// ============================================================
 // SOCKET.IO
-// ========================================================
+// ============================================================
 
 const io = new Server(server, {
     cors: {
@@ -125,15 +133,20 @@ io.on('connection', (socket) => {
 
 global.io = io;
 
-// ========================================================
+
+// ============================================================
 // MIDDLEWARE
-// ========================================================
+// ============================================================
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/seller', express.static(path.join(__dirname, 'public', 'seller')));
 
+
+// ============================================================
 // CORS
+// ============================================================
+
 app.use((req, res, next) => {
     const allowedOrigins = [
         'https://nature-plus-client.onrender.com',
@@ -162,9 +175,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// ========================================================
+
+// ============================================================
 // SESSIONS
-// ========================================================
+// ============================================================
 
 const pgPool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
@@ -190,9 +204,10 @@ app.use(session({
     }
 }));
 
-// ========================================================
+
+// ============================================================
 // JWT
-// ========================================================
+// ============================================================
 
 function generateToken(sellerId) {
     return jwt.sign(
@@ -210,9 +225,10 @@ function verifyToken(token) {
     }
 }
 
-// ========================================================
+
+// ============================================================
 // MIDDLEWARE : AUTH SELLER
-// ========================================================
+// ============================================================
 
 async function isAuthenticatedSeller(req, res, next) {
     const token = req.headers.authorization?.split(' ')[1] || req.query.token || req.body.token;
@@ -239,17 +255,19 @@ async function isAuthenticatedSeller(req, res, next) {
     res.status(401).json({ error: 'Non authentifié' });
 }
 
-// ========================================================
+
+// ============================================================
 // ROUTE HEALTH
-// ========================================================
+// ============================================================
 
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'seller' });
 });
 
-// ========================================================
+
+// ============================================================
 // ROUTES : INSCRIPTION / CONNEXION
-// ========================================================
+// ============================================================
 
 app.post('/api/seller/register', async (req, res) => {
     const { name, email, password, phone } = req.body;
@@ -359,11 +377,11 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
     });
 });
 
-// ========================================================
-// ROUTES : BOUTIQUES (AVEC COORDONNÉES)
-// ========================================================
 
-// Créer une boutique
+// ============================================================
+// ROUTES : BOUTIQUES (AVEC COORDONNÉES)
+// ============================================================
+
 app.post('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), async (req, res) => {
     const { name, location, description, flex1, flex2 } = req.body;
     const sellerId = req.seller.id;
@@ -380,11 +398,8 @@ app.post('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), 
 
         const imageUrl = req.file ? req.file.path : null;
 
-        // ✅ Stocker les coordonnées dans flex1 et flex2
         const latitude = flex1 || null;
         const longitude = flex2 || null;
-
-        console.log('📍 Coordonnées stockées:', { latitude, longitude });
 
         const result = await db.query(
             `INSERT INTO shops (seller_id, name, location, description, logo, status, flex1, flex2)
@@ -416,7 +431,6 @@ app.post('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), 
     }
 });
 
-// Récupérer toutes les boutiques d'un vendeur
 app.get('/api/seller/shops', isAuthenticatedSeller, async (req, res) => {
     const sellerId = req.seller.id;
 
@@ -440,7 +454,6 @@ app.get('/api/seller/shops', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// Récupérer une boutique spécifique (publique) AVEC COORDONNÉES
 app.get('/api/seller/shop/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -490,7 +503,6 @@ app.get('/api/seller/shop/:id', async (req, res) => {
     }
 });
 
-// Modifier sa boutique
 app.put('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), async (req, res) => {
     const { name, location, description, flex1, flex2 } = req.body;
     const sellerId = req.seller.id;
@@ -531,11 +543,39 @@ app.put('/api/seller/shop', isAuthenticatedSeller, uploadShop.single('image'), a
     }
 });
 
-// ========================================================
-// ROUTES : PRODUITS
-// ========================================================
+app.delete('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
+    const { shop_id } = req.query;
+    const sellerId = req.seller.id;
 
-// Ajouter un produit avec images
+    if (!shop_id) {
+        return res.status(400).json({ error: 'shop_id requis.' });
+    }
+
+    try {
+        const shop = await db.get('SELECT * FROM shops WHERE id = $1 AND seller_id = $2', [shop_id, sellerId]);
+
+        if (!shop) {
+            return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
+        }
+
+        await db.query('DELETE FROM shops WHERE id = $1', [shop_id]);
+
+        res.json({
+            success: true,
+            message: 'Boutique supprimée avec succès'
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur suppression boutique:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression de la boutique.' });
+    }
+});
+
+
+// ============================================================
+// ROUTES : PRODUITS
+// ============================================================
+
 app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 },
@@ -567,17 +607,11 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
         const image2 = req.files?.image2?.[0]?.path || null;
         const image3 = req.files?.image3?.[0]?.path || null;
 
-        console.log('🖼️ image1:', image1);
-        console.log('🖼️ image2:', image2);
-        console.log('🖼️ image3:', image3);
-
         const result = await db.query(
             `INSERT INTO seller_products (shop_id, seller_id, name, price, image1, image2, image3, description, stock, category)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
             [shop_id, sellerId, name, price, image1, image2, image3, description || null, stock || 0, category || null]
         );
-
-        console.log('✅ Produit ajouté avec images:', { image1, image2, image3 });
 
         res.json({
             success: true,
@@ -591,7 +625,6 @@ app.post('/api/seller/product', isAuthenticatedSeller, upload.fields([
     }
 });
 
-// Modifier un produit
 app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 },
@@ -645,7 +678,6 @@ app.put('/api/seller/product/:id', isAuthenticatedSeller, upload.fields([
     }
 });
 
-// Supprimer un produit
 app.delete('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) => {
     const { id } = req.params;
     const { shop_id } = req.query;
@@ -678,7 +710,6 @@ app.delete('/api/seller/product/:id', isAuthenticatedSeller, async (req, res) =>
     }
 });
 
-// Récupérer les produits d'une boutique (public)
 app.get('/api/seller/products/:shopId', async (req, res) => {
     const { shopId } = req.params;
 
@@ -699,9 +730,110 @@ app.get('/api/seller/products/:shopId', async (req, res) => {
     }
 });
 
-// ========================================================
+
+// ============================================================
+// ROUTES API : PRODUITS (commentaires + likes + vues)
+// ============================================================
+
+app.get('/api/seller/product/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const product = await db.get(
+            `SELECT id, name, price, stock, image1, image2, image3, 
+                    description, category, flex1, flex2, flex3, shop_id
+             FROM seller_products 
+             WHERE id = $1`,
+            [id]
+        );
+
+        if (!product) {
+            return res.status(404).json({ success: false, error: 'Produit non trouvé' });
+        }
+
+        res.json({
+            success: true,
+            product: {
+                ...product,
+                comments: product.flex1 ? JSON.parse(product.flex1) : [],
+                likes: parseInt(product.flex2) || 0,
+                views: parseInt(product.flex3) || 0
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération produit:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/seller/product/:id/view', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await db.query(
+            `UPDATE seller_products 
+             SET flex3 = COALESCE(flex3, '0')::int + 1 
+             WHERE id = $1`,
+            [id]
+        );
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('❌ Erreur incrément vue produit:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/seller/product/:id/like', async (req, res) => {
+    const { id } = req.params;
+    const { likes } = req.body;
+
+    if (likes === undefined || isNaN(likes)) {
+        return res.status(400).json({ success: false, error: 'likes requis (nombre)' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE seller_products SET flex2 = $1 WHERE id = $2`,
+            [likes.toString(), id]
+        );
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('❌ Erreur mise à jour likes:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/seller/product/:id/comments', async (req, res) => {
+    const { id } = req.params;
+    const { comments } = req.body;
+
+    if (!comments || !Array.isArray(comments)) {
+        return res.status(400).json({ success: false, error: 'comments requis (tableau)' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE seller_products SET flex1 = $1 WHERE id = $2`,
+            [JSON.stringify(comments), id]
+        );
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('❌ Erreur sauvegarde commentaires:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ============================================================
 // ROUTES : LIKES
-// ========================================================
+// ============================================================
 
 app.post('/api/seller/like/:shopId', isAuthenticatedSeller, async (req, res) => {
     const { shopId } = req.params;
@@ -781,9 +913,10 @@ app.get('/api/seller/likes/:shopId', async (req, res) => {
     }
 });
 
-// ========================================================
+
+// ============================================================
 // ROUTES : STATISTIQUES
-// ========================================================
+// ============================================================
 
 app.get('/api/seller/stats', isAuthenticatedSeller, async (req, res) => {
     const sellerId = req.seller.id;
@@ -835,41 +968,11 @@ app.get('/api/seller/stats', isAuthenticatedSeller, async (req, res) => {
     }
 });
 
-// Supprimer une boutique
-app.delete('/api/seller/shop', isAuthenticatedSeller, async (req, res) => {
-    const { shop_id } = req.query;
-    const sellerId = req.seller.id;
 
-    if (!shop_id) {
-        return res.status(400).json({ error: 'shop_id requis.' });
-    }
-
-    try {
-        const shop = await db.get('SELECT * FROM shops WHERE id = $1 AND seller_id = $2', [shop_id, sellerId]);
-
-        if (!shop) {
-            return res.status(404).json({ error: 'Boutique non trouvée ou non autorisée.' });
-        }
-
-        // Supprimer la boutique (les produits sont supprimés en cascade)
-        await db.query('DELETE FROM shops WHERE id = $1', [shop_id]);
-
-        res.json({
-            success: true,
-            message: 'Boutique supprimée avec succès'
-        });
-
-    } catch (error) {
-        console.error('❌ Erreur suppression boutique:', error);
-        res.status(500).json({ error: 'Erreur lors de la suppression de la boutique.' });
-    }
-});
-
-// ========================================================
+// ============================================================
 // ROUTES : PROFIL VENDEUR
-// ========================================================
+// ============================================================
 
-// Récupérer le profil
 app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
     res.json({
         success: true,
@@ -877,7 +980,6 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
     });
 });
 
-// Mettre à jour le profil
 app.put('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
     const { name, email, phone, flex1, flex2, flex3, flex4, flex5, flex6, flex7 } = req.body;
     const sellerId = req.seller.id;
@@ -920,9 +1022,11 @@ app.put('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du profil.' });
     }
 });
-// ========================================================
+
+
+// ============================================================
 // ROUTES : MESSAGES
-// ========================================================
+// ============================================================
 
 app.post('/api/seller/message', isAuthenticatedSeller, async (req, res) => {
     const { userId, shopId, message } = req.body;
@@ -998,9 +1102,34 @@ app.get('/api/seller/messages/:userId', isAuthenticatedSeller, async (req, res) 
     }
 });
 
-// ========================================================
+
+// ============================================================
+// ROUTES : INCRÉMENTER LES VUES D'UNE BOUTIQUE
+// ============================================================
+
+app.post('/api/seller/shop/:id/view', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await db.query(
+            `INSERT INTO seller_stats (seller_id, shop_id, total_views, updated_at)
+             VALUES ((SELECT seller_id FROM shops WHERE id = $1), $1, 1, NOW())
+             ON CONFLICT (shop_id) 
+             DO UPDATE SET total_views = seller_stats.total_views + 1, updated_at = NOW()`,
+            [id]
+        );
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('❌ Erreur incrément vue boutique:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ============================================================
 // ROUTES PAGES
-// ========================================================
+// ============================================================
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
@@ -1049,19 +1178,19 @@ app.get('/create-product', (req, res) => {
 app.get('/detailproduct', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detailproduct.html'));
 });
+
 app.get('/boutiques', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
 });
-// ============================================================
-// ROUTE : PAGE PRODUITS D'UNE BOUTIQUE (shop-user)
-// ============================================================
 
 app.get('/shop-user', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
 });
-// ========================================================
+
+
+// ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
-// ========================================================
+// ============================================================
 
 async function initDatabaseWithRetry() {
     let retries = 5;
@@ -1087,9 +1216,10 @@ async function initDatabaseWithRetry() {
     return false;
 }
 
-// ========================================================
+
+// ============================================================
 // DÉMARRAGE
-// ========================================================
+// ============================================================
 
 server.listen(PORT, '0.0.0.0', async () => {
     console.log(`========================================`);
