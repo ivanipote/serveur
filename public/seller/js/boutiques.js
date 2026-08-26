@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let allShops = [];
     let searchTimeout = null;
+    let isLoading = false;
 
     // ==========================================
     // URL DU SERVEUR
@@ -29,8 +30,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     async function loadShops() {
+        if (isLoading) return;
+        isLoading = true;
+
+        // Afficher le skeleton
+        skeletonLoader.style.display = 'flex';
+        shopsList.style.display = 'none';
+        emptyState.style.display = 'none';
+        noResults.style.display = 'none';
+
         try {
-            // Récupérer les boutiques depuis l'API publique
             const res = await fetch(CLIENT_API_URL + '/api/shops');
 
             if (!res.ok) {
@@ -43,10 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.success && data.shops && data.shops.length > 0) {
                 allShops = data.shops;
-
-                // Pour chaque boutique, récupérer les commentaires et likes
                 await loadShopsDetails(allShops);
-
                 renderShops(allShops);
             } else {
                 emptyState.style.display = 'block';
@@ -57,6 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
             skeletonLoader.style.display = 'none';
             emptyState.style.display = 'block';
             emptyState.querySelector('p').textContent = 'Erreur de chargement. Veuillez réessayer.';
+        } finally {
+            isLoading = false;
         }
     }
 
@@ -67,12 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadShopsDetails(shops) {
         for (const shop of shops) {
             try {
-                // Récupérer les produits de la boutique
                 const res = await fetch(SELLER_API_URL + '/api/seller/shop/' + shop.id);
                 const data = await res.json();
 
                 if (data.success && data.products) {
-                    // Compter les commentaires et likes sur tous les produits
                     let totalComments = 0;
                     let totalLikes = 0;
 
@@ -90,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     shop.total_likes = totalLikes;
                 }
             } catch (err) {
-                console.warn('Erreur chargement détails boutique #' + shop.id, err);
                 shop.total_comments = 0;
                 shop.total_likes = 0;
             }
@@ -98,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LES BOUTIQUES (avec commentaires + likes)
+    // AFFICHER LES BOUTIQUES
     // ==========================================
 
     function renderShops(shops) {
@@ -146,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RECHERCHE INSTANTANÉE
+    // RECHERCHE INSTANTANÉE (filtrage uniquement)
     // ==========================================
 
     function performSearch(query) {
@@ -157,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // ✅ Filtrer sans recharger
         const filtered = allShops.filter(shop =>
             shop.name.toLowerCase().includes(trimmed.toLowerCase()) ||
             (shop.description && shop.description.toLowerCase().includes(trimmed.toLowerCase())) ||
@@ -196,12 +202,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     window.openShop = function(shopId) {
-        // Incrémenter la vue
         fetch(SELLER_API_URL + '/api/seller/shop/' + shopId + '/view', {
             method: 'POST'
         }).catch(err => console.warn('Erreur incrément vue:', err));
 
-        // Redirection vers shop-user
         window.location.href = SELLER_API_URL + '/shop-user?id=' + shopId;
     };
 
