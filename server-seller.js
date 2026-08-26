@@ -1052,6 +1052,13 @@ app.get('/detailproduct', (req, res) => {
 app.get('/boutiques', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
 });
+// ============================================================
+// ROUTE : PAGE PRODUITS D'UNE BOUTIQUE (shop-user)
+// ============================================================
+
+app.get('/shop-user', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
+});
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ========================================================
