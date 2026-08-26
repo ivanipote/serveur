@@ -1247,14 +1247,6 @@ app.get('/chat-seller', (req, res) => {
 
 
 // ============================================================
-// ROUTE : PAGE CHAT SELLER
-// ============================================================
-
-app.get('/chat-seller', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'chat-seller.html'));
-});
-
-// ============================================================
 // ROUTE API : RÉCUPÉRER LES DISCUSSIONS D'UN UTILISATEUR
 // ============================================================
 
@@ -1266,17 +1258,44 @@ app.get('/api/seller/discussions', async (req, res) => {
     }
 
     try {
-        // Récupérer les discussions où l'utilisateur a commenté ou envoyé des messages
-        // Pour l'instant, on retourne des données de démonstration
-        // TODO: Remplacer par une vraie requête SQL
+        // Récupérer les discussions depuis la base
+        const discussions = await db.all(`
+            SELECT DISTINCT 
+                s.id,
+                s.name as shop_name,
+                s.logo as shop_avatar,
+                (
+                    SELECT content FROM seller_messages 
+                    WHERE shop_id = s.id AND user_name = $1 
+                    ORDER BY created_at DESC LIMIT 1
+                ) as last_message,
+                (
+                    SELECT COUNT(*) FROM seller_messages 
+                    WHERE shop_id = s.id AND user_name = $1 AND is_read = 0
+                ) as unread,
+                (
+                    SELECT created_at FROM seller_messages 
+                    WHERE shop_id = s.id AND user_name = $1 
+                    ORDER BY created_at DESC LIMIT 1
+                ) as last_activity
+            FROM shops s
+            JOIN seller_messages m ON m.shop_id = s.id
+            WHERE m.user_name = $1
+            GROUP BY s.id
+            ORDER BY last_activity DESC
+        `, [username]);
 
-        const discussions = [
-            { id: 1, shop_name: 'Boutique Koffi', shop_avatar: '🛒', last_message: 'Merci pour votre commande !', time: '14:30', unread: 2 },
-            { id: 2, shop_name: 'Tech Store CI', shop_avatar: '📱', last_message: 'Oui, le produit est disponible', time: '12:15', unread: 0 },
-            { id: 3, shop_name: 'Beauté & Co', shop_avatar: '💄', last_message: 'Je vous envoie la facture', time: 'Hier', unread: 1 }
-        ];
+        // Formater les données
+        const formatted = discussions.map(d => ({
+            id: d.id,
+            shop_name: d.shop_name,
+            shop_avatar: d.shop_avatar || '🛒',
+            last_message: d.last_message || 'Aucun message',
+            time: d.last_activity ? new Date(d.last_activity).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+            unread: d.unread || 0
+        }));
 
-        res.json({ success: true, discussions });
+        res.json({ success: true, discussions: formatted });
 
     } catch (error) {
         console.error('❌ Erreur discussions:', error);
