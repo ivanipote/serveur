@@ -412,6 +412,19 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
+        // ✅ AJOUTER LA COLONNE user_name À seller_messages
+        // ========================================================
+        await client.query(`
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_messages' AND column_name='user_name') THEN
+                    ALTER TABLE seller_messages ADD COLUMN user_name TEXT;
+                END IF;
+            END $$;
+        `);
+        console.log('   ✅ Colonne user_name ajoutée à seller_messages');
+
+        // ========================================================
         // TABLE SELLER_LIKES
         // ========================================================
         await client.query(`
@@ -447,6 +460,24 @@ async function initializeDatabase() {
             )
         `);
 
+        // ========================================================
+        // TABLE CHAT_ROOMS (NOUVELLE)
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS chat_rooms (
+                id SERIAL PRIMARY KEY,
+                shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+                user_name TEXT NOT NULL,
+                last_message TEXT,
+                last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                unread_count INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(shop_id, user_name)
+            )
+        `);
+        console.log('   ✅ Table chat_rooms créée');
+
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
@@ -461,7 +492,8 @@ async function initializeDatabase() {
             'frais_livraison', 'commandes', 'messages', 'updates',
             'session', 'wave_verifications',
             'sellers', 'shops', 'seller_products', 'seller_orders', 'seller_messages',
-            'seller_likes', 'seller_stats'
+            'seller_likes', 'seller_stats',
+            'chat_rooms'
         ];
 
         for (const table of tables) {
@@ -502,6 +534,11 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_seller_id ON seller_likes(seller_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_seller_id ON seller_stats(seller_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_shop_id ON seller_stats(shop_id)`);
+
+        // ✅ Index pour chat_rooms
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_chat_rooms_shop_id ON chat_rooms(shop_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_chat_rooms_user_name ON chat_rooms(user_name)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_chat_rooms_last_activity ON chat_rooms(last_activity)`);
 
         console.log('   - Index créés');
 
