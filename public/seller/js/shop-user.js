@@ -194,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 `<img src="${imgSrc}" alt="${p.name}" loading="lazy" />` :
                 `<div class="fallback">📦</div>`;
 
-            // ✅ Ajouter la description dans un data attribute pour le slide
             const desc = p.description || 'Aucune description';
 
             return `
@@ -226,12 +225,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 openSlide(id, name, image, desc);
             });
 
-            // ✅ Double-clic → rediriger vers detail-produit
+            // ✅ Double-clic → rediriger vers detail-produit (sans .html)
             card.addEventListener('dblclick', function(e) {
                 e.stopPropagation();
                 const id = parseInt(this.dataset.id);
                 incrementProductViews(id);
-                window.location.href = '/detail-produit.html?id=' + id;
+                window.location.href = '/detail-produit?id=' + id;
             });
         });
     }
@@ -336,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LES COMMENTAIRES (en bleu)
+    // AFFICHER LES COMMENTAIRES AVEC RÉPONSES ASSOCIÉES
     // ==========================================
 
     function renderComments(comments) {
@@ -355,15 +354,26 @@ document.addEventListener('DOMContentLoaded', function() {
         commentsContainer.innerHTML = comments.map(c => {
             const isCurrentUser = username && c.user === username;
 
+            // ✅ Rendre les réponses associées au commentaire parent
             const repliesHtml = c.replies && c.replies.length > 0 ?
-                c.replies.map(r => `
-                    <div class="reply-item">
-                        <span class="reply-user">${r.user}</span>
-                        <span class="reply-text">${r.comment}</span>
-                        <span class="reply-date">${r.date || 'Aujourd\'hui'}</span>
-                    </div>
-                `).join('') : '';
+                c.replies.map(r => {
+                    const isReplyLiked = r.liked_by && r.liked_by.includes(username);
+                    return `
+                        <div class="reply-item" data-reply-id="${r.id || Date.now() + Math.random()}">
+                            <span class="reply-user">${r.user}</span>
+                            <span class="reply-text">${r.comment}</span>
+                            <span class="reply-date">${r.date || 'Aujourd\'hui'}</span>
+                            <button class="reply-like-btn ${isReplyLiked ? 'liked' : ''}" onclick="likeReply(${c.id}, ${r.id || Date.now() + Math.random()})">
+                                <i class="fas fa-heart"></i> ${r.likes || 0}
+                            </button>
+                            <button class="reply-reply-btn" onclick="startReply(${c.id}, '${r.user}')">
+                                Répondre
+                            </button>
+                        </div>
+                    `;
+                }).join('') : '';
 
+            // ✅ Like du commentaire parent
             const likedByUser = c.liked_by && c.liked_by.includes(username);
             const likesDisplay = c.likes || 0;
 
@@ -542,12 +552,13 @@ document.addEventListener('DOMContentLoaded', function() {
     detailBtn.addEventListener('click', function() {
         if (currentProductId) {
             incrementProductViews(currentProductId);
-            window.location.href = '/detail-produit.html?id=' + currentProductId;
+            // ✅ Redirection sans .html
+            window.location.href = '/detail-produit?id=' + currentProductId;
         }
     });
 
     // ==========================================
-    // LIKER UN COMMENTAIRE (avec notification)
+    // LIKER UN COMMENTAIRE PARENT
     // ==========================================
 
     window.likeComment = async function(commentId) {
@@ -594,7 +605,31 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // ==========================================
-    // RÉPONDRE À UN COMMENTAIRE (avec notification)
+    // LIKER UNE RÉPONSE
+    // ==========================================
+
+    window.likeReply = async function(parentId, replyId) {
+        const username = getUsername();
+        if (!username) return;
+
+        const parent = productComments.find(c => c.id === parentId);
+        if (!parent) return;
+
+        const reply = parent.replies.find(r => r.id === replyId);
+        if (!reply) return;
+
+        if (reply.liked_by && reply.liked_by.includes(username)) return;
+
+        reply.likes = (reply.likes || 0) + 1;
+        if (!reply.liked_by) reply.liked_by = [];
+        reply.liked_by.push(username);
+
+        renderComments(productComments);
+        await saveComments(currentProductId, productComments);
+    };
+
+    // ==========================================
+    // RÉPONDRE À UN COMMENTAIRE OU À UNE RÉPONSE
     // ==========================================
 
     window.startReply = function(commentId, userName) {
@@ -634,16 +669,26 @@ document.addEventListener('DOMContentLoaded', function() {
         let parentComment = null;
 
         if (replyTarget !== null) {
+            // ✅ Réponse à un commentaire parent
             parentComment = productComments.find(c => c.id === replyTarget);
             if (!parentComment) return;
 
             if (!parentComment.replies) parentComment.replies = [];
+
+            // ✅ Générer un ID unique pour la réponse
+            const replyId = Date.now() + Math.random();
+
             parentComment.replies.push({
+                id: replyId,
                 user: username,
+                user_id: 0,
                 comment: text,
-                date: new Date().toLocaleDateString('fr-FR')
+                date: new Date().toLocaleDateString('fr-FR'),
+                likes: 0,
+                liked_by: []
             });
 
+            // ✅ Notification à l'auteur du commentaire parent
             if (parentComment.user !== username) {
                 fetch(SELLER_API_URL + '/api/notification/send', {
                     method: 'POST',
@@ -661,6 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
             replyingIndicator.style.display = 'none';
             commentInput.placeholder = 'Écrire un commentaire...';
         } else {
+            // ✅ Nouveau commentaire
             const newComment = {
                 id: ++commentIdCounter,
                 user: username,
