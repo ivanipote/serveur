@@ -67,6 +67,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // CHARGER LE NOMBRE TOTAL DE PRODUITS (toutes boutiques)
+    // ==========================================
+
+    async function loadTotalProducts() {
+        try {
+            const res = await fetch('/api/shops');
+            const data = await res.json();
+
+            if (data.success && data.shops) {
+                let total = 0;
+                data.shops.forEach(shop => {
+                    total += shop.total_products || 0;
+                });
+
+                const badge = document.getElementById('totalProductsBadge');
+                if (badge) {
+                    badge.textContent = '📦 ' + total;
+                }
+            }
+        } catch (error) {
+            console.warn('Erreur chargement total produits:', error);
+            const badge = document.getElementById('totalProductsBadge');
+            if (badge) badge.textContent = '📦 0';
+        }
+    }
+
+    // ==========================================
     // AUTHENTIFICATION
     // ==========================================
 
@@ -406,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
             startAutoScroll();
         }
         loadBadges();
+        loadTotalProducts();  // ✅ Charger le badge des produits totaux
         connectSocketIO();
 
         setInterval(loadBadges, 30000);
