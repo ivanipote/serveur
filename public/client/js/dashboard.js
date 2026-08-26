@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const commandeBadge = document.getElementById('commandeBadge');
     const notifBadge = document.getElementById('notifBadge');
     const cartBadge = document.getElementById('cartBadge');
+    const totalProductsBadge = document.getElementById('totalProductsBadge');
 
     // ==========================================
     // CHARGER LES PRODUITS DEPUIS L'API
@@ -81,15 +82,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     total += shop.total_products || 0;
                 });
 
-                const badge = document.getElementById('totalProductsBadge');
-                if (badge) {
-                    badge.textContent = '📦 ' + total;
+                if (totalProductsBadge) {
+                    totalProductsBadge.textContent = '📦 ' + total.toLocaleString();
                 }
             }
         } catch (error) {
             console.warn('Erreur chargement total produits:', error);
-            const badge = document.getElementById('totalProductsBadge');
-            if (badge) badge.textContent = '📦 0';
+            if (totalProductsBadge) {
+                totalProductsBadge.textContent = '📦 0';
+            }
         }
     }
 
@@ -433,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
             startAutoScroll();
         }
         loadBadges();
-        loadTotalProducts();  // ✅ Charger le badge des produits totaux
+        loadTotalProducts();
         connectSocketIO();
 
         setInterval(loadBadges, 30000);
