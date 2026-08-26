@@ -194,8 +194,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 `<img src="${imgSrc}" alt="${p.name}" loading="lazy" />` :
                 `<div class="fallback">📦</div>`;
 
+            // ✅ Ajouter la description dans un data attribute pour le slide
+            const desc = p.description || 'Aucune description';
+
             return `
-                <div class="product-card" data-id="${p.id}">
+                <div class="product-card" data-id="${p.id}" data-name="${p.name}" data-image="${imgSrc || ''}" data-desc="${desc}">
                     <div class="product-image">
                         ${imgHtml}
                         <span class="stock-badge ${stockClass}">${stockLabel}</span>
@@ -211,12 +214,23 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }).join('');
 
+        // ✅ Clic sur une carte → ouvrir le slide des commentaires
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
-                // Incrémenter la vue du produit
+                const name = this.dataset.name;
+                const image = this.dataset.image || null;
+                const desc = this.dataset.desc || 'Aucune description';
+
+                // ✅ Ouvrir le slide
+                openSlide(id, name, image, desc);
+            });
+
+            // ✅ Double-clic → rediriger vers detail-produit
+            card.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                const id = parseInt(this.dataset.id);
                 incrementProductViews(id);
-                // Rediriger vers detail-produit.html
                 window.location.href = '/detail-produit.html?id=' + id;
             });
         });
@@ -265,6 +279,9 @@ document.addEventListener('DOMContentLoaded', function() {
         slideOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         isSlideOpen = true;
+
+        // Démarrer la sync des commentaires
+        startCommentSync(productId);
 
         const username = getUsername();
         if (!username) {
@@ -545,19 +562,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const comment = productComments.find(c => c.id === commentId);
         if (!comment) return;
 
-        // Vérifier si déjà liké
         if (comment.liked_by && comment.liked_by.includes(username)) return;
 
         isLikingComment = true;
 
-        // Mettre à jour localement
         comment.likes = (comment.likes || 0) + 1;
         if (!comment.liked_by) comment.liked_by = [];
         comment.liked_by.push(username);
 
         renderComments(productComments);
 
-        // ✅ Envoyer une notification à l'auteur du commentaire
         if (comment.user !== username) {
             try {
                 await fetch(SELLER_API_URL + '/api/notification/send', {
@@ -570,15 +584,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         content: `${username} a aimé votre commentaire : "${comment.comment.substring(0, 30)}${comment.comment.length > 30 ? '...' : ''}"`
                     })
                 });
-                console.log('✅ Notification de like envoyée à', comment.user);
             } catch (err) {
                 console.warn('Erreur envoi notification like:', err);
             }
         }
 
-        // Sauvegarder les commentaires mis à jour
         await saveComments(currentProductId, productComments);
-
         isLikingComment = false;
     };
 
@@ -623,7 +634,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let parentComment = null;
 
         if (replyTarget !== null) {
-            // Réponse à un commentaire
             parentComment = productComments.find(c => c.id === replyTarget);
             if (!parentComment) return;
 
@@ -634,7 +644,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 date: new Date().toLocaleDateString('fr-FR')
             });
 
-            // ✅ Envoyer une notification à l'auteur du commentaire parent
             if (parentComment.user !== username) {
                 fetch(SELLER_API_URL + '/api/notification/send', {
                     method: 'POST',
@@ -652,7 +661,6 @@ document.addEventListener('DOMContentLoaded', function() {
             replyingIndicator.style.display = 'none';
             commentInput.placeholder = 'Écrire un commentaire...';
         } else {
-            // Nouveau commentaire
             const newComment = {
                 id: ++commentIdCounter,
                 user: username,
@@ -670,7 +678,6 @@ document.addEventListener('DOMContentLoaded', function() {
         renderComments(productComments);
         commentInput.value = '';
 
-        // Sauvegarder les commentaires
         saveComments(currentProductId, productComments);
 
         setTimeout(() => {
