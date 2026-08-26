@@ -377,6 +377,39 @@ app.get('/api/seller/me', isAuthenticatedSeller, async (req, res) => {
     });
 });
 
+// ============================================================
+// ROUTE : ENVOYER UNE NOTIFICATION À UN UTILISATEUR
+// ============================================================
+
+app.post('/api/notification/send', async (req, res) => {
+    const { userId, type, title, content } = req.body;
+
+    if (!userId || !title || !content) {
+        return res.status(400).json({ success: false, error: 'userId, title et content requis' });
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [userId, null, type || 'systeme', title, content, false]
+        );
+
+        // 🔔 Émettre via Socket.IO
+        io.to(`user_${userId}`).emit('notification', {
+            title: title,
+            content: content,
+            type: type || 'systeme'
+        });
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('❌ Erreur envoi notification:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 
 // ============================================================
 // ROUTES : BOUTIQUES (AVEC COORDONNÉES)
@@ -1435,6 +1468,14 @@ app.get('/chat-seller', (req, res) => {
 
 app.get('/discussion', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'discussion.html'));
+});
+
+// ============================================================
+// ROUTE : PAGE DÉTAIL PRODUIT (client)
+// ============================================================
+
+app.get('/detail-produit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detail-produit.html'));
 });
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
