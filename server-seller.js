@@ -1236,6 +1236,14 @@ app.get('/shop-user', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
 });
 
+// ============================================================
+// ROUTE : PAGE CHAT SELLER
+// ============================================================
+
+app.get('/chat-seller', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'chat-seller.html'));
+});
+
 
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
