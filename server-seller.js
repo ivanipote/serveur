@@ -1433,6 +1433,9 @@ app.get('/chat-seller', (req, res) => {
 });
 
 
+app.get('/discussion', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'discussion.html'));
+});
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ============================================================
