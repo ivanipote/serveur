@@ -1312,6 +1312,7 @@ app.get('/api/seller/discussions', async (req, res) => {
 // RÉCUPÉRER LES DISCUSSIONS D'UN UTILISATEUR
 // ============================================================
 
+
 app.get('/api/seller/discussions', async (req, res) => {
     const { username } = req.query;
 
@@ -1353,7 +1354,6 @@ app.get('/api/seller/discussions', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-
 // ============================================================
 // RÉCUPÉRER LES MESSAGES D'UNE DISCUSSION
 // ============================================================
