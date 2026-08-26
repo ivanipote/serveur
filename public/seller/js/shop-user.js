@@ -33,22 +33,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // VÉRIFICATION CONNEXION
     // ==========================================
 
-    async function checkAuth() {
-        try {
-            const res = await fetch('/api/client/me');
-            const data = await res.json();
-            if (data.success) {
-                currentUser = data.user;
-                console.log('👤 Utilisateur connecté:', currentUser.name);
-                return true;
-            }
-            console.log('👤 Utilisateur non connecté');
-            return false;
-        } catch (error) {
-            console.warn('Erreur vérification auth:', error);
-            return false;
+    // ==========================================
+// VÉRIFICATION CONNEXION
+// ==========================================
+
+async function checkAuth() {
+    try {
+        // ✅ URL absolue vers le serveur client
+        const res = await fetch('https://nature-plus-client.onrender.com/api/client/me', {
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentUser = data.user;
+            console.log('👤 Utilisateur connecté:', currentUser.name);
+            return true;
         }
+        console.log('👤 Utilisateur non connecté');
+        return false;
+    } catch (error) {
+        console.warn('Erreur vérification auth:', error);
+        return false;
     }
+}
 
     // ==========================================
     // RÉCUPÉRER L'ID DE LA BOUTIQUE
