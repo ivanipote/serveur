@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Shop User - Version complète avec intégration discussion');
+    console.log('✅ Shop User - Version complète');
 
     // ==========================================
     // RÉFÉRENCES
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const slideProductName = document.getElementById('slideProductName');
     const slideProductImage = document.getElementById('slideProductImage');
     const slideImagePlaceholder = document.getElementById('slideImagePlaceholder');
+    const slideDescription = document.getElementById('slideDescription');
     const likeBtn = document.getElementById('likeBtn');
     const likeCount = document.getElementById('likeCount');
     const detailBtn = document.getElementById('detailBtn');
@@ -25,12 +26,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentSkeleton = document.getElementById('commentSkeleton');
     const commentInput = document.getElementById('commentInput');
     const sendCommentBtn = document.getElementById('sendCommentBtn');
-    const messageBtn = document.getElementById('messageBtn');
+
+    const replyingIndicator = document.getElementById('replyingIndicator');
+    const replyToText = document.getElementById('replyToText');
+    const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 
     const usernameOverlay = document.getElementById('usernameOverlay');
     const usernameInput = document.getElementById('usernameInput');
     const usernameConfirmBtn = document.getElementById('usernameConfirmBtn');
     const usernameSkipBtn = document.getElementById('usernameSkipBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
 
     let currentProductId = null;
     let isLiked = false;
@@ -39,7 +44,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUsername = null;
     let syncInterval = null;
     let isSlideOpen = false;
+    let replyTarget = null;
+    let commentIdCounter = 0;
+    let currentShop = null;
     let isLoadingComments = false;
+    let isLikingComment = false;
 
     // ==========================================
     // GESTION DU USERNAME
@@ -97,22 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // URL DU SERVEUR SELLER
+    // URL
     // ==========================================
 
     const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
-
-    // ==========================================
-    // RÉCUPÉRER L'ID DE LA BOUTIQUE
-    // ==========================================
+    const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
 
     const urlParams = new URLSearchParams(window.location.search);
     const shopId = urlParams.get('id');
-
-    // Vérifier si on vient de la discussion (retour après sélection produit)
-    const fromDiscussion = urlParams.get('from') === 'discussion';
-    const returnUrl = urlParams.get('return') || 'discussion';
-    const returnUser = urlParams.get('user');
 
     if (!shopId) {
         shopName.textContent = 'Boutique non trouvée';
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LA BOUTIQUE ET SES PRODUITS
+    // CHARGER LA BOUTIQUE
     // ==========================================
 
     async function loadShop() {
@@ -139,25 +140,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(data.error || 'Erreur chargement');
             }
 
-            const shop = data.shop;
+            currentShop = data.shop;
             const products = data.products || [];
 
             skeletonLoader.style.display = 'none';
 
-            shopName.textContent = shop.name || 'Boutique';
+            shopName.textContent = currentShop.name || 'Boutique';
             productCount.textContent = products.length + ' produits';
+
+            // WhatsApp
+            if (currentShop.seller_phone) {
+                const cleanPhone = currentShop.seller_phone.replace(/\D/g, '');
+                whatsappBtn.href = 'https://wa.me/225' + cleanPhone;
+            }
 
             if (products.length === 0) {
                 emptyState.style.display = 'block';
                 return;
             }
 
-            products.forEach(p => {
-                incrementProductViews(p.id);
-            });
-
             renderProducts(products);
-
             console.log('✅ ' + products.length + ' produits chargés');
 
         } catch (error) {
@@ -165,20 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
             skeletonLoader.style.display = 'none';
             emptyState.style.display = 'block';
             emptyState.querySelector('p').textContent = error.message || 'Erreur de chargement.';
-        }
-    }
-
-    // ==========================================
-    // INCRÉMENTER LES VUES D'UN PRODUIT
-    // ==========================================
-
-    async function incrementProductViews(productId) {
-        try {
-            await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/view', {
-                method: 'POST'
-            });
-        } catch (err) {
-            console.warn('Erreur incrément vue produit:', err);
         }
     }
 
@@ -226,37 +214,40 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
-
-                // Si on vient de la discussion, on retourne avec le produit sélectionné
-                if (fromDiscussion) {
-                    // Rediriger vers la discussion avec le produit
-                    window.location.href = SELLER_API_URL + '/' + returnUrl + '?shop=' + shopId + '&user=' + encodeURIComponent(returnUser || getUsername()) + '&product=' + id;
-                    return;
-                }
-
+                // Incrémenter la vue du produit
                 incrementProductViews(id);
-                openSlide(id);
+                // Rediriger vers detail-produit.html
+                window.location.href = '/detail-produit.html?id=' + id;
             });
         });
     }
 
     // ==========================================
-    // OUVERTURE DU SLIDE
+    // INCRÉMENTER LES VUES
     // ==========================================
 
-    function openSlide(productId) {
-        const productCard = document.querySelector(`.product-card[data-id="${productId}"]`);
-        if (!productCard) return;
+    async function incrementProductViews(productId) {
+        try {
+            await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/view', {
+                method: 'POST'
+            });
+        } catch (err) {
+            console.warn('Erreur incrément vue produit:', err);
+        }
+    }
 
-        const productName = productCard.querySelector('.product-name').textContent;
+    // ==========================================
+    // OUVERTURE DU SLIDE (commentaires)
+    // ==========================================
 
+    function openSlide(productId, productName, productImage, productDescription) {
         currentProductId = productId;
         slideProductName.textContent = productName;
+        slideDescription.textContent = productDescription || 'Aucune description';
 
         // Image
-        const img = productCard.querySelector('.product-image img');
-        if (img && img.src) {
-            slideProductImage.src = img.src;
+        if (productImage) {
+            slideProductImage.src = productImage;
             slideProductImage.style.display = 'block';
             slideImagePlaceholder.style.display = 'none';
         } else {
@@ -264,23 +255,128 @@ document.addEventListener('DOMContentLoaded', function() {
             slideImagePlaceholder.style.display = 'flex';
         }
 
-        // Afficher skeleton des commentaires
-        showCommentSkeleton();
+        // Réinitialiser la réponse
+        replyTarget = null;
+        replyingIndicator.style.display = 'none';
 
-        // Charger les données
+        showCommentSkeleton();
         loadProductData(productId);
 
         slideOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         isSlideOpen = true;
 
-        // Démarrer la sync des commentaires
-        startCommentSync(productId);
-
         const username = getUsername();
         if (!username) {
             setTimeout(() => showUsernameOverlay(), 500);
         }
+    }
+
+    // ==========================================
+    // CHARGER LES COMMENTAIRES D'UN PRODUIT
+    // ==========================================
+
+    async function loadProductData(productId) {
+        isLoadingComments = true;
+        try {
+            const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
+            const data = await res.json();
+
+            if (data.success && data.product) {
+                const product = data.product;
+                productComments = product.comments || [];
+                likeCounter = parseInt(product.likes) || 0;
+
+                likeCount.textContent = likeCounter;
+
+                const username = getUsername();
+                if (username) {
+                    const userLikes = product.flex4 ? JSON.parse(product.flex4) : [];
+                    isLiked = userLikes.includes(username);
+                    if (isLiked) {
+                        likeBtn.classList.add('liked');
+                        likeBtn.disabled = true;
+                    } else {
+                        likeBtn.classList.remove('liked');
+                        likeBtn.disabled = false;
+                    }
+                } else {
+                    likeBtn.classList.remove('liked');
+                    likeBtn.disabled = false;
+                    isLiked = false;
+                }
+
+                hideCommentSkeleton();
+                renderComments(productComments);
+            }
+        } catch (err) {
+            console.warn('Erreur chargement données produit:', err);
+            hideCommentSkeleton();
+            renderComments([]);
+        } finally {
+            isLoadingComments = false;
+        }
+    }
+
+    // ==========================================
+    // AFFICHER LES COMMENTAIRES (en bleu)
+    // ==========================================
+
+    function renderComments(comments) {
+        if (!comments || comments.length === 0) {
+            commentsContainer.innerHTML = `
+                <div class="no-comments">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>Aucun commentaire pour ce produit.<br>Soyez le premier à donner votre avis !</p>
+                </div>
+            `;
+            return;
+        }
+
+        const username = getUsername();
+
+        commentsContainer.innerHTML = comments.map(c => {
+            const isCurrentUser = username && c.user === username;
+
+            const repliesHtml = c.replies && c.replies.length > 0 ?
+                c.replies.map(r => `
+                    <div class="reply-item">
+                        <span class="reply-user">${r.user}</span>
+                        <span class="reply-text">${r.comment}</span>
+                        <span class="reply-date">${r.date || 'Aujourd\'hui'}</span>
+                    </div>
+                `).join('') : '';
+
+            const likedByUser = c.liked_by && c.liked_by.includes(username);
+            const likesDisplay = c.likes || 0;
+
+            return `
+                <div class="comment-item" data-id="${c.id}">
+                    <div class="comment-top">
+                        <div class="comment-avatar">${c.avatar || '👤'}</div>
+                        <span class="comment-user">${c.user} ${isCurrentUser ? '✧ (vous)' : ''}</span>
+                    </div>
+                    <div class="comment-text">${c.comment}</div>
+                    <div class="comment-bottom">
+                        <span class="comment-date">${c.date || 'Aujourd\'hui'}</span>
+                        <button class="comment-like-btn ${likedByUser ? 'liked' : ''}" onclick="likeComment(${c.id})" ${isLikingComment ? 'disabled' : ''}>
+                            <i class="fas fa-heart"></i> ${likesDisplay}
+                        </button>
+                        <button class="comment-reply-btn" onclick="startReply(${c.id}, '${c.user}')">
+                            Répondre
+                        </button>
+                    </div>
+                    ${repliesHtml ? `<div class="replies">${repliesHtml}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Mettre à jour les likes des commentaires
+        document.querySelectorAll('.comment-like-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
     }
 
     // ==========================================
@@ -299,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SYNC DES COMMENTAIRES (toutes les 5s)
+    // SYNC COMMENTAIRES (5s)
     // ==========================================
 
     function startCommentSync(productId) {
@@ -337,105 +433,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     likeCounter = newLikes;
                     likeCount.textContent = likeCounter;
                 }
-
-                const username = getUsername();
-                if (username) {
-                    const userLikes = data.product.flex4 ? JSON.parse(data.product.flex4) : [];
-                    const newIsLiked = userLikes.includes(username);
-                    if (newIsLiked !== isLiked) {
-                        isLiked = newIsLiked;
-                        if (isLiked) {
-                            likeBtn.classList.add('liked');
-                            likeBtn.disabled = true;
-                        } else {
-                            likeBtn.classList.remove('liked');
-                            likeBtn.disabled = false;
-                        }
-                    }
-                }
             }
         } catch (err) {
             console.warn('Erreur refresh commentaires:', err);
         }
-    }
-
-    // ==========================================
-    // CHARGER LES DONNÉES D'UN PRODUIT
-    // ==========================================
-
-    async function loadProductData(productId) {
-        isLoadingComments = true;
-        try {
-            const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
-            const data = await res.json();
-
-            if (data.success && data.product) {
-                const product = data.product;
-                productComments = product.comments || [];
-                likeCounter = parseInt(product.likes) || 0;
-
-                likeCount.textContent = likeCounter;
-
-                const username = getUsername();
-                if (username) {
-                    const userLikes = product.flex4 ? JSON.parse(product.flex4) : [];
-                    isLiked = userLikes.includes(username);
-                    if (isLiked) {
-                        likeBtn.classList.add('liked');
-                        likeBtn.disabled = true;
-                    } else {
-                        likeBtn.classList.remove('liked');
-                        likeBtn.disabled = false;
-                    }
-                } else {
-                    likeBtn.classList.remove('liked');
-                    likeBtn.disabled = false;
-                    isLiked = false;
-                }
-
-                // Cacher skeleton et afficher les commentaires
-                hideCommentSkeleton();
-                renderComments(productComments);
-            }
-        } catch (err) {
-            console.warn('Erreur chargement données produit:', err);
-            hideCommentSkeleton();
-            renderComments([]);
-        } finally {
-            isLoadingComments = false;
-        }
-    }
-
-    // ==========================================
-    // AFFICHER LES COMMENTAIRES (en bleu)
-    // ==========================================
-
-    function renderComments(comments) {
-        if (!comments || comments.length === 0) {
-            commentsContainer.innerHTML = `
-                <div class="no-comments">
-                    <i class="fas fa-comment-slash"></i>
-                    <p>Aucun commentaire pour ce produit.<br>Soyez le premier à donner votre avis !</p>
-                </div>
-            `;
-            return;
-        }
-
-        const username = getUsername();
-
-        commentsContainer.innerHTML = comments.map(c => {
-            const isCurrentUser = username && c.user === username;
-            return `
-                <div class="comment-item ${isCurrentUser ? 'current-user' : ''}">
-                    <div class="comment-avatar">${c.avatar || '👤'}</div>
-                    <div class="comment-content">
-                        <div class="comment-user">${c.user} ${isCurrentUser ? '✧ (vous)' : ''}</div>
-                        <div class="comment-text">${c.comment}</div>
-                        <div class="comment-date">${c.date || 'Aujourd\'hui'}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
     }
 
     // ==========================================
@@ -447,6 +448,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
         commentInput.value = '';
         isSlideOpen = false;
+        replyTarget = null;
+        replyingIndicator.style.display = 'none';
         stopCommentSync();
     }
 
@@ -456,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // LIKE / DISLIKE (une seule fois)
+    // LIKE DU PRODUIT
     // ==========================================
 
     likeBtn.addEventListener('click', function() {
@@ -516,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // DÉTAIL → +1 vue + redirection
+    // DÉTAIL (depuis le slide)
     // ==========================================
 
     detailBtn.addEventListener('click', function() {
@@ -527,7 +530,84 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // ENVOYER UN COMMENTAIRE
+    // LIKER UN COMMENTAIRE (avec notification)
+    // ==========================================
+
+    window.likeComment = async function(commentId) {
+        if (isLikingComment) return;
+
+        const username = getUsername();
+        if (!username) {
+            showUsernameOverlay();
+            return;
+        }
+
+        const comment = productComments.find(c => c.id === commentId);
+        if (!comment) return;
+
+        // Vérifier si déjà liké
+        if (comment.liked_by && comment.liked_by.includes(username)) return;
+
+        isLikingComment = true;
+
+        // Mettre à jour localement
+        comment.likes = (comment.likes || 0) + 1;
+        if (!comment.liked_by) comment.liked_by = [];
+        comment.liked_by.push(username);
+
+        renderComments(productComments);
+
+        // ✅ Envoyer une notification à l'auteur du commentaire
+        if (comment.user !== username) {
+            try {
+                await fetch(SELLER_API_URL + '/api/notification/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: comment.user_id || 0,
+                        type: 'comment_like',
+                        title: '❤️ Nouveau like sur votre commentaire',
+                        content: `${username} a aimé votre commentaire : "${comment.comment.substring(0, 30)}${comment.comment.length > 30 ? '...' : ''}"`
+                    })
+                });
+                console.log('✅ Notification de like envoyée à', comment.user);
+            } catch (err) {
+                console.warn('Erreur envoi notification like:', err);
+            }
+        }
+
+        // Sauvegarder les commentaires mis à jour
+        await saveComments(currentProductId, productComments);
+
+        isLikingComment = false;
+    };
+
+    // ==========================================
+    // RÉPONDRE À UN COMMENTAIRE (avec notification)
+    // ==========================================
+
+    window.startReply = function(commentId, userName) {
+        const username = getUsername();
+        if (!username) {
+            showUsernameOverlay();
+            return;
+        }
+
+        replyTarget = commentId;
+        replyingIndicator.style.display = 'flex';
+        replyToText.innerHTML = `Répondre à <strong>@${userName}</strong>`;
+        commentInput.focus();
+        commentInput.placeholder = `Répondre à ${userName}...`;
+    };
+
+    cancelReplyBtn.addEventListener('click', function() {
+        replyTarget = null;
+        replyingIndicator.style.display = 'none';
+        commentInput.placeholder = 'Écrire un commentaire...';
+    });
+
+    // ==========================================
+    // ENVOYER UN COMMENTAIRE (ou réponse)
     // ==========================================
 
     function sendComment() {
@@ -540,17 +620,58 @@ document.addEventListener('DOMContentLoaded', function() {
         const text = commentInput.value.trim();
         if (!text || !currentProductId) return;
 
-        const newComment = {
-            user: username,
-            avatar: '👤',
-            comment: text,
-            date: new Date().toLocaleDateString('fr-FR')
-        };
+        let parentComment = null;
 
-        productComments.push(newComment);
-        saveComments(currentProductId, productComments);
+        if (replyTarget !== null) {
+            // Réponse à un commentaire
+            parentComment = productComments.find(c => c.id === replyTarget);
+            if (!parentComment) return;
+
+            if (!parentComment.replies) parentComment.replies = [];
+            parentComment.replies.push({
+                user: username,
+                comment: text,
+                date: new Date().toLocaleDateString('fr-FR')
+            });
+
+            // ✅ Envoyer une notification à l'auteur du commentaire parent
+            if (parentComment.user !== username) {
+                fetch(SELLER_API_URL + '/api/notification/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: parentComment.user_id || 0,
+                        type: 'comment_reply',
+                        title: '💬 Nouvelle réponse à votre commentaire',
+                        content: `${username} a répondu à votre commentaire : "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`
+                    })
+                }).catch(err => console.warn('Erreur envoi notification réponse:', err));
+            }
+
+            replyTarget = null;
+            replyingIndicator.style.display = 'none';
+            commentInput.placeholder = 'Écrire un commentaire...';
+        } else {
+            // Nouveau commentaire
+            const newComment = {
+                id: ++commentIdCounter,
+                user: username,
+                user_id: 0,
+                avatar: '👤',
+                comment: text,
+                date: new Date().toLocaleDateString('fr-FR'),
+                likes: 0,
+                liked_by: [],
+                replies: []
+            };
+            productComments.push(newComment);
+        }
+
         renderComments(productComments);
         commentInput.value = '';
+
+        // Sauvegarder les commentaires
+        saveComments(currentProductId, productComments);
 
         setTimeout(() => {
             slideBody.scrollTop = slideBody.scrollHeight;
@@ -587,18 +708,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // BOUTON MESSAGE → OUVRE LA DISCUSSION
+    // EXPOSER openSlide GLOBALEMENT
     // ==========================================
 
-    messageBtn.addEventListener('click', function() {
-        const username = getUsername();
-        if (!username) {
-            showUsernameOverlay();
-            return;
-        }
-        // Rediriger vers la discussion
-        window.location.href = SELLER_API_URL + '/discussion?shop=' + shopId + '&user=' + encodeURIComponent(username);
-    });
+    window.openSlide = openSlide;
 
     // ==========================================
     // INITIALISATION
