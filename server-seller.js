@@ -1152,6 +1152,31 @@ app.post('/api/seller/product/:id/likes-users', async (req, res) => {
 
 
 // ============================================================
+// ROUTES API : PRODUITS (likes users)
+// ============================================================
+
+app.post('/api/seller/product/:id/likes-users', async (req, res) => {
+    const { id } = req.params;
+    const { users } = req.body;
+
+    if (!users || !Array.isArray(users)) {
+        return res.status(400).json({ success: false, error: 'users requis (tableau)' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE seller_products SET flex4 = $1 WHERE id = $2`,
+            [JSON.stringify(users), id]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Erreur sauvegarde likes users:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ============================================================
 // ROUTES PAGES
 // ============================================================
 

@@ -53,38 +53,65 @@
 
             <div class="slide-handle"></div>
 
-            <!-- HEADER -->
-            <div class="slide-header">
-                <div class="slide-product">
-                    <button class="like-btn" id="likeBtn">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                    <span class="like-count" id="likeCount">0</span>
-                    <span class="product-name-slide" id="slideProductName">Produit</span>
+            <!-- PARTIE HAUTE : IMAGE + HEADER -->
+            <div class="slide-top">
+                <div class="slide-header">
+                    <div class="slide-product">
+                        <button class="like-btn" id="likeBtn">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <span class="like-count" id="likeCount">0</span>
+                        <span class="product-name-slide" id="slideProductName">Produit</span>
+                    </div>
+                    <div class="slide-actions">
+                        <button class="btn-detail" id="detailBtn">
+                            <i class="fas fa-eye"></i> Détail
+                        </button>
+                        <button class="btn-close-slide" id="closeSlideBtn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="slide-actions">
-                    <button class="btn-detail" id="detailBtn">
-                        <i class="fas fa-eye"></i> Détail
-                    </button>
-                    <button class="btn-close-slide" id="closeSlideBtn">
-                        <i class="fas fa-times"></i>
+                <div class="slide-image-wrapper">
+                    <img id="slideProductImage" src="" alt="Produit" style="display:none;" />
+                    <div class="slide-image-placeholder" id="slideImagePlaceholder">
+                        <i class="fas fa-image"></i>
+                        <span>Image du produit</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTIE BASSE : COMMENTAIRES -->
+            <div class="slide-bottom">
+                <div class="slide-body" id="slideBody">
+                    <!-- Injecté par JS -->
+                </div>
+
+                <!-- FOOTER COMMENTAIRE -->
+                <div class="slide-footer">
+                    <input type="text" class="comment-input" id="commentInput" placeholder="Écrire un commentaire..." />
+                    <button class="btn-send-comment" id="sendCommentBtn">
+                        <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- BODY (commentaires) -->
-            <div class="slide-body" id="slideBody">
-                <!-- Injecté par JS -->
-            </div>
+        </div>
+    </div>
 
-            <!-- FOOTER (envoi commentaire) -->
-            <div class="slide-footer">
-                <input type="text" class="comment-input" id="commentInput" placeholder="Écrire un commentaire..." />
-                <button class="btn-send-comment" id="sendCommentBtn">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-
+    <!-- ========================================== -->
+    <!-- OVERLAY USERNAME                           -->
+    <!-- ========================================== -->
+    <div class="username-overlay" id="usernameOverlay">
+        <div class="username-box">
+            <div class="username-icon">👤</div>
+            <h3>Entrez votre nom</h3>
+            <p>Pour commenter et liker les produits</p>
+            <input type="text" class="username-input" id="usernameInput" placeholder="Votre nom..." maxlength="30" />
+            <button class="username-btn" id="usernameConfirmBtn">
+                <i class="fas fa-check"></i> Confirmer
+            </button>
+            <button class="username-skip" id="usernameSkipBtn">Passer</button>
         </div>
     </div>
 

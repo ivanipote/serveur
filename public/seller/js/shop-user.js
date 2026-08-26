@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Shop User - Version username');
+    console.log('✅ Shop User - Version complète avec username overlay');
 
     // ==========================================
     // RÉFÉRENCES
@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const slideOverlay = document.getElementById('slideOverlay');
     const closeSlideBtn = document.getElementById('closeSlideBtn');
     const slideProductName = document.getElementById('slideProductName');
+    const slideProductImage = document.getElementById('slideProductImage');
+    const slideImagePlaceholder = document.getElementById('slideImagePlaceholder');
     const likeBtn = document.getElementById('likeBtn');
     const likeCount = document.getElementById('likeCount');
     const detailBtn = document.getElementById('detailBtn');
@@ -22,11 +24,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentInput = document.getElementById('commentInput');
     const sendCommentBtn = document.getElementById('sendCommentBtn');
 
+    const usernameOverlay = document.getElementById('usernameOverlay');
+    const usernameInput = document.getElementById('usernameInput');
+    const usernameConfirmBtn = document.getElementById('usernameConfirmBtn');
+    const usernameSkipBtn = document.getElementById('usernameSkipBtn');
+
     let currentProductId = null;
     let isLiked = false;
     let likeCounter = 0;
     let productComments = [];
     let currentUsername = null;
+    let syncInterval = null;
+    let isSlideOpen = false;
 
     // ==========================================
     // GESTION DU USERNAME
@@ -49,24 +58,40 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(USERNAME_KEY, currentUsername);
     }
 
-    function promptUsername() {
-        const name = prompt('👤 Entrez votre nom d\'utilisateur pour commenter et liker :');
-        if (name && name.trim().length > 0) {
-            setUsername(name.trim());
-            return true;
-        }
-        return false;
+    function showUsernameOverlay() {
+        usernameInput.value = getUsername() || '';
+        usernameOverlay.classList.add('active');
+        setTimeout(() => usernameInput.focus(), 300);
     }
 
-    function ensureUsername() {
-        let name = getUsername();
-        if (!name) {
-            const ok = promptUsername();
-            if (!ok) return null;
-            name = getUsername();
-        }
-        return name;
+    function hideUsernameOverlay() {
+        usernameOverlay.classList.remove('active');
     }
+
+    usernameConfirmBtn.addEventListener('click', function() {
+        const name = usernameInput.value.trim();
+        if (name.length > 0) {
+            setUsername(name);
+            hideUsernameOverlay();
+            // Recharger les données du produit pour mettre à jour le like
+            if (currentProductId) {
+                loadProductData(currentProductId);
+            }
+        } else {
+            usernameInput.style.borderColor = '#E24C4C';
+            setTimeout(() => usernameInput.style.borderColor = '', 1000);
+        }
+    });
+
+    usernameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            usernameConfirmBtn.click();
+        }
+    });
+
+    usernameSkipBtn.addEventListener('click', function() {
+        hideUsernameOverlay();
+    });
 
     // ==========================================
     // URL DU SERVEUR SELLER
@@ -95,12 +120,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadShop() {
         try {
-            // Incrémenter les vues de la boutique
             await fetch(SELLER_API_URL + '/api/seller/shop/' + shopId + '/view', {
                 method: 'POST'
             }).catch(err => console.warn('Erreur incrément vue boutique:', err));
 
-            // Récupérer les infos de la boutique
             const res = await fetch(SELLER_API_URL + '/api/seller/shop/' + shopId);
             const data = await res.json();
 
@@ -121,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Incrémenter les vues pour tous les produits (page ouverte)
             products.forEach(p => {
                 incrementProductViews(p.id);
             });
@@ -193,7 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }).join('');
 
-        // Clic sur une carte → ouvrir slide + incrémenter vue
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
@@ -216,13 +237,94 @@ document.addEventListener('DOMContentLoaded', function() {
         currentProductId = productId;
         slideProductName.textContent = productName;
 
-        // Charger les commentaires et likes
+        // Image
+        const img = productCard.querySelector('.product-image img');
+        if (img && img.src) {
+            slideProductImage.src = img.src;
+            slideProductImage.style.display = 'block';
+            slideImagePlaceholder.style.display = 'none';
+        } else {
+            slideProductImage.style.display = 'none';
+            slideImagePlaceholder.style.display = 'flex';
+        }
+
         loadProductData(productId);
 
         slideOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
+        isSlideOpen = true;
 
-        // ❌ PAS DE FOCUS AUTO sur le champ commentaire
+        // Démarrer la sync des commentaires
+        startCommentSync(productId);
+
+        // Vérifier si l'utilisateur a un nom
+        const username = getUsername();
+        if (!username) {
+            setTimeout(() => showUsernameOverlay(), 500);
+        }
+    }
+
+    // ==========================================
+    // SYNC DES COMMENTAIRES (toutes les 5s)
+    // ==========================================
+
+    function startCommentSync(productId) {
+        stopCommentSync();
+        syncInterval = setInterval(() => {
+            if (isSlideOpen && currentProductId === productId) {
+                refreshComments(productId);
+            }
+        }, 5000);
+    }
+
+    function stopCommentSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            syncInterval = null;
+        }
+    }
+
+    async function refreshComments(productId) {
+        try {
+            const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
+            const data = await res.json();
+
+            if (data.success && data.product) {
+                const newComments = data.product.comments || [];
+                const newLikes = parseInt(data.product.likes) || 0;
+
+                // Vérifier si les commentaires ont changé
+                if (JSON.stringify(newComments) !== JSON.stringify(productComments)) {
+                    productComments = newComments;
+                    renderComments(productComments);
+                }
+
+                // Mettre à jour le compteur de likes
+                if (newLikes !== likeCounter) {
+                    likeCounter = newLikes;
+                    likeCount.textContent = likeCounter;
+                }
+
+                // Vérifier l'état du like
+                const username = getUsername();
+                if (username) {
+                    const userLikes = data.product.flex4 ? JSON.parse(data.product.flex4) : [];
+                    const newIsLiked = userLikes.includes(username);
+                    if (newIsLiked !== isLiked) {
+                        isLiked = newIsLiked;
+                        if (isLiked) {
+                            likeBtn.classList.add('liked');
+                            likeBtn.disabled = true;
+                        } else {
+                            likeBtn.classList.remove('liked');
+                            likeBtn.disabled = false;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Erreur refresh commentaires:', err);
+        }
     }
 
     // ==========================================
@@ -241,18 +343,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 likeCount.textContent = likeCounter;
 
-                // Vérifier si l'utilisateur a déjà liké (flex4)
                 const username = getUsername();
                 if (username) {
                     const userLikes = product.flex4 ? JSON.parse(product.flex4) : [];
                     isLiked = userLikes.includes(username);
                     if (isLiked) {
                         likeBtn.classList.add('liked');
+                        likeBtn.disabled = true;
                     } else {
                         likeBtn.classList.remove('liked');
+                        likeBtn.disabled = false;
                     }
                 } else {
                     likeBtn.classList.remove('liked');
+                    likeBtn.disabled = false;
                     isLiked = false;
                 }
 
@@ -265,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LES COMMENTAIRES
+    // AFFICHER LES COMMENTAIRES (en bleu)
     // ==========================================
 
     function renderComments(comments) {
@@ -279,15 +383,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Mettre en avant le nom de l'utilisateur connecté
         const username = getUsername();
 
         slideBody.innerHTML = comments.map(c => {
             const isCurrentUser = username && c.user === username;
-            const avatar = c.avatar || '👤';
             return `
-                <div class="comment-item ${isCurrentUser ? 'current-user' : ''}" style="${isCurrentUser ? 'background: #f0fbf5; border-radius: 8px; padding: 8px 12px; margin: 0 -4px;' : ''}">
-                    <div class="comment-avatar">${avatar}</div>
+                <div class="comment-item ${isCurrentUser ? 'current-user' : ''}">
+                    <div class="comment-avatar">${c.avatar || '👤'}</div>
                     <div class="comment-content">
                         <div class="comment-user">${c.user} ${isCurrentUser ? '✧ (vous)' : ''}</div>
                         <div class="comment-text">${c.comment}</div>
@@ -306,6 +408,8 @@ document.addEventListener('DOMContentLoaded', function() {
         slideOverlay.classList.remove('active');
         document.body.style.overflow = '';
         commentInput.value = '';
+        isSlideOpen = false;
+        stopCommentSync();
     }
 
     closeSlideBtn.addEventListener('click', closeSlide);
@@ -314,23 +418,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // LIKE / DISLIKE (avec username)
+    // LIKE / DISLIKE (une seule fois)
     // ==========================================
 
     likeBtn.addEventListener('click', function() {
-        const username = ensureUsername();
-        if (!username) return;
+        const username = getUsername();
+        if (!username) {
+            showUsernameOverlay();
+            return;
+        }
 
         if (isLiked) {
             // Dislike
             isLiked = false;
             likeCounter--;
             this.classList.remove('liked');
+            this.disabled = false;
         } else {
             // Like
             isLiked = true;
             likeCounter++;
             this.classList.add('liked');
+            this.disabled = true; // 🔒 Désactiver après like
         }
 
         likeCount.textContent = likeCounter;
@@ -339,14 +448,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function updateProductLikes(productId, likes, liked, username) {
         try {
-            // Mettre à jour les likes (flex2)
             await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/like', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ likes: likes })
             });
 
-            // Mettre à jour la liste des utilisateurs qui ont liké (flex4)
             const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
             const data = await res.json();
             let userLikes = [];
@@ -384,12 +491,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // ENVOYER UN COMMENTAIRE (avec username)
+    // ENVOYER UN COMMENTAIRE
     // ==========================================
 
     function sendComment() {
-        const username = ensureUsername();
-        if (!username) return;
+        const username = getUsername();
+        if (!username) {
+            showUsernameOverlay();
+            return;
+        }
 
         const text = commentInput.value.trim();
         if (!text || !currentProductId) return;
@@ -402,10 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         productComments.push(newComment);
-
-        // Sauvegarder les commentaires dans flex1
         saveComments(currentProductId, productComments);
-
         renderComments(productComments);
         commentInput.value = '';
 
@@ -436,20 +543,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // CHANGER DE NOM D'UTILISATEUR
+    // CHANGER DE NOM (double-clic sur le nom du produit)
     // ==========================================
 
-    // Double-clic sur le nom du produit dans le slide pour changer de nom
     slideProductName.addEventListener('dblclick', function() {
-        const newName = prompt('👤 Changer votre nom d\'utilisateur :', getUsername() || '');
-        if (newName && newName.trim().length > 0) {
-            setUsername(newName.trim());
-            // Recharger les données du produit pour mettre à jour le like
-            if (currentProductId) {
-                loadProductData(currentProductId);
-            }
-            alert('✅ Nom d\'utilisateur mis à jour : ' + getUsername());
-        }
+        showUsernameOverlay();
     });
 
     // ==========================================
@@ -457,15 +555,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     (async function init() {
-        // Récupérer le username s'il existe
         const username = getUsername();
         if (username) {
             console.log('👤 Nom d\'utilisateur :', username);
         } else {
-            console.log('ℹ️ Aucun nom d\'utilisateur - connectez-vous pour liker et commenter');
+            console.log('ℹ️ Aucun nom d\'utilisateur');
         }
 
-        // Charger la boutique et les produits
         await loadShop();
         console.log('✅ Shop User - Prêt');
     })();
