@@ -120,6 +120,11 @@
         .discussion-item:nth-child(3) { animation-delay: 0.06s; }
         .discussion-item:nth-child(4) { animation-delay: 0.08s; }
         .discussion-item:nth-child(5) { animation-delay: 0.10s; }
+        .discussion-item:nth-child(6) { animation-delay: 0.12s; }
+        .discussion-item:nth-child(7) { animation-delay: 0.14s; }
+        .discussion-item:nth-child(8) { animation-delay: 0.16s; }
+        .discussion-item:nth-child(9) { animation-delay: 0.18s; }
+        .discussion-item:nth-child(10) { animation-delay: 0.20s; }
 
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(12px); }
@@ -547,10 +552,6 @@
 
             console.log('✅ Chat Seller - Version connectée');
 
-            // ==========================================
-            // RÉFÉRENCES
-            // ==========================================
-
             const skeletonLoader = document.getElementById('skeletonLoader');
             const discussionList = document.getElementById('discussionList');
 
@@ -563,6 +564,7 @@
             const USERNAME_KEY = 'complus_username';
 
             let currentUsername = null;
+            let syncInterval = null;
 
             // ==========================================
             // GESTION DU USERNAME
@@ -643,7 +645,6 @@
                     skeletonLoader.style.display = 'flex';
                     discussionList.style.display = 'none';
 
-                    // Appel API pour récupérer les discussions
                     const res = await fetch(SELLER_API_URL + '/api/seller/discussions?username=' + encodeURIComponent(username));
 
                     if (!res.ok) {
@@ -691,7 +692,7 @@
 
             function renderDiscussions(discussions) {
                 discussionList.innerHTML = discussions.map(d => `
-                    <div class="discussion-item" onclick="openDiscussion(${d.id})">
+                    <div class="discussion-item" onclick="openDiscussion(${d.shop_id})">
                         <div class="avatar">${d.shop_avatar || '🛒'}</div>
                         <div class="info">
                             <div class="name">${d.shop_name}</div>
@@ -708,22 +709,32 @@
             // OUVERTURE DISCUSSION
             // ==========================================
 
-            window.openDiscussion = function(id) {
+            window.openDiscussion = function(shopId) {
                 const username = getUsername();
-                window.location.href = '/discussion.html?id=' + id + '&user=' + encodeURIComponent(username || '');
+                window.location.href = '/discussion.html?shop=' + shopId + '&user=' + encodeURIComponent(username || '');
             };
+
+            // ==========================================
+            // SYNC EN ARRIÈRE-PLAN (toutes les 10s)
+            // ==========================================
+
+            function startSync() {
+                if (syncInterval) clearInterval(syncInterval);
+                syncInterval = setInterval(() => {
+                    loadDiscussions();
+                }, 10000);
+            }
 
             // ==========================================
             // INIT
             // ==========================================
 
-            // Vérifier si un username existe
             const username = getUsername();
             if (!username) {
-                // Afficher l'overlay après un court délai
                 setTimeout(() => showUsernameOverlay(), 500);
             } else {
                 loadDiscussions();
+                startSync();
             }
 
             console.log('✅ Chat Seller - Prêt');
