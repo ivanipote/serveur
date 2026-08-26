@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Shop User - Version complète');
+    console.log('✅ Shop User - Version username');
 
     // ==========================================
     // RÉFÉRENCES
@@ -22,50 +22,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentInput = document.getElementById('commentInput');
     const sendCommentBtn = document.getElementById('sendCommentBtn');
 
-    let currentProduct = null;
     let currentProductId = null;
     let isLiked = false;
     let likeCounter = 0;
-    let currentUser = null;
     let productComments = [];
+    let currentUsername = null;
 
     // ==========================================
-    // URLS DES SERVEURS
+    // GESTION DU USERNAME
     // ==========================================
 
-    const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
-    const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+    const USERNAME_KEY = 'complus_username';
 
-    // ==========================================
-    // VÉRIFICATION CONNEXION CLIENT
-    // ==========================================
-
-    async function checkAuth() {
-        try {
-            // ✅ Appel au serveur client pour vérifier la session
-            const res = await fetch(CLIENT_API_URL + '/api/client/me', {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            const data = await res.json();
-
-            if (data.success && data.user) {
-                currentUser = data.user;
-                console.log('👤 Utilisateur connecté:', currentUser.name, '(ID:', currentUser.id, ')');
-                return true;
-            } else {
-                console.log('👤 Utilisateur non connecté (session invalide)');
-                return false;
-            }
-
-        } catch (error) {
-            console.warn('⚠️ Erreur vérification session client:', error.message);
-            return false;
+    function getUsername() {
+        if (currentUsername) return currentUsername;
+        const stored = localStorage.getItem(USERNAME_KEY);
+        if (stored) {
+            currentUsername = stored;
+            return currentUsername;
         }
+        return null;
     }
+
+    function setUsername(name) {
+        currentUsername = name.trim();
+        localStorage.setItem(USERNAME_KEY, currentUsername);
+    }
+
+    function promptUsername() {
+        const name = prompt('👤 Entrez votre nom d\'utilisateur pour commenter et liker :');
+        if (name && name.trim().length > 0) {
+            setUsername(name.trim());
+            return true;
+        }
+        return false;
+    }
+
+    function ensureUsername() {
+        let name = getUsername();
+        if (!name) {
+            const ok = promptUsername();
+            if (!ok) return null;
+            name = getUsername();
+        }
+        return name;
+    }
+
+    // ==========================================
+    // URL DU SERVEUR SELLER
+    // ==========================================
+
+    const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
 
     // ==========================================
     // RÉCUPÉRER L'ID DE LA BOUTIQUE
@@ -235,9 +242,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 likeCount.textContent = likeCounter;
 
                 // Vérifier si l'utilisateur a déjà liké (flex4)
-                if (currentUser) {
+                const username = getUsername();
+                if (username) {
                     const userLikes = product.flex4 ? JSON.parse(product.flex4) : [];
-                    isLiked = userLikes.includes(currentUser.id);
+                    isLiked = userLikes.includes(username);
                     if (isLiked) {
                         likeBtn.classList.add('liked');
                     } else {
@@ -271,16 +279,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        slideBody.innerHTML = comments.map(c => `
-            <div class="comment-item">
-                <div class="comment-avatar">${c.avatar || '👤'}</div>
-                <div class="comment-content">
-                    <div class="comment-user">${c.user}</div>
-                    <div class="comment-text">${c.comment}</div>
-                    <div class="comment-date">${c.date || 'Aujourd\'hui'}</div>
+        // Mettre en avant le nom de l'utilisateur connecté
+        const username = getUsername();
+
+        slideBody.innerHTML = comments.map(c => {
+            const isCurrentUser = username && c.user === username;
+            const avatar = c.avatar || '👤';
+            return `
+                <div class="comment-item ${isCurrentUser ? 'current-user' : ''}" style="${isCurrentUser ? 'background: #f0fbf5; border-radius: 8px; padding: 8px 12px; margin: 0 -4px;' : ''}">
+                    <div class="comment-avatar">${avatar}</div>
+                    <div class="comment-content">
+                        <div class="comment-user">${c.user} ${isCurrentUser ? '✧ (vous)' : ''}</div>
+                        <div class="comment-text">${c.comment}</div>
+                        <div class="comment-date">${c.date || 'Aujourd\'hui'}</div>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     // ==========================================
@@ -299,14 +314,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // LIKE / DISLIKE
+    // LIKE / DISLIKE (avec username)
     // ==========================================
 
     likeBtn.addEventListener('click', function() {
-        if (!currentUser) {
-            alert('🔒 Connectez-vous pour liker ce produit.');
-            return;
-        }
+        const username = ensureUsername();
+        if (!username) return;
 
         if (isLiked) {
             // Dislike
@@ -321,10 +334,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         likeCount.textContent = likeCounter;
-        updateProductLikes(currentProductId, likeCounter, isLiked);
+        updateProductLikes(currentProductId, likeCounter, isLiked, username);
     });
 
-    async function updateProductLikes(productId, likes, liked) {
+    async function updateProductLikes(productId, likes, liked, username) {
         try {
             // Mettre à jour les likes (flex2)
             await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/like', {
@@ -334,28 +347,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Mettre à jour la liste des utilisateurs qui ont liké (flex4)
-            if (currentUser) {
-                const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
-                const data = await res.json();
-                let userLikes = [];
-                if (data.success && data.product) {
-                    userLikes = data.product.flex4 ? JSON.parse(data.product.flex4) : [];
-                }
-
-                if (liked) {
-                    if (!userLikes.includes(currentUser.id)) {
-                        userLikes.push(currentUser.id);
-                    }
-                } else {
-                    userLikes = userLikes.filter(id => id !== currentUser.id);
-                }
-
-                await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/likes-users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ users: userLikes })
-                });
+            const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
+            const data = await res.json();
+            let userLikes = [];
+            if (data.success && data.product) {
+                userLikes = data.product.flex4 ? JSON.parse(data.product.flex4) : [];
             }
+
+            if (liked) {
+                if (!userLikes.includes(username)) {
+                    userLikes.push(username);
+                }
+            } else {
+                userLikes = userLikes.filter(name => name !== username);
+            }
+
+            await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/likes-users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ users: userLikes })
+            });
         } catch (err) {
             console.warn('Erreur mise à jour likes:', err);
         }
@@ -373,20 +384,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // ENVOYER UN COMMENTAIRE
+    // ENVOYER UN COMMENTAIRE (avec username)
     // ==========================================
 
     function sendComment() {
-        if (!currentUser) {
-            alert('🔒 Connectez-vous pour commenter.');
-            return;
-        }
+        const username = ensureUsername();
+        if (!username) return;
 
         const text = commentInput.value.trim();
         if (!text || !currentProductId) return;
 
         const newComment = {
-            user: currentUser.name,
+            user: username,
             avatar: '👤',
             comment: text,
             date: new Date().toLocaleDateString('fr-FR')
@@ -427,23 +436,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
+    // CHANGER DE NOM D'UTILISATEUR
+    // ==========================================
+
+    // Double-clic sur le nom du produit dans le slide pour changer de nom
+    slideProductName.addEventListener('dblclick', function() {
+        const newName = prompt('👤 Changer votre nom d\'utilisateur :', getUsername() || '');
+        if (newName && newName.trim().length > 0) {
+            setUsername(newName.trim());
+            // Recharger les données du produit pour mettre à jour le like
+            if (currentProductId) {
+                loadProductData(currentProductId);
+            }
+            alert('✅ Nom d\'utilisateur mis à jour : ' + getUsername());
+        }
+    });
+
+    // ==========================================
     // INITIALISATION
     // ==========================================
 
     (async function init() {
-        // 1. Vérifier la session client
-        const isAuth = await checkAuth();
-
-        // 2. Charger la boutique et les produits
-        await loadShop();
-
-        // 3. Afficher le statut de connexion dans la console
-        if (isAuth && currentUser) {
-            console.log('✅ Session client active - Bienvenue', currentUser.name);
+        // Récupérer le username s'il existe
+        const username = getUsername();
+        if (username) {
+            console.log('👤 Nom d\'utilisateur :', username);
         } else {
-            console.log('ℹ️ Mode invité - Connectez-vous pour liker et commenter');
+            console.log('ℹ️ Aucun nom d\'utilisateur - connectez-vous pour liker et commenter');
         }
 
+        // Charger la boutique et les produits
+        await loadShop();
         console.log('✅ Shop User - Prêt');
     })();
 
