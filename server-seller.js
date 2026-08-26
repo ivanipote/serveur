@@ -1477,6 +1477,14 @@ app.get('/discussion', (req, res) => {
 app.get('/detail-produit', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detail-produit.html'));
 });
+
+// ============================================================
+// ROUTE : PAGE DÉTAIL PRODUIT (client)
+// ============================================================
+
+app.get('/detail-produit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detail-produit.html'));
+});
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ============================================================
