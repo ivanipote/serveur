@@ -1305,6 +1305,208 @@ app.get('/api/seller/discussions', async (req, res) => {
 
 
 // ============================================================
+// ROUTES : CHAT (discussions + messages)
+// ============================================================
+
+// ============================================================
+// RÉCUPÉRER LES DISCUSSIONS D'UN UTILISATEUR
+// ============================================================
+
+app.get('/api/seller/discussions', async (req, res) => {
+    const { username } = req.query;
+
+    if (!username) {
+        return res.status(400).json({ success: false, error: 'username requis' });
+    }
+
+    try {
+        const discussions = await db.all(`
+            SELECT 
+                cr.id,
+                cr.shop_id,
+                cr.user_name,
+                cr.last_message,
+                cr.unread_count,
+                cr.last_activity,
+                s.name as shop_name,
+                s.logo as shop_avatar
+            FROM chat_rooms cr
+            JOIN shops s ON s.id = cr.shop_id
+            WHERE cr.user_name = $1
+            ORDER BY cr.last_activity DESC
+        `, [username]);
+
+        const formatted = discussions.map(d => ({
+            id: d.id,
+            shop_id: d.shop_id,
+            shop_name: d.shop_name,
+            shop_avatar: d.shop_avatar || '🛒',
+            last_message: d.last_message || 'Aucun message',
+            time: d.last_activity ? new Date(d.last_activity).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+            unread: d.unread_count || 0
+        }));
+
+        res.json({ success: true, discussions: formatted });
+
+    } catch (error) {
+        console.error('❌ Erreur discussions:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ============================================================
+// RÉCUPÉRER LES MESSAGES D'UNE DISCUSSION
+// ============================================================
+
+app.get('/api/seller/messages', async (req, res) => {
+    const { shop_id, username } = req.query;
+
+    if (!shop_id || !username) {
+        return res.status(400).json({ success: false, error: 'shop_id et username requis' });
+    }
+
+    try {
+        const messages = await db.all(`
+            SELECT 
+                id,
+                seller_id,
+                message,
+                is_from_seller,
+                is_read,
+                created_at
+            FROM seller_messages
+            WHERE shop_id = $1 AND user_name = $2
+            ORDER BY created_at ASC
+        `, [shop_id, username]);
+
+        // Marquer les messages comme lus
+        await db.query(`
+            UPDATE seller_messages 
+            SET is_read = true 
+            WHERE shop_id = $1 AND user_name = $2 AND is_from_seller = false
+        `, [shop_id, username]);
+
+        // Mettre à jour le compteur non lu dans chat_rooms
+        await db.query(`
+            UPDATE chat_rooms 
+            SET unread_count = 0, updated_at = NOW()
+            WHERE shop_id = $1 AND user_name = $2
+        `, [shop_id, username]);
+
+        res.json({ success: true, messages });
+
+    } catch (error) {
+        console.error('❌ Erreur messages:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ============================================================
+// ENVOYER UN MESSAGE (client → vendeur)
+// ============================================================
+
+app.post('/api/seller/message/send', async (req, res) => {
+    const { shop_id, username, message } = req.body;
+
+    if (!shop_id || !username || !message) {
+        return res.status(400).json({ success: false, error: 'shop_id, username et message requis' });
+    }
+
+    try {
+        // Récupérer le seller_id de la boutique
+        const shop = await db.get('SELECT seller_id FROM shops WHERE id = $1', [shop_id]);
+        if (!shop) {
+            return res.status(404).json({ success: false, error: 'Boutique non trouvée' });
+        }
+
+        // Insérer le message
+        await db.query(`
+            INSERT INTO seller_messages (seller_id, shop_id, user_name, message, is_from_seller, is_read)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [shop.seller_id, shop_id, username, message, false, true]);
+
+        // Mettre à jour la discussion dans chat_rooms
+        const room = await db.get(`
+            SELECT * FROM chat_rooms WHERE shop_id = $1 AND user_name = $2
+        `, [shop_id, username]);
+
+        if (room) {
+            await db.query(`
+                UPDATE chat_rooms 
+                SET last_message = $1, last_activity = NOW(), unread_count = unread_count + 1
+                WHERE id = $2
+            `, [message, room.id]);
+        } else {
+            await db.query(`
+                INSERT INTO chat_rooms (shop_id, user_name, last_message, last_activity, unread_count)
+                VALUES ($1, $2, $3, NOW(), 1)
+            `, [shop_id, username, message]);
+        }
+
+        // 🔔 Émettre via Socket.IO au vendeur
+        io.to(`seller_${shop.seller_id}`).emit('new-message', {
+            shop_id: shop_id,
+            username: username,
+            message: message,
+            time: new Date().toISOString()
+        });
+
+        res.json({ success: true, message: 'Message envoyé' });
+
+    } catch (error) {
+        console.error('❌ Erreur envoi message:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ============================================================
+// RÉPONDRE AU CLIENT (vendeur → client)
+// ============================================================
+
+app.post('/api/seller/message/reply', isAuthenticatedSeller, async (req, res) => {
+    const { shop_id, username, message } = req.body;
+    const sellerId = req.seller.id;
+
+    if (!shop_id || !username || !message) {
+        return res.status(400).json({ success: false, error: 'shop_id, username et message requis' });
+    }
+
+    try {
+        // Vérifier que la boutique appartient au vendeur
+        const shop = await db.get('SELECT * FROM shops WHERE id = $1 AND seller_id = $2', [shop_id, sellerId]);
+        if (!shop) {
+            return res.status(403).json({ success: false, error: 'Non autorisé' });
+        }
+
+        // Insérer le message
+        await db.query(`
+            INSERT INTO seller_messages (seller_id, shop_id, user_name, message, is_from_seller, is_read)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [sellerId, shop_id, username, message, true, false]);
+
+        // Mettre à jour la discussion
+        await db.query(`
+            UPDATE chat_rooms 
+            SET last_message = $1, last_activity = NOW(), unread_count = 0
+            WHERE shop_id = $2 AND user_name = $3
+        `, [message, shop_id, username]);
+
+        // 🔔 Émettre via Socket.IO au client (si connecté)
+        io.to(`user_${username}`).emit('new-message', {
+            shop_id: shop_id,
+            username: username,
+            message: message,
+            time: new Date().toISOString()
+        });
+
+        res.json({ success: true, message: 'Réponse envoyée' });
+
+    } catch (error) {
+        console.error('❌ Erreur réponse:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+// ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ============================================================
 
