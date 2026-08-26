@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Boutiques - Modèle Liste Simple (amélioré)');
+    console.log('✅ Boutiques - Version améliorée');
 
     // ==========================================
     // RÉFÉRENCES
@@ -18,12 +18,20 @@ document.addEventListener('DOMContentLoaded', function() {
     let searchTimeout = null;
 
     // ==========================================
+    // URL DU SERVEUR
+    // ==========================================
+
+    const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+    const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
+
+    // ==========================================
     // CHARGER LES BOUTIQUES
     // ==========================================
 
     async function loadShops() {
         try {
-            const res = await fetch('/api/shops');
+            // Récupérer les boutiques depuis l'API publique
+            const res = await fetch(CLIENT_API_URL + '/api/shops');
 
             if (!res.ok) {
                 throw new Error('Erreur chargement boutiques');
@@ -35,6 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.success && data.shops && data.shops.length > 0) {
                 allShops = data.shops;
+
+                // Pour chaque boutique, récupérer les commentaires et likes
+                await loadShopsDetails(allShops);
+
                 renderShops(allShops);
             } else {
                 emptyState.style.display = 'block';
@@ -49,7 +61,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LES BOUTIQUES (Modèle 1 amélioré)
+    // CHARGER LES DÉTAILS DES BOUTIQUES (commentaires, likes)
+    // ==========================================
+
+    async function loadShopsDetails(shops) {
+        for (const shop of shops) {
+            try {
+                // Récupérer les produits de la boutique
+                const res = await fetch(SELLER_API_URL + '/api/seller/shop/' + shop.id);
+                const data = await res.json();
+
+                if (data.success && data.products) {
+                    // Compter les commentaires et likes sur tous les produits
+                    let totalComments = 0;
+                    let totalLikes = 0;
+
+                    data.products.forEach(p => {
+                        if (p.flex1) {
+                            try {
+                                const comments = JSON.parse(p.flex1);
+                                totalComments += comments.length || 0;
+                            } catch (e) {}
+                        }
+                        totalLikes += parseInt(p.flex2) || 0;
+                    });
+
+                    shop.total_comments = totalComments;
+                    shop.total_likes = totalLikes;
+                }
+            } catch (err) {
+                console.warn('Erreur chargement détails boutique #' + shop.id, err);
+                shop.total_comments = 0;
+                shop.total_likes = 0;
+            }
+        }
+    }
+
+    // ==========================================
+    // AFFICHER LES BOUTIQUES (avec commentaires + likes)
     // ==========================================
 
     function renderShops(shops) {
@@ -79,12 +128,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="lbl">Produits</span>
                     </div>
                     <div class="stat">
-                        <span class="num">${shop.total_views || 0}</span>
-                        <span class="lbl">Vues</span>
-                    </div>
-                    <div class="stat">
                         <span class="num">${shop.total_likes || 0}</span>
                         <span class="lbl">Likes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="num">${shop.total_comments || 0}</span>
+                        <span class="lbl">Commentaires</span>
+                    </div>
+                    <div class="stat">
+                        <span class="num">${shop.total_views || 0}</span>
+                        <span class="lbl">Vues</span>
                     </div>
                 </div>
                 <i class="fas fa-chevron-right chevron"></i>
@@ -139,22 +192,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // OUVERTURE BOUTIQUE → +1 vue (ENREGISTRÉ)
+    // OUVERTURE BOUTIQUE → +1 vue + redirection
     // ==========================================
 
     window.openShop = function(shopId) {
-        // ✅ Enregistrer la vue
-        fetch('/api/seller/shop/' + shopId + '/view', {
+        // Incrémenter la vue
+        fetch(SELLER_API_URL + '/api/seller/shop/' + shopId + '/view', {
             method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('✅ Vue enregistrée pour la boutique #' + shopId);
-        })
-        .catch(err => console.warn('⚠️ Erreur incrément vue:', err));
+        }).catch(err => console.warn('Erreur incrément vue:', err));
 
-        // ✅ Redirection vers le serveur seller
-        window.location.href = 'https://nature-plus-seller.onrender.com/shop-user?id=' + shopId;
+        // Redirection vers shop-user
+        window.location.href = SELLER_API_URL + '/shop-user?id=' + shopId;
     };
 
     // ==========================================

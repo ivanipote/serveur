@@ -130,25 +130,25 @@ body {
 .skeleton-loader {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
 }
 
 .skeleton-row {
     background: white;
-    border-radius: 14px;
-    padding: 18px 20px;
+    border-radius: 16px;
+    padding: 20px 22px;
     display: flex;
     align-items: center;
     gap: 16px;
     border: 1px solid #f0f0f3;
     animation: shimmer 1.5s infinite;
-    min-height: 80px;
+    min-height: 90px;
 }
 
 .skeleton-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
     background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
     background-size: 200% 100%;
     flex-shrink: 0;
@@ -170,13 +170,13 @@ body {
 }
 
 .skeleton-line.short {
-    width: 55%;
+    width: 50%;
     height: 14px;
 }
 
 .skeleton-stats {
-    width: 90px;
-    height: 22px;
+    width: 100px;
+    height: 24px;
     background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
     background-size: 200% 100%;
     border-radius: 6px;
@@ -189,18 +189,18 @@ body {
 }
 
 /* ==========================================
-   LISTE BOUTIQUES - MODÈLE 1 (AMÉLIORÉ)
+   LISTE BOUTIQUES - CARTES AGRANDIES
    ========================================== */
 #shopsList {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
 }
 
 .list-row {
     background: white;
-    border-radius: 14px;
-    padding: 18px 20px;
+    border-radius: 16px;
+    padding: 20px 22px;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -209,7 +209,7 @@ body {
     transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
     animation: fadeInUp 0.3s ease forwards;
     opacity: 0;
-    min-height: 80px;
+    min-height: 90px;
 }
 
 .list-row:nth-child(1) { animation-delay: 0.02s; }
@@ -231,13 +231,13 @@ body {
 .list-row:hover {
     background: #f9fafb;
     transform: translateX(4px);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .list-row .avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
     flex-shrink: 0;
     overflow: hidden;
     background: #f0f2f5;
@@ -256,7 +256,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 26px;
     color: #17A464;
     background: #f0fbf5;
 }
@@ -267,7 +267,7 @@ body {
 }
 
 .list-row .info .name {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: #1a1a2e;
     white-space: nowrap;
@@ -293,7 +293,7 @@ body {
 
 .list-row .stats {
     display: flex;
-    gap: 14px;
+    gap: 18px;
     flex-shrink: 0;
 }
 
@@ -302,7 +302,7 @@ body {
 }
 
 .list-row .stats .stat .num {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: #17A464;
     display: block;
@@ -373,22 +373,25 @@ body {
         padding: 12px;
     }
     .list-row {
-        padding: 14px 16px;
+        padding: 16px 18px;
         gap: 14px;
-        min-height: 70px;
+        min-height: 78px;
     }
     .list-row .avatar {
-        width: 48px;
-        height: 48px;
+        width: 52px;
+        height: 52px;
     }
     .list-row .stats {
-        gap: 10px;
+        gap: 14px;
     }
     .list-row .stats .stat .num {
-        font-size: 13px;
+        font-size: 14px;
     }
     .list-row .stats .stat .lbl {
         font-size: 8.5px;
+    }
+    .list-row .info .name {
+        font-size: 15px;
     }
 }
 
@@ -415,30 +418,30 @@ body {
         padding: 8px;
     }
     .list-row {
-        padding: 12px 14px;
+        padding: 14px 16px;
         gap: 12px;
-        border-radius: 12px;
-        min-height: 64px;
+        border-radius: 14px;
+        min-height: 70px;
     }
     .list-row .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
     }
     .list-row .avatar .fallback {
-        font-size: 18px;
+        font-size: 20px;
     }
     .list-row .info .name {
-        font-size: 13.5px;
+        font-size: 14px;
     }
     .list-row .info .desc {
-        font-size: 11.5px;
+        font-size: 12px;
     }
     .list-row .stats {
-        gap: 8px;
+        gap: 10px;
     }
     .list-row .stats .stat .num {
-        font-size: 12px;
+        font-size: 13px;
     }
     .list-row .stats .stat .lbl {
         font-size: 7.5px;
@@ -447,12 +450,12 @@ body {
         font-size: 12px;
     }
     .skeleton-row {
-        padding: 14px 16px;
-        min-height: 64px;
+        padding: 16px 18px;
+        min-height: 70px;
     }
     .skeleton-avatar {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
     }
     .skeleton-line {
         height: 16px;
@@ -461,7 +464,7 @@ body {
         height: 12px;
     }
     .skeleton-stats {
-        width: 70px;
-        height: 18px;
+        width: 80px;
+        height: 20px;
     }
 }
