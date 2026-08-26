@@ -1367,3 +1367,38 @@ body {
         border-radius: 16px 16px 0 0 !important;
     }
 }
+/* ==========================================
+   BOUTON CHAT AGRANDI
+   ========================================== */
+
+.btn-chat-shop {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-chat-shop:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.05);
+}
+
+.btn-chat-shop i {
+    font-size: 16px;
+}
