@@ -832,6 +832,31 @@ app.post('/api/seller/product/:id/comments', async (req, res) => {
 
 
 // ============================================================
+// ROUTES API : PRODUITS (likes users)
+// ============================================================
+
+app.post('/api/seller/product/:id/likes-users', async (req, res) => {
+    const { id } = req.params;
+    const { users } = req.body;
+
+    if (!users || !Array.isArray(users)) {
+        return res.status(400).json({ success: false, error: 'users requis (tableau)' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE seller_products SET flex4 = $1 WHERE id = $2`,
+            [JSON.stringify(users), id]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Erreur sauvegarde likes users:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ============================================================
 // ROUTES : LIKES
 // ============================================================
 
@@ -1126,183 +1151,6 @@ app.post('/api/seller/shop/:id/view', async (req, res) => {
     }
 });
 
-// ============================================================
-// ROUTES API : PRODUITS (likes users)
-// ============================================================
-
-app.post('/api/seller/product/:id/likes-users', async (req, res) => {
-    const { id } = req.params;
-    const { users } = req.body;
-
-    if (!users || !Array.isArray(users)) {
-        return res.status(400).json({ success: false, error: 'users requis (tableau)' });
-    }
-
-    try {
-        await db.query(
-            `UPDATE seller_products SET flex4 = $1 WHERE id = $2`,
-            [JSON.stringify(users), id]
-        );
-        res.json({ success: true });
-    } catch (error) {
-        console.error('❌ Erreur sauvegarde likes users:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-
-// ============================================================
-// ROUTES API : PRODUITS (likes users)
-// ============================================================
-
-app.post('/api/seller/product/:id/likes-users', async (req, res) => {
-    const { id } = req.params;
-    const { users } = req.body;
-
-    if (!users || !Array.isArray(users)) {
-        return res.status(400).json({ success: false, error: 'users requis (tableau)' });
-    }
-
-    try {
-        await db.query(
-            `UPDATE seller_products SET flex4 = $1 WHERE id = $2`,
-            [JSON.stringify(users), id]
-        );
-        res.json({ success: true });
-    } catch (error) {
-        console.error('❌ Erreur sauvegarde likes users:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-
-// ============================================================
-// ROUTES PAGES
-// ============================================================
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
-});
-
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
-});
-
-app.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'register.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'dashboard.html'));
-});
-
-app.get('/create-shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-shop.html'));
-});
-
-app.get('/shop', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop.html'));
-});
-
-app.get('/products', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'products.html'));
-});
-
-app.get('/messages', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'messages.html'));
-});
-
-app.get('/profil', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'profil.html'));
-});
-
-app.get('/search', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'search.html'));
-});
-
-app.get('/create-product', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-product.html'));
-});
-
-app.get('/detailproduct', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detailproduct.html'));
-});
-
-app.get('/boutiques', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
-});
-
-app.get('/shop-user', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
-});
-
-// ============================================================
-// ROUTE : PAGE CHAT SELLER
-// ============================================================
-
-app.get('/chat-seller', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'chat-seller.html'));
-});
-
-
-
-// ============================================================
-// ROUTE API : RÉCUPÉRER LES DISCUSSIONS D'UN UTILISATEUR
-// ============================================================
-
-app.get('/api/seller/discussions', async (req, res) => {
-    const { username } = req.query;
-
-    if (!username) {
-        return res.status(400).json({ success: false, error: 'username requis' });
-    }
-
-    try {
-        // Récupérer les discussions depuis la base
-        const discussions = await db.all(`
-            SELECT DISTINCT 
-                s.id,
-                s.name as shop_name,
-                s.logo as shop_avatar,
-                (
-                    SELECT content FROM seller_messages 
-                    WHERE shop_id = s.id AND user_name = $1 
-                    ORDER BY created_at DESC LIMIT 1
-                ) as last_message,
-                (
-                    SELECT COUNT(*) FROM seller_messages 
-                    WHERE shop_id = s.id AND user_name = $1 AND is_read = 0
-                ) as unread,
-                (
-                    SELECT created_at FROM seller_messages 
-                    WHERE shop_id = s.id AND user_name = $1 
-                    ORDER BY created_at DESC LIMIT 1
-                ) as last_activity
-            FROM shops s
-            JOIN seller_messages m ON m.shop_id = s.id
-            WHERE m.user_name = $1
-            GROUP BY s.id
-            ORDER BY last_activity DESC
-        `, [username]);
-
-        // Formater les données
-        const formatted = discussions.map(d => ({
-            id: d.id,
-            shop_name: d.shop_name,
-            shop_avatar: d.shop_avatar || '🛒',
-            last_message: d.last_message || 'Aucun message',
-            time: d.last_activity ? new Date(d.last_activity).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
-            unread: d.unread || 0
-        }));
-
-        res.json({ success: true, discussions: formatted });
-
-    } catch (error) {
-        console.error('❌ Erreur discussions:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
 
 // ============================================================
 // ROUTES : CHAT (discussions + messages)
@@ -1312,7 +1160,6 @@ app.get('/api/seller/discussions', async (req, res) => {
 // RÉCUPÉRER LES DISCUSSIONS D'UN UTILISATEUR
 // ============================================================
 
-
 app.get('/api/seller/discussions', async (req, res) => {
     const { username } = req.query;
 
@@ -1321,6 +1168,18 @@ app.get('/api/seller/discussions', async (req, res) => {
     }
 
     try {
+        // Vérifier si la table chat_rooms existe
+        const tableCheck = await db.get(`
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_name = 'chat_rooms'
+            )
+        `);
+
+        if (!tableCheck || !tableCheck.exists) {
+            return res.json({ success: true, discussions: [] });
+        }
+
         const discussions = await db.all(`
             SELECT 
                 cr.id,
@@ -1354,6 +1213,7 @@ app.get('/api/seller/discussions', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // ============================================================
 // RÉCUPÉRER LES MESSAGES D'UNE DISCUSSION
 // ============================================================
@@ -1506,6 +1366,73 @@ app.post('/api/seller/message/reply', isAuthenticatedSeller, async (req, res) =>
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
+// ============================================================
+// ROUTES PAGES
+// ============================================================
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'login.html'));
+});
+
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'register.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'dashboard.html'));
+});
+
+app.get('/create-shop', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-shop.html'));
+});
+
+app.get('/shop', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop.html'));
+});
+
+app.get('/products', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'products.html'));
+});
+
+app.get('/messages', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'messages.html'));
+});
+
+app.get('/profil', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'profil.html'));
+});
+
+app.get('/search', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'search.html'));
+});
+
+app.get('/create-product', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'create-product.html'));
+});
+
+app.get('/detailproduct', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detailproduct.html'));
+});
+
+app.get('/boutiques', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
+});
+
+app.get('/shop-user', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
+});
+
+app.get('/chat-seller', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'chat-seller.html'));
+});
+
+
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ============================================================
