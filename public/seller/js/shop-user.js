@@ -30,32 +30,42 @@ document.addEventListener('DOMContentLoaded', function() {
     let productComments = [];
 
     // ==========================================
-    // VÉRIFICATION CONNEXION
+    // URLS DES SERVEURS
     // ==========================================
 
-    // ==========================================
-// VÉRIFICATION CONNEXION
-// ==========================================
+    const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
+    const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
 
-async function checkAuth() {
-    try {
-        // ✅ URL absolue vers le serveur client
-        const res = await fetch('https://nature-plus-client.onrender.com/api/client/me', {
-            credentials: 'include'
-        });
-        const data = await res.json();
-        if (data.success) {
-            currentUser = data.user;
-            console.log('👤 Utilisateur connecté:', currentUser.name);
-            return true;
+    // ==========================================
+    // VÉRIFICATION CONNEXION CLIENT
+    // ==========================================
+
+    async function checkAuth() {
+        try {
+            // ✅ Appel au serveur client pour vérifier la session
+            const res = await fetch(CLIENT_API_URL + '/api/client/me', {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.success && data.user) {
+                currentUser = data.user;
+                console.log('👤 Utilisateur connecté:', currentUser.name, '(ID:', currentUser.id, ')');
+                return true;
+            } else {
+                console.log('👤 Utilisateur non connecté (session invalide)');
+                return false;
+            }
+
+        } catch (error) {
+            console.warn('⚠️ Erreur vérification session client:', error.message);
+            return false;
         }
-        console.log('👤 Utilisateur non connecté');
-        return false;
-    } catch (error) {
-        console.warn('Erreur vérification auth:', error);
-        return false;
     }
-}
 
     // ==========================================
     // RÉCUPÉRER L'ID DE LA BOUTIQUE
@@ -79,12 +89,12 @@ async function checkAuth() {
     async function loadShop() {
         try {
             // Incrémenter les vues de la boutique
-            await fetch('/api/seller/shop/' + shopId + '/view', {
+            await fetch(SELLER_API_URL + '/api/seller/shop/' + shopId + '/view', {
                 method: 'POST'
             }).catch(err => console.warn('Erreur incrément vue boutique:', err));
 
             // Récupérer les infos de la boutique
-            const res = await fetch('/api/seller/shop/' + shopId);
+            const res = await fetch(SELLER_API_URL + '/api/seller/shop/' + shopId);
             const data = await res.json();
 
             if (!res.ok || !data.success) {
@@ -127,7 +137,7 @@ async function checkAuth() {
 
     async function incrementProductViews(productId) {
         try {
-            await fetch('/api/seller/product/' + productId + '/view', {
+            await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/view', {
                 method: 'POST'
             });
         } catch (err) {
@@ -214,7 +224,7 @@ async function checkAuth() {
 
     async function loadProductData(productId) {
         try {
-            const res = await fetch('/api/seller/product/' + productId);
+            const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
             const data = await res.json();
 
             if (data.success && data.product) {
@@ -224,7 +234,7 @@ async function checkAuth() {
 
                 likeCount.textContent = likeCounter;
 
-                // Vérifier si l'utilisateur a déjà liké
+                // Vérifier si l'utilisateur a déjà liké (flex4)
                 if (currentUser) {
                     const userLikes = product.flex4 ? JSON.parse(product.flex4) : [];
                     isLiked = userLikes.includes(currentUser.id);
@@ -316,8 +326,8 @@ async function checkAuth() {
 
     async function updateProductLikes(productId, likes, liked) {
         try {
-            // Mettre à jour les likes
-            await fetch('/api/seller/product/' + productId + '/like', {
+            // Mettre à jour les likes (flex2)
+            await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/like', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ likes: likes })
@@ -325,7 +335,7 @@ async function checkAuth() {
 
             // Mettre à jour la liste des utilisateurs qui ont liké (flex4)
             if (currentUser) {
-                const res = await fetch('/api/seller/product/' + productId);
+                const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
                 const data = await res.json();
                 let userLikes = [];
                 if (data.success && data.product) {
@@ -340,7 +350,7 @@ async function checkAuth() {
                     userLikes = userLikes.filter(id => id !== currentUser.id);
                 }
 
-                await fetch('/api/seller/product/' + productId + '/likes-users', {
+                await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/likes-users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ users: userLikes })
@@ -397,7 +407,7 @@ async function checkAuth() {
 
     async function saveComments(productId, comments) {
         try {
-            await fetch('/api/seller/product/' + productId + '/comments', {
+            await fetch(SELLER_API_URL + '/api/seller/product/' + productId + '/comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ comments: comments })
@@ -417,12 +427,23 @@ async function checkAuth() {
     });
 
     // ==========================================
-    // INIT
+    // INITIALISATION
     // ==========================================
 
     (async function init() {
-        await checkAuth();
+        // 1. Vérifier la session client
+        const isAuth = await checkAuth();
+
+        // 2. Charger la boutique et les produits
         await loadShop();
+
+        // 3. Afficher le statut de connexion dans la console
+        if (isAuth && currentUser) {
+            console.log('✅ Session client active - Bienvenue', currentUser.name);
+        } else {
+            console.log('ℹ️ Mode invité - Connectez-vous pour liker et commenter');
+        }
+
         console.log('✅ Shop User - Prêt');
     })();
 
