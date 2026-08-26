@@ -113,7 +113,7 @@ body {
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 16px 16px 20px 16px;
+    padding: 16px;
 }
 
 .page-main::-webkit-scrollbar {
@@ -130,61 +130,56 @@ body {
 .skeleton-loader {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
 }
 
-.skeleton-card {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    min-height: 280px;
-}
-
-.skeleton-banner {
-    width: 100%;
-    height: 160px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%);
-    background-size: 200% 100%;
+.skeleton-row {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #f0f0f3;
     animation: shimmer 1.5s infinite;
+}
+
+.skeleton-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+    background-size: 200% 100%;
+    flex-shrink: 0;
 }
 
 .skeleton-body {
-    padding: 20px 20px 12px 20px;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .skeleton-line {
-    height: 20px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.08) 25%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.08) 75%);
+    height: 16px;
+    background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
     background-size: 200% 100%;
-    border-radius: 8px;
-    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    width: 70%;
 }
 
 .skeleton-line.short {
-    width: 60%;
-    height: 14px;
+    width: 45%;
+    height: 12px;
 }
 
-.skeleton-footer {
-    padding: 12px 20px;
-    display: flex;
-    gap: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.skeleton-stat {
-    width: 60px;
-    height: 18px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 75%);
+.skeleton-stats {
+    width: 80px;
+    height: 20px;
+    background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
     background-size: 200% 100%;
-    border-radius: 8px;
-    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 @keyframes shimmer {
@@ -193,192 +188,111 @@ body {
 }
 
 /* ==========================================
-   CARTE BOUTIQUE - STYLE DASHBOARD
+   LISTE BOUTIQUES - MODÈLE 1
    ========================================== */
-.shop-card {
-    border-radius: 24px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    position: relative;
+#shopsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.list-row {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #f0f0f3;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    min-height: 280px;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
-    animation: fadeInUp 0.5s ease forwards;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    animation: fadeInUp 0.3s ease forwards;
     opacity: 0;
 }
 
-.shop-card:nth-child(1) { animation-delay: 0.05s; }
-.shop-card:nth-child(2) { animation-delay: 0.10s; }
-.shop-card:nth-child(3) { animation-delay: 0.15s; }
-.shop-card:nth-child(4) { animation-delay: 0.20s; }
-.shop-card:nth-child(5) { animation-delay: 0.25s; }
-.shop-card:nth-child(6) { animation-delay: 0.30s; }
-.shop-card:nth-child(7) { animation-delay: 0.35s; }
-.shop-card:nth-child(8) { animation-delay: 0.40s; }
-.shop-card:nth-child(9) { animation-delay: 0.45s; }
-.shop-card:nth-child(10) { animation-delay: 0.50s; }
+.list-row:nth-child(1) { animation-delay: 0.02s; }
+.list-row:nth-child(2) { animation-delay: 0.04s; }
+.list-row:nth-child(3) { animation-delay: 0.06s; }
+.list-row:nth-child(4) { animation-delay: 0.08s; }
+.list-row:nth-child(5) { animation-delay: 0.10s; }
+.list-row:nth-child(6) { animation-delay: 0.12s; }
+.list-row:nth-child(7) { animation-delay: 0.14s; }
+.list-row:nth-child(8) { animation-delay: 0.16s; }
+.list-row:nth-child(9) { animation-delay: 0.18s; }
+.list-row:nth-child(10) { animation-delay: 0.20s; }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.shop-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
+.list-row:hover {
+    background: #f9fafb;
+    transform: translateX(4px);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-.shop-card-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-}
-
-.shop-card-bg .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.shop-card-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 280px;
-    padding: 0;
-}
-
-/* ---- HEADER (transparent + flou comme dashboard) ---- */
-.shop-card-header {
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 14px 20px;
+.list-row .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 56px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 20px;
+    flex-shrink: 0;
 }
 
-.shop-card-header .owner-name {
-    font-size: 15px;
+.list-row .info {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-row .info .name {
+    font-size: 14.5px;
     font-weight: 700;
-    color: white;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    color: #1a1a2e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-row .info .sub {
+    font-size: 12px;
+    color: #9CA3AF;
+    margin-top: 2px;
+}
+
+.list-row .stats {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.list-row .stats .stat {
+    text-align: center;
+}
+
+.list-row .stats .stat .num {
+    font-size: 13px;
+    font-weight: 700;
+    color: #17A464;
+    display: block;
+    line-height: 1.2;
+}
+
+.list-row .stats .stat .lbl {
+    font-size: 9.5px;
+    color: #9CA3AF;
+    text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
-.shop-card-header .owner-name i {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* ---- CENTRE (carte floue) ---- */
-.shop-card-center {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 20px;
-}
-
-.shop-card-center .shop-info {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 20px;
-    padding: 20px 24px;
-    text-align: center;
-    width: 100%;
-    max-width: 300px;
-    transition: all 0.3s ease;
-}
-
-.shop-card-center .shop-info:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.02);
-}
-
-.shop-card-center .shop-info .shop-icon {
-    font-size: 32px;
-    display: block;
-    margin-bottom: 4px;
-}
-
-.shop-card-center .shop-info .shop-name {
-    font-size: 19px;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-}
-
-.shop-card-center .shop-info .shop-location {
+.list-row .chevron {
+    color: #d0d0da;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.85);
-    display: block;
-    margin-top: 2px;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* ---- FOOTER (transparent + flou comme dashboard) ---- */
-.shop-card-footer {
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 12px 20px;
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    min-height: 52px;
-}
-
-.shop-card-footer .stat-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px;
-    font-weight: 500;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
-}
-
-.shop-card-footer .stat-item i {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.shop-card-footer .stat-item .stat-value {
-    font-weight: 700;
-    font-size: 15px;
-    color: white;
+    flex-shrink: 0;
+    margin-left: 4px;
 }
 
 /* ==========================================
@@ -428,45 +342,25 @@ body {
         padding: 8px 12px 8px 36px;
     }
     .page-main {
-        padding: 12px 12px 16px 12px;
+        padding: 12px;
     }
-    .shop-card {
-        min-height: 240px;
-        border-radius: 20px;
+    .list-row {
+        padding: 12px 14px;
+        gap: 12px;
     }
-    .shop-card-content {
-        min-height: 240px;
+    .list-row .stats {
+        gap: 10px;
     }
-    .shop-card-header {
-        min-height: 48px;
-        padding: 10px 16px;
+    .list-row .stats .stat .num {
+        font-size: 12px;
     }
-    .shop-card-header .owner-name {
-        font-size: 14px;
+    .list-row .stats .stat .lbl {
+        font-size: 8.5px;
     }
-    .shop-card-center .shop-info {
-        padding: 16px 18px;
-        max-width: 240px;
-    }
-    .shop-card-center .shop-info .shop-name {
+    .list-row .avatar {
+        width: 38px;
+        height: 38px;
         font-size: 17px;
-    }
-    .shop-card-center .shop-info .shop-location {
-        font-size: 12px;
-    }
-    .shop-card-footer {
-        padding: 10px 16px;
-        gap: 16px;
-        min-height: 44px;
-    }
-    .shop-card-footer .stat-item {
-        font-size: 12px;
-    }
-    .shop-card-footer .stat-item .stat-value {
-        font-size: 13px;
-    }
-    .skeleton-banner {
-        height: 130px;
     }
 }
 
@@ -490,76 +384,49 @@ body {
         left: 10px;
     }
     .page-main {
-        padding: 8px 8px 12px 8px;
+        padding: 8px;
     }
-    .shop-card {
-        min-height: 200px;
-        border-radius: 16px;
-        margin-bottom: 14px;
-    }
-    .shop-card-content {
-        min-height: 200px;
-    }
-    .shop-card-header {
-        min-height: 40px;
-        padding: 8px 12px;
-    }
-    .shop-card-header .owner-name {
-        font-size: 12px;
-    }
-    .shop-card-header .owner-name i {
-        font-size: 11px;
-    }
-    .shop-card-center {
+    .list-row {
         padding: 10px 12px;
+        gap: 10px;
+        border-radius: 12px;
     }
-    .shop-card-center .shop-info {
-        padding: 12px 14px;
-        max-width: 180px;
-        border-radius: 14px;
+    .list-row .info .name {
+        font-size: 13px;
     }
-    .shop-card-center .shop-info .shop-icon {
-        font-size: 24px;
-    }
-    .shop-card-center .shop-info .shop-name {
-        font-size: 14px;
-    }
-    .shop-card-center .shop-info .shop-location {
+    .list-row .info .sub {
         font-size: 11px;
     }
-    .shop-card-footer {
-        padding: 8px 12px;
-        gap: 12px;
-        min-height: 38px;
+    .list-row .stats {
+        gap: 8px;
     }
-    .shop-card-footer .stat-item {
-        font-size: 10px;
-        gap: 4px;
-    }
-    .shop-card-footer .stat-item i {
-        font-size: 10px;
-    }
-    .shop-card-footer .stat-item .stat-value {
+    .list-row .stats .stat .num {
         font-size: 11px;
     }
-    .skeleton-banner {
-        height: 100px;
+    .list-row .stats .stat .lbl {
+        font-size: 7.5px;
     }
-    .skeleton-body {
-        padding: 14px 14px 8px 14px;
+    .list-row .avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+        border-radius: 10px;
+    }
+    .list-row .chevron {
+        font-size: 11px;
+    }
+    .skeleton-avatar {
+        width: 34px;
+        height: 34px;
     }
     .skeleton-line {
-        height: 16px;
+        height: 14px;
     }
     .skeleton-line.short {
-        height: 12px;
+        height: 10px;
     }
-    .skeleton-footer {
-        padding: 8px 14px;
-        gap: 12px;
-    }
-    .skeleton-stat {
-        width: 40px;
-        height: 14px;
+    .skeleton-stats {
+        width: 60px;
+        height: 16px;
     }
 }

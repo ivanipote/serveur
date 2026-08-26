@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Boutiques - Connecté à l\'API');
+    console.log('✅ Boutiques - Modèle Liste Simple');
 
     // ==========================================
     // RÉFÉRENCES
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('clearBtn');
     const skeletonLoader = document.getElementById('skeletonLoader');
-    const shopsContainer = document.getElementById('shopsContainer');
+    const shopsList = document.getElementById('shopsList');
     const emptyState = document.getElementById('emptyState');
     const noResults = document.getElementById('noResults');
     const noResultsMessage = document.getElementById('noResultsMessage');
@@ -49,43 +49,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LES CARTES
+    // AFFICHER LES BOUTIQUES (Modèle 1)
     // ==========================================
 
     function renderShops(shops) {
         if (shops.length === 0) {
-            shopsContainer.style.display = 'none';
+            shopsList.style.display = 'none';
             noResults.style.display = 'block';
             noResultsMessage.textContent = 'Aucune boutique ne correspond à votre recherche.';
             return;
         }
 
-        shopsContainer.style.display = 'block';
+        shopsList.style.display = 'block';
         noResults.style.display = 'none';
         emptyState.style.display = 'none';
 
-        shopsContainer.innerHTML = shops.map((shop, index) => `
-            <div class="shop-card" onclick="openShop(${shop.id})" style="animation-delay: ${(index * 0.05)}s;">
-                <div class="shop-card-bg" style="background-image: url('${shop.logo || 'https://picsum.photos/seed/' + shop.id + '/800/400'}');">
-                    <div class="overlay"></div>
+        shopsList.innerHTML = shops.map((shop, index) => `
+            <div class="list-row" onclick="openShop(${shop.id})" style="animation-delay: ${(index * 0.04)}s;">
+                <div class="avatar" style="background: ${shop.color || '#17A464'}22;">
+                    ${shop.icon || '🛒'}
                 </div>
-                <div class="shop-card-content">
-                    <div class="shop-card-header">
-                        <span class="owner-name"><i class="fas fa-user-circle"></i> ${shop.seller_name || 'Vendeur'}</span>
+                <div class="info">
+                    <div class="name">${shop.name}</div>
+                    <div class="sub">${shop.seller_name || 'Vendeur'} · ${shop.location || 'Localisation non renseignée'}</div>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="num">${shop.total_products || 0}</span>
+                        <span class="lbl">Produits</span>
                     </div>
-                    <div class="shop-card-center">
-                        <div class="shop-info">
-                            <span class="shop-icon">🛒</span>
-                            <span class="shop-name">${shop.name}</span>
-                            <span class="shop-location">📍 ${shop.location || 'Localisation non renseignée'}</span>
-                        </div>
+                    <div class="stat">
+                        <span class="num">${shop.total_views || 0}</span>
+                        <span class="lbl">Vues</span>
                     </div>
-                    <div class="shop-card-footer">
-                        <span class="stat-item"><i class="fas fa-box"></i> <span class="stat-value">${shop.total_products || 0}</span> produits</span>
-                        <span class="stat-item"><i class="fas fa-eye"></i> <span class="stat-value">${shop.total_views || 0}</span> vues</span>
-                        <span class="stat-item"><i class="fas fa-heart"></i> <span class="stat-value">${shop.total_likes || 0}</span> likes</span>
+                    <div class="stat">
+                        <span class="num">${shop.total_likes || 0}</span>
+                        <span class="lbl">Likes</span>
                     </div>
                 </div>
+                <i class="fas fa-chevron-right chevron"></i>
             </div>
         `).join('');
     }
@@ -137,14 +139,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // OUVERTURE BOUTIQUE → +1 vue + redirection
+    // OUVERTURE BOUTIQUE → +1 vue (ENREGISTRÉ)
     // ==========================================
 
     window.openShop = function(shopId) {
-        // Incrémenter la vue
+        // ✅ Enregistrer la vue
         fetch('/api/seller/shop/' + shopId + '/view', {
             method: 'POST'
-        }).catch(err => console.warn('Erreur incrément vue:', err));
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('✅ Vue enregistrée pour la boutique #' + shopId);
+        })
+        .catch(err => console.warn('⚠️ Erreur incrément vue:', err));
 
         // ✅ Redirection vers le serveur seller
         window.location.href = 'https://nature-plus-seller.onrender.com/shop-user?id=' + shopId;
