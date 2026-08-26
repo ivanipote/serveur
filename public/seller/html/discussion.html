@@ -28,7 +28,7 @@
             max-height: 100vh;
         }
 
-        /* ===== HEADER ===== */
+        /* ===== HEADER (fixe) ===== */
         .page-header {
             background: #17A464;
             padding: 12px 20px;
@@ -90,7 +90,7 @@
             flex-shrink: 0;
         }
 
-        /* ===== MAIN ===== */
+        /* ===== MAIN (scrollable) ===== */
         .page-main {
             flex: 1;
             overflow-y: auto;
@@ -171,7 +171,7 @@
             color: #17A464;
         }
 
-        /* ===== CARTE PRODUIT DANS LE MESSAGE ===== */
+        /* ===== CARTE PRODUIT (une seule fois) ===== */
         .message.product-card-msg {
             align-self: center;
             max-width: 90%;
@@ -183,6 +183,12 @@
             border: 1px solid #f0f0f3;
             width: 100%;
             max-width: 320px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .message.product-card-msg:hover {
+            transform: scale(1.01);
         }
 
         .message.product-card-msg .product-card-inner {
@@ -289,7 +295,7 @@
             100% { opacity: 0.4; }
         }
 
-        /* ===== FOOTER ===== */
+        /* ===== FOOTER (fixe) ===== */
         .page-footer {
             background: white;
             padding: 10px 16px 14px 16px;
@@ -484,7 +490,7 @@
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
+    <!-- ===== HEADER (fixe) ===== -->
     <header class="page-header">
         <button class="back-btn" onclick="window.history.back()">
             <i class="fas fa-arrow-left"></i>
@@ -496,17 +502,14 @@
         <span class="status-dot"></span>
     </header>
 
-    <!-- ===== MAIN ===== -->
+    <!-- ===== MAIN (scrollable) ===== -->
     <main class="page-main" id="pageMain">
-
         <!-- DATE SEPARATOR -->
         <div class="date-separator"><span>Aujourd'hui</span></div>
-
         <!-- Les messages seront injectés par JS -->
-
     </main>
 
-    <!-- ===== FOOTER ===== -->
+    <!-- ===== FOOTER (fixe) ===== -->
     <footer class="page-footer">
         <button class="btn-attach" id="attachBtn" title="Joindre un produit">
             <i class="fas fa-paperclip"></i>
@@ -520,7 +523,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ Discussion - Version connectée');
+            console.log('✅ Discussion - Version corrigée');
 
             // ==========================================
             // RÉFÉRENCES
@@ -541,6 +544,7 @@
             let messages = [];
             let syncInterval = null;
             let isSyncing = false;
+            let productInserted = false; // ✅ Empêcher l'insertion multiple du produit
 
             // ==========================================
             // RÉCUPÉRER LES PARAMÈTRES
@@ -550,7 +554,6 @@
             shopId = urlParams.get('shop');
             username = urlParams.get('user');
 
-            // Vérifier si un produit a été sélectionné
             const productId = urlParams.get('product');
 
             if (!shopId || !username) {
@@ -583,8 +586,9 @@
                         messages = data.messages;
                         renderMessages();
 
-                        // Si un produit a été sélectionné, afficher la carte
-                        if (productId) {
+                        // ✅ Afficher la carte produit UNE SEULE FOIS
+                        if (productId && !productInserted) {
+                            productInserted = true;
                             displayProductCard(productId);
                         }
                     }
@@ -601,12 +605,7 @@
             // ==========================================
 
             function renderMessages() {
-                if (messages.length === 0) {
-                    // Pas de messages, on garde le date separator
-                    return;
-                }
-
-                // Supprimer les anciens messages (garder le date separator)
+                // Garder le date separator
                 const separator = pageMain.querySelector('.date-separator');
                 pageMain.innerHTML = '';
                 if (separator) {
@@ -634,14 +633,13 @@
                     pageMain.appendChild(msgDiv);
                 });
 
-                // Scroller en bas
                 setTimeout(() => {
                     pageMain.scrollTop = pageMain.scrollHeight;
                 }, 100);
             }
 
             // ==========================================
-            // AFFICHER LA CARTE PRODUIT
+            // AFFICHER LA CARTE PRODUIT (UNE SEULE FOIS)
             // ==========================================
 
             async function displayProductCard(productId) {
@@ -658,6 +656,9 @@
 
                     const cardDiv = document.createElement('div');
                     cardDiv.className = 'message product-card-msg';
+                    cardDiv.onclick = function() {
+                        window.location.href = '/detail-produit.html?id=' + p.id;
+                    };
 
                     const imgSrc = p.image1 || 'https://via.placeholder.com/70/cccccc/ffffff?text=📦';
 
@@ -668,15 +669,12 @@
                                 <div class="p-name">${p.name}</div>
                                 <div class="p-price">${p.price.toLocaleString()} FCFA</div>
                                 <div class="p-stock">📦 ${p.stock || 0} en stock</div>
-                                <a href="/detail-produit.html?id=${p.id}" class="p-link" target="_blank">
-                                    Voir le produit →
-                                </a>
+                                <span class="p-link">Voir le produit →</span>
                             </div>
                         </div>
                         <div class="msg-time">${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
                     `;
 
-                    // Insérer avant le footer (après tous les messages)
                     pageMain.appendChild(cardDiv);
                     pageMain.scrollTop = pageMain.scrollHeight;
 
@@ -693,7 +691,6 @@
                 const text = messageInput.value.trim();
                 if (!text || !shopId || !username) return;
 
-                // Ajouter un message en attente (optimiste)
                 const tempDiv = document.createElement('div');
                 tempDiv.className = 'message sent';
                 tempDiv.innerHTML = `
@@ -721,7 +718,6 @@
                     const data = await res.json();
 
                     if (data.success) {
-                        // Recharger les messages
                         await loadMessages();
                     } else {
                         tempDiv.innerHTML = `
@@ -756,7 +752,7 @@
             });
 
             // ==========================================
-            // BOUTON ATTACHER (trombone)
+            // BOUTON ATTACHER
             // ==========================================
 
             attachBtn.addEventListener('click', function() {
@@ -764,7 +760,7 @@
                     alert('⚠️ Aucune boutique associée à cette discussion.');
                     return;
                 }
-                // Rediriger vers shop-user avec paramètre de retour
+                // Nettoyer les paramètres pour éviter de recharger un produit
                 window.location.href = SELLER_API_URL + '/shop-user?id=' + shopId + '&from=discussion&return=discussion&user=' + encodeURIComponent(username);
             });
 
@@ -786,20 +782,15 @@
             // ==========================================
 
             (async function init() {
-                // Charger les messages
                 await loadMessages();
-
-                // Démarrer la sync
                 startSync();
 
                 console.log('✅ Discussion - Prêt');
                 console.log('   Shop:', shopId, 'User:', username);
 
-                // Focus sur le champ
                 messageInput.focus();
             })();
 
-            // Nettoyer à la fermeture
             window.addEventListener('beforeunload', function() {
                 if (syncInterval) clearInterval(syncInterval);
             });
