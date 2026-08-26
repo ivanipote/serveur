@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Produits | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        .page-header {
+            background: #17A464;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .page-header .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+
+        .page-header .shop-title {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+
+        .page-header .shop-title .name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .page-header .shop-title .sub {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .page-main {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+        }
+
+        .page-main::-webkit-scrollbar {
+            width: 4px;
+        }
+        .page-main::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: fadeInUp 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.03s; }
+        .product-card:nth-child(2) { animation-delay: 0.06s; }
+        .product-card:nth-child(3) { animation-delay: 0.09s; }
+        .product-card:nth-child(4) { animation-delay: 0.12s; }
+        .product-card:nth-child(5) { animation-delay: 0.15s; }
+        .product-card:nth-child(6) { animation-delay: 0.18s; }
+        .product-card:nth-child(7) { animation-delay: 0.21s; }
+        .product-card:nth-child(8) { animation-delay: 0.24s; }
+        .product-card:nth-child(9) { animation-delay: 0.27s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .stock-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .stock-badge.in-stock {
+            background: #17A464;
+            color: white;
+        }
+
+        .stock-badge.low-stock {
+            background: #F5A623;
+            color: white;
+        }
+
+        .stock-badge.out-of-stock {
+            background: #E24C4C;
+            color: white;
+        }
+
+        .product-info {
+            padding: 8px 10px 10px 10px;
+        }
+
+        .product-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        .product-price {
+            font-size: 14px;
+            font-weight: 800;
+            color: #17A464;
+        }
+
+        .product-stock-qty {
+            font-size: 10px;
+            color: #9CA3AF;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .product-stock-qty i {
+            font-size: 9px;
+        }
+
+        .skeleton-loader {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .skeleton-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 180px;
+        }
+
+        .skeleton-image {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .skeleton-line {
+            height: 14px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.08) 25%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.08) 75%);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-line.short {
+            width: 50%;
+            height: 12px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #d0d0da;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-radius: 0 0 16px 16px;
+            }
+            .page-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .page-header .shop-title .name {
+                font-size: 14px;
+            }
+            .page-header .shop-title .sub {
+                font-size: 11px;
+            }
+            .page-main {
+                padding: 12px;
+            }
+            .products-grid {
+                gap: 10px;
+            }
+            .product-image {
+                height: 80px;
+            }
+            .product-name {
+                font-size: 11px;
+            }
+            .product-price {
+                font-size: 13px;
+            }
+            .skeleton-image {
+                height: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 0 0 14px 14px;
+            }
+            .page-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .page-header .shop-title .name {
+                font-size: 13px;
+            }
+            .page-header .shop-title .sub {
+                font-size: 10px;
+            }
+            .page-main {
+                padding: 8px;
+            }
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            .product-card {
+                border-radius: 12px;
+            }
+            .product-image {
+                height: 70px;
+            }
+            .stock-badge {
+                font-size: 7px;
+                padding: 2px 6px;
+                top: 4px;
+                right: 4px;
+            }
+            .product-info {
+                padding: 6px 6px 8px 6px;
+            }
+            .product-name {
+                font-size: 10px;
+            }
+            .product-price {
+                font-size: 11px;
+            }
+            .product-stock-qty {
+                font-size: 8px;
+            }
+            .product-stock-qty i {
+                font-size: 7px;
+            }
+            .skeleton-image {
+                height: 70px;
+            }
+            .skeleton-line {
+                height: 12px;
+            }
+            .skeleton-line.short {
+                height: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .products-grid {
+                gap: 6px;
+            }
+            .product-image {
+                height: 60px;
+            }
+            .product-name {
+                font-size: 9px;
+            }
+            .product-price {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <button class="back-btn" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="shop-title">
+            <span class="name" id="shopName">Chargement...</span>
+            <span class="sub" id="productCount">0 produits</span>
+        </div>
+    </header>
+
+    <main class="page-main" id="pageMain">
+
+        <div class="skeleton-loader" id="skeletonLoader">
+            <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        </div>
+
+        <div class="products-grid" id="productsGrid" style="display:none;"></div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <i class="fas fa-box-open"></i>
+            <h3>Aucun produit</h3>
+            <p>Cette boutique n'a pas encore de produits.</p>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ Shop User - Page produits boutique');
+
+            const skeletonLoader = document.getElementById('skeletonLoader');
+            const productsGrid = document.getElementById('productsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const shopName = document.getElementById('shopName');
+            const productCount = document.getElementById('productCount');
+
+            // ==========================================
+            // RÉCUPÉRER L'ID DE LA BOUTIQUE
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const shopId = urlParams.get('id');
+
+            if (!shopId) {
+                shopName.textContent = 'Boutique non trouvée';
+                skeletonLoader.style.display = 'none';
+                emptyState.style.display = 'block';
+                emptyState.querySelector('p').textContent = 'ID de boutique manquant.';
+                return;
+            }
+
+            // ==========================================
+            // CHARGER LA BOUTIQUE ET SES PRODUITS
+            // ==========================================
+
+            async function loadShop() {
+                try {
+                    // ✅ Incrémenter les vues
+                    await fetch('/api/seller/shop/' + shopId + '/view', {
+                        method: 'POST'
+                    }).catch(err => console.warn('Erreur incrément vue:', err));
+
+                    // ✅ Récupérer les infos de la boutique
+                    const res = await fetch('/api/seller/shop/' + shopId);
+                    const data = await res.json();
+
+                    if (!res.ok || !data.success) {
+                        throw new Error(data.error || 'Erreur chargement');
+                    }
+
+                    const shop = data.shop;
+                    const products = data.products || [];
+
+                    skeletonLoader.style.display = 'none';
+
+                    shopName.textContent = shop.name || 'Boutique';
+                    productCount.textContent = products.length + ' produits';
+
+                    if (products.length === 0) {
+                        emptyState.style.display = 'block';
+                        return;
+                    }
+
+                    productsGrid.style.display = 'grid';
+                    productsGrid.innerHTML = products.map(p => {
+                        const stock = p.stock || 0;
+                        let stockLabel = 'En stock';
+                        let stockClass = 'in-stock';
+                        if (stock === 0) {
+                            stockLabel = 'Rupture';
+                            stockClass = 'out-of-stock';
+                        } else if (stock <= 5) {
+                            stockLabel = 'Stock faible';
+                            stockClass = 'low-stock';
+                        }
+
+                        const imgSrc = p.image1 || null;
+
+                        return `
+                            <div class="product-card" onclick="openProduct(${p.id})">
+                                <div class="product-image" style="${imgSrc ? 'background-image: url(' + imgSrc + ');' : 'background: linear-gradient(135deg, #17A464, #0d5c39);'}">
+                                    <span class="stock-badge ${stockClass}">${stockLabel}</span>
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">${p.name}</div>
+                                    <div class="product-footer">
+                                        <span class="product-price">${p.price.toLocaleString()} FCFA</span>
+                                        <span class="product-stock-qty"><i class="fas fa-box"></i> ${stock}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    console.log('✅ ' + products.length + ' produits chargés');
+
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    skeletonLoader.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    emptyState.querySelector('p').textContent = error.message || 'Erreur de chargement.';
+                }
+            }
+
+            // ==========================================
+            // OUVERTURE PRODUIT → detail-produit.html
+            // ==========================================
+
+            window.openProduct = function(productId) {
+                window.location.href = '/detail-produit.html?id=' + productId + '&shop=' + shopId;
+            };
+
+            // ==========================================
+            // INIT
+            // ==========================================
+
+            loadShop();
+            console.log('✅ Shop User - Prêt');
+
+        });
+    </script>
+
+</body>
+</html>
