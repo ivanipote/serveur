@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Boutiques - Modèle Liste Simple');
+    console.log('✅ Boutiques - Modèle Liste Simple (amélioré)');
 
     // ==========================================
     // RÉFÉRENCES
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LES BOUTIQUES (Modèle 1)
+    // AFFICHER LES BOUTIQUES (Modèle 1 amélioré)
     // ==========================================
 
     function renderShops(shops) {
@@ -66,12 +66,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         shopsList.innerHTML = shops.map((shop, index) => `
             <div class="list-row" onclick="openShop(${shop.id})" style="animation-delay: ${(index * 0.04)}s;">
-                <div class="avatar" style="background: ${shop.color || '#17A464'}22;">
-                    ${shop.icon || '🛒'}
+                <div class="avatar">
+                    ${shop.logo ? `<img src="${shop.logo}" alt="${shop.name}" loading="lazy" />` : `<div class="fallback">🏪</div>`}
                 </div>
                 <div class="info">
                     <div class="name">${shop.name}</div>
-                    <div class="sub">${shop.seller_name || 'Vendeur'} · ${shop.location || 'Localisation non renseignée'}</div>
+                    <div class="desc"><i class="fas fa-store"></i> ${shop.description || 'Aucune description'}</div>
                 </div>
                 <div class="stats">
                     <div class="stat">
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const filtered = allShops.filter(shop =>
             shop.name.toLowerCase().includes(trimmed.toLowerCase()) ||
-            (shop.location && shop.location.toLowerCase().includes(trimmed.toLowerCase())) ||
+            (shop.description && shop.description.toLowerCase().includes(trimmed.toLowerCase())) ||
             (shop.seller_name && shop.seller_name.toLowerCase().includes(trimmed.toLowerCase()))
         );
 
