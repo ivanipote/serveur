@@ -1246,6 +1246,44 @@ app.get('/chat-seller', (req, res) => {
 
 
 
+// ============================================================
+// ROUTE : PAGE CHAT SELLER
+// ============================================================
+
+app.get('/chat-seller', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'chat-seller.html'));
+});
+
+// ============================================================
+// ROUTE API : RÉCUPÉRER LES DISCUSSIONS D'UN UTILISATEUR
+// ============================================================
+
+app.get('/api/seller/discussions', async (req, res) => {
+    const { username } = req.query;
+
+    if (!username) {
+        return res.status(400).json({ success: false, error: 'username requis' });
+    }
+
+    try {
+        // Récupérer les discussions où l'utilisateur a commenté ou envoyé des messages
+        // Pour l'instant, on retourne des données de démonstration
+        // TODO: Remplacer par une vraie requête SQL
+
+        const discussions = [
+            { id: 1, shop_name: 'Boutique Koffi', shop_avatar: '🛒', last_message: 'Merci pour votre commande !', time: '14:30', unread: 2 },
+            { id: 2, shop_name: 'Tech Store CI', shop_avatar: '📱', last_message: 'Oui, le produit est disponible', time: '12:15', unread: 0 },
+            { id: 3, shop_name: 'Beauté & Co', shop_avatar: '💄', last_message: 'Je vous envoie la facture', time: 'Hier', unread: 1 }
+        ];
+
+        res.json({ success: true, discussions });
+
+    } catch (error) {
+        console.error('❌ Erreur discussions:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
