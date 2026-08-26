@@ -393,36 +393,24 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE SELLER_MESSAGES
+        // TABLE SELLER_MESSAGES (user_id NULLABLE)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS seller_messages (
                 id SERIAL PRIMARY KEY,
                 seller_id INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
+                user_id INTEGER,  -- ✅ NULL autorisé pour les messages anonymes
                 shop_id INTEGER NOT NULL,
+                user_name TEXT,   -- ✅ pour identifier l'utilisateur
                 message TEXT NOT NULL,
                 is_from_seller BOOLEAN DEFAULT FALSE,
                 is_read BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
             )
         `);
-
-        // ========================================================
-        // ✅ AJOUTER LA COLONNE user_name À seller_messages
-        // ========================================================
-        await client.query(`
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_messages' AND column_name='user_name') THEN
-                    ALTER TABLE seller_messages ADD COLUMN user_name TEXT;
-                END IF;
-            END $$;
-        `);
-        console.log('   ✅ Colonne user_name ajoutée à seller_messages');
+        console.log('   ✅ Table seller_messages créée (user_id nullable)');
 
         // ========================================================
         // TABLE SELLER_LIKES
@@ -461,7 +449,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE CHAT_ROOMS (NOUVELLE)
+        // TABLE CHAT_ROOMS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS chat_rooms (
@@ -528,7 +516,8 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_shop_id ON seller_orders(shop_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_user_id ON seller_orders(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_seller_id ON seller_messages(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_user_id ON seller_messages(user_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_shop_id ON seller_messages(shop_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_user_name ON seller_messages(user_name)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_shop_id ON seller_likes(shop_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_user_id ON seller_likes(user_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_seller_id ON seller_likes(seller_id)`);
