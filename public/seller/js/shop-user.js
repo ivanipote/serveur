@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Shop User - Version complète avec skeleton');
+    console.log('✅ Shop User - Version complète avec intégration discussion');
 
     // ==========================================
     // RÉFÉRENCES
@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentSkeleton = document.getElementById('commentSkeleton');
     const commentInput = document.getElementById('commentInput');
     const sendCommentBtn = document.getElementById('sendCommentBtn');
+    const messageBtn = document.getElementById('messageBtn');
 
     const usernameOverlay = document.getElementById('usernameOverlay');
     const usernameInput = document.getElementById('usernameInput');
@@ -107,6 +108,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const shopId = urlParams.get('id');
+
+    // Vérifier si on vient de la discussion (retour après sélection produit)
+    const fromDiscussion = urlParams.get('from') === 'discussion';
+    const returnUrl = urlParams.get('return') || 'discussion';
+    const returnUser = urlParams.get('user');
 
     if (!shopId) {
         shopName.textContent = 'Boutique non trouvée';
@@ -220,6 +226,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', function() {
                 const id = parseInt(this.dataset.id);
+
+                // Si on vient de la discussion, on retourne avec le produit sélectionné
+                if (fromDiscussion) {
+                    // Rediriger vers la discussion avec le produit
+                    window.location.href = SELLER_API_URL + '/' + returnUrl + '?shop=' + shopId + '&user=' + encodeURIComponent(returnUser || getUsername()) + '&product=' + id;
+                    return;
+                }
+
                 incrementProductViews(id);
                 openSlide(id);
             });
@@ -570,6 +584,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     slideProductName.addEventListener('dblclick', function() {
         showUsernameOverlay();
+    });
+
+    // ==========================================
+    // BOUTON MESSAGE → OUVRE LA DISCUSSION
+    // ==========================================
+
+    messageBtn.addEventListener('click', function() {
+        const username = getUsername();
+        if (!username) {
+            showUsernameOverlay();
+            return;
+        }
+        // Rediriger vers la discussion
+        window.location.href = SELLER_API_URL + '/discussion?shop=' + shopId + '&user=' + encodeURIComponent(username);
     });
 
     // ==========================================
