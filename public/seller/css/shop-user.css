@@ -1016,3 +1016,28 @@ body {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
 }
+/* ===== BOUTON MESSAGE ===== */
+.page-header .btn-message {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.page-header .btn-message:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.02);
+}
+
+.page-header .btn-message i {
+    font-size: 14px;
+}
