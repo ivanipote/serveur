@@ -910,3 +910,56 @@ body {
         font-size: 11px;
     }
 }
+/* ==========================================
+   SKELETON COMMENTAIRES (dans le slide)
+   ========================================== */
+.comment-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.comment-skeleton-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.comment-skeleton-item .skeleton-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.comment-skeleton-item .skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.comment-skeleton-item .skeleton-content .skeleton-line {
+    height: 14px;
+    background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: shimmer 1.5s infinite;
+    width: 70%;
+}
+
+.comment-skeleton-item .skeleton-content .skeleton-line.short {
+    width: 40%;
+    height: 10px;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}

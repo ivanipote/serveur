@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    console.log('✅ Shop User - Version complète avec username overlay');
+    console.log('✅ Shop User - Version complète avec skeleton');
 
     // ==========================================
     // RÉFÉRENCES
@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const likeCount = document.getElementById('likeCount');
     const detailBtn = document.getElementById('detailBtn');
     const slideBody = document.getElementById('slideBody');
+    const commentsContainer = document.getElementById('commentsContainer');
+    const commentSkeleton = document.getElementById('commentSkeleton');
     const commentInput = document.getElementById('commentInput');
     const sendCommentBtn = document.getElementById('sendCommentBtn');
 
@@ -36,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUsername = null;
     let syncInterval = null;
     let isSlideOpen = false;
+    let isLoadingComments = false;
 
     // ==========================================
     // GESTION DU USERNAME
@@ -73,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (name.length > 0) {
             setUsername(name);
             hideUsernameOverlay();
-            // Recharger les données du produit pour mettre à jour le like
             if (currentProductId) {
                 loadProductData(currentProductId);
             }
@@ -248,6 +250,10 @@ document.addEventListener('DOMContentLoaded', function() {
             slideImagePlaceholder.style.display = 'flex';
         }
 
+        // Afficher skeleton des commentaires
+        showCommentSkeleton();
+
+        // Charger les données
         loadProductData(productId);
 
         slideOverlay.classList.add('active');
@@ -257,11 +263,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // Démarrer la sync des commentaires
         startCommentSync(productId);
 
-        // Vérifier si l'utilisateur a un nom
         const username = getUsername();
         if (!username) {
             setTimeout(() => showUsernameOverlay(), 500);
         }
+    }
+
+    // ==========================================
+    // SKELETON COMMENTAIRES
+    // ==========================================
+
+    function showCommentSkeleton() {
+        commentSkeleton.style.display = 'block';
+        commentsContainer.style.display = 'none';
+        commentsContainer.innerHTML = '';
+    }
+
+    function hideCommentSkeleton() {
+        commentSkeleton.style.display = 'none';
+        commentsContainer.style.display = 'block';
     }
 
     // ==========================================
@@ -285,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function refreshComments(productId) {
+        if (isLoadingComments) return;
         try {
             const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
             const data = await res.json();
@@ -293,19 +314,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newComments = data.product.comments || [];
                 const newLikes = parseInt(data.product.likes) || 0;
 
-                // Vérifier si les commentaires ont changé
                 if (JSON.stringify(newComments) !== JSON.stringify(productComments)) {
                     productComments = newComments;
                     renderComments(productComments);
                 }
 
-                // Mettre à jour le compteur de likes
                 if (newLikes !== likeCounter) {
                     likeCounter = newLikes;
                     likeCount.textContent = likeCounter;
                 }
 
-                // Vérifier l'état du like
                 const username = getUsername();
                 if (username) {
                     const userLikes = data.product.flex4 ? JSON.parse(data.product.flex4) : [];
@@ -332,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     async function loadProductData(productId) {
+        isLoadingComments = true;
         try {
             const res = await fetch(SELLER_API_URL + '/api/seller/product/' + productId);
             const data = await res.json();
@@ -360,11 +379,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     isLiked = false;
                 }
 
+                // Cacher skeleton et afficher les commentaires
+                hideCommentSkeleton();
                 renderComments(productComments);
             }
         } catch (err) {
             console.warn('Erreur chargement données produit:', err);
+            hideCommentSkeleton();
             renderComments([]);
+        } finally {
+            isLoadingComments = false;
         }
     }
 
@@ -374,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderComments(comments) {
         if (!comments || comments.length === 0) {
-            slideBody.innerHTML = `
+            commentsContainer.innerHTML = `
                 <div class="no-comments">
                     <i class="fas fa-comment-slash"></i>
                     <p>Aucun commentaire pour ce produit.<br>Soyez le premier à donner votre avis !</p>
@@ -385,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const username = getUsername();
 
-        slideBody.innerHTML = comments.map(c => {
+        commentsContainer.innerHTML = comments.map(c => {
             const isCurrentUser = username && c.user === username;
             return `
                 <div class="comment-item ${isCurrentUser ? 'current-user' : ''}">
@@ -429,17 +453,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (isLiked) {
-            // Dislike
             isLiked = false;
             likeCounter--;
             this.classList.remove('liked');
             this.disabled = false;
         } else {
-            // Like
             isLiked = true;
             likeCounter++;
             this.classList.add('liked');
-            this.disabled = true; // 🔒 Désactiver après like
+            this.disabled = true;
         }
 
         likeCount.textContent = likeCounter;

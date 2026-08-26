@@ -18,6 +18,9 @@
             <span class="name" id="shopName">Chargement...</span>
             <span class="sub" id="productCount">0 produits</span>
         </div>
+        <button class="btn-message" id="messageBtn" onclick="window.location.href='/chat-seller?id=' + new URLSearchParams(window.location.search).get('id')">
+            <i class="fas fa-comment-dots"></i> Message
+        </button>
     </header>
 
     <!-- ===== MAIN ===== -->
@@ -84,7 +87,32 @@
             <!-- PARTIE BASSE : COMMENTAIRES -->
             <div class="slide-bottom">
                 <div class="slide-body" id="slideBody">
-                    <!-- Injecté par JS -->
+                    <!-- Skeleton loader pour les commentaires -->
+                    <div class="comment-skeleton" id="commentSkeleton">
+                        <div class="comment-skeleton-item">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                        <div class="comment-skeleton-item">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                        <div class="comment-skeleton-item">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contenu des commentaires -->
+                    <div id="commentsContainer" style="display:none;"></div>
                 </div>
 
                 <!-- FOOTER COMMENTAIRE -->
