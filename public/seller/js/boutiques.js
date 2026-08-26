@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await res.json();
 
+            // ✅ Cacher le skeleton immédiatement
             skeletonLoader.style.display = 'none';
 
             if (data.success && data.shops && data.shops.length > 0) {
@@ -151,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RECHERCHE INSTANTANÉE (filtrage uniquement)
+    // RECHERCHE INSTANTANÉE
     // ==========================================
 
     function performSearch(query) {
@@ -162,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ✅ Filtrer sans recharger
         const filtered = allShops.filter(shop =>
             shop.name.toLowerCase().includes(trimmed.toLowerCase()) ||
             (shop.description && shop.description.toLowerCase().includes(trimmed.toLowerCase())) ||
