@@ -88,6 +88,39 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========================================================
+// CORS - Configuration complète (AVANT TOUTES LES ROUTES)
+// ========================================================
+
+app.use((req, res, next) => {
+    const allowedOrigins = [
+        'https://nature-plus-client.onrender.com',
+        'https://nature-plus-seller.onrender.com',
+        'https://nature-plus-pay.onrender.com',
+        'https://server-wave-js.onrender.com',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+        'http://localhost:3006'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// ========================================================
 // SESSIONS (PostgreSQL)
 // ========================================================
 
@@ -845,39 +878,6 @@ app.post('/api/client/send-message', isAuthenticated, async (req, res) => {
 });
 
 // ========================================================
-// CORS - Configuration complète
-// ========================================================
-
-app.use((req, res, next) => {
-    const allowedOrigins = [
-        'https://nature-plus-client.onrender.com',
-        'https://nature-plus-seller.onrender.com',
-        'https://nature-plus-pay.onrender.com',
-        'https://server-wave-js.onrender.com',
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-        'http://localhost:3006'
-    ];
-    
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-    }
-    
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
-
-// ========================================================
 // ROUTES PRODUITS (public)
 // ========================================================
 
@@ -1437,20 +1437,18 @@ app.get('/payment-failed', (req, res) => {
 app.get('/paywithwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
+
+// ============================================================
+// ROUTES PAGES SELLER (servies par le client)
+// ============================================================
+
 app.get('/boutiques', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
 });
 
-// ============================================================
-// ROUTE : PAGE PRODUITS D'UNE BOUTIQUE (shop-user)
-// ============================================================
-
 app.get('/shop-user', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
 });
-// ========================================================
-// ROUTES PAGES (ADMIN)
-// ========================================================
 
 // ========================================================
 // ROUTES PAGES (ADMIN)
@@ -1514,14 +1512,6 @@ app.get('/admin/updates.html', (req, res) => {
 
 app.get('/admin/profil.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'profil.html'));
-});
-
-app.get('/admin/message.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'admin-message.html'));
-});
-
-app.get('/admin/message.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'message.html'));
 });
 
 // ========================================================
