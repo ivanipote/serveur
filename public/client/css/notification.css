@@ -214,6 +214,63 @@ body {
     background: #1a5a33;
 }
 
+/* ===== FILTRE DÉJÀ LU ===== */
+.filter-read-toggle {
+    padding: 8px 16px 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid #f0f2f5;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    width: 40px;
+    height: 22px;
+    background: #ccc;
+    border-radius: 30px;
+    position: relative;
+    transition: background 0.3s;
+    flex-shrink: 0;
+}
+
+.toggle-slider::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+}
+
+.toggle-label input:checked + .toggle-slider {
+    background: #2d7d46;
+}
+
+.toggle-label input:checked + .toggle-slider::after {
+    transform: translateX(18px);
+}
+
+.toggle-text {
+    user-select: none;
+}
+
 /* =============================================================
    CONTENU
    ============================================================= */
@@ -226,7 +283,7 @@ body {
     width: 100%;
     margin: 0 auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 120px;
+    padding-bottom: 180px;
 }
 
 /* =============================================================
@@ -364,6 +421,26 @@ body {
 }
 .notif-card.type-admin .body .title {
     color: #e65100;
+}
+
+/* === TYPE: seller (BLEU VIOLET) === */
+.notif-card.type-seller {
+    background: #e8eaf6;
+    border-color: #7986cb;
+}
+.notif-card.type-seller .badge-type {
+    background: #7986cb;
+    color: white;
+}
+.notif-card.type-seller .avatar {
+    background: rgba(121, 134, 203, 0.2);
+    color: #283593;
+}
+.notif-card.type-seller .body .content {
+    color: #283593;
+}
+.notif-card.type-seller .body .title {
+    color: #283593;
 }
 
 /* === TYPE: systeme (GRIS) === */
@@ -530,11 +607,11 @@ body {
 }
 
 /* =============================================================
-   FOOTER MESSAGE - CADRE AVEC BORDS ARRONDIS
+   FOOTER MESSAGE - AVEC SÉLECTEUR ADMIN/SELLER
    ============================================================= */
 
 body {
-    padding-bottom: 110px !important;
+    padding-bottom: 170px !important;
 }
 
 .notif-footer {
@@ -542,11 +619,11 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 12px 16px 16px 16px;
+    padding: 10px 16px 16px 16px;
     z-index: 99;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
@@ -557,14 +634,79 @@ body {
     width: 100%;
 }
 
-.notif-footer .message-wrapper {
+/* ===== SÉLECTEUR ADMIN / BOUTIQUE ===== */
+.dest-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.dest-selector .dest-btn {
+    flex: 1;
+    padding: 6px 12px;
+    border: 2px solid #e8ecf4;
+    border-radius: 20px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.dest-selector .dest-btn:hover {
+    border-color: #1a2a6c;
+    color: #1a2a6c;
+}
+
+.dest-selector .dest-btn.active {
+    border-color: #1a2a6c;
+    background: rgba(26, 42, 108, 0.08);
+    color: #1a2a6c;
+}
+
+.dest-selector .dest-btn i {
+    font-size: 14px;
+}
+
+/* ===== SÉLECTEUR BOUTIQUE ===== */
+.shop-selector {
+    margin-bottom: 8px;
+}
+
+.shop-selector select {
+    width: 100%;
+    padding: 8px 14px;
+    border: 2px solid #e8ecf4;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #f8f9fc;
+    color: #1a1a2e;
+    outline: none;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    transition: border-color 0.3s;
+}
+
+.shop-selector select:focus {
+    border-color: #1a2a6c;
+}
+
+.shop-selector select option {
+    padding: 6px;
+}
+
+/* ===== MESSAGE ===== */
+.message-wrapper {
     display: flex;
     align-items: flex-end;
     gap: 10px;
 }
 
-/* ✅ CADRE DU CHAMP MESSAGE AVEC BORDS ARRONDIS */
-.notif-footer .message-input-container {
+.message-input-container {
     flex: 1;
     background: #f0f2f5;
     border-radius: 20px;
@@ -576,13 +718,13 @@ body {
     align-items: flex-end;
 }
 
-.notif-footer .message-input-container:focus-within {
+.message-input-container:focus-within {
     border-color: #1a2a6c;
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(26, 42, 108, 0.08);
 }
 
-.notif-footer .message-input {
+.message-input {
     width: 100%;
     border: none;
     background: transparent;
@@ -598,21 +740,21 @@ body {
     overflow-y: auto;
 }
 
-.notif-footer .message-input::placeholder {
+.message-input::placeholder {
     color: #999;
     font-size: 14px;
 }
 
-.notif-footer .message-input::-webkit-scrollbar {
+.message-input::-webkit-scrollbar {
     width: 4px;
 }
 
-.notif-footer .message-input::-webkit-scrollbar-thumb {
+.message-input::-webkit-scrollbar-thumb {
     background: #ccc;
     border-radius: 10px;
 }
 
-.notif-footer .btn-send-message {
+.btn-send-message {
     flex-shrink: 0;
     width: 44px;
     height: 44px;
@@ -629,23 +771,23 @@ body {
     box-shadow: 0 4px 16px rgba(26, 42, 108, 0.2);
 }
 
-.notif-footer .btn-send-message:hover:not(:disabled) {
+.btn-send-message:hover:not(:disabled) {
     background: #0d1a4a;
     transform: scale(1.05);
     box-shadow: 0 6px 24px rgba(26, 42, 108, 0.3);
 }
 
-.notif-footer .btn-send-message:disabled {
+.btn-send-message:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
 }
 
-.notif-footer .btn-send-message i {
+.btn-send-message i {
     font-size: 18px;
 }
 
-.notif-footer .send-message-result {
+.send-message-result {
     margin-top: 8px;
     padding: 8px 14px;
     border-radius: 10px;
@@ -654,14 +796,14 @@ body {
     display: none;
 }
 
-.notif-footer .send-message-result.success {
+.send-message-result.success {
     display: block;
     background: #e8f5e9;
     color: #2e7d32;
     border: 1px solid #a5d6a7;
 }
 
-.notif-footer .send-message-result.error {
+.send-message-result.error {
     display: block;
     background: #ffebee;
     color: #c62828;
@@ -810,135 +952,193 @@ body {
 }
 
 /* =============================================================
+   HEADER WRAPPER - 2 RECTANGLES ARRONDIS
+   ============================================================= */
+
+.notif-header-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 12px 16px 0 16px;
+    background: transparent;
+}
+
+/* RECTANGLE 1 - HEADER VERT */
+.notif-header {
+    background: #2d7d46;
+    border-radius: 60px 60px 0 0;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    min-height: 60px;
+}
+
+/* RECTANGLE 2 - FILTRES BLANC */
+.notif-filter-bar {
+    background: white;
+    border-radius: 0 0 60px 60px;
+    padding: 8px 16px 12px 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    margin-bottom: 0;
+}
+
+.notif-filter-bar .filter-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding: 4px 0;
+}
+
+.notif-filter-bar .filter-bar::-webkit-scrollbar {
+    height: 3px;
+}
+
+.notif-filter-bar .filter-bar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+/* ===== CONTENU HEADER ===== */
+.notif-header .notif-title {
+    color: white;
+    flex: 1;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.notif-header .back-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.notif-header .back-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.notif-header .badge-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.notif-header .badge-count.zero {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.notif-header .btn-read-all {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.notif-header .btn-read-all:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.notif-header .btn-read-all:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.notif-header .btn-sync {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notif-header .btn-sync:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.notif-header .btn-sync .sync-status {
+    font-size: 10px;
+    transition: all 0.3s;
+}
+
+.notif-header .btn-sync .sync-status.active {
+    color: #4ade80;
+}
+
+.notif-header .btn-sync .sync-status.paused {
+    color: #f87171;
+}
+
+/* ===== FILTRES ===== */
+.notif-filter-bar .filter-btn {
+    padding: 6px 16px;
+    border: 2px solid #e8e8f0;
+    border-radius: 20px;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.notif-filter-bar .filter-btn:hover {
+    border-color: #2d7d46;
+    color: #2d7d46;
+}
+
+.notif-filter-bar .filter-btn.active {
+    background: #2d7d46;
+    color: white;
+    border-color: #2d7d46;
+}
+
+.notif-filter-bar .filter-btn.active:hover {
+    background: #1a5a33;
+}
+
+/* =============================================================
    RESPONSIVE
    ============================================================= */
 
-@media (max-width: 600px) {
-    body { padding-top: 60px; }
-
-    .notif-header {
-        padding: 8px 14px;
-        gap: 8px;
-        height: 60px;
-        min-height: 60px;
-        max-height: 60px;
-    }
-
-    .back-btn { width: 36px; height: 36px; font-size: 16px; }
-    .notif-title { font-size: 15px; }
-    .badge-count { font-size: 11px; padding: 3px 10px; }
-    .btn-read-all { font-size: 11px; padding: 4px 12px; }
-
-    .filter-bar {
-        padding: 10px 12px;
-        gap: 6px;
-        top: 60px;
-    }
-
-    .filter-btn { font-size: 12px; padding: 4px 12px; }
-
-    .notif-main { padding: 12px 14px; padding-bottom: 110px; }
-
-    .notif-card { padding: 14px 14px 12px 14px; gap: 12px; border-width: 2px; }
-    .notif-card .avatar { width: 36px; height: 36px; font-size: 15px; }
-    .notif-card .body .title { font-size: 14px; }
-    .notif-card .body .content { font-size: 13px; }
-
-    .notif-card .header-actions {
-        top: 10px;
-        right: 12px;
-    }
-
-    .notif-card .header-actions .btn {
-        font-size: 13px;
-        width: 24px;
-        height: 24px;
-    }
-
-    .confirm-box { padding: 24px 18px 20px 18px; }
-    .confirm-box h3 { font-size: 18px; }
-    .confirm-btn { font-size: 14px; padding: 10px; }
-
-    .notif-footer .message-input-container {
-        border-radius: 16px;
-        min-height: 38px;
-    }
-
-    .notif-footer .message-input {
-        font-size: 14px;
-        padding: 8px 0;
-        min-height: 30px;
-        max-height: 120px;
-    }
-
-    .notif-footer .btn-send-message {
-        width: 38px;
-        height: 38px;
-        font-size: 15px;
-    }
-}
-
-@media (max-width: 400px) {
-    body { padding-top: 54px; }
-
-    .notif-header {
-        padding: 6px 10px;
-        gap: 6px;
-        height: 54px;
-        min-height: 54px;
-        max-height: 54px;
-        border-bottom-left-radius: 14px;
-        border-bottom-right-radius: 14px;
-    }
-
-    .back-btn { width: 32px; height: 32px; font-size: 14px; }
-    .notif-title { font-size: 13px; }
-    .badge-count { font-size: 10px; padding: 2px 8px; }
-    .btn-read-all { font-size: 10px; padding: 3px 10px; }
-
-    .filter-bar {
-        padding: 6px 8px;
-        gap: 4px;
-        top: 54px;
-    }
-
-    .filter-btn { font-size: 11px; padding: 3px 10px; }
-
-    .notif-main { padding: 8px 8px; padding-bottom: 100px; }
-
-    .notif-card { padding: 12px 12px 10px 12px; gap: 10px; border-radius: 12px; }
-    .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
-    .notif-card .body .title { font-size: 13px; }
-    .notif-card .body .content { font-size: 12px; }
-    .notif-card .body .date { font-size: 10px; }
-
-    .notif-card .header-actions .btn {
-        font-size: 11px;
-        width: 20px;
-        height: 20px;
-    }
-
-    .empty-state i { font-size: 40px; }
-    .empty-state h3 { font-size: 17px; }
-
-    .notif-footer .message-input-container {
-        border-radius: 14px;
-        min-height: 34px;
-    }
-
-    .notif-footer .message-input {
-        font-size: 13px;
-        padding: 6px 0;
-        min-height: 26px;
-        max-height: 100px;
-    }
-
-    .notif-footer .btn-send-message {
-        width: 34px;
-        height: 34px;
-        font-size: 13px;
-    }
-}
 /* ✅ EMPECHER LE SCROLL HORIZONTAL */
 html, body {
     overflow-x: hidden !important;
@@ -947,7 +1147,6 @@ html, body {
 
 .notif-main {
     overflow-x: hidden !important;
-    padding: 16px 20px 20px 20px;
     max-width: 700px;
     width: 100%;
     margin: 0 auto;
@@ -993,4 +1192,154 @@ html, body {
 /* ✅ BODY - PAS DE SCROLL HORIZONTAL */
 body {
     overflow-x: hidden !important;
+}
+
+@media (max-width: 600px) {
+    body { padding-top: 60px; padding-bottom: 170px !important; }
+
+    .notif-header-wrapper {
+        padding: 8px 10px 0 10px;
+    }
+
+    .notif-header {
+        border-radius: 40px 40px 0 0;
+        padding: 10px 14px;
+        min-height: 50px;
+    }
+
+    .notif-filter-bar {
+        border-radius: 0 0 40px 40px;
+        padding: 6px 12px 10px 12px;
+    }
+
+    .notif-header .notif-title { font-size: 15px; }
+    .notif-header .back-btn { width: 34px; height: 34px; font-size: 15px; }
+    .notif-header .badge-count { font-size: 11px; padding: 3px 10px; }
+    .notif-header .btn-read-all { font-size: 11px; padding: 4px 12px; }
+    .notif-header .btn-sync { width: 34px; height: 34px; font-size: 14px; }
+
+    .notif-filter-bar .filter-btn { font-size: 12px; padding: 4px 12px; }
+
+    .notif-main { padding: 12px 14px; padding-bottom: 110px; }
+
+    .notif-card { padding: 14px 14px 12px 14px; gap: 12px; border-width: 2px; }
+    .notif-card .avatar { width: 36px; height: 36px; font-size: 15px; }
+    .notif-card .body .title { font-size: 14px; }
+    .notif-card .body .content { font-size: 13px; }
+
+    .notif-card .header-actions {
+        top: 10px;
+        right: 12px;
+    }
+
+    .notif-card .header-actions .btn {
+        font-size: 13px;
+        width: 24px;
+        height: 24px;
+    }
+
+    .confirm-box { padding: 24px 18px 20px 18px; }
+    .confirm-box h3 { font-size: 18px; }
+    .confirm-btn { font-size: 14px; padding: 10px; }
+
+    .notif-footer .message-input-container {
+        border-radius: 16px;
+        min-height: 38px;
+    }
+
+    .notif-footer .message-input {
+        font-size: 14px;
+        padding: 8px 0;
+        min-height: 30px;
+        max-height: 120px;
+    }
+
+    .notif-footer .btn-send-message {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+
+    .dest-selector .dest-btn {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+
+    .shop-selector select {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    body { padding-top: 54px; padding-bottom: 160px !important; }
+
+    .notif-header-wrapper {
+        padding: 6px 6px 0 6px;
+    }
+
+    .notif-header {
+        border-radius: 30px 30px 0 0;
+        padding: 8px 10px;
+        min-height: 44px;
+        gap: 6px;
+    }
+
+    .notif-filter-bar {
+        border-radius: 0 0 30px 30px;
+        padding: 4px 8px 8px 8px;
+    }
+
+    .notif-header .notif-title { font-size: 13px; }
+    .notif-header .back-btn { width: 30px; height: 30px; font-size: 13px; }
+    .notif-header .badge-count { font-size: 10px; padding: 2px 8px; }
+    .notif-header .btn-read-all { font-size: 10px; padding: 3px 10px; }
+    .notif-header .btn-sync { width: 30px; height: 30px; font-size: 12px; }
+
+    .notif-filter-bar .filter-btn { font-size: 11px; padding: 3px 10px; }
+
+    .notif-main { padding: 8px 8px; padding-bottom: 100px; }
+
+    .notif-card { padding: 12px 12px 10px 12px; gap: 10px; border-radius: 12px; }
+    .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
+    .notif-card .body .title { font-size: 13px; }
+    .notif-card .body .content { font-size: 12px; }
+    .notif-card .body .date { font-size: 10px; }
+
+    .notif-card .header-actions .btn {
+        font-size: 11px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .empty-state i { font-size: 40px; }
+    .empty-state h3 { font-size: 17px; }
+
+    .notif-footer .message-input-container {
+        border-radius: 14px;
+        min-height: 34px;
+    }
+
+    .notif-footer .message-input {
+        font-size: 13px;
+        padding: 6px 0;
+        min-height: 26px;
+        max-height: 100px;
+    }
+
+    .notif-footer .btn-send-message {
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .dest-selector .dest-btn {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .shop-selector select {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
 }
