@@ -5,33 +5,668 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mes produits | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/seller/css/products.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .products-header {
+            background: #17A464;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .products-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .products-header .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+
+        .products-header .header-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+        }
+
+        .products-header .header-title .return-badge {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 12px;
+            border-radius: 20px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .products-header .products-count-badge {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .products-header .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .products-header .header-actions .selection-mode {
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 215, 0, 0.25);
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            display: none;
+        }
+
+        .products-header .header-actions .selection-mode.active {
+            display: inline-block;
+        }
+
+        /* ===== MAIN ===== */
+        .products-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px 20px 20px;
+        }
+
+        .products-main::-webkit-scrollbar {
+            width: 4px;
+        }
+        .products-main::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        /* ===== GRILLE PRODUITS ===== */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        /* ===== CARTE PRODUIT ===== */
+        .product-card {
+            background: rgba(23, 164, 100, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(23, 164, 100, 0.15);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+            min-height: 220px;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(23, 164, 100, 0.4);
+            box-shadow: 0 8px 30px rgba(23, 164, 100, 0.1);
+            background: rgba(23, 164, 100, 0.22);
+        }
+
+        .product-card .product-img {
+            width: 100%;
+            height: 150px;
+            object-fit: contain;
+            display: block;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 8px;
+        }
+
+        .product-card .product-img.no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.05);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 36px;
+            padding: 0;
+        }
+
+        .product-card .product-body {
+            padding: 12px 14px 14px 14px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card .product-body .product-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-card .product-body .product-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0E7A49;
+            margin: 2px 0 4px 0;
+        }
+
+        .product-card .product-body .product-stock {
+            font-size: 12px;
+            color: #4B5563;
+            margin-bottom: 8px;
+        }
+
+        .product-card .product-body .product-stock.low {
+            color: #e67e22;
+        }
+
+        .product-card .product-body .product-stock.out {
+            color: #e74c3c;
+        }
+
+        /* ===== INDICATEUR DE SÉLECTION ===== */
+        .product-card .select-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(23, 164, 100, 0.9);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 12px rgba(23, 164, 100, 0.3);
+            z-index: 5;
+        }
+
+        .product-card .select-indicator.show {
+            display: flex;
+        }
+
+        /* ===== EMPTY ===== */
+        .products-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+            grid-column: 1 / -1;
+        }
+
+        .products-empty i {
+            font-size: 48px;
+            color: #d0d0da;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .products-empty h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .products-empty p {
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+
+        /* ========================================== */
+        /* RESPONSIVE                                 */
+        /* ========================================== */
+
+        @media (max-width: 768px) {
+            .products-header {
+                padding: 10px 14px;
+                gap: 10px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .products-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .products-header .header-title {
+                font-size: 16px;
+            }
+
+            .products-header .products-count-badge {
+                font-size: 12px;
+                padding: 3px 12px;
+            }
+
+            .products-main {
+                padding: 12px 14px 14px 14px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+
+            .product-card {
+                min-height: 240px;
+            }
+
+            .product-card .product-img {
+                height: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .products-header {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .products-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .products-header .header-title {
+                font-size: 14px;
+            }
+
+            .products-header .products-count-badge {
+                font-size: 11px;
+                padding: 2px 10px;
+            }
+
+            .products-header .header-actions .selection-mode {
+                font-size: 10px;
+                padding: 2px 10px;
+            }
+
+            .products-main {
+                padding: 8px 10px 10px 10px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .product-card {
+                min-height: 200px;
+                border-radius: 12px;
+            }
+
+            .product-card .product-img {
+                height: 90px;
+                padding: 4px;
+            }
+
+            .product-card .product-body {
+                padding: 8px 8px 10px 8px;
+            }
+
+            .product-card .product-body .product-name {
+                font-size: 12px;
+                font-weight: 700;
+                -webkit-line-clamp: 2;
+                min-height: 32px;
+            }
+
+            .product-card .product-body .product-price {
+                font-size: 14px;
+                margin: 2px 0 4px 0;
+            }
+
+            .product-card .product-body .product-stock {
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+
+            .product-card .product-img.no-image {
+                font-size: 24px;
+            }
+
+            .product-card .select-indicator {
+                width: 22px;
+                height: 22px;
+                font-size: 11px;
+                top: 4px;
+                right: 4px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+
+            .product-card {
+                min-height: 170px;
+                border-radius: 10px;
+            }
+
+            .product-card .product-img {
+                height: 70px;
+                padding: 4px;
+            }
+
+            .product-card .product-body {
+                padding: 6px 6px 8px 6px;
+            }
+
+            .product-card .product-body .product-name {
+                font-size: 10px;
+                min-height: 26px;
+                -webkit-line-clamp: 2;
+            }
+
+            .product-card .product-body .product-price {
+                font-size: 12px;
+                margin: 1px 0 2px 0;
+            }
+
+            .product-card .product-body .product-stock {
+                font-size: 9px;
+                margin-bottom: 2px;
+            }
+
+            .product-card .product-img.no-image {
+                font-size: 18px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- ========================================== -->
-    <!-- HEADER                                     -->
-    <!-- ========================================== -->
+    <!-- ===== HEADER ===== -->
     <header class="products-header">
-        <button class="back-btn" onclick="window.location.href='/dashboard'">
+        <button class="back-btn" id="backBtn">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="header-title">📦 Mes produits</span>
+        <span class="header-title" id="headerTitle">
+            📦 Mes produits
+            <span class="return-badge" id="returnBadge" style="display:none;">🔗 Sélection</span>
+        </span>
         <span class="products-count-badge" id="totalCount">0</span>
+        <div class="header-actions">
+            <span class="selection-mode" id="selectionMode">🔗 Cliquez sur un produit</span>
+        </div>
     </header>
 
-    <!-- ========================================== -->
-    <!-- MAIN                                       -->
-    <!-- ========================================== -->
+    <!-- ===== MAIN ===== -->
     <main class="products-main">
-
-        <!-- ===== GRILLE PRODUITS ===== -->
         <div class="products-grid" id="productsGrid">
             <!-- Injecté par JS -->
         </div>
-
     </main>
 
-    <script src="/seller/js/products.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ Products - Tous les produits (avec détection retour)');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const productsGrid = document.getElementById('productsGrid');
+            const totalCount = document.getElementById('totalCount');
+            const backBtn = document.getElementById('backBtn');
+            const headerTitle = document.getElementById('headerTitle');
+            const returnBadge = document.getElementById('returnBadge');
+            const selectionMode = document.getElementById('selectionMode');
+
+            // ==========================================
+            // DÉTECTION DU RETOUR DEPUIS messages
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnTo = urlParams.get('return');
+            const isFromMessages = returnTo === 'messages';
+
+            if (isFromMessages) {
+                returnBadge.style.display = 'inline-block';
+                selectionMode.classList.add('active');
+                selectionMode.textContent = '🔗 Cliquez sur un produit pour le lier';
+                headerTitle.innerHTML = '📦 Mes produits <span class="return-badge" style="display:inline-block;">🔗 Sélection</span>';
+                console.log('🔗 Mode sélection pour messages activé');
+            }
+
+            // ==========================================
+            // AUTH
+            // ==========================================
+
+            function getToken() {
+                return localStorage.getItem('sellerToken');
+            }
+
+            function checkAuth() {
+                const token = getToken();
+                if (!token) {
+                    window.location.href = '/login';
+                    return false;
+                }
+                return true;
+            }
+
+            // ==========================================
+            // CHARGER TOUS LES PRODUITS
+            // ==========================================
+
+            async function loadAllProducts() {
+                const token = getToken();
+                if (!token) return;
+
+                try {
+                    console.log('📥 Chargement de tous les produits...');
+
+                    const shopRes = await fetch('/api/seller/shops', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    const shopData = await shopRes.json();
+
+                    if (!shopRes.ok) {
+                        throw new Error(shopData.error || 'Erreur chargement boutiques');
+                    }
+
+                    if (shopData.success && shopData.shops && shopData.shops.length > 0) {
+                        const allProductsPromises = shopData.shops.map(async (shop) => {
+                            const productsRes = await fetch('/api/seller/products/' + shop.id, {
+                                headers: {
+                                    'Authorization': 'Bearer ' + token
+                                }
+                            });
+                            const productsData = await productsRes.json();
+                            if (productsRes.ok && productsData.products) {
+                                return productsData.products.map(p => ({
+                                    ...p,
+                                    shop_name: shop.name,
+                                    shop_id: shop.id
+                                }));
+                            }
+                            return [];
+                        });
+
+                        const productsArrays = await Promise.all(allProductsPromises);
+                        const allProducts = productsArrays.flat();
+
+                        console.log('📦 Produits chargés:', allProducts.length);
+
+                        if (allProducts.length === 0) {
+                            renderEmpty();
+                        } else {
+                            renderProducts(allProducts);
+                        }
+
+                        totalCount.textContent = allProducts.length;
+
+                    } else {
+                        renderEmpty();
+                        totalCount.textContent = '0';
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erreur chargement produits:', error);
+                    productsGrid.innerHTML = `
+                        <div class="products-empty">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Erreur de chargement</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                    totalCount.textContent = '0';
+                }
+            }
+
+            // ==========================================
+            // AFFICHER LES PRODUITS
+            // ==========================================
+
+            function renderProducts(products) {
+                productsGrid.innerHTML = products.map(p => {
+                    const stock = p.stock || 0;
+                    let stockClass = '';
+                    let stockLabel = '📦 ' + stock + ' en stock';
+                    if (stock === 0) {
+                        stockClass = 'out';
+                        stockLabel = '🚫 Rupture';
+                    } else if (stock <= 5) {
+                        stockClass = 'low';
+                        stockLabel = '⚠️ ' + stock + ' restant(s)';
+                    }
+
+                    const imgSrc = p.image1 || p.image || null;
+
+                    return `
+                        <div class="product-card" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-stock="${stock}" data-image="${imgSrc || ''}">
+                            ${isFromMessages ? `<div class="select-indicator show"><i class="fas fa-check"></i></div>` : ''}
+                            ${imgSrc 
+                                ? `<img src="${imgSrc}" alt="${p.name}" class="product-img" loading="lazy" />`
+                                : `<div class="product-img no-image"><i class="fas fa-box"></i></div>`
+                            }
+                            <div class="product-body">
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-price">${p.price.toLocaleString()} FCFA</div>
+                                <div class="product-stock ${stockClass}">${stockLabel}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // ✅ Gestion du clic selon le contexte
+                document.querySelectorAll('.product-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const name = this.dataset.name;
+
+                        if (isFromMessages) {
+                            // ✅ Retour vers messages avec l'ID du produit
+                            console.log('🔗 Produit sélectionné:', id, name);
+                            window.location.href = '/messages?product_id=' + id;
+                        } else {
+                            // ✅ Comportement normal → detailproduct
+                            window.location.href = '/detailproduct?id=' + id;
+                        }
+                    });
+                });
+            }
+
+            // ==========================================
+            // ÉTAT VIDE
+            // ==========================================
+
+            function renderEmpty() {
+                productsGrid.innerHTML = `
+                    <div class="products-empty">
+                        <i class="fas fa-box-open"></i>
+                        <h3>Aucun produit</h3>
+                        <p>Ajoutez votre premier produit en cliquant sur "Ajouter" dans votre boutique</p>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // BOUTON RETOUR
+            // ==========================================
+
+            backBtn.addEventListener('click', function() {
+                if (isFromMessages) {
+                    window.location.href = '/messages';
+                } else {
+                    window.location.href = '/dashboard';
+                }
+            });
+
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            if (!checkAuth()) return;
+
+            (async function init() {
+                await loadAllProducts();
+                console.log('✅ Products - Prêt' + (isFromMessages ? ' (mode sélection)' : ''));
+            })();
+
+        });
+    </script>
+
 </body>
 </html>
