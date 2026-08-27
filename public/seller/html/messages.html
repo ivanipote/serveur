@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📨 Messages | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 80px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* ===== HEADER ===== */
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #17A464;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            z-index: 100;
+            border-radius: 0 0 20px 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .page-header .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .page-header .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+
+        .page-header .header-title {
+            flex: 1;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .page-header .header-title i {
+            margin-right: 8px;
+        }
+
+        /* ===== CARTES ===== */
+        .card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .card .card-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .card .card-label i {
+            color: #17A464;
+            margin-right: 6px;
+        }
+
+        /* ===== LISTE CLIENTS ===== */
+        .client-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .client-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .client-list::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        .client-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .client-item:hover {
+            background: rgba(23, 164, 100, 0.04);
+        }
+
+        .client-item:last-child {
+            border-bottom: none;
+        }
+
+        .client-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #17A464;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .client-item .client-info {
+            flex: 1;
+        }
+
+        .client-item .client-info .client-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .client-item .client-info .client-email {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        /* ===== SELECT ALL ===== */
+        .select-all {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .select-all input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #17A464;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .select-all label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            cursor: pointer;
+        }
+
+        /* ===== CHAMPS ===== */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3a4152;
+            margin-bottom: 4px;
+        }
+
+        .form-group label i {
+            color: #17A464;
+            margin-right: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e8ecf4;
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.5);
+            outline: none;
+            transition: all 0.3s;
+            color: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #17A464;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.06);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* ===== BOUTON ===== */
+        .btn-send {
+            width: 100%;
+            padding: 14px;
+            background: #17A464;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background: #0E7A49;
+            transform: scale(1.01);
+            box-shadow: 0 8px 30px rgba(23, 164, 100, 0.2);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== RÉSULTAT ===== */
+        #result {
+            margin-top: 14px;
+        }
+
+        #result .success {
+            padding: 12px 16px;
+            background: #e8f5e9;
+            color: #1b5e20;
+            border-radius: 12px;
+            border: 1px solid #a5d6a7;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #result .success i {
+            font-size: 18px;
+        }
+
+        #result .error {
+            padding: 12px 16px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 12px;
+            border: 1px solid #ef9a9a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #result .error i {
+            font-size: 18px;
+        }
+
+        #result .info {
+            padding: 12px 16px;
+            background: #e3f2fd;
+            color: #0d47a1;
+            border-radius: 12px;
+            border: 1px solid #90caf9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #result .info i {
+            font-size: 18px;
+        }
+
+        /* ===== LOADING ===== */
+        .loading-state {
+            text-align: center;
+            padding: 20px;
+            color: #6B7280;
+        }
+
+        .loading-state i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+            color: #17A464;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #9CA3AF;
+        }
+
+        .empty-state i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+            color: #d0d0da;
+        }
+
+        /* ========================================== */
+        /* RESPONSIVE                                 */
+        /* ========================================== */
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+                padding-top: 72px;
+            }
+
+            .page-header {
+                padding: 10px 14px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .page-header .back-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .page-header .header-title {
+                font-size: 16px;
+            }
+
+            .card {
+                padding: 14px 16px;
+                border-radius: 16px;
+            }
+
+            .client-item .client-info .client-name {
+                font-size: 13px;
+            }
+
+            .client-item .client-info .client-email {
+                font-size: 11px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+
+            .btn-send {
+                font-size: 15px;
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            body {
+                padding: 8px;
+                padding-top: 64px;
+            }
+
+            .page-header {
+                padding: 8px 10px;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .page-header .back-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .page-header .header-title {
+                font-size: 14px;
+            }
+
+            .card {
+                padding: 12px 12px;
+                border-radius: 14px;
+                margin-bottom: 12px;
+            }
+
+            .card .card-label {
+                font-size: 13px;
+            }
+
+            .client-item {
+                padding: 6px 0;
+            }
+
+            .client-item input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+            }
+
+            .client-item .client-info .client-name {
+                font-size: 12px;
+            }
+
+            .client-item .client-info .client-email {
+                font-size: 10px;
+            }
+
+            .form-group label {
+                font-size: 12px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                font-size: 12px;
+                padding: 6px 10px;
+                border-radius: 10px;
+            }
+
+            .btn-send {
+                font-size: 14px;
+                padding: 10px;
+                border-radius: 25px;
+            }
+
+            #result .success,
+            #result .error,
+            #result .info {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="page-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="header-title"><i class="fas fa-paper-plane"></i> Envoyer un message</span>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <main>
+
+        <!-- CARD 1 : CLIENTS -->
+        <div class="card">
+            <span class="card-label"><i class="fas fa-users"></i> Destinataire(s)</span>
+            <div id="clientList">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Chargement des clients...
+                </div>
+            </div>
+            <div class="select-all">
+                <input type="checkbox" id="selectAll" />
+                <label for="selectAll">📢 Tous les clients</label>
+            </div>
+        </div>
+
+        <!-- CARD 2 : MESSAGE -->
+        <div class="card">
+            <span class="card-label"><i class="fas fa-edit"></i> Message</span>
+
+            <div class="form-group">
+                <label><i class="fas fa-heading"></i> Titre</label>
+                <input type="text" id="messageTitle" placeholder="Ex: Nouveau produit disponible !" maxlength="100" />
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-align-left"></i> Contenu</label>
+                <textarea id="messageContent" rows="4" placeholder="Votre message..." maxlength="500"></textarea>
+            </div>
+        </div>
+
+        <!-- BOUTON -->
+        <button class="btn-send" id="sendBtn" disabled>
+            <i class="fas fa-paper-plane"></i> Envoyer
+        </button>
+
+        <!-- RÉSULTAT -->
+        <div id="result"></div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ Messages seller - Envoi notifications');
+
+            // ==========================================
+            // URL
+            // ==========================================
+
+            const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const clientList = document.getElementById('clientList');
+            const selectAll = document.getElementById('selectAll');
+            const titleInput = document.getElementById('messageTitle');
+            const contentInput = document.getElementById('messageContent');
+            const sendBtn = document.getElementById('sendBtn');
+            const result = document.getElementById('result');
+
+            let clients = [];
+            let selectedClients = [];
+
+            // ==========================================
+            // 1. CHARGER LES CLIENTS
+            // ==========================================
+
+            async function loadClients() {
+                try {
+                    const res = await fetch(CLIENT_API_URL + '/api/admin/clients');
+
+                    if (!res.ok) {
+                        throw new Error('Erreur chargement clients');
+                    }
+
+                    const data = await res.json();
+
+                    if (data.length > 0) {
+                        clients = data;
+                        renderClients();
+                    } else {
+                        clientList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                Aucun client trouvé
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    clientList.innerHTML = `
+                        <div class="empty-state" style="color:#e74c3c;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Erreur de chargement
+                        </div>
+                    `;
+                }
+            }
+
+            function renderClients() {
+                clientList.innerHTML = clients.map(c => `
+                    <div class="client-item">
+                        <input type="checkbox" class="client-checkbox" value="${c.id}" data-name="${c.name}" />
+                        <div class="client-info">
+                            <div class="client-name">${c.name}</div>
+                            <div class="client-email">${c.email}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Écouter les sélections
+                document.querySelectorAll('.client-checkbox').forEach(cb => {
+                    cb.addEventListener('change', updateSelection);
+                });
+            }
+
+            // ==========================================
+            // 2. GÉRER LA SÉLECTION
+            // ==========================================
+
+            function updateSelection() {
+                const checkboxes = document.querySelectorAll('.client-checkbox:checked');
+                selectedClients = Array.from(checkboxes).map(cb => ({
+                    id: parseInt(cb.value),
+                    name: cb.dataset.name
+                }));
+
+                const hasTitle = titleInput.value.trim().length > 0;
+                const hasContent = contentInput.value.trim().length > 0;
+
+                sendBtn.disabled = selectedClients.length === 0 || !hasTitle || !hasContent;
+            }
+
+            selectAll.addEventListener('change', function() {
+                document.querySelectorAll('.client-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateSelection();
+            });
+
+            titleInput.addEventListener('input', updateSelection);
+            contentInput.addEventListener('input', updateSelection);
+
+            // ==========================================
+            // 3. ENVOYER LA NOTIFICATION
+            // ==========================================
+
+            sendBtn.addEventListener('click', async function() {
+                if (selectedClients.length === 0) {
+                    result.innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Sélectionnez au moins un client.
+                        </div>
+                    `;
+                    return;
+                }
+
+                const title = titleInput.value.trim();
+                const content = contentInput.value.trim();
+
+                if (!title || !content) {
+                    result.innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Titre et contenu requis.
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+                result.innerHTML = '';
+
+                let successCount = 0;
+                let errorCount = 0;
+                let errorMessages = [];
+
+                for (const client of selectedClients) {
+                    try {
+                        const res = await fetch(CLIENT_API_URL + '/api/notifications/create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: client.id,
+                                commandeId: null,
+                                type: 'admin',
+                                title: title,
+                                content: content
+                            })
+                        });
+
+                        if (res.ok) {
+                            successCount++;
+                        } else {
+                            const data = await res.json();
+                            errorCount++;
+                            errorMessages.push(`${client.name}: ${data.error || 'Erreur'}`);
+                        }
+                    } catch (e) {
+                        errorCount++;
+                        errorMessages.push(`${client.name}: Erreur de connexion`);
+                    }
+                }
+
+                // Afficher le résultat
+                let resultHtml = '';
+
+                if (successCount > 0) {
+                    resultHtml += `
+                        <div class="success">
+                            <i class="fas fa-check-circle"></i>
+                            ✅ Notification envoyée à ${successCount} client(s)
+                            ${errorCount > 0 ? `(${errorCount} échec(s))` : ''}
+                        </div>
+                    `;
+                }
+
+                if (errorCount > 0 && errorMessages.length > 0) {
+                    const firstErrors = errorMessages.slice(0, 3);
+                    resultHtml += `
+                        <div class="error" style="margin-top:8px;">
+                            <i class="fas fa-times-circle"></i>
+                            ❌ Échec(s) : ${firstErrors.join(', ')}${errorMessages.length > 3 ? ` et ${errorMessages.length - 3} autre(s)` : ''}
+                        </div>
+                    `;
+                }
+
+                if (successCount === 0 && errorCount > 0) {
+                    resultHtml = `
+                        <div class="error">
+                            <i class="fas fa-times-circle"></i>
+                            ❌ Échec de l'envoi (${errorCount} erreur(s))
+                        </div>
+                    `;
+                }
+
+                result.innerHTML = resultHtml;
+
+                // Réinitialiser
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
+            });
+
+            // ==========================================
+            // INIT
+            // ==========================================
+
+            loadClients();
+
+            console.log('✅ Messages seller prêt');
+
+        });
+    </script>
+
+</body>
+</html>
