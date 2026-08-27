@@ -16,7 +16,7 @@ body {
 }
 
 /* =============================================================
-   HEADER UNIFIÉ (comme mescommandes, detailcom, etc.)
+   HEADER UNIFIÉ
    ============================================================= */
 
 .notif-header {
@@ -65,7 +65,6 @@ body {
     font-size: 18px;
     font-weight: 700;
     color: white;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.1);
 }
 
 .badge-count {
@@ -171,7 +170,6 @@ body {
     background: white;
     border-bottom: 1px solid #f0f2f5;
     padding: 0 16px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
 }
 
 .filter-bar {
@@ -357,18 +355,18 @@ body {
 }
 
 /* =============================================================
-   NOTIFICATION CARD - DESIGN UNIQUE PAR CARTE
+   NOTIFICATION CARD - STYLE ORIGINAL
    ============================================================= */
 
 .notif-card {
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 16px 18px 14px 18px;
     border: 2px solid;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     transition: all 0.3s ease;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    gap: 14px;
+    align-items: flex-start;
     position: relative;
     margin-bottom: 12px;
     background: white;
@@ -379,14 +377,8 @@ body {
     box-shadow: 0 6px 24px rgba(0,0,0,0.08);
 }
 
-/* ===== HEADER DE LA CARTE ===== */
-.notif-card .card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.notif-card .card-header .card-avatar {
+/* ===== AVATAR ===== */
+.notif-card .avatar {
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -397,64 +389,105 @@ body {
     flex-shrink: 0;
 }
 
-.notif-card .card-header .card-info {
+/* ===== BODY ===== */
+.notif-card .body {
     flex: 1;
     min-width: 0;
 }
 
-.notif-card .card-header .card-info .card-title {
+.notif-card .body .title {
     font-size: 15px;
     font-weight: 700;
 }
 
-.notif-card .card-header .card-info .card-sub {
-    font-size: 12px;
-    color: #999;
-}
-
-/* ===== IMAGE DE LA BOUTIQUE (pour seller) ===== */
-.notif-card .card-shop-image {
-    width: 100%;
-    height: 120px;
-    border-radius: 12px;
-    object-fit: cover;
-    background: #f0f2f5;
-    margin: 2px 0 4px 0;
-}
-
-/* ===== CONTENU ===== */
-.notif-card .card-content {
+.notif-card .body .content {
     font-size: 14px;
-    line-height: 1.6;
-    color: #3a4152;
+    line-height: 1.5;
+    margin-top: 2px;
     word-wrap: break-word;
 }
 
-.notif-card .card-content .notification-link {
-    color: #1a2a6c;
+.notif-card .body .date {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* ===== BADGE TYPE ===== */
+.notif-card .badge-type {
+    display: inline-block;
+    font-size: 11px;
     font-weight: 700;
-    text-decoration: underline;
-    display: inline-flex;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+}
+
+/* ===== ACTIONS ===== */
+.notif-card .header-actions {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    display: flex;
+    gap: 6px;
     align-items: center;
-    gap: 4px;
 }
 
-.notif-card .card-content .notification-link:hover {
-    color: #0d1a4a;
+.notif-card .header-actions .btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 50%;
+    transition: all 0.3s;
+    color: #bbb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
 }
 
-/* ===== PRODUIT LIÉ (carte produit dans la notification) ===== */
+.notif-card .header-actions .btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.notif-card .header-actions .btn-read {
+    color: #2d7d46;
+}
+
+.notif-card .header-actions .btn-read:hover {
+    background: rgba(45,125,70,0.1);
+}
+
+.notif-card .header-actions .btn-read.already {
+    color: #ccc;
+    cursor: default;
+}
+
+.notif-card .header-actions .btn-read.already:hover {
+    background: none;
+}
+
+.notif-card .header-actions .btn-delete:hover {
+    color: #e74c3c;
+    background: rgba(231,76,60,0.1);
+}
+
+/* ===== PRODUIT LIÉ ===== */
 .notif-card .card-product-linked {
+    margin-top: 8px;
     border: 2px solid #17A464;
     border-radius: 14px;
-    padding: 12px 14px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     gap: 14px;
     background: #f8fbf9;
     cursor: pointer;
     transition: all 0.2s;
-    margin: 4px 0;
 }
 
 .notif-card .card-product-linked:hover {
@@ -463,9 +496,9 @@ body {
 }
 
 .notif-card .card-product-linked .p-img {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
     object-fit: cover;
     background: #f0f2f5;
     flex-shrink: 0;
@@ -500,191 +533,151 @@ body {
     flex-shrink: 0;
 }
 
-/* ===== BADGE TYPE ===== */
-.notif-card .card-badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 12px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
-    align-self: flex-start;
-}
+/* =============================================================
+   COULEURS PAR TYPE
+   ============================================================= */
 
-/* ===== FOOTER DE LA CARTE ===== */
-.notif-card .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0,0,0,0.04);
-    margin-top: 4px;
-}
-
-.notif-card .card-footer .card-date {
-    font-size: 11px;
-    color: #999;
-}
-
-.notif-card .card-footer .card-shop-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: #17A464;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* ===== ACTIONS (header droit) ===== */
-.notif-card .card-actions {
-    position: absolute;
-    top: 14px;
-    right: 16px;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.notif-card .card-actions .btn {
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 50%;
-    transition: all 0.3s;
-    color: #bbb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-}
-
-.notif-card .card-actions .btn:hover {
-    background: rgba(0,0,0,0.05);
-}
-
-.notif-card .card-actions .btn-read {
-    color: #2d7d46;
-}
-
-.notif-card .card-actions .btn-read:hover {
-    background: rgba(45,125,70,0.1);
-}
-
-.notif-card .card-actions .btn-read.already {
-    color: #ccc;
-    cursor: default;
-}
-
-.notif-card .card-actions .btn-read.already:hover {
-    background: none;
-}
-
-.notif-card .card-actions .btn-delete:hover {
-    color: #e74c3c;
-    background: rgba(231,76,60,0.1);
-}
-
-/* ===== COULEURS PAR TYPE ===== */
 .notif-card.type-commande {
+    background: #e3f2fd;
     border-color: #64b5f6;
 }
-.notif-card.type-commande .card-avatar {
-    background: rgba(100, 181, 246, 0.2);
-    color: #0d47a1;
-}
-.notif-card.type-commande .card-title {
-    color: #0d47a1;
-}
-.notif-card.type-commande .card-badge {
+.notif-card.type-commande .badge-type {
     background: #64b5f6;
     color: white;
 }
+.notif-card.type-commande .avatar {
+    background: rgba(100, 181, 246, 0.2);
+    color: #0d47a1;
+}
+.notif-card.type-commande .body .content {
+    color: #0d47a1;
+}
+.notif-card.type-commande .body .title {
+    color: #0d47a1;
+}
 
 .notif-card.type-paiement {
+    background: #e8f5e9;
     border-color: #66bb6a;
 }
-.notif-card.type-paiement .card-avatar {
-    background: rgba(102, 187, 106, 0.2);
-    color: #1b5e20;
-}
-.notif-card.type-paiement .card-title {
-    color: #1b5e20;
-}
-.notif-card.type-paiement .card-badge {
+.notif-card.type-paiement .badge-type {
     background: #66bb6a;
     color: white;
 }
+.notif-card.type-paiement .avatar {
+    background: rgba(102, 187, 106, 0.2);
+    color: #1b5e20;
+}
+.notif-card.type-paiement .body .content {
+    color: #1b5e20;
+}
+.notif-card.type-paiement .body .title {
+    color: #1b5e20;
+}
 
 .notif-card.type-admin {
+    background: #fff3e0;
     border-color: #ffb74d;
 }
-.notif-card.type-admin .card-avatar {
-    background: rgba(255, 183, 77, 0.2);
-    color: #e65100;
-}
-.notif-card.type-admin .card-title {
-    color: #e65100;
-}
-.notif-card.type-admin .card-badge {
+.notif-card.type-admin .badge-type {
     background: #ffb74d;
     color: white;
 }
+.notif-card.type-admin .avatar {
+    background: rgba(255, 183, 77, 0.2);
+    color: #e65100;
+}
+.notif-card.type-admin .body .content {
+    color: #e65100;
+}
+.notif-card.type-admin .body .title {
+    color: #e65100;
+}
 
 .notif-card.type-seller {
+    background: #e8eaf6;
     border-color: #7986cb;
 }
-.notif-card.type-seller .card-avatar {
-    background: rgba(121, 134, 203, 0.2);
-    color: #283593;
-}
-.notif-card.type-seller .card-title {
-    color: #283593;
-}
-.notif-card.type-seller .card-badge {
+.notif-card.type-seller .badge-type {
     background: #7986cb;
     color: white;
 }
+.notif-card.type-seller .avatar {
+    background: rgba(121, 134, 203, 0.2);
+    color: #283593;
+}
+.notif-card.type-seller .body .content {
+    color: #283593;
+}
+.notif-card.type-seller .body .title {
+    color: #283593;
+}
 
 .notif-card.type-systeme {
+    background: #f5f5f5;
     border-color: #d0d0d0;
 }
-.notif-card.type-systeme .card-avatar {
+.notif-card.type-systeme .badge-type {
+    background: #d0d0d0;
+    color: #555;
+}
+.notif-card.type-systeme .avatar {
     background: rgba(0,0,0,0.05);
     color: #555;
 }
-.notif-card.type-systeme .card-title {
+.notif-card.type-systeme .body .content {
     color: #555;
 }
-.notif-card.type-systeme .card-badge {
-    background: #d0d0d0;
+.notif-card.type-systeme .body .title {
     color: #555;
 }
 
 .notif-card.type-client_message {
+    background: #f3e5f5;
     border-color: #ce93d8;
 }
-.notif-card.type-client_message .card-avatar {
-    background: rgba(206, 147, 216, 0.2);
-    color: #4a148c;
-}
-.notif-card.type-client_message .card-title {
-    color: #4a148c;
-}
-.notif-card.type-client_message .card-badge {
+.notif-card.type-client_message .badge-type {
     background: #ce93d8;
     color: white;
 }
+.notif-card.type-client_message .avatar {
+    background: rgba(206, 147, 216, 0.2);
+    color: #4a148c;
+}
+.notif-card.type-client_message .body .content {
+    color: #4a148c;
+}
+.notif-card.type-client_message .body .title {
+    color: #4a148c;
+}
 
-/* ===== UNREAD / READ ===== */
+/* =============================================================
+   UNREAD / READ
+   ============================================================= */
+
 .notif-card.read {
     opacity: 0.7;
 }
 
-.notif-card.unread .card-title {
+.notif-card.unread .body .title {
     font-weight: 800;
+}
+
+/* =============================================================
+   LIEN DANS LA NOTIFICATION
+   ============================================================= */
+
+.notification-link {
+    color: #1a2a6c;
+    font-weight: 700;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notification-link:hover {
+    color: #0d1a4a;
 }
 
 /* =============================================================
@@ -715,7 +708,6 @@ body {
     width: 100%;
 }
 
-/* ===== SÉLECTEUR ADMIN / BOUTIQUE ===== */
 .dest-selector {
     display: flex;
     gap: 8px;
@@ -754,7 +746,6 @@ body {
     font-size: 14px;
 }
 
-/* ===== MESSAGE ===== */
 .message-wrapper {
     display: flex;
     align-items: flex-end;
@@ -865,7 +856,7 @@ body {
 }
 
 /* =============================================================
-   OVERLAY CHOIX BOUTIQUE (scrollable avec recherche)
+   OVERLAY CHOIX BOUTIQUE
    ============================================================= */
 
 .shop-overlay {
@@ -1230,7 +1221,7 @@ html, body {
     word-break: break-word !important;
 }
 
-.notif-card .card-content {
+.notif-card .body .content {
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
@@ -1285,21 +1276,19 @@ body {
 
     .notif-main { padding: 12px 14px; padding-top: 140px; padding-bottom: 170px; }
 
-    .notif-card { padding: 14px 14px 12px 14px; gap: 8px; border-radius: 16px; }
-    .notif-card .card-header .card-avatar { width: 36px; height: 36px; font-size: 15px; }
-    .notif-card .card-header .card-info .card-title { font-size: 14px; }
-    .notif-card .card-content { font-size: 13px; }
-    .notif-card .card-shop-image { height: 90px; }
+    .notif-card { padding: 14px 14px 12px 14px; gap: 12px; border-radius: 14px; }
+    .notif-card .avatar { width: 36px; height: 36px; font-size: 15px; }
+    .notif-card .body .title { font-size: 14px; }
+    .notif-card .body .content { font-size: 13px; }
 
     .notif-card .card-product-linked { padding: 10px 12px; gap: 10px; }
-    .notif-card .card-product-linked .p-img { width: 50px; height: 50px; }
-    .notif-card .card-product-linked .p-info .p-name { font-size: 13px; }
+    .notif-card .card-product-linked .p-img { width: 40px; height: 40px; }
 
-    .notif-card .card-actions {
+    .notif-card .header-actions {
         top: 10px;
         right: 12px;
     }
-    .notif-card .card-actions .btn {
+    .notif-card .header-actions .btn {
         font-size: 13px;
         width: 24px;
         height: 24px;
@@ -1367,18 +1356,16 @@ body {
 
     .notif-main { padding: 8px 8px; padding-top: 130px; padding-bottom: 150px; }
 
-    .notif-card { padding: 12px 12px 10px 12px; gap: 6px; border-radius: 14px; }
-    .notif-card .card-header .card-avatar { width: 30px; height: 30px; font-size: 12px; }
-    .notif-card .card-header .card-info .card-title { font-size: 13px; }
-    .notif-card .card-content { font-size: 12px; }
-    .notif-card .card-shop-image { height: 70px; }
+    .notif-card { padding: 12px 12px 10px 12px; gap: 10px; border-radius: 12px; }
+    .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
+    .notif-card .body .title { font-size: 13px; }
+    .notif-card .body .content { font-size: 12px; }
+    .notif-card .body .date { font-size: 10px; }
 
     .notif-card .card-product-linked { padding: 8px 10px; gap: 8px; }
-    .notif-card .card-product-linked .p-img { width: 40px; height: 40px; }
-    .notif-card .card-product-linked .p-info .p-name { font-size: 12px; }
-    .notif-card .card-product-linked .p-info .p-price { font-size: 12px; }
+    .notif-card .card-product-linked .p-img { width: 34px; height: 34px; }
 
-    .notif-card .card-actions .btn {
+    .notif-card .header-actions .btn {
         font-size: 11px;
         width: 20px;
         height: 20px;
