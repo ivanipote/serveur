@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Notifications | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/notification.css">
@@ -10,51 +10,48 @@
 <body>
 
     <!-- ============================================================= -->
-    <!-- HEADER AVEC 2 RECTANGLES ARRONDIS                              -->
+    <!-- HEADER UNIFIÉ (comme mescommandes, detailcom, etc.)           -->
     <!-- ============================================================= -->
 
-    <header class="notif-header-wrapper">
-
-        <!-- RECTANGLE 1 : HEADER (vert) -->
-        <div class="notif-header">
-            <button class="back-btn" onclick="window.location.href='/dashboard'">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <span class="notif-title">🔔 Notifications</span>
-            <span class="badge-count" id="notifBadge">0</span>
-            <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
-                <i class="fas fa-sync-alt"></i>
-                <span class="sync-status" id="syncStatus">●</span>
-            </button>
-            <button class="btn-read-all" id="readAllBtn">
-                <i class="fas fa-check-double"></i> Tout lu
-            </button>
-        </div>
-
-        <!-- RECTANGLE 2 : FILTRES (blanc, scrollable) -->
-        <div class="notif-filter-bar">
-            <div class="filter-bar">
-                <button class="filter-btn active" data-filter="all">📋 Toutes</button>
-                <button class="filter-btn" data-filter="commande">📦 Commandes</button>
-                <button class="filter-btn" data-filter="paiement">💳 Paiements</button>
-                <button class="filter-btn" data-filter="admin">📢 Admin</button>
-                <button class="filter-btn" data-filter="seller">🛍️ Boutiques</button>
-                <button class="filter-btn" data-filter="systeme">⚙️ Système</button>
-            </div>
-            <!-- Filtre "Déjà lu" -->
-            <div class="filter-read-toggle">
-                <label class="toggle-label">
-                    <input type="checkbox" id="showReadToggle" />
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-text">Afficher les lues</span>
-                </label>
-            </div>
-        </div>
-
+    <header class="notif-header">
+        <button class="back-btn" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="notif-title">🔔 Notifications</span>
+        <span class="badge-count" id="notifBadge">0</span>
+        <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
+            <i class="fas fa-sync-alt"></i>
+            <span class="sync-status" id="syncStatus">●</span>
+        </button>
+        <button class="btn-read-all" id="readAllBtn">
+            <i class="fas fa-check-double"></i> Tout lu
+        </button>
     </header>
 
     <!-- ============================================================= -->
-    <!-- CONTENU                                                        -->
+    <!-- BARRE DE FILTRES (sous le header)                              -->
+    <!-- ============================================================= -->
+
+    <div class="filter-bar-wrapper">
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">📋 Toutes</button>
+            <button class="filter-btn" data-filter="commande">📦 Commandes</button>
+            <button class="filter-btn" data-filter="paiement">💳 Paiements</button>
+            <button class="filter-btn" data-filter="admin">📢 Admin</button>
+            <button class="filter-btn" data-filter="seller">🛍️ Boutiques</button>
+            <button class="filter-btn" data-filter="systeme">⚙️ Système</button>
+        </div>
+        <div class="filter-read-toggle">
+            <label class="toggle-label">
+                <input type="checkbox" id="showReadToggle" />
+                <span class="toggle-slider"></span>
+                <span class="toggle-text">Afficher les lues</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- CONTENU PRINCIPAL                                             -->
     <!-- ============================================================= -->
 
     <main class="notif-main" id="notifMain">
@@ -88,13 +85,6 @@
                 </button>
             </div>
 
-            <!-- Sélecteur boutique (caché par défaut) -->
-            <div class="shop-selector" id="shopSelector" style="display:none;">
-                <select id="shopSelect">
-                    <option value="">Choisir une boutique...</option>
-                </select>
-            </div>
-
             <!-- Message + Envoyer -->
             <div class="message-wrapper">
                 <div class="message-input-container">
@@ -102,7 +92,7 @@
                         id="messageInput" 
                         class="message-input" 
                         rows="1"
-                        placeholder="Envoyer un message..."
+                        placeholder="Envoyer un message à l'admin..."
                     ></textarea>
                 </div>
                 <button class="btn-send-message" id="sendMessageBtn">
@@ -113,6 +103,31 @@
             <div id="sendMessageResult" class="send-message-result"></div>
         </div>
     </footer>
+
+    <!-- ============================================================= -->
+    <!-- OVERLAY CHOIX BOUTIQUE (scrollable)                            -->
+    <!-- ============================================================= -->
+
+    <div class="shop-overlay" id="shopOverlay">
+        <div class="shop-overlay-content">
+            <div class="shop-overlay-header">
+                <h3><i class="fas fa-store"></i> Choisir une boutique</h3>
+                <button class="shop-overlay-close" id="shopOverlayClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="shop-overlay-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="shopSearchInput" placeholder="Rechercher une boutique..." />
+            </div>
+            <div class="shop-overlay-list" id="shopOverlayList">
+                <!-- Injecté par JS -->
+            </div>
+            <div class="shop-overlay-footer">
+                <button class="shop-overlay-cancel" id="shopOverlayCancel">Annuler</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ============================================================= -->
     <!-- OVERLAY CONFIRMATION (suppression)                             -->
