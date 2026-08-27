@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recherche | Nature+</title>
+    <title>Recherche | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* ===== STYLES ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
         }
 
         body {
@@ -102,7 +106,6 @@
             overflow-y: auto;
         }
 
-        /* ===== ÉTAT PAR DÉFAUT ===== */
         .default-state {
             text-align: center;
             color: #888;
@@ -122,7 +125,6 @@
             margin-bottom: 6px;
         }
 
-        /* ===== HISTORIQUE ===== */
         .history-title {
             font-size: 14px;
             font-weight: 600;
@@ -197,7 +199,6 @@
             transform: scale(1.2);
         }
 
-        /* ===== RÉSULTATS LIVE ===== */
         .result-item {
             background: white;
             padding: 12px 16px;
@@ -252,6 +253,19 @@
             text-overflow: ellipsis;
         }
 
+        .result-item .result-info .shop-tag {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .result-item .result-info .shop-tag i {
+            color: #17A464;
+        }
+
         .result-item .open-icon {
             color: #aaa;
             font-size: 14px;
@@ -263,7 +277,6 @@
             color: #2d7d46;
         }
 
-        /* ===== LOADER ===== */
         .loader-snippet {
             display: flex;
             align-items: center;
@@ -306,10 +319,6 @@
             margin-bottom: 16px;
         }
 
-        /* ========================================== */
-        /* RESPONSIVE                                 */
-        /* ========================================== */
-
         @media (max-width: 600px) {
             body { padding-top: 68px; }
             .search-header { padding: 10px 14px; gap: 10px; }
@@ -328,23 +337,21 @@
             .result-item .result-info .desc { display: none; }
             .result-item .result-img { width: 36px; height: 36px; }
         }
+
         * {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
 
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
 
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-}
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
     </style>
 </head>
 <body>
@@ -375,7 +382,11 @@ input, textarea {
             const HISTORY_KEY = 'searchHistory';
             const MAX_HISTORY = 10;
 
+            const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+
             let products = [];
+            let sellerProducts = [];
+            let allProducts = [];
             let timeoutId = null;
 
             // ==========================================
@@ -433,6 +444,64 @@ input, textarea {
                 saveHistory(query.trim());
                 sessionStorage.setItem('lastSearchQuery', query.trim());
                 window.location.href = '/results?q=' + encodeURIComponent(query.trim());
+            }
+
+            // ==========================================
+            // CHARGER TOUS LES PRODUITS (catalogue + boutiques)
+            // ==========================================
+
+            async function loadAllProducts() {
+                try {
+                    // 1. Produits catalogue
+                    const res1 = await fetch('/api/products');
+                    const data1 = await res1.json();
+                    if (res1.ok) {
+                        products = data1.map(p => ({
+                            ...p,
+                            source: 'catalogue',
+                            shop_name: 'Nature+',
+                            shop_id: null
+                        }));
+                    }
+
+                    // 2. Produits des boutiques
+                    try {
+                        const res2 = await fetch('/api/shops');
+                        const data2 = await res2.json();
+
+                        if (data2.success && data2.shops) {
+                            const shopPromises = data2.shops.map(async (shop) => {
+                                try {
+                                    const res = await fetch(SELLER_API_URL + '/api/seller/products/' + shop.id);
+                                    const data = await res.json();
+                                    if (data.success && data.products) {
+                                        return data.products.map(p => ({
+                                            ...p,
+                                            source: 'seller',
+                                            shop_name: shop.name,
+                                            shop_id: shop.id
+                                        }));
+                                    }
+                                    return [];
+                                } catch (e) {
+                                    return [];
+                                }
+                            });
+
+                            const results = await Promise.all(shopPromises);
+                            sellerProducts = results.flat();
+                        }
+                    } catch (e) {
+                        console.warn('Erreur chargement produits boutiques:', e);
+                    }
+
+                    // Fusionner
+                    allProducts = [...products, ...sellerProducts];
+                    console.log('✅ Produits chargés:', allProducts.length);
+
+                } catch (error) {
+                    console.error('Erreur chargement produits:', error);
+                }
             }
 
             // ==========================================
@@ -508,7 +577,7 @@ input, textarea {
                 }
 
                 const lowerQuery = query.toLowerCase();
-                const results = products.filter(p =>
+                const results = allProducts.filter(p =>
                     p.name.toLowerCase().includes(lowerQuery) ||
                     (p.description && p.description.toLowerCase().includes(lowerQuery))
                 );
@@ -527,12 +596,13 @@ input, textarea {
                 }
 
                 container.innerHTML = results.map(p => `
-                    <div class="result-item" data-id="${p.id}" data-name="${p.name}">
+                    <div class="result-item" data-id="${p.id}" data-name="${p.name}" data-source="${p.source || 'catalogue'}">
                         <img src="${p.image1 || 'https://via.placeholder.com/50'}" alt="${p.name}" class="result-img" loading="lazy">
                         <div class="result-info">
                             <div class="name">${p.name}</div>
                             <div class="price">${p.price.toLocaleString()} FCFA</div>
                             <div class="desc">${p.description || ''}</div>
+                            <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
                         </div>
                         <span class="open-icon"><i class="fas fa-chevron-right"></i></span>
                     </div>
@@ -541,7 +611,14 @@ input, textarea {
                 document.querySelectorAll('.result-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const name = this.dataset.name;
-                        redirectToResults(name);
+                        const id = this.dataset.id;
+                        const source = this.dataset.source;
+
+                        // Sauvegarder la recherche
+                        saveHistory(name);
+
+                        // Rediriger vers detail-produit (toujours)
+                        window.location.href = '/detail-produit?id=' + id;
                     });
                 });
             }
@@ -586,28 +663,11 @@ input, textarea {
             });
 
             // ==========================================
-            // CHARGER LES PRODUITS
-            // ==========================================
-
-            async function loadProducts() {
-                try {
-                    const res = await fetch('/api/products');
-                    const data = await res.json();
-                    if (res.ok) {
-                        products = data;
-                        console.log('✅ Produits chargés:', products.length);
-                    }
-                } catch (error) {
-                    console.error('Erreur chargement produits:', error);
-                }
-            }
-
-            // ==========================================
             // INITIALISATION
             // ==========================================
 
             (async function init() {
-                await loadProducts();
+                await loadAllProducts();
                 renderDefault();
                 prefillSearch();
                 searchInput.focus();
