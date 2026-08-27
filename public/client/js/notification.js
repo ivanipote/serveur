@@ -21,9 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // ✅ Nouveaux éléments
     const destAdminBtn = document.getElementById('destAdminBtn');
     const destSellerBtn = document.getElementById('destSellerBtn');
-    const shopSelector = document.getElementById('shopSelector');
-    const shopSelect = document.getElementById('shopSelect');
-    const showReadToggle = document.getElementById('showReadToggle');
+
+    // ✅ Overlay boutiques
+    const shopOverlay = document.getElementById('shopOverlay');
+    const shopOverlayList = document.getElementById('shopOverlayList');
+    const shopSearchInput = document.getElementById('shopSearchInput');
+    const shopOverlayClose = document.getElementById('shopOverlayClose');
+    const shopOverlayCancel = document.getElementById('shopOverlayCancel');
 
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
@@ -43,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ✅ État du destinataire
     let currentDest = 'admin';
     let shops = [];
-    let selectedShopId = null;
+    let selectedShop = null;
 
     // ✅ URL
     const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
@@ -133,20 +137,86 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.success && data.shops && data.shops.length > 0) {
                 shops = data.shops;
-                renderShopSelect();
+                renderShopOverlay(shops);
             }
         } catch (error) {
             console.error('❌ Erreur chargement boutiques:', error);
         }
     }
 
-    function renderShopSelect() {
-        shopSelect.innerHTML = '<option value="">Choisir une boutique...</option>';
-        shops.forEach(shop => {
-            const option = document.createElement('option');
-            option.value = shop.id;
-            option.textContent = shop.name + ' (' + (shop.seller_name || 'Vendeur') + ')';
-            shopSelect.appendChild(option);
+    function renderShopOverlay(shopsList) {
+        shopOverlayList.innerHTML = shopsList.map(shop => `
+            <div class="shop-overlay-item" data-id="${shop.id}" data-name="${shop.name}" data-seller="${shop.seller_name || 'Vendeur'}">
+                <span class="shop-icon">🏪</span>
+                <div class="shop-info">
+                    <div class="shop-name">${shop.name}</div>
+                    <div class="shop-seller">👤 ${shop.seller_name || 'Vendeur'}</div>
+                </div>
+                <span class="shop-check"><i class="fas fa-check-circle"></i></span>
+            </div>
+        `).join('');
+
+        // Événements
+        document.querySelectorAll('.shop-overlay-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.shop-overlay-item').forEach(el => el.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedShop = {
+                    id: parseInt(this.dataset.id),
+                    name: this.dataset.name,
+                    seller: this.dataset.seller
+                };
+                // Fermer l'overlay après un court délai
+                setTimeout(() => {
+                    closeShopOverlay();
+                    // Mettre à jour le bouton Seller
+                    destSellerBtn.innerHTML = `<i class="fas fa-store"></i> ${selectedShop.name}`;
+                    destSellerBtn.classList.add('active');
+                    destAdminBtn.classList.remove('active');
+                    messageInput.placeholder = `Envoyer un message à ${selectedShop.name}...`;
+                }, 300);
+            });
+        });
+    }
+
+    // ==========================================
+    // OVERLAY BOUTIQUES
+    // ==========================================
+
+    function openShopOverlay() {
+        shopOverlay.classList.add('active');
+        shopSearchInput.value = '';
+        shopSearchInput.focus();
+        filterShopOverlay('');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeShopOverlay() {
+        shopOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    shopOverlayClose.addEventListener('click', closeShopOverlay);
+    shopOverlayCancel.addEventListener('click', closeShopOverlay);
+
+    shopOverlay.addEventListener('click', function(e) {
+        if (e.target === shopOverlay) {
+            closeShopOverlay();
+        }
+    });
+
+    // Recherche dans l'overlay
+    shopSearchInput.addEventListener('input', function() {
+        filterShopOverlay(this.value.trim().toLowerCase());
+    });
+
+    function filterShopOverlay(query) {
+        const items = shopOverlayList.querySelectorAll('.shop-overlay-item');
+        items.forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            const seller = item.dataset.seller.toLowerCase();
+            const match = name.includes(query) || seller.includes(query);
+            item.style.display = match ? 'flex' : 'none';
         });
     }
 
@@ -157,18 +227,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function setDest(target) {
         currentDest = target;
 
-        // Mettre à jour les boutons
-        destAdminBtn.classList.toggle('active', target === 'admin');
-        destSellerBtn.classList.toggle('active', target === 'seller');
-
-        // Afficher/masquer le sélecteur de boutique
-        shopSelector.style.display = target === 'seller' ? 'block' : 'none';
-
-        // Mettre à jour le placeholder
         if (target === 'admin') {
+            destAdminBtn.classList.add('active');
+            destSellerBtn.classList.remove('active');
+            destSellerBtn.innerHTML = '<i class="fas fa-store"></i> Boutique';
+            selectedShop = null;
             messageInput.placeholder = 'Envoyer un message à l\'admin...';
         } else {
-            messageInput.placeholder = 'Choisissez une boutique et écrivez votre message...';
+            // Ouvrir l'overlay pour choisir une boutique
+            if (shops.length === 0) {
+                loadShops().then(() => {
+                    openShopOverlay();
+                });
+            } else {
+                openShopOverlay();
+            }
         }
     }
 
@@ -177,14 +250,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     destSellerBtn.addEventListener('click', function() {
-        setDest('seller');
-        if (shops.length === 0) {
-            loadShops();
+        if (selectedShop) {
+            // Si déjà une boutique sélectionnée, on change
+            openShopOverlay();
+        } else {
+            setDest('seller');
         }
-    });
-
-    shopSelect.addEventListener('change', function() {
-        selectedShopId = this.value ? parseInt(this.value) : null;
     });
 
     // ==========================================
@@ -205,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Vérifier si seller est sélectionné et une boutique est choisie
-        if (currentDest === 'seller' && !selectedShopId) {
+        if (currentDest === 'seller' && !selectedShop) {
             sendMessageResult.className = 'send-message-result error';
             sendMessageResult.textContent = '⚠️ Veuillez choisir une boutique.';
             sendMessageResult.style.display = 'block';
@@ -224,18 +295,16 @@ document.addEventListener('DOMContentLoaded', function() {
             let url, body;
 
             if (currentDest === 'admin') {
-                // ✅ Envoi à l'admin
                 url = '/api/client/send-message';
                 body = {
                     title: '💬 Message client',
                     content: content
                 };
             } else {
-                // ✅ Envoi au seller
                 const username = localStorage.getItem('userName') || 'Client';
                 url = SELLER_API_URL + '/api/seller/message/send';
                 body = {
-                    shop_id: selectedShopId,
+                    shop_id: selectedShop.id,
                     username: username,
                     message: content
                 };
@@ -251,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (res.ok) {
                 sendMessageResult.className = 'send-message-result success';
-                const destLabel = currentDest === 'admin' ? 'admin' : 'la boutique';
+                const destLabel = currentDest === 'admin' ? 'admin' : selectedShop.name;
                 sendMessageResult.textContent = `✅ Message envoyé à ${destLabel} avec succès !`;
                 sendMessageResult.style.display = 'block';
                 messageInput.value = '';
@@ -260,8 +329,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Ajouter une notification locale
                 const newNotif = {
                     id: Date.now(),
-                    type: currentDest === 'admin' ? 'client_message' : 'client_message',
-                    title: currentDest === 'admin' ? '💬 Vous → Admin' : '💬 Vous → Boutique',
+                    type: 'client_message',
+                    title: currentDest === 'admin' ? '💬 Vous → Admin' : `💬 Vous → ${selectedShop.name}`,
                     content: content,
                     is_read: 1,
                     created_at: new Date().toISOString()
@@ -501,7 +570,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getDisplayTitle(notification) {
         if (notification.type === 'client_message') {
-            return '💬 Vous → ' + (notification.title.includes('Boutique') ? 'Boutique' : 'Admin');
+            if (notification.title && notification.title.includes('→')) {
+                return notification.title;
+            }
+            return '💬 Vous → ' + (notification.title?.includes('Boutique') ? 'Boutique' : 'Admin');
         }
         return notification.title || 'Notification';
     }
@@ -548,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (AVEC COULEURS ET FILTRES)
+    // RENDRE LES NOTIFICATIONS
     // ==========================================
 
     function renderNotifications() {
@@ -566,14 +638,15 @@ document.addEventListener('DOMContentLoaded', function() {
             filtered = filtered.filter(n => n.type === currentFilter);
         }
 
-        // Filtre "Déjà lu" (caché par défaut)
-        const showRead = showReadToggle.checked;
-        if (!showRead) {
+        // Filtre "Déjà lu"
+        const showRead = document.getElementById('showReadToggle');
+        if (showRead && !showRead.checked) {
             filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
         }
 
         if (filtered.length === 0) {
-            renderEmpty(showRead ? 'Aucune notification avec ce filtre' : 'Aucune notification non lue');
+            const msg = (showRead && !showRead.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
+            renderEmpty(msg);
             return;
         }
 
@@ -589,6 +662,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const colors = getTypeColors(type);
 
             let contentHtml = n.content || 'Aucun contenu';
+            
+            // Gérer les liens
             const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
             if (linkMatch) {
                 const url = linkMatch[1];
@@ -600,35 +675,87 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
 
+            // Gérer la carte produit intégrée
+            let productCardHtml = '';
+            const productMatch = contentHtml.match(/<div style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;" onclick="window.location.href='([^']+)'">([\s\S]*?)<\/div>/);
+            if (productMatch) {
+                const url = productMatch[1];
+                const content = productMatch[2];
+                productCardHtml = `
+                    <div class="card-product-linked" onclick="window.location.href='${url}'">
+                        ${content}
+                        <span class="p-arrow">Voir →</span>
+                    </div>
+                `;
+                // Retirer le HTML de la carte du contenu
+                contentHtml = contentHtml.replace(productMatch[0], '');
+            }
+
+            // Extraire le nom de la boutique pour le footer
+            let shopName = null;
+            const shopMatch = contentHtml.match(/🛍️ ([^\n]+)/);
+            if (shopMatch) {
+                shopName = shopMatch[1];
+            }
+
+            // Extraire l'image si présente
+            let shopImageHtml = '';
+            const imgMatch = contentHtml.match(/<img[^>]+>/);
+            if (imgMatch) {
+                // On garde l'image pour l'afficher dans le header
+                shopImageHtml = imgMatch[0];
+                contentHtml = contentHtml.replace(imgMatch[0], '');
+            }
+
+            // Nettoyer le contenu (enlever les balises inutiles)
+            contentHtml = contentHtml.trim();
+
             html += `
                 <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
                      data-id="${n.id}"
-                     style="background: ${colors.bg}; border-color: ${colors.border}; border-width: 2px; border-style: solid; border-radius: 16px; padding: 16px 18px 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.3s ease; display: flex; gap: 14px; align-items: flex-start; position: relative; margin-bottom: 12px;">
+                     style="border-color: ${colors.border};">
                     
-                    <div class="avatar" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: ${colors.bg}; color: ${colors.avatar};">
-                        ${avatarIcon}
-                    </div>
-                    
-                    <div class="body" style="flex: 1; min-width: 0;">
-                        <div class="title" style="font-size: 15px; font-weight: 700; color: ${colors.text};">${displayTitle}</div>
-                        <div class="content" style="font-size: 14px; line-height: 1.5; margin-top: 2px; color: ${colors.text};">${contentHtml}</div>
-                        <div class="date" style="font-size: 12px; color: #999; margin-top: 4px;">${dateStr}</div>
-                        <span class="badge-type" style="display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-top: 6px; letter-spacing: 0.3px; background: ${colors.badge}; color: white;">${typeLabel}</span>
-                    </div>
-                    
-                    <div class="header-actions" style="position: absolute; top: 14px; right: 16px; display: flex; gap: 6px; align-items: center;">
-                        ${isUnread ? `
-                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu" style="background: none; border: none; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 50%; transition: all 0.3s; color: #2d7d46; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;">
-                                <i class="fas fa-check"></i>
+                    <!-- HEADER -->
+                    <div class="card-header">
+                        <div class="card-avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
+                            ${avatarIcon}
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title" style="color: ${colors.text};">${displayTitle}</div>
+                            <div class="card-sub">${dateStr}</div>
+                        </div>
+                        <div class="card-actions">
+                            ${isUnread ? `
+                                <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            ` : `
+                                <button class="btn btn-read already" disabled title="Déjà lu">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            `}
+                            <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
-                        ` : `
-                            <button class="btn btn-read already" disabled title="Déjà lu" style="background: none; border: none; font-size: 14px; cursor: default; padding: 4px 6px; border-radius: 50%; color: #ccc; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `}
-                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer" style="background: none; border: none; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 50%; transition: all 0.3s; color: #bbb; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        </div>
+                    </div>
+
+                    <!-- IMAGE DE LA BOUTIQUE -->
+                    ${shopImageHtml ? `<div class="card-shop-image">${shopImageHtml}</div>` : ''}
+
+                    <!-- CONTENU -->
+                    <div class="card-content">${contentHtml}</div>
+
+                    <!-- PRODUIT LIÉ -->
+                    ${productCardHtml}
+
+                    <!-- BADGE -->
+                    <span class="card-badge" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
+
+                    <!-- FOOTER -->
+                    <div class="card-footer">
+                        <span class="card-date">${dateStr}</span>
+                        ${shopName ? `<span class="card-shop-name"><i class="fas fa-store"></i> ${shopName}</span>` : ''}
                     </div>
                 </div>
             `;
@@ -677,14 +804,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.querySelectorAll('.notif-card.unread').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('.btn') || e.target.closest('.notification-link') || e.target.closest('.card-product-linked')) {
+                    return;
+                }
                 const id = this.dataset.id;
                 markAsRead(id);
             });
         });
 
-        document.querySelectorAll('.notification-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+        document.querySelectorAll('.notification-link, .card-product-linked').forEach(el => {
+            el.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
         });
@@ -812,9 +942,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // FILTRE DÉJÀ LU
     // ==========================================
 
-    showReadToggle.addEventListener('change', function() {
-        renderNotifications();
-    });
+    const showReadToggle = document.getElementById('showReadToggle');
+    if (showReadToggle) {
+        showReadToggle.addEventListener('change', function() {
+            renderNotifications();
+        });
+    }
 
     // ==========================================
     // OVERLAY CONFIRMATION
@@ -859,9 +992,6 @@ document.addEventListener('DOMContentLoaded', function() {
             connectSocketIO();
 
             await loadNotifications();
-
-            // Définir le destinataire par défaut
-            setDest('admin');
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
