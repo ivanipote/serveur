@@ -892,6 +892,39 @@ app.get('/api/products', async (req, res) => {
 });
 
 // ========================================================
+// ROUTE : NOTIFICATION PUBLIQUE POUR LE VENDEUR
+// ========================================================
+
+app.post('/api/notifications/seller-create', async (req, res) => {
+    const { userId, title, content, type } = req.body;
+
+    if (!userId || !title || !content) {
+        return res.status(400).json({ error: 'userId, title et content requis.' });
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [userId, null, type || 'admin', title, content, false]
+        );
+
+        // Émettre via Socket.IO
+        global.io.to(`user_${userId}`).emit('notification', {
+            title: title,
+            content: content,
+            type: type || 'admin'
+        });
+
+        console.log(`✅ Notification vendeur envoyée à l'utilisateur ${userId}: ${title}`);
+        res.json({ success: true, message: 'Notification envoyée' });
+    } catch (err) {
+        console.error('❌ Erreur envoi notification vendeur:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ========================================================
 // ROUTES FRAIS DE LIVRAISON (public)
 // ========================================================
 

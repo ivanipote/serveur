@@ -656,7 +656,7 @@
 
                 for (const client of selectedClients) {
                     try {
-                        const res = await fetch(CLIENT_API_URL + '/api/notifications/create', {
+                        const res = await fetch(CLIENT_API_URL + '/api/notifications/seller-create', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
