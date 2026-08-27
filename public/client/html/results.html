@@ -247,6 +247,25 @@
             overflow: hidden;
         }
 
+        .product-card .card-body .name .source-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            display: inline-block;
+        }
+
+        .product-card .card-body .name .source-badge.catalogue {
+            background: #e8f5e9;
+            color: #2d7d46;
+        }
+
+        .product-card .card-body .name .source-badge.seller {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
         .product-card .card-body .price {
             font-size: 20px;
             font-weight: 800;
@@ -317,6 +336,28 @@
 
         .product-card .card-body .add-btn.added {
             background: #27ae60;
+        }
+
+        .product-card .card-body .view-shop-btn {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .product-card .card-body .view-shop-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(21, 101, 192, 0.2);
         }
 
         .no-result {
@@ -408,7 +449,8 @@
                 font-size: 17px;
             }
 
-            .product-card .card-body .add-btn {
+            .product-card .card-body .add-btn,
+            .product-card .card-body .view-shop-btn {
                 font-size: 13px;
                 padding: 8px 12px;
             }
@@ -472,7 +514,8 @@
                 -webkit-line-clamp: 1;
             }
 
-            .product-card .card-body .add-btn {
+            .product-card .card-body .add-btn,
+            .product-card .card-body .view-shop-btn {
                 font-size: 11px;
                 padding: 6px 10px;
             }
@@ -552,6 +595,7 @@
             // ==========================================
 
             const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+            const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
 
             // ==========================================
             // BADGE PANIER
@@ -702,32 +746,53 @@
 
                 countEl.textContent = filtered.length + ' produit' + (filtered.length > 1 ? 's' : '');
 
-                grid.innerHTML = filtered.map(p => `
-                    <div class="product-card" data-id="${p.id}" data-source="${p.source || 'catalogue'}">
-                        <img src="${p.image1 || 'https://via.placeholder.com/400x300'}" alt="${p.name}" class="card-img" loading="lazy">
-                        <div class="card-body">
-                            <div class="name">${p.name}</div>
-                            <div class="price">${p.price.toLocaleString()} FCFA</div>
-                            <div class="desc">${p.description || ''}</div>
-                            <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
-                            <div class="stock-info ${p.quantity <= 0 ? 'out' : p.quantity <= 5 ? 'low' : ''}">📦 ${p.quantity || p.stock || 0} en stock</div>
-                            <button class="add-btn" data-id="${p.id}">
-                                <i class="fas fa-plus-circle"></i> Ajouter au panier
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                grid.innerHTML = filtered.map(p => {
+                    const isCatalogue = p.source === 'catalogue';
+                    const badgeClass = isCatalogue ? 'catalogue' : 'seller';
+                    const badgeText = isCatalogue ? '📦 Catalogue' : '🛍️ Boutique';
 
-                // ✅ Clic sur la carte → detail-produit
+                    return `
+                        <div class="product-card" data-id="${p.id}" data-source="${p.source}" data-shop="${p.shop_id || ''}">
+                            <img src="${p.image1 || 'https://via.placeholder.com/400x300'}" alt="${p.name}" class="card-img" loading="lazy">
+                            <div class="card-body">
+                                <div class="name">
+                                    ${p.name}
+                                    <span class="source-badge ${badgeClass}">${badgeText}</span>
+                                </div>
+                                <div class="price">${p.price.toLocaleString()} FCFA</div>
+                                <div class="desc">${p.description || ''}</div>
+                                <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
+                                <div class="stock-info ${p.quantity <= 0 ? 'out' : p.quantity <= 5 ? 'low' : ''}">📦 ${p.quantity || p.stock || 0} en stock</div>
+                                ${isCatalogue ? `
+                                    <button class="add-btn" data-id="${p.id}">
+                                        <i class="fas fa-plus-circle"></i> Ajouter au panier
+                                    </button>
+                                ` : `
+                                    <button class="view-shop-btn" data-shop="${p.shop_id}">
+                                        <i class="fas fa-store"></i> Voir la boutique
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // ✅ Clic sur la carte → redirection selon source
                 document.querySelectorAll('.product-card').forEach(card => {
                     card.addEventListener('click', function(e) {
-                        if (e.target.closest('.add-btn')) return;
+                        if (e.target.closest('.add-btn') || e.target.closest('.view-shop-btn')) return;
                         const id = this.dataset.id;
-                        window.location.href = '/detail-produit?id=' + id;
+                        const source = this.dataset.source;
+
+                        if (source === 'catalogue') {
+                            window.location.href = CLIENT_API_URL + '/infoproduit?id=' + id;
+                        } else {
+                            window.location.href = SELLER_API_URL + '/detail-produit?id=' + id;
+                        }
                     });
                 });
 
-                // ✅ Ajouter au panier
+                // ✅ Ajouter au panier (catalogue uniquement)
                 document.querySelectorAll('.add-btn').forEach(btn => {
                     btn.addEventListener('click', async function(e) {
                         e.stopPropagation();
@@ -753,6 +818,17 @@
                             }
                         } catch (error) {
                             console.error('Erreur ajout panier:', error);
+                        }
+                    });
+                });
+
+                // ✅ Voir la boutique (seller uniquement)
+                document.querySelectorAll('.view-shop-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const shopId = this.dataset.shop;
+                        if (shopId) {
+                            window.location.href = CLIENT_API_URL + '/shop-user?id=' + shopId;
                         }
                     });
                 });
