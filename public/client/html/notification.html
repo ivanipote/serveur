@@ -38,7 +38,16 @@
                 <button class="filter-btn" data-filter="commande">📦 Commandes</button>
                 <button class="filter-btn" data-filter="paiement">💳 Paiements</button>
                 <button class="filter-btn" data-filter="admin">📢 Admin</button>
+                <button class="filter-btn" data-filter="seller">🛍️ Boutiques</button>
                 <button class="filter-btn" data-filter="systeme">⚙️ Système</button>
+            </div>
+            <!-- Filtre "Déjà lu" -->
+            <div class="filter-read-toggle">
+                <label class="toggle-label">
+                    <input type="checkbox" id="showReadToggle" />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Afficher les lues</span>
+                </label>
             </div>
         </div>
 
@@ -63,24 +72,44 @@
     </main>
 
     <!-- ============================================================= -->
-    <!-- FOOTER MESSAGE FIXE                                             -->
+    <!-- FOOTER MESSAGE FIXE AVEC SÉLECTEUR ADMIN/SELLER                -->
     <!-- ============================================================= -->
 
     <footer class="notif-footer" id="notifFooter">
         <div class="footer-container">
+
+            <!-- Sélecteur Admin / Boutique -->
+            <div class="dest-selector">
+                <button class="dest-btn active" data-target="admin" id="destAdminBtn">
+                    <i class="fas fa-user-shield"></i> Admin
+                </button>
+                <button class="dest-btn" data-target="seller" id="destSellerBtn">
+                    <i class="fas fa-store"></i> Boutique
+                </button>
+            </div>
+
+            <!-- Sélecteur boutique (caché par défaut) -->
+            <div class="shop-selector" id="shopSelector" style="display:none;">
+                <select id="shopSelect">
+                    <option value="">Choisir une boutique...</option>
+                </select>
+            </div>
+
+            <!-- Message + Envoyer -->
             <div class="message-wrapper">
                 <div class="message-input-container">
                     <textarea 
                         id="messageInput" 
                         class="message-input" 
                         rows="1"
-                        placeholder="Envoyer un message à l'admin..."
+                        placeholder="Envoyer un message..."
                     ></textarea>
                 </div>
                 <button class="btn-send-message" id="sendMessageBtn">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
+
             <div id="sendMessageResult" class="send-message-result"></div>
         </div>
     </footer>
