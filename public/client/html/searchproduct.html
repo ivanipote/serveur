@@ -266,6 +266,25 @@
             color: #17A464;
         }
 
+        .result-item .result-info .source-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            display: inline-block;
+        }
+
+        .result-item .result-info .source-badge.catalogue {
+            background: #e8f5e9;
+            color: #2d7d46;
+        }
+
+        .result-item .result-info .source-badge.seller {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
         .result-item .open-icon {
             color: #aaa;
             font-size: 14px;
@@ -383,6 +402,7 @@
             const MAX_HISTORY = 10;
 
             const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+            const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
 
             let products = [];
             let sellerProducts = [];
@@ -595,30 +615,46 @@
                     return;
                 }
 
-                container.innerHTML = results.map(p => `
-                    <div class="result-item" data-id="${p.id}" data-name="${p.name}" data-source="${p.source || 'catalogue'}">
-                        <img src="${p.image1 || 'https://via.placeholder.com/50'}" alt="${p.name}" class="result-img" loading="lazy">
-                        <div class="result-info">
-                            <div class="name">${p.name}</div>
-                            <div class="price">${p.price.toLocaleString()} FCFA</div>
-                            <div class="desc">${p.description || ''}</div>
-                            <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
-                        </div>
-                        <span class="open-icon"><i class="fas fa-chevron-right"></i></span>
-                    </div>
-                `).join('');
+                container.innerHTML = results.map(p => {
+                    const isCatalogue = p.source === 'catalogue';
+                    const badgeClass = isCatalogue ? 'catalogue' : 'seller';
+                    const badgeText = isCatalogue ? '📦 Catalogue' : '🛍️ Boutique';
 
+                    return `
+                        <div class="result-item" data-id="${p.id}" data-source="${p.source}" data-shop="${p.shop_id || ''}">
+                            <img src="${p.image1 || 'https://via.placeholder.com/50'}" alt="${p.name}" class="result-img" loading="lazy">
+                            <div class="result-info">
+                                <div class="name">
+                                    ${p.name}
+                                    <span class="source-badge ${badgeClass}">${badgeText}</span>
+                                </div>
+                                <div class="price">${p.price.toLocaleString()} FCFA</div>
+                                <div class="desc">${p.description || ''}</div>
+                                <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
+                            </div>
+                            <span class="open-icon"><i class="fas fa-chevron-right"></i></span>
+                        </div>
+                    `;
+                }).join('');
+
+                // ✅ Clic sur un résultat → redirection selon la source
                 document.querySelectorAll('.result-item').forEach(item => {
                     item.addEventListener('click', function() {
-                        const name = this.dataset.name;
                         const id = this.dataset.id;
                         const source = this.dataset.source;
+                        const shopId = this.dataset.shop;
 
                         // Sauvegarder la recherche
+                        const name = this.querySelector('.name')?.textContent?.trim() || '';
                         saveHistory(name);
 
-                        // Rediriger vers detail-produit (toujours)
-                        window.location.href = '/detail-produit?id=' + id;
+                        if (source === 'catalogue') {
+                            // ✅ Produit catalogue → infoproduit (client)
+                            window.location.href = CLIENT_API_URL + '/infoproduit?id=' + id;
+                        } else {
+                            // ✅ Produit boutique → detail-produit (seller)
+                            window.location.href = SELLER_API_URL + '/detail-produit?id=' + id;
+                        }
                     });
                 });
             }
