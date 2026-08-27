@@ -1,58 +1,133 @@
+/* =====================================================================
+   NOTIFICATIONS — ComPlus
+   Feuille de style nettoyée et réorganisée
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. VARIABLES GLOBALES
+   --------------------------------------------------------------------- */
+
+:root {
+    /* Couleurs de marque */
+    --brand-green: #2d7d46;
+    --brand-green-dark: #1a5a33;
+    --brand-navy: #1a2a6c;
+    --brand-navy-dark: #0d1a4a;
+    --brand-mint: #17a464;
+
+    /* Neutres */
+    --bg-page: #f0f2f5;
+    --bg-card: #ffffff;
+    --border-light: #f0f2f5;
+    --border-input: #e8ecf4;
+    --text-muted: #888888;
+    --text-faint: #999999;
+    --text-dark: #1a1a2e;
+
+    /* États */
+    --color-danger: #e74c3c;
+    --color-danger-dark: #c0392b;
+    --color-success-bg: #e8f5e9;
+    --color-success-text: #2e7d32;
+    --color-success-border: #a5d6a7;
+    --color-error-bg: #ffebee;
+    --color-error-text: #c62828;
+    --color-error-border: #ef9a9a;
+
+    /* Rayons & ombres */
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --shadow-header: 0 2px 10px rgba(45, 125, 70, 0.2);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+    --shadow-card-hover: 0 6px 24px rgba(0, 0, 0, 0.08);
+    --shadow-overlay: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+
+    /* Empilement (z-index) */
+    --z-filter-bar: 90;
+    --z-header: 100;
+    --z-footer: 99;
+    --z-shop-overlay: 200;
+    --z-confirm-overlay: 250;
+    --z-toast: 999;
+
+    /* Layout */
+    --header-height: 70px;
+    --header-height-sm: 60px;
+    --header-height-xs: 54px;
+    --footer-safe-padding: 180px;
+}
+
+/* ---------------------------------------------------------------------
+   2. RESET & BASE
+   --------------------------------------------------------------------- */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html,
 body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: #f0f2f5;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding-top: 80px;
-    overflow: hidden;
-    height: 100vh;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
-/* =============================================================
-   HEADER UNIFIÉ
-   ============================================================= */
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg-page);
+    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--header-height);
+    padding-bottom: var(--footer-safe-padding);
+    overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------
+   3. HEADER
+   --------------------------------------------------------------------- */
 
 .notif-header {
-    background: #2d7d46;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
-    height: 70px;
-    min-height: 70px;
-    max-height: 70px;
-    box-shadow: 0 2px 10px rgba(45, 125, 70, 0.2);
+    z-index: var(--z-header);
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--brand-green);
+    border-bottom-left-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
+    box-shadow: var(--shadow-header);
+    flex-shrink: 0;
 }
 
 .back-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    transition: all 0.2s;
-    flex-shrink: 0;
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-base);
 }
 
 .back-btn:hover {
@@ -68,34 +143,34 @@ body {
 }
 
 .badge-count {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    flex-shrink: 0;
+    padding: 4px 14px;
     font-size: 13px;
     font-weight: 700;
-    padding: 4px 14px;
-    border-radius: 20px;
-    flex-shrink: 0;
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-xl);
 }
 
 .badge-count.zero {
-    background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-read-all {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    transition: background var(--transition-base);
 }
 
 .btn-read-all:hover {
@@ -109,19 +184,19 @@ body {
 }
 
 .btn-sync {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    border-radius: 50%;
     width: 40px;
     height: 40px;
-    cursor: pointer;
-    transition: all 0.3s;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    flex-shrink: 0;
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background var(--transition-base);
 }
 
 .btn-sync:hover {
@@ -130,7 +205,7 @@ body {
 
 .btn-sync .sync-status {
     font-size: 10px;
-    transition: all 0.3s;
+    transition: color var(--transition-base);
 }
 
 .btn-sync .sync-status.active {
@@ -142,7 +217,7 @@ body {
 }
 
 .btn-sync .fa-sync-alt {
-    transition: transform 0.3s;
+    transition: transform var(--transition-base);
 }
 
 .btn-sync.active .fa-sync-alt {
@@ -154,29 +229,32 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-/* =============================================================
-   BARRE DE FILTRES
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   4. BARRE DE FILTRES
+   --------------------------------------------------------------------- */
 
 .filter-bar-wrapper {
     position: fixed;
-    top: 70px;
+    top: var(--header-height);
     left: 0;
     right: 0;
-    z-index: 90;
-    background: white;
-    border-bottom: 1px solid #f0f2f5;
+    z-index: var(--z-filter-bar);
     padding: 0 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-light);
 }
 
 .filter-bar {
     display: flex;
     gap: 8px;
-    overflow-x: auto;
     padding: 10px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
 }
@@ -187,44 +265,44 @@ body {
 
 .filter-bar::-webkit-scrollbar-thumb {
     background: #ccc;
-    border-radius: 10px;
+    border-radius: var(--radius-xl);
 }
 
 .filter-btn {
+    flex-shrink: 0;
     padding: 6px 16px;
-    border: 2px solid #e8e8f0;
-    border-radius: 20px;
-    background: white;
     font-size: 13px;
     font-weight: 600;
-    color: #888;
-    cursor: pointer;
-    transition: all 0.3s;
     white-space: nowrap;
-    flex-shrink: 0;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border: 2px solid var(--border-input);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    transition: all var(--transition-base);
 }
 
 .filter-btn:hover {
-    border-color: #2d7d46;
-    color: #2d7d46;
+    color: var(--brand-green);
+    border-color: var(--brand-green);
 }
 
 .filter-btn.active {
-    background: #2d7d46;
     color: white;
-    border-color: #2d7d46;
+    background: var(--brand-green);
+    border-color: var(--brand-green);
 }
 
 .filter-btn.active:hover {
-    background: #1a5a33;
+    background: var(--brand-green-dark);
 }
 
 .filter-read-toggle {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 0 10px 0;
-    border-top: 1px solid #f0f2f5;
+    padding: 6px 0 10px;
+    border-top: 1px solid var(--border-light);
 }
 
 .toggle-label {
@@ -233,7 +311,7 @@ body {
     gap: 10px;
     font-size: 13px;
     font-weight: 600;
-    color: #888;
+    color: var(--text-muted);
     cursor: pointer;
 }
 
@@ -242,29 +320,29 @@ body {
 }
 
 .toggle-slider {
+    position: relative;
     width: 40px;
     height: 22px;
+    flex-shrink: 0;
     background: #ccc;
     border-radius: 30px;
-    position: relative;
-    transition: background 0.3s;
-    flex-shrink: 0;
+    transition: background var(--transition-base);
 }
 
 .toggle-slider::after {
     content: '';
     position: absolute;
+    top: 2px;
+    left: 2px;
     width: 18px;
     height: 18px;
     background: white;
     border-radius: 50%;
-    top: 2px;
-    left: 2px;
-    transition: transform 0.3s;
+    transition: transform var(--transition-base);
 }
 
 .toggle-label input:checked + .toggle-slider {
-    background: #2d7d46;
+    background: var(--brand-green);
 }
 
 .toggle-label input:checked + .toggle-slider::after {
@@ -275,33 +353,33 @@ body {
     user-select: none;
 }
 
-/* =============================================================
-   CONTENU PRINCIPAL
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   5. CONTENU PRINCIPAL
+   --------------------------------------------------------------------- */
 
 .notif-main {
     flex: 1;
-    padding: 16px 20px 20px 20px;
-    overflow-y: auto;
-    max-width: 700px;
     width: 100%;
+    max-width: 700px;
     margin: 0 auto;
+    padding: 150px 20px 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-top: 150px;
-    padding-bottom: 180px;
 }
 
 .notif-main::-webkit-scrollbar {
     width: 4px;
 }
+
 .notif-main::-webkit-scrollbar-thumb {
     background: #d0d0da;
-    border-radius: 10px;
+    border-radius: var(--radius-xl);
 }
 
-/* =============================================================
-   SKELETON LOADER
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   6. SKELETON LOADER
+   --------------------------------------------------------------------- */
 
 .skeleton-loader {
     display: flex;
@@ -310,23 +388,23 @@ body {
 }
 
 .skeleton-item {
-    background: white;
-    border-radius: 16px;
-    padding: 16px 18px;
-    border: 1px solid #f0f0f5;
     display: flex;
-    gap: 14px;
     align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--bg-card);
+    border: 1px solid #f0f0f5;
+    border-radius: var(--radius-lg);
 }
 
 .skeleton-avatar {
     width: 44px;
     height: 44px;
+    flex-shrink: 0;
     border-radius: 50%;
     background: linear-gradient(90deg, #e8e8f0 25%, #d5d5e0 50%, #e8e8f0 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
-    flex-shrink: 0;
 }
 
 .skeleton-body {
@@ -350,46 +428,61 @@ body {
 }
 
 @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
 }
 
-/* =============================================================
-   NOTIFICATION CARD - STYLE ORIGINAL
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   7. CARTE DE NOTIFICATION
+   --------------------------------------------------------------------- */
 
 .notif-card {
-    border-radius: 16px;
-    padding: 16px 18px 14px 18px;
-    border: 2px solid;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    transition: all 0.3s ease;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
     position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
     margin-bottom: 12px;
-    background: white;
+    padding: 16px 18px 14px;
+    max-width: 100%;
+    background: var(--bg-card);
+    border: 2px solid;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    transition: all var(--transition-base);
 }
 
 .notif-card:hover {
+    box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
 }
 
-/* ===== AVATAR ===== */
+.notif-card.read {
+    opacity: 0.7;
+}
+
+.notif-card.unread .body .title {
+    font-weight: 800;
+}
+
+/* Avatar */
 .notif-card .avatar {
     width: 44px;
     height: 44px;
-    border-radius: 50%;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    flex-shrink: 0;
+    border-radius: 50%;
 }
 
-/* ===== BODY ===== */
+/* Corps */
 .notif-card .body {
     flex: 1;
     min-width: 0;
@@ -401,65 +494,65 @@ body {
 }
 
 .notif-card .body .content {
+    margin-top: 2px;
     font-size: 14px;
     line-height: 1.5;
-    margin-top: 2px;
-    word-wrap: break-word;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .notif-card .body .date {
-    font-size: 12px;
-    color: #999;
     margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-faint);
 }
 
-/* ===== BADGE TYPE ===== */
 .notif-card .badge-type {
     display: inline-block;
+    margin-top: 6px;
+    padding: 3px 12px;
     font-size: 11px;
     font-weight: 700;
-    padding: 3px 12px;
-    border-radius: 20px;
-    margin-top: 6px;
     letter-spacing: 0.3px;
+    border-radius: var(--radius-xl);
 }
 
-/* ===== ACTIONS ===== */
+/* Actions */
 .notif-card .header-actions {
     position: absolute;
     top: 14px;
     right: 16px;
     display: flex;
-    gap: 6px;
     align-items: center;
+    gap: 6px;
 }
 
 .notif-card .header-actions .btn {
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 50%;
-    transition: all 0.3s;
-    color: #bbb;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    font-size: 14px;
+    color: #bbb;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-base);
 }
 
 .notif-card .header-actions .btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .notif-card .header-actions .btn-read {
-    color: #2d7d46;
+    color: var(--brand-green);
 }
 
 .notif-card .header-actions .btn-read:hover {
-    background: rgba(45,125,70,0.1);
+    background: rgba(45, 125, 70, 0.1);
 }
 
 .notif-card .header-actions .btn-read.already {
@@ -472,36 +565,36 @@ body {
 }
 
 .notif-card .header-actions .btn-delete:hover {
-    color: #e74c3c;
-    background: rgba(231,76,60,0.1);
+    color: var(--color-danger);
+    background: rgba(231, 76, 60, 0.1);
 }
 
-/* ===== PRODUIT LIÉ ===== */
+/* Produit lié */
 .notif-card .card-product-linked {
-    margin-top: 8px;
-    border: 2px solid #17A464;
-    border-radius: 14px;
-    padding: 10px 14px;
     display: flex;
     align-items: center;
     gap: 14px;
+    margin-top: 8px;
+    padding: 10px 14px;
     background: #f8fbf9;
+    border: 2px solid var(--brand-mint);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-fast);
 }
 
 .notif-card .card-product-linked:hover {
-    transform: scale(1.01);
     box-shadow: 0 4px 16px rgba(23, 164, 100, 0.1);
+    transform: scale(1.01);
 }
 
 .notif-card .card-product-linked .p-img {
     width: 50px;
     height: 50px;
-    border-radius: 10px;
-    object-fit: cover;
-    background: #f0f2f5;
     flex-shrink: 0;
+    object-fit: cover;
+    background: var(--bg-page);
+    border-radius: var(--radius-sm);
 }
 
 .notif-card .card-product-linked .p-info {
@@ -512,200 +605,144 @@ body {
 .notif-card .card-product-linked .p-info .p-name {
     font-size: 14px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: var(--text-dark);
 }
 
 .notif-card .card-product-linked .p-info .p-price {
     font-size: 13px;
     font-weight: 700;
-    color: #17A464;
+    color: var(--brand-mint);
 }
 
 .notif-card .card-product-linked .p-info .p-stock {
     font-size: 11px;
-    color: #6B7280;
+    color: #6b7280;
 }
 
 .notif-card .card-product-linked .p-arrow {
-    color: #17A464;
-    font-weight: 600;
-    font-size: 13px;
     flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-mint);
 }
 
-/* =============================================================
-   COULEURS PAR TYPE
-   ============================================================= */
-
-.notif-card.type-commande {
-    background: #e3f2fd;
-    border-color: #64b5f6;
-}
-.notif-card.type-commande .badge-type {
-    background: #64b5f6;
-    color: white;
-}
-.notif-card.type-commande .avatar {
-    background: rgba(100, 181, 246, 0.2);
-    color: #0d47a1;
-}
-.notif-card.type-commande .body .content {
-    color: #0d47a1;
-}
-.notif-card.type-commande .body .title {
-    color: #0d47a1;
-}
-
-.notif-card.type-paiement {
-    background: #e8f5e9;
-    border-color: #66bb6a;
-}
-.notif-card.type-paiement .badge-type {
-    background: #66bb6a;
-    color: white;
-}
-.notif-card.type-paiement .avatar {
-    background: rgba(102, 187, 106, 0.2);
-    color: #1b5e20;
-}
-.notif-card.type-paiement .body .content {
-    color: #1b5e20;
-}
-.notif-card.type-paiement .body .title {
-    color: #1b5e20;
-}
-
-.notif-card.type-admin {
-    background: #fff3e0;
-    border-color: #ffb74d;
-}
-.notif-card.type-admin .badge-type {
-    background: #ffb74d;
-    color: white;
-}
-.notif-card.type-admin .avatar {
-    background: rgba(255, 183, 77, 0.2);
-    color: #e65100;
-}
-.notif-card.type-admin .body .content {
-    color: #e65100;
-}
-.notif-card.type-admin .body .title {
-    color: #e65100;
-}
-
-.notif-card.type-seller {
-    background: #e8eaf6;
-    border-color: #7986cb;
-}
-.notif-card.type-seller .badge-type {
-    background: #7986cb;
-    color: white;
-}
-.notif-card.type-seller .avatar {
-    background: rgba(121, 134, 203, 0.2);
-    color: #283593;
-}
-.notif-card.type-seller .body .content {
-    color: #283593;
-}
-.notif-card.type-seller .body .title {
-    color: #283593;
-}
-
-.notif-card.type-systeme {
-    background: #f5f5f5;
-    border-color: #d0d0d0;
-}
-.notif-card.type-systeme .badge-type {
-    background: #d0d0d0;
-    color: #555;
-}
-.notif-card.type-systeme .avatar {
-    background: rgba(0,0,0,0.05);
-    color: #555;
-}
-.notif-card.type-systeme .body .content {
-    color: #555;
-}
-.notif-card.type-systeme .body .title {
-    color: #555;
-}
-
-.notif-card.type-client_message {
-    background: #f3e5f5;
-    border-color: #ce93d8;
-}
-.notif-card.type-client_message .badge-type {
-    background: #ce93d8;
-    color: white;
-}
-.notif-card.type-client_message .avatar {
-    background: rgba(206, 147, 216, 0.2);
-    color: #4a148c;
-}
-.notif-card.type-client_message .body .content {
-    color: #4a148c;
-}
-.notif-card.type-client_message .body .title {
-    color: #4a148c;
-}
-
-/* =============================================================
-   UNREAD / READ
-   ============================================================= */
-
-.notif-card.read {
-    opacity: 0.7;
-}
-
-.notif-card.unread .body .title {
-    font-weight: 800;
-}
-
-/* =============================================================
-   LIEN DANS LA NOTIFICATION
-   ============================================================= */
-
+/* Lien dans le contenu */
 .notification-link {
-    color: #1a2a6c;
-    font-weight: 700;
-    text-decoration: underline;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    max-width: 100%;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand-navy);
+    text-decoration: underline;
+    overflow-wrap: break-word;
+    word-break: break-all;
 }
 
 .notification-link:hover {
-    color: #0d1a4a;
+    color: var(--brand-navy-dark);
 }
 
-/* =============================================================
-   FOOTER MESSAGE FIXE AVEC SÉLECTEUR ADMIN/SELLER
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   8. COULEURS PAR TYPE DE NOTIFICATION
+   Chaque type définit un mini jeu de variables réutilisées ci-dessous
+   --------------------------------------------------------------------- */
 
-body {
-    padding-bottom: 170px !important;
+.notif-card.type-commande {
+    --type-bg: #e3f2fd;
+    --type-border: #64b5f6;
+    --type-badge: #64b5f6;
+    --type-text: #0d47a1;
 }
+
+.notif-card.type-paiement {
+    --type-bg: #e8f5e9;
+    --type-border: #66bb6a;
+    --type-badge: #66bb6a;
+    --type-text: #1b5e20;
+}
+
+.notif-card.type-admin {
+    --type-bg: #fff3e0;
+    --type-border: #ffb74d;
+    --type-badge: #ffb74d;
+    --type-text: #e65100;
+}
+
+.notif-card.type-seller {
+    --type-bg: #e8eaf6;
+    --type-border: #7986cb;
+    --type-badge: #7986cb;
+    --type-text: #283593;
+}
+
+.notif-card.type-systeme {
+    --type-bg: #f5f5f5;
+    --type-border: #d0d0d0;
+    --type-badge: #d0d0d0;
+    --type-text: #555555;
+}
+
+.notif-card.type-client_message {
+    --type-bg: #f3e5f5;
+    --type-border: #ce93d8;
+    --type-badge: #ce93d8;
+    --type-text: #4a148c;
+}
+
+/* Application des variables de type */
+.notif-card[class*="type-"] {
+    background: var(--type-bg);
+    border-color: var(--type-border);
+}
+
+.notif-card[class*="type-"] .avatar {
+    color: var(--type-text);
+    background: color-mix(in srgb, var(--type-text) 20%, transparent);
+}
+
+.notif-card[class*="type-"] .body .title,
+.notif-card[class*="type-"] .body .content {
+    color: var(--type-text);
+}
+
+.notif-card[class*="type-"] .badge-type {
+    color: white;
+    background: var(--type-badge);
+}
+
+/* Fallback pour navigateurs sans color-mix() : on garde des tons directs
+   par type au cas où la variable calculée ne soit pas supportée. */
+.notif-card.type-commande .avatar { background: rgba(100, 181, 246, 0.2); }
+.notif-card.type-paiement .avatar { background: rgba(102, 187, 106, 0.2); }
+.notif-card.type-admin .avatar { background: rgba(255, 183, 77, 0.2); }
+.notif-card.type-seller .avatar { background: rgba(121, 134, 203, 0.2); }
+.notif-card.type-systeme .avatar { background: rgba(0, 0, 0, 0.05); }
+.notif-card.type-client_message .avatar { background: rgba(206, 147, 216, 0.2); }
+
+/* ---------------------------------------------------------------------
+   9. PIED DE PAGE — COMPOSITEUR DE MESSAGE
+   --------------------------------------------------------------------- */
 
 .notif-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: var(--z-footer);
+    padding: 10px 16px 16px;
     background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 10px 16px 16px 16px;
-    z-index: 99;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .notif-footer .footer-container {
+    width: 100%;
     max-width: 700px;
     margin: 0 auto;
-    width: 100%;
 }
 
 .dest-selector {
@@ -716,30 +753,30 @@ body {
 
 .dest-selector .dest-btn {
     flex: 1;
-    padding: 6px 12px;
-    border: 2px solid #e8ecf4;
-    border-radius: 20px;
-    background: transparent;
-    font-size: 13px;
-    font-weight: 600;
-    color: #888;
-    cursor: pointer;
-    transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: 2px solid var(--border-input);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    transition: all var(--transition-base);
 }
 
 .dest-selector .dest-btn:hover {
-    border-color: #1a2a6c;
-    color: #1a2a6c;
+    color: var(--brand-navy);
+    border-color: var(--brand-navy);
 }
 
 .dest-selector .dest-btn.active {
-    border-color: #1a2a6c;
+    color: var(--brand-navy);
     background: rgba(26, 42, 108, 0.08);
-    color: #1a2a6c;
+    border-color: var(--brand-navy);
 }
 
 .dest-selector .dest-btn i {
@@ -754,72 +791,73 @@ body {
 
 .message-input-container {
     flex: 1;
-    background: #f0f2f5;
-    border-radius: 20px;
-    padding: 4px 16px;
-    border: 2px solid transparent;
-    transition: border-color 0.3s, background 0.3s;
     min-height: 44px;
     display: flex;
     align-items: flex-end;
+    padding: 4px 16px;
+    background: var(--bg-page);
+    border: 2px solid transparent;
+    border-radius: var(--radius-xl);
+    transition: border-color var(--transition-base), background var(--transition-base);
 }
 
 .message-input-container:focus-within {
-    border-color: #1a2a6c;
     background: #ffffff;
+    border-color: var(--brand-navy);
     box-shadow: 0 0 0 4px rgba(26, 42, 108, 0.08);
 }
 
 .message-input {
     width: 100%;
-    border: none;
-    background: transparent;
-    padding: 10px 0;
-    font-size: 15px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    resize: none;
-    outline: none;
-    color: #1a1a2e;
-    line-height: 1.5;
     min-height: 36px;
     max-height: 150px;
+    padding: 10px 0;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-dark);
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
     overflow-y: auto;
 }
 
 .message-input::placeholder {
-    color: #999;
     font-size: 14px;
+    color: var(--text-faint);
 }
 
 .message-input::-webkit-scrollbar {
     width: 4px;
 }
+
 .message-input::-webkit-scrollbar-thumb {
     background: #ccc;
-    border-radius: 10px;
+    border-radius: var(--radius-xl);
 }
 
 .btn-send-message {
-    flex-shrink: 0;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
-    border: none;
-    background: #1a2a6c;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 18px;
+    color: white;
+    background: var(--brand-navy);
+    border: none;
+    border-radius: 50%;
     box-shadow: 0 4px 16px rgba(26, 42, 108, 0.2);
+    cursor: pointer;
+    transition: all var(--transition-base);
 }
 
 .btn-send-message:hover:not(:disabled) {
-    background: #0d1a4a;
-    transform: scale(1.05);
+    background: var(--brand-navy-dark);
     box-shadow: 0 6px 24px rgba(26, 42, 108, 0.3);
+    transform: scale(1.05);
 }
 
 .btn-send-message:disabled {
@@ -828,50 +866,43 @@ body {
     transform: none;
 }
 
-.btn-send-message i {
-    font-size: 18px;
-}
-
 .send-message-result {
+    display: none;
     margin-top: 8px;
     padding: 8px 14px;
-    border-radius: 10px;
     font-size: 13px;
     font-weight: 500;
-    display: none;
+    border-radius: var(--radius-sm);
 }
 
 .send-message-result.success {
     display: block;
-    background: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #a5d6a7;
+    color: var(--color-success-text);
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
 }
 
 .send-message-result.error {
     display: block;
-    background: #ffebee;
-    color: #c62828;
-    border: 1px solid #ef9a9a;
+    color: var(--color-error-text);
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-error-border);
 }
 
-/* =============================================================
-   OVERLAY CHOIX BOUTIQUE
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   10. OVERLAY — CHOIX DE BOUTIQUE
+   --------------------------------------------------------------------- */
 
 .shop-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
+    z-index: var(--z-shop-overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
-    z-index: 200;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
 }
 
 .shop-overlay.active {
@@ -879,82 +910,82 @@ body {
 }
 
 .shop-overlay-content {
-    background: white;
-    border-radius: 24px;
-    max-width: 420px;
     width: 100%;
+    max-width: 420px;
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: scaleIn 0.3s ease;
+    background: var(--bg-card);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-overlay);
+    animation: scaleIn var(--transition-base);
 }
 
 .shop-overlay-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 20px 14px 20px;
-    border-bottom: 1px solid #f0f2f5;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .shop-overlay-header h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a2e;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
 }
 
 .shop-overlay-header h3 i {
-    color: #17A464;
+    color: var(--brand-mint);
 }
 
 .shop-overlay-close {
-    background: none;
-    border: none;
-    font-size: 22px;
-    color: #999;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
-    transition: all 0.2s;
     width: 36px;
     height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 4px;
+    font-size: 22px;
+    color: var(--text-faint);
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-fast);
 }
 
 .shop-overlay-close:hover {
-    background: #f0f2f5;
-    color: #1a1a2e;
+    color: var(--text-dark);
+    background: var(--bg-page);
 }
 
 .shop-overlay-search {
-    padding: 12px 20px;
-    border-bottom: 1px solid #f0f2f5;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .shop-overlay-search i {
-    color: #999;
     font-size: 16px;
+    color: var(--text-faint);
 }
 
 .shop-overlay-search input {
     flex: 1;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text-dark);
+    background: transparent;
     border: none;
     outline: none;
-    font-size: 15px;
-    color: #1a1a2e;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: transparent;
 }
 
 .shop-overlay-search input::placeholder {
@@ -963,17 +994,18 @@ body {
 
 .shop-overlay-list {
     flex: 1;
-    overflow-y: auto;
     padding: 8px 12px;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
 .shop-overlay-list::-webkit-scrollbar {
     width: 4px;
 }
+
 .shop-overlay-list::-webkit-scrollbar-thumb {
     background: #d0d0da;
-    border-radius: 10px;
+    border-radius: var(--radius-xl);
 }
 
 .shop-overlay-item {
@@ -981,23 +1013,27 @@ body {
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
     border-bottom: 1px solid #f5f5fa;
-}
-
-.shop-overlay-item:hover {
-    background: #f0fbf5;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
 }
 
 .shop-overlay-item:last-child {
     border-bottom: none;
 }
 
+.shop-overlay-item:hover {
+    background: #f0fbf5;
+}
+
+.shop-overlay-item.selected {
+    background: var(--color-success-bg);
+}
+
 .shop-overlay-item .shop-icon {
-    font-size: 24px;
     flex-shrink: 0;
+    font-size: 24px;
 }
 
 .shop-overlay-item .shop-info {
@@ -1008,112 +1044,61 @@ body {
 .shop-overlay-item .shop-info .shop-name {
     font-size: 15px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-dark);
 }
 
 .shop-overlay-item .shop-info .shop-seller {
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .shop-overlay-item .shop-check {
-    color: #17A464;
-    font-size: 18px;
     display: none;
+    font-size: 18px;
+    color: var(--brand-mint);
 }
 
 .shop-overlay-item.selected .shop-check {
     display: block;
 }
 
-.shop-overlay-item.selected {
-    background: #e8f5e9;
-}
-
 .shop-overlay-footer {
-    padding: 12px 20px 18px 20px;
-    border-top: 1px solid #f0f2f5;
     flex-shrink: 0;
+    padding: 12px 20px 18px;
+    border-top: 1px solid var(--border-light);
 }
 
 .shop-overlay-cancel {
     width: 100%;
     padding: 12px;
-    border: none;
-    border-radius: 12px;
-    background: #e8e8f0;
-    color: #666;
     font-size: 15px;
     font-weight: 600;
+    color: #666666;
+    background: #e8e8f0;
+    border: none;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: background var(--transition-base);
 }
 
 .shop-overlay-cancel:hover {
     background: #d5d5e0;
 }
 
-/* =============================================================
-   EMPTY STATE
-   ============================================================= */
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #888;
-}
-
-.empty-state i {
-    font-size: 56px;
-    color: #ddd;
-    display: block;
-    margin-bottom: 16px;
-}
-
-.empty-state h3 {
-    font-size: 20px;
-    color: #1a1a2e;
-    margin-bottom: 6px;
-}
-
-.empty-state p {
-    font-size: 14px;
-    color: #aaa;
-}
-
-.empty-state .btn-shop {
-    display: inline-block;
-    margin-top: 16px;
-    background: #2d7d46;
-    color: white;
-    padding: 12px 32px;
-    border-radius: 30px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background 0.3s;
-}
-
-.empty-state .btn-shop:hover {
-    background: #1a5a33;
-}
-
-/* =============================================================
-   CONFIRM OVERLAY
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   11. OVERLAY — CONFIRMATION DE SUPPRESSION
+   --------------------------------------------------------------------- */
 
 .confirm-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(8px);
-    z-index: 250;
+    inset: 0;
+    z-index: var(--z-confirm-overlay);
     display: none;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
 }
 
 .confirm-overlay.active {
@@ -1121,33 +1106,33 @@ body {
 }
 
 .confirm-box {
-    background: white;
-    border-radius: 24px;
-    padding: 32px 28px 28px 28px;
-    max-width: 380px;
     width: 100%;
+    max-width: 380px;
+    padding: 32px 28px 28px;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    animation: scaleIn 0.3s ease;
+    background: var(--bg-card);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-overlay);
+    animation: scaleIn var(--transition-base);
 }
 
 .confirm-box .confirm-icon {
-    font-size: 48px;
     margin-bottom: 8px;
+    font-size: 48px;
 }
 
 .confirm-box h3 {
+    margin-bottom: 6px;
     font-size: 20px;
     font-weight: 700;
-    color: #1a1a2e;
-    margin-bottom: 6px;
+    color: var(--text-dark);
 }
 
 .confirm-box p {
-    font-size: 15px;
-    color: #666;
     margin-bottom: 20px;
+    font-size: 15px;
     line-height: 1.5;
+    color: #666666;
 }
 
 .confirm-actions {
@@ -1158,17 +1143,17 @@ body {
 .confirm-btn {
     flex: 1;
     padding: 12px;
-    border: none;
-    border-radius: 12px;
     font-size: 15px;
     font-weight: 600;
+    border: none;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all var(--transition-base);
 }
 
 .confirm-btn.cancel {
+    color: #666666;
     background: #e8e8f0;
-    color: #666;
 }
 
 .confirm-btn.cancel:hover {
@@ -1176,138 +1161,206 @@ body {
 }
 
 .confirm-btn.ok {
-    background: #2d7d46;
     color: white;
+    background: var(--brand-green);
 }
 
 .confirm-btn.ok:hover {
-    background: #1a5a33;
+    background: var(--brand-green-dark);
     transform: scale(1.02);
 }
 
 .confirm-btn.ok.danger {
-    background: #e74c3c;
+    background: var(--color-danger);
 }
 
 .confirm-btn.ok.danger:hover {
-    background: #c0392b;
+    background: var(--color-danger-dark);
 }
 
 @keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-/* =============================================================
-   RESPONSIVE
-   ============================================================= */
+/* ---------------------------------------------------------------------
+   12. ÉTAT VIDE
+   --------------------------------------------------------------------- */
 
-html, body {
-    overflow-x: hidden !important;
-    max-width: 100% !important;
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
 }
 
-.notif-main {
-    overflow-x: hidden !important;
-    max-width: 700px;
-    width: 100%;
-    margin: 0 auto;
+.empty-state i {
+    display: block;
+    margin-bottom: 16px;
+    font-size: 56px;
+    color: #dddddd;
 }
 
-.notif-card {
-    max-width: 100% !important;
-    overflow-wrap: break-word !important;
-    word-wrap: break-word !important;
-    word-break: break-word !important;
+.empty-state h3 {
+    margin-bottom: 6px;
+    font-size: 20px;
+    color: var(--text-dark);
 }
 
-.notif-card .body .content {
-    overflow-wrap: break-word !important;
-    word-wrap: break-word !important;
-    word-break: break-word !important;
-    max-width: 100% !important;
+.empty-state p {
+    font-size: 14px;
+    color: #aaaaaa;
 }
 
-.notification-link {
+.empty-state .btn-shop {
     display: inline-block;
-    max-width: 100% !important;
-    overflow-wrap: break-word !important;
-    word-wrap: break-word !important;
-    word-break: break-all !important;
-    font-size: 13px;
+    margin-top: 16px;
+    padding: 12px 32px;
+    font-weight: 600;
+    color: white;
+    background: var(--brand-green);
+    border-radius: 30px;
+    text-decoration: none;
+    transition: background var(--transition-base);
 }
 
-.filter-bar {
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+.empty-state .btn-shop:hover {
+    background: var(--brand-green-dark);
 }
 
-body {
-    overflow-x: hidden !important;
-}
+/* ---------------------------------------------------------------------
+   13. RESPONSIVE
+   --------------------------------------------------------------------- */
 
 @media (max-width: 600px) {
-    body { padding-top: 68px; padding-bottom: 170px !important; }
-
-    .notif-header {
-        padding: 10px 14px;
-        gap: 8px;
-        height: 60px;
-        min-height: 60px;
-        max-height: 60px;
-        border-radius: 0 0 16px 16px;
+    body {
+        padding-top: var(--header-height-sm);
+        padding-bottom: 170px;
     }
 
-    .back-btn { width: 34px; height: 34px; font-size: 15px; }
-    .notif-title { font-size: 15px; }
-    .badge-count { font-size: 11px; padding: 3px 10px; }
-    .btn-read-all { font-size: 11px; padding: 4px 12px; }
-    .btn-sync { width: 34px; height: 34px; font-size: 14px; }
+    .notif-header {
+        height: var(--header-height-sm);
+        padding: 10px 14px;
+        gap: 8px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    .back-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+
+    .notif-title {
+        font-size: 15px;
+    }
+
+    .badge-count {
+        padding: 3px 10px;
+        font-size: 11px;
+    }
+
+    .btn-read-all {
+        padding: 4px 12px;
+        font-size: 11px;
+    }
+
+    .btn-sync {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
 
     .filter-bar-wrapper {
-        top: 60px;
+        top: var(--header-height-sm);
         padding: 0 12px;
     }
 
-    .filter-bar { padding: 8px 0; gap: 6px; }
-    .filter-btn { font-size: 12px; padding: 4px 12px; }
+    .filter-bar {
+        padding: 8px 0;
+        gap: 6px;
+    }
 
-    .notif-main { padding: 12px 14px; padding-top: 140px; padding-bottom: 170px; }
+    .filter-btn {
+        padding: 4px 12px;
+        font-size: 12px;
+    }
 
-    .notif-card { padding: 14px 14px 12px 14px; gap: 12px; border-radius: 14px; }
-    .notif-card .avatar { width: 36px; height: 36px; font-size: 15px; }
-    .notif-card .body .title { font-size: 14px; }
-    .notif-card .body .content { font-size: 13px; }
+    .notif-main {
+        padding: 140px 14px 170px;
+    }
 
-    .notif-card .card-product-linked { padding: 10px 12px; gap: 10px; }
-    .notif-card .card-product-linked .p-img { width: 40px; height: 40px; }
+    .notif-card {
+        padding: 14px 14px 12px;
+        gap: 12px;
+        border-radius: var(--radius-md);
+    }
+
+    .notif-card .avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+
+    .notif-card .body .title {
+        font-size: 14px;
+    }
+
+    .notif-card .body .content {
+        font-size: 13px;
+    }
+
+    .notif-card .card-product-linked {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .notif-card .card-product-linked .p-img {
+        width: 40px;
+        height: 40px;
+    }
 
     .notif-card .header-actions {
         top: 10px;
         right: 12px;
     }
+
     .notif-card .header-actions .btn {
-        font-size: 13px;
         width: 24px;
         height: 24px;
+        font-size: 13px;
     }
 
-    .confirm-box { padding: 24px 18px 20px 18px; }
-    .confirm-box h3 { font-size: 18px; }
-    .confirm-btn { font-size: 14px; padding: 10px; }
+    .confirm-box {
+        padding: 24px 18px 20px;
+    }
+
+    .confirm-box h3 {
+        font-size: 18px;
+    }
+
+    .confirm-btn {
+        padding: 10px;
+        font-size: 14px;
+    }
 
     .notif-footer .message-input-container {
-        border-radius: 16px;
         min-height: 38px;
+        border-radius: var(--radius-lg);
     }
+
     .notif-footer .message-input {
-        font-size: 14px;
-        padding: 8px 0;
         min-height: 30px;
         max-height: 120px;
+        padding: 8px 0;
+        font-size: 14px;
     }
+
     .notif-footer .btn-send-message {
         width: 38px;
         height: 38px;
@@ -1315,75 +1368,145 @@ body {
     }
 
     .dest-selector .dest-btn {
-        font-size: 12px;
         padding: 4px 10px;
+        font-size: 12px;
     }
 
     .shop-overlay-content {
         max-height: 90vh;
-        border-radius: 20px;
+        border-radius: var(--radius-xl);
     }
-    .shop-overlay-header h3 { font-size: 16px; }
-    .shop-overlay-item { padding: 10px 12px; }
-    .shop-overlay-item .shop-info .shop-name { font-size: 14px; }
-    .shop-overlay-item .shop-icon { font-size: 20px; }
+
+    .shop-overlay-header h3 {
+        font-size: 16px;
+    }
+
+    .shop-overlay-item {
+        padding: 10px 12px;
+    }
+
+    .shop-overlay-item .shop-info .shop-name {
+        font-size: 14px;
+    }
+
+    .shop-overlay-item .shop-icon {
+        font-size: 20px;
+    }
 }
 
 @media (max-width: 400px) {
-    body { padding-top: 60px; padding-bottom: 160px !important; }
-
-    .notif-header {
-        padding: 8px 10px;
-        gap: 6px;
-        height: 54px;
-        min-height: 54px;
-        max-height: 54px;
-        border-radius: 0 0 14px 14px;
+    body {
+        padding-top: var(--header-height-xs);
+        padding-bottom: 160px;
     }
 
-    .back-btn { width: 30px; height: 30px; font-size: 13px; }
-    .notif-title { font-size: 13px; }
-    .badge-count { font-size: 10px; padding: 2px 8px; }
-    .btn-read-all { font-size: 10px; padding: 3px 10px; }
-    .btn-sync { width: 30px; height: 30px; font-size: 12px; }
+    .notif-header {
+        height: var(--header-height-xs);
+        padding: 8px 10px;
+        gap: 6px;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+    }
+
+    .back-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+
+    .notif-title {
+        font-size: 13px;
+    }
+
+    .badge-count {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
+
+    .btn-read-all {
+        padding: 3px 10px;
+        font-size: 10px;
+    }
+
+    .btn-sync {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
 
     .filter-bar-wrapper {
-        top: 54px;
+        top: var(--header-height-xs);
         padding: 0 8px;
     }
 
-    .filter-btn { font-size: 11px; padding: 3px 10px; }
+    .filter-btn {
+        padding: 3px 10px;
+        font-size: 11px;
+    }
 
-    .notif-main { padding: 8px 8px; padding-top: 130px; padding-bottom: 150px; }
+    .notif-main {
+        padding: 130px 8px 150px;
+    }
 
-    .notif-card { padding: 12px 12px 10px 12px; gap: 10px; border-radius: 12px; }
-    .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
-    .notif-card .body .title { font-size: 13px; }
-    .notif-card .body .content { font-size: 12px; }
-    .notif-card .body .date { font-size: 10px; }
+    .notif-card {
+        padding: 12px 12px 10px;
+        gap: 10px;
+        border-radius: var(--radius-sm);
+    }
 
-    .notif-card .card-product-linked { padding: 8px 10px; gap: 8px; }
-    .notif-card .card-product-linked .p-img { width: 34px; height: 34px; }
+    .notif-card .avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .notif-card .body .title {
+        font-size: 13px;
+    }
+
+    .notif-card .body .content {
+        font-size: 12px;
+    }
+
+    .notif-card .body .date {
+        font-size: 10px;
+    }
+
+    .notif-card .card-product-linked {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .notif-card .card-product-linked .p-img {
+        width: 34px;
+        height: 34px;
+    }
 
     .notif-card .header-actions .btn {
-        font-size: 11px;
         width: 20px;
         height: 20px;
+        font-size: 11px;
     }
 
-    .empty-state i { font-size: 40px; }
-    .empty-state h3 { font-size: 17px; }
+    .empty-state i {
+        font-size: 40px;
+    }
+
+    .empty-state h3 {
+        font-size: 17px;
+    }
 
     .notif-footer .message-input-container {
-        border-radius: 14px;
         min-height: 34px;
+        border-radius: var(--radius-md);
     }
+
     .notif-footer .message-input {
-        font-size: 13px;
-        padding: 6px 0;
         min-height: 26px;
         max-height: 100px;
+        padding: 6px 0;
+        font-size: 13px;
     }
+
     .notif-footer .btn-send-message {
         width: 34px;
         height: 34px;
@@ -1391,15 +1514,35 @@ body {
     }
 
     .dest-selector .dest-btn {
-        font-size: 11px;
         padding: 3px 8px;
+        font-size: 11px;
     }
 
-    .shop-overlay-content { border-radius: 16px; }
-    .shop-overlay-header { padding: 14px 16px 10px 16px; }
-    .shop-overlay-header h3 { font-size: 15px; }
-    .shop-overlay-search { padding: 8px 14px; }
-    .shop-overlay-search input { font-size: 14px; }
-    .shop-overlay-item { padding: 8px 10px; }
-    .shop-overlay-item .shop-info .shop-name { font-size: 13px; }
+    .shop-overlay-content {
+        border-radius: var(--radius-lg);
+    }
+
+    .shop-overlay-header {
+        padding: 14px 16px 10px;
+    }
+
+    .shop-overlay-header h3 {
+        font-size: 15px;
+    }
+
+    .shop-overlay-search {
+        padding: 8px 14px;
+    }
+
+    .shop-overlay-search input {
+        font-size: 14px;
+    }
+
+    .shop-overlay-item {
+        padding: 8px 10px;
+    }
+
+    .shop-overlay-item .shop-info .shop-name {
+        font-size: 13px;
+    }
 }
