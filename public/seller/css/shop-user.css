@@ -116,9 +116,9 @@ body {
     border-radius: 10px;
 }
 
-/* ==========================================
-   GRILLE PRODUITS - 3 CARTES PAR LIGNE
-   ========================================== */
+/* ========================================== */
+/* GRILLE PRODUITS - 3 CARTES PAR LIGNE       */
+/* ========================================== */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -239,9 +239,9 @@ body {
     gap: 4px;
 }
 
-/* ==========================================
-   SKELETON LOADER
-   ========================================== */
+/* ========================================== */
+/* SKELETON LOADER                            */
+/* ========================================== */
 .skeleton-loader {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -290,9 +290,9 @@ body {
     100% { background-position: 200% 0; }
 }
 
-/* ==========================================
-   EMPTY STATE
-   ========================================== */
+/* ========================================== */
+/* EMPTY STATE                                */
+/* ========================================== */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -317,9 +317,9 @@ body {
     color: #9CA3AF;
 }
 
-/* ==========================================
-   SLIDE COMMENTAIRES - STYLE TIKTOK
-   ========================================== */
+/* ========================================== */
+/* SLIDE COMMENTAIRES                         */
+/* ========================================== */
 .slide-overlay {
     position: fixed;
     top: 0;
@@ -368,7 +368,7 @@ body {
     flex-shrink: 0;
 }
 
-/* ===== PARTIE HAUTE : HEADER + IMAGE/DESC ===== */
+/* ===== PARTIE HAUTE ===== */
 .slide-top {
     flex-shrink: 0;
     max-height: 45vh;
@@ -467,7 +467,7 @@ body {
     padding: 4px 6px;
 }
 
-/* ===== IMAGE + DESCRIPTION (côte à côte) ===== */
+/* ===== IMAGE + DESCRIPTION ===== */
 .slide-content {
     display: flex;
     gap: 14px;
@@ -557,13 +557,13 @@ body {
     border-radius: 10px;
 }
 
-/* ===== COMMENTAIRES EN BLEU ===== */
+/* ===== COMMENTAIRES ===== */
 .comment-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding: 8px 0;
-    border-bottom: 1px solid #DBEAFE;
+    border-bottom: 1px solid #f0f2f5;
 }
 
 .comment-item:last-child {
@@ -601,104 +601,11 @@ body {
     padding-left: 38px;
 }
 
-.comment-item .comment-bottom {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding-left: 38px;
-    margin-top: 2px;
-}
-
 .comment-item .comment-date {
     font-size: 10px;
     color: #93C5FD;
-}
-
-.comment-item .comment-like-btn {
-    background: none;
-    border: none;
-    color: #93C5FD;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: color 0.2s;
-}
-
-.comment-item .comment-like-btn:hover {
-    color: #2563EB;
-}
-
-.comment-item .comment-like-btn.liked {
-    color: #E24C4C;
-}
-
-.comment-item .comment-reply-btn {
-    background: none;
-    border: none;
-    color: #93C5FD;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.comment-item .comment-reply-btn:hover {
-    color: #2563EB;
-}
-
-/* ===== RÉPONSES ===== */
-.comment-item .replies {
     padding-left: 38px;
-    margin-top: 4px;
-    border-left: 2px solid #DBEAFE;
-    padding-left: 20px;
-}
-
-.comment-item .replies .reply-item {
-    padding: 4px 0;
-    border-bottom: 1px solid #F0F4FF;
-}
-
-.comment-item .replies .reply-item:last-child {
-    border-bottom: none;
-}
-
-.comment-item .replies .reply-item .reply-user {
-    font-size: 11px;
-    font-weight: 700;
-    color: #1a2a6c;
-}
-
-.comment-item .replies .reply-item .reply-text {
-    font-size: 12.5px;
-    color: #2563EB;
-}
-
-.comment-item .replies .reply-item .reply-date {
-    font-size: 9px;
-    color: #93C5FD;
-    margin-left: 8px;
-}
-
-/* ===== INDICATEUR DE RÉPONSE ===== */
-.replying-indicator {
-    font-size: 12px;
-    color: #1a2a6c;
-    padding: 4px 16px 0 16px;
-    display: none;
-    align-items: center;
-    gap: 8px;
-}
-
-.replying-indicator .cancel-reply {
-    background: none;
-    border: none;
-    color: #E24C4C;
-    font-size: 12px;
-    cursor: pointer;
-    font-weight: 600;
+    margin-top: 2px;
 }
 
 /* ===== NO COMMENTAIRES ===== */
@@ -823,9 +730,9 @@ body {
     transform: none;
 }
 
-/* ==========================================
-   OVERLAY USERNAME
-   ========================================== */
+/* ========================================== */
+/* OVERLAY USERNAME                           */
+/* ========================================== */
 .username-overlay {
     position: fixed;
     top: 0;
@@ -933,9 +840,9 @@ body {
     color: #6B7280;
 }
 
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
+/* ========================================== */
+/* RESPONSIVE                                 */
+/* ========================================== */
 
 @media (max-width: 768px) {
     .page-header {
@@ -1080,12 +987,6 @@ body {
     }
     .comment-item .comment-text {
         font-size: 12.5px;
-        padding-left: 34px;
-    }
-    .comment-item .comment-bottom {
-        padding-left: 34px;
-    }
-    .comment-item .replies {
         padding-left: 34px;
     }
     .slide-footer {
