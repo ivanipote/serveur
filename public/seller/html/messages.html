@@ -14,46 +14,49 @@
             outline: none !important;
         }
 
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
             background: #f0f2f5;
-            min-height: 100vh;
-            padding: 20px;
-            padding-top: 80px;
-            max-width: 700px;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
         }
 
         /* ===== HEADER ===== */
         .page-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
             background: #17A464;
-            padding: 14px 20px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 2px 10px rgba(23, 164, 100, 0.2);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
             z-index: 100;
-            border-radius: 0 0 20px 20px;
-            max-width: 700px;
-            margin: 0 auto;
         }
 
         .page-header .back-btn {
             background: rgba(255, 255, 255, 0.2);
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: white;
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            font-size: 18px;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
             flex-shrink: 0;
         }
 
@@ -72,6 +75,22 @@
 
         .page-header .header-title i {
             margin-right: 8px;
+        }
+
+        /* ===== MAIN ===== */
+        .page-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px 20px 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page-main::-webkit-scrollbar {
+            width: 4px;
+        }
+        .page-main::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
         }
 
         /* ===== CARTES ===== */
@@ -101,7 +120,7 @@
 
         /* ===== LISTE CLIENTS ===== */
         .client-list {
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -180,7 +199,7 @@
             cursor: pointer;
         }
 
-        /* ===== CHAMPS ===== */
+        /* ===== FORMULAIRES ===== */
         .form-group {
             margin-bottom: 12px;
         }
@@ -225,10 +244,133 @@
 
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 80px;
         }
 
-        /* ===== BOUTON ===== */
+        /* ===== PRODUIT LIÉ ===== */
+        .product-link-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .product-link-area .link-btn {
+            padding: 10px 18px;
+            background: rgba(26, 42, 108, 0.12);
+            color: #1a2a6c;
+            border: 2px solid rgba(26, 42, 108, 0.15);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .product-link-area .link-btn:hover {
+            background: rgba(26, 42, 108, 0.2);
+            transform: scale(1.02);
+        }
+
+        .product-link-area .link-btn.remove {
+            background: rgba(220, 38, 38, 0.1);
+            color: #DC2626;
+            border-color: rgba(220, 38, 38, 0.15);
+        }
+
+        .product-link-area .link-btn.remove:hover {
+            background: rgba(220, 38, 38, 0.2);
+        }
+
+        .product-link-area .link-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== CARTE PRODUIT ===== */
+        .product-card-linked {
+            background: rgba(23, 164, 100, 0.08);
+            border: 2px solid rgba(23, 164, 100, 0.2);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-top: 10px;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .product-card-linked.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .product-card-linked .p-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #f0f2f5;
+            flex-shrink: 0;
+        }
+
+        .product-card-linked .p-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-card-linked .p-info .p-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .product-card-linked .p-info .p-price {
+            font-size: 14px;
+            font-weight: 700;
+            color: #17A464;
+        }
+
+        .product-card-linked .p-info .p-stock {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .product-card-linked .p-remove {
+            background: none;
+            border: none;
+            color: #DC2626;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .product-card-linked .p-remove:hover {
+            background: rgba(220, 38, 38, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* ===== FOOTER FIXE ===== */
+        .page-footer {
+            background: white;
+            border-top: 1px solid #f0f2f5;
+            padding: 14px 20px 20px 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+            flex-shrink: 0;
+        }
+
         .btn-send {
             width: 100%;
             padding: 14px;
@@ -244,7 +386,6 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 4px;
         }
 
         .btn-send:hover:not(:disabled) {
@@ -261,7 +402,7 @@
 
         /* ===== RÉSULTAT ===== */
         #result {
-            margin-top: 14px;
+            margin-top: 12px;
         }
 
         #result .success {
@@ -291,21 +432,6 @@
         }
 
         #result .error i {
-            font-size: 18px;
-        }
-
-        #result .info {
-            padding: 12px 16px;
-            background: #e3f2fd;
-            color: #0d47a1;
-            border-radius: 12px;
-            border: 1px solid #90caf9;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        #result .info i {
             font-size: 18px;
         }
 
@@ -341,11 +467,6 @@
         /* ========================================== */
 
         @media (max-width: 600px) {
-            body {
-                padding: 12px;
-                padding-top: 72px;
-            }
-
             .page-header {
                 padding: 10px 14px;
                 border-radius: 0 0 16px 16px;
@@ -359,6 +480,10 @@
 
             .page-header .header-title {
                 font-size: 16px;
+            }
+
+            .page-main {
+                padding: 12px 14px 14px 14px;
             }
 
             .card {
@@ -384,12 +509,25 @@
                 font-size: 15px;
                 padding: 12px;
             }
+
+            .product-card-linked .p-img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .product-card-linked .p-info .p-name {
+                font-size: 13px;
+            }
+
+            .product-link-area .link-btn {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
         }
 
         @media (max-width: 400px) {
-            body {
-                padding: 8px;
-                padding-top: 64px;
+            .page-main {
+                padding: 8px 10px 10px 10px;
             }
 
             .page-header {
@@ -451,11 +589,38 @@
                 border-radius: 25px;
             }
 
-            #result .success,
-            #result .error,
-            #result .info {
-                font-size: 13px;
+            .product-card-linked {
                 padding: 10px 12px;
+                gap: 10px;
+            }
+
+            .product-card-linked .p-img {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+            }
+
+            .product-card-linked .p-info .p-name {
+                font-size: 12px;
+            }
+
+            .product-card-linked .p-info .p-price {
+                font-size: 12px;
+            }
+
+            .product-link-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .product-link-area .link-btn {
+                justify-content: center;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .page-footer {
+                padding: 10px 12px 16px 12px;
             }
         }
     </style>
@@ -470,8 +635,8 @@
         <span class="header-title"><i class="fas fa-paper-plane"></i> Envoyer un message</span>
     </header>
 
-    <!-- ===== CONTENU ===== -->
-    <main>
+    <!-- ===== MAIN ===== -->
+    <main class="page-main">
 
         <!-- CARD 1 : CLIENTS -->
         <div class="card">
@@ -488,7 +653,28 @@
             </div>
         </div>
 
-        <!-- CARD 2 : MESSAGE -->
+        <!-- CARD 2 : PRODUIT LIÉ -->
+        <div class="card">
+            <span class="card-label"><i class="fas fa-link"></i> Produit lié</span>
+            <div class="product-link-area">
+                <button class="link-btn" id="linkProductBtn">
+                    <i class="fas fa-box"></i> Lier un produit
+                </button>
+                <button class="link-btn remove" id="removeProductBtn" style="display:none;">
+                    <i class="fas fa-times"></i> Retirer
+                </button>
+            </div>
+            <div class="product-card-linked" id="productCardLinked">
+                <img id="linkedProductImage" class="p-img" src="" alt="Produit" />
+                <div class="p-info">
+                    <div class="p-name" id="linkedProductName">Nom du produit</div>
+                    <div class="p-price" id="linkedProductPrice">0 FCFA</div>
+                    <div class="p-stock" id="linkedProductStock">📦 0 en stock</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 3 : MESSAGE -->
         <div class="card">
             <span class="card-label"><i class="fas fa-edit"></i> Message</span>
 
@@ -503,26 +689,29 @@
             </div>
         </div>
 
-        <!-- BOUTON -->
-        <button class="btn-send" id="sendBtn" disabled>
-            <i class="fas fa-paper-plane"></i> Envoyer
-        </button>
-
         <!-- RÉSULTAT -->
         <div id="result"></div>
 
     </main>
 
+    <!-- ===== FOOTER FIXE ===== -->
+    <footer class="page-footer">
+        <button class="btn-send" id="sendBtn" disabled>
+            <i class="fas fa-paper-plane"></i> Envoyer
+        </button>
+    </footer>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ Messages seller - Envoi notifications');
+            console.log('✅ Messages seller - Version avec liaison produit');
 
             // ==========================================
             // URL
             // ==========================================
 
             const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
+            const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
 
             // ==========================================
             // RÉFÉRENCES
@@ -535,8 +724,28 @@
             const sendBtn = document.getElementById('sendBtn');
             const result = document.getElementById('result');
 
+            const linkProductBtn = document.getElementById('linkProductBtn');
+            const removeProductBtn = document.getElementById('removeProductBtn');
+            const productCardLinked = document.getElementById('productCardLinked');
+            const linkedProductName = document.getElementById('linkedProductName');
+            const linkedProductPrice = document.getElementById('linkedProductPrice');
+            const linkedProductStock = document.getElementById('linkedProductStock');
+            const linkedProductImage = document.getElementById('linkedProductImage');
+
             let clients = [];
             let selectedClients = [];
+            let linkedProduct = null;
+
+            // ==========================================
+            // VÉRIFIER LE PRODUIT LIÉ DANS L'URL
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('product_id');
+
+            if (productId) {
+                loadLinkedProduct(productId);
+            }
 
             // ==========================================
             // 1. CHARGER LES CLIENTS
@@ -585,7 +794,6 @@
                     </div>
                 `).join('');
 
-                // Écouter les sélections
                 document.querySelectorAll('.client-checkbox').forEach(cb => {
                     cb.addEventListener('change', updateSelection);
                 });
@@ -619,7 +827,63 @@
             contentInput.addEventListener('input', updateSelection);
 
             // ==========================================
-            // 3. ENVOYER LA NOTIFICATION
+            // 3. LIER UN PRODUIT
+            // ==========================================
+
+            linkProductBtn.addEventListener('click', function() {
+                // Rediriger vers /products avec un paramètre de retour
+                window.location.href = '/products?return=messages';
+            });
+
+            // ==========================================
+            // 4. CHARGER LE PRODUIT LIÉ
+            // ==========================================
+
+            async function loadLinkedProduct(id) {
+                try {
+                    const res = await fetch(SELLER_API_URL + '/api/seller/product/' + id);
+                    const data = await res.json();
+
+                    if (data.success && data.product) {
+                        linkedProduct = data.product;
+                        displayLinkedProduct(linkedProduct);
+                        // Nettoyer l'URL
+                        const url = new URL(window.location);
+                        url.searchParams.delete('product_id');
+                        window.history.replaceState({}, '', url);
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur chargement produit lié:', error);
+                }
+            }
+
+            function displayLinkedProduct(product) {
+                productCardLinked.classList.add('active');
+                linkedProductName.textContent = product.name;
+                linkedProductPrice.textContent = product.price.toLocaleString() + ' FCFA';
+                linkedProductStock.textContent = '📦 ' + (product.stock || 0) + ' en stock';
+                linkedProductImage.src = product.image1 || 'https://via.placeholder.com/60';
+                linkedProductImage.alt = product.name;
+
+                removeProductBtn.style.display = 'inline-flex';
+                linkProductBtn.textContent = '🔄 Changer de produit';
+                updateSelection();
+            }
+
+            // ==========================================
+            // 5. RETIRER LE PRODUIT LIÉ
+            // ==========================================
+
+            removeProductBtn.addEventListener('click', function() {
+                linkedProduct = null;
+                productCardLinked.classList.remove('active');
+                removeProductBtn.style.display = 'none';
+                linkProductBtn.textContent = 'Lier un produit';
+                updateSelection();
+            });
+
+            // ==========================================
+            // 6. ENVOYER LA NOTIFICATION
             // ==========================================
 
             sendBtn.addEventListener('click', async function() {
@@ -646,13 +910,34 @@
                     return;
                 }
 
+                let finalContent = content;
+
+                // ✅ Si un produit est lié, ajouter la carte produit dans le message
+                if (linkedProduct) {
+                    const productUrl = SELLER_API_URL + '/detail-produit?id=' + linkedProduct.id;
+                    const imgSrc = linkedProduct.image1 || 'https://via.placeholder.com/70/cccccc/ffffff?text=📦';
+
+                    const productCardHtml = `
+                        <div style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;" onclick="window.location.href='${productUrl}'">
+                            <img src="${imgSrc}" alt="${linkedProduct.name}" style="width:60px;height:60px;border-radius:12px;object-fit:cover;background:#f0f2f5;flex-shrink:0;" />
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:15px;font-weight:700;color:#1a1a2e;">${linkedProduct.name}</div>
+                                <div style="font-size:14px;font-weight:700;color:#17A464;">${linkedProduct.price.toLocaleString()} FCFA</div>
+                                <div style="font-size:12px;color:#6B7280;">📦 ${linkedProduct.stock || 0} en stock</div>
+                            </div>
+                            <span style="color:#17A464;font-weight:600;font-size:13px;">Voir →</span>
+                        </div>
+                    `;
+
+                    finalContent = content + '\n\n' + productCardHtml;
+                }
+
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
                 result.innerHTML = '';
 
                 let successCount = 0;
                 let errorCount = 0;
-                let errorMessages = [];
 
                 for (const client of selectedClients) {
                     try {
@@ -661,51 +946,32 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId: client.id,
-                                commandeId: null,
-                                type: 'vendeur',
                                 title: title,
-                                content: content
+                                content: finalContent,
+                                sellerName: localStorage.getItem('sellerName') || 'Vendeur'
                             })
                         });
 
                         if (res.ok) {
                             successCount++;
                         } else {
-                            const data = await res.json();
                             errorCount++;
-                            errorMessages.push(`${client.name}: ${data.error || 'Erreur'}`);
                         }
                     } catch (e) {
                         errorCount++;
-                        errorMessages.push(`${client.name}: Erreur de connexion`);
                     }
                 }
 
-                // Afficher le résultat
-                let resultHtml = '';
-
                 if (successCount > 0) {
-                    resultHtml += `
+                    result.innerHTML = `
                         <div class="success">
                             <i class="fas fa-check-circle"></i>
                             ✅ Notification envoyée à ${successCount} client(s)
                             ${errorCount > 0 ? `(${errorCount} échec(s))` : ''}
                         </div>
                     `;
-                }
-
-                if (errorCount > 0 && errorMessages.length > 0) {
-                    const firstErrors = errorMessages.slice(0, 3);
-                    resultHtml += `
-                        <div class="error" style="margin-top:8px;">
-                            <i class="fas fa-times-circle"></i>
-                            ❌ Échec(s) : ${firstErrors.join(', ')}${errorMessages.length > 3 ? ` et ${errorMessages.length - 3} autre(s)` : ''}
-                        </div>
-                    `;
-                }
-
-                if (successCount === 0 && errorCount > 0) {
-                    resultHtml = `
+                } else {
+                    result.innerHTML = `
                         <div class="error">
                             <i class="fas fa-times-circle"></i>
                             ❌ Échec de l'envoi (${errorCount} erreur(s))
@@ -713,9 +979,6 @@
                     `;
                 }
 
-                result.innerHTML = resultHtml;
-
-                // Réinitialiser
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
             });
@@ -725,6 +988,12 @@
             // ==========================================
 
             loadClients();
+
+            // Vérifier si un produit a été sélectionné
+            const returnUrl = urlParams.get('return');
+            if (returnUrl === 'messages' && productId) {
+                // Le produit sera chargé via loadLinkedProduct
+            }
 
             console.log('✅ Messages seller prêt');
 
