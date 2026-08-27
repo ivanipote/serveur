@@ -10,19 +10,18 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-top: 76px;
+    padding-top: 80px;
     overflow: hidden;
     height: 100vh;
 }
 
 /* =============================================================
-   HEADER
+   HEADER UNIFIÉ (comme mescommandes, detailcom, etc.)
    ============================================================= */
 
 .notif-header {
-    background: white;
+    background: #2d7d46;
     padding: 12px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -37,12 +36,13 @@ body {
     height: 70px;
     min-height: 70px;
     max-height: 70px;
+    box-shadow: 0 2px 10px rgba(45, 125, 70, 0.2);
 }
 
 .back-btn {
-    background: #e8e8f0;
-    border: none;
-    color: #1a1a2e;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -56,7 +56,7 @@ body {
 }
 
 .back-btn:hover {
-    background: #d0d0da;
+    background: rgba(255, 255, 255, 0.25);
     transform: scale(1.05);
 }
 
@@ -64,11 +64,12 @@ body {
     flex: 1;
     font-size: 18px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: white;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.1);
 }
 
 .badge-count {
-    background: #e67e22;
+    background: rgba(255, 255, 255, 0.2);
     color: white;
     font-size: 13px;
     font-weight: 700;
@@ -78,14 +79,14 @@ body {
 }
 
 .badge-count.zero {
-    background: #e8e8f0;
-    color: #888;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .btn-read-all {
-    background: #2d7d46;
+    background: rgba(255, 255, 255, 0.15);
     color: white;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 6px 16px;
     border-radius: 20px;
     font-size: 13px;
@@ -99,8 +100,7 @@ body {
 }
 
 .btn-read-all:hover {
-    background: #1a5a33;
-    transform: scale(1.02);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .btn-read-all:disabled {
@@ -110,23 +110,23 @@ body {
 }
 
 .btn-sync {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
     border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
     transition: all 0.3s;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     flex-shrink: 0;
 }
 
 .btn-sync:hover {
-    background: #f0f2f5;
-    color: #1a2a6c;
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .btn-sync .sync-status {
@@ -135,11 +135,11 @@ body {
 }
 
 .btn-sync .sync-status.active {
-    color: #27ae60;
+    color: #4ade80;
 }
 
 .btn-sync .sync-status.paused {
-    color: #e74c3c;
+    color: #f87171;
 }
 
 .btn-sync .fa-sync-alt {
@@ -159,21 +159,28 @@ body {
 }
 
 /* =============================================================
-   FILTRES
+   BARRE DE FILTRES
    ============================================================= */
 
-.filter-bar {
+.filter-bar-wrapper {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    z-index: 90;
     background: white;
-    padding: 12px 16px;
+    border-bottom: 1px solid #f0f2f5;
+    padding: 0 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.filter-bar {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    flex-shrink: 0;
-    border-bottom: 1px solid #f0f0f5;
-    position: sticky;
-    top: 70px;
-    z-index: 50;
+    padding: 10px 0;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 .filter-bar::-webkit-scrollbar {
@@ -214,12 +221,11 @@ body {
     background: #1a5a33;
 }
 
-/* ===== FILTRE DÉJÀ LU ===== */
 .filter-read-toggle {
-    padding: 8px 16px 12px 16px;
     display: flex;
     align-items: center;
     gap: 10px;
+    padding: 6px 0 10px 0;
     border-top: 1px solid #f0f2f5;
 }
 
@@ -272,7 +278,7 @@ body {
 }
 
 /* =============================================================
-   CONTENU
+   CONTENU PRINCIPAL
    ============================================================= */
 
 .notif-main {
@@ -283,7 +289,16 @@ body {
     width: 100%;
     margin: 0 auto;
     -webkit-overflow-scrolling: touch;
+    padding-top: 150px;
     padding-bottom: 180px;
+}
+
+.notif-main::-webkit-scrollbar {
+    width: 4px;
+}
+.notif-main::-webkit-scrollbar-thumb {
+    background: #d0d0da;
+    border-radius: 10px;
 }
 
 /* =============================================================
@@ -342,152 +357,36 @@ body {
 }
 
 /* =============================================================
-   NOTIFICATION CARD - COULEURS PAR TYPE
+   NOTIFICATION CARD - DESIGN UNIQUE PAR CARTE
    ============================================================= */
 
 .notif-card {
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 16px 18px 14px 18px;
     border: 2px solid;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     transition: all 0.3s ease;
     display: flex;
-    gap: 14px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
     position: relative;
     margin-bottom: 12px;
+    background: white;
 }
 
 .notif-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
 }
 
-/* === TYPE: commande (BLEU) === */
-.notif-card.type-commande {
-    background: #e3f2fd;
-    border-color: #64b5f6;
-}
-.notif-card.type-commande .badge-type {
-    background: #64b5f6;
-    color: white;
-}
-.notif-card.type-commande .avatar {
-    background: rgba(100, 181, 246, 0.2);
-    color: #0d47a1;
-}
-.notif-card.type-commande .body .content {
-    color: #0d47a1;
-}
-.notif-card.type-commande .body .title {
-    color: #0d47a1;
+/* ===== HEADER DE LA CARTE ===== */
+.notif-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-/* === TYPE: paiement (VERT) === */
-.notif-card.type-paiement {
-    background: #e8f5e9;
-    border-color: #66bb6a;
-}
-.notif-card.type-paiement .badge-type {
-    background: #66bb6a;
-    color: white;
-}
-.notif-card.type-paiement .avatar {
-    background: rgba(102, 187, 106, 0.2);
-    color: #1b5e20;
-}
-.notif-card.type-paiement .body .content {
-    color: #1b5e20;
-}
-.notif-card.type-paiement .body .title {
-    color: #1b5e20;
-}
-
-/* === TYPE: admin (ORANGE) === */
-.notif-card.type-admin {
-    background: #fff3e0;
-    border-color: #ffb74d;
-}
-.notif-card.type-admin .badge-type {
-    background: #ffb74d;
-    color: white;
-}
-.notif-card.type-admin .avatar {
-    background: rgba(255, 183, 77, 0.2);
-    color: #e65100;
-}
-.notif-card.type-admin .body .content {
-    color: #e65100;
-}
-.notif-card.type-admin .body .title {
-    color: #e65100;
-}
-
-/* === TYPE: seller (BLEU VIOLET) === */
-.notif-card.type-seller {
-    background: #e8eaf6;
-    border-color: #7986cb;
-}
-.notif-card.type-seller .badge-type {
-    background: #7986cb;
-    color: white;
-}
-.notif-card.type-seller .avatar {
-    background: rgba(121, 134, 203, 0.2);
-    color: #283593;
-}
-.notif-card.type-seller .body .content {
-    color: #283593;
-}
-.notif-card.type-seller .body .title {
-    color: #283593;
-}
-
-/* === TYPE: systeme (GRIS) === */
-.notif-card.type-systeme {
-    background: #f5f5f5;
-    border-color: #d0d0d0;
-}
-.notif-card.type-systeme .badge-type {
-    background: #d0d0d0;
-    color: #555;
-}
-.notif-card.type-systeme .avatar {
-    background: rgba(0,0,0,0.05);
-    color: #555;
-}
-.notif-card.type-systeme .body .content {
-    color: #555;
-}
-.notif-card.type-systeme .body .title {
-    color: #555;
-}
-
-/* === TYPE: client_message (VIOLET) === */
-.notif-card.type-client_message {
-    background: #f3e5f5;
-    border-color: #ce93d8;
-}
-.notif-card.type-client_message .badge-type {
-    background: #ce93d8;
-    color: white;
-}
-.notif-card.type-client_message .avatar {
-    background: rgba(206, 147, 216, 0.2);
-    color: #4a148c;
-}
-.notif-card.type-client_message .body .content {
-    color: #4a148c;
-}
-.notif-card.type-client_message .body .title {
-    color: #4a148c;
-}
-
-/* =============================================================
-   NOTIFICATION CARD - CONTENU
-   ============================================================= */
-
-.notif-card .avatar {
+.notif-card .card-header .card-avatar {
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -498,39 +397,146 @@ body {
     flex-shrink: 0;
 }
 
-.notif-card .body {
+.notif-card .card-header .card-info {
     flex: 1;
     min-width: 0;
 }
 
-.notif-card .body .title {
+.notif-card .card-header .card-info .card-title {
     font-size: 15px;
     font-weight: 700;
 }
 
-.notif-card .body .content {
-    font-size: 14px;
-    line-height: 1.5;
-    margin-top: 2px;
-}
-
-.notif-card .body .date {
+.notif-card .card-header .card-info .card-sub {
     font-size: 12px;
     color: #999;
-    margin-top: 4px;
 }
 
-.notif-card .badge-type {
+/* ===== IMAGE DE LA BOUTIQUE (pour seller) ===== */
+.notif-card .card-shop-image {
+    width: 100%;
+    height: 120px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f0f2f5;
+    margin: 2px 0 4px 0;
+}
+
+/* ===== CONTENU ===== */
+.notif-card .card-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #3a4152;
+    word-wrap: break-word;
+}
+
+.notif-card .card-content .notification-link {
+    color: #1a2a6c;
+    font-weight: 700;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notif-card .card-content .notification-link:hover {
+    color: #0d1a4a;
+}
+
+/* ===== PRODUIT LIÉ (carte produit dans la notification) ===== */
+.notif-card .card-product-linked {
+    border: 2px solid #17A464;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f8fbf9;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 4px 0;
+}
+
+.notif-card .card-product-linked:hover {
+    transform: scale(1.01);
+    box-shadow: 0 4px 16px rgba(23, 164, 100, 0.1);
+}
+
+.notif-card .card-product-linked .p-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f0f2f5;
+    flex-shrink: 0;
+}
+
+.notif-card .card-product-linked .p-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-card .card-product-linked .p-info .p-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.notif-card .card-product-linked .p-info .p-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #17A464;
+}
+
+.notif-card .card-product-linked .p-info .p-stock {
+    font-size: 11px;
+    color: #6B7280;
+}
+
+.notif-card .card-product-linked .p-arrow {
+    color: #17A464;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+/* ===== BADGE TYPE ===== */
+.notif-card .card-badge {
     display: inline-block;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 12px;
     border-radius: 20px;
-    margin-top: 6px;
     letter-spacing: 0.3px;
+    align-self: flex-start;
 }
 
-.notif-card .header-actions {
+/* ===== FOOTER DE LA CARTE ===== */
+.notif-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0,0,0,0.04);
+    margin-top: 4px;
+}
+
+.notif-card .card-footer .card-date {
+    font-size: 11px;
+    color: #999;
+}
+
+.notif-card .card-footer .card-shop-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #17A464;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ===== ACTIONS (header droit) ===== */
+.notif-card .card-actions {
     position: absolute;
     top: 14px;
     right: 16px;
@@ -539,7 +545,7 @@ body {
     align-items: center;
 }
 
-.notif-card .header-actions .btn {
+.notif-card .card-actions .btn {
     background: none;
     border: none;
     font-size: 14px;
@@ -555,59 +561,134 @@ body {
     height: 28px;
 }
 
-.notif-card .header-actions .btn:hover {
+.notif-card .card-actions .btn:hover {
     background: rgba(0,0,0,0.05);
 }
 
-.notif-card .header-actions .btn-read {
+.notif-card .card-actions .btn-read {
     color: #2d7d46;
 }
 
-.notif-card .header-actions .btn-read:hover {
+.notif-card .card-actions .btn-read:hover {
     background: rgba(45,125,70,0.1);
 }
 
-.notif-card .header-actions .btn-read.already {
+.notif-card .card-actions .btn-read.already {
     color: #ccc;
     cursor: default;
 }
 
-.notif-card .header-actions .btn-read.already:hover {
+.notif-card .card-actions .btn-read.already:hover {
     background: none;
 }
 
-.notif-card .header-actions .btn-delete:hover {
+.notif-card .card-actions .btn-delete:hover {
     color: #e74c3c;
     background: rgba(231,76,60,0.1);
 }
 
+/* ===== COULEURS PAR TYPE ===== */
+.notif-card.type-commande {
+    border-color: #64b5f6;
+}
+.notif-card.type-commande .card-avatar {
+    background: rgba(100, 181, 246, 0.2);
+    color: #0d47a1;
+}
+.notif-card.type-commande .card-title {
+    color: #0d47a1;
+}
+.notif-card.type-commande .card-badge {
+    background: #64b5f6;
+    color: white;
+}
+
+.notif-card.type-paiement {
+    border-color: #66bb6a;
+}
+.notif-card.type-paiement .card-avatar {
+    background: rgba(102, 187, 106, 0.2);
+    color: #1b5e20;
+}
+.notif-card.type-paiement .card-title {
+    color: #1b5e20;
+}
+.notif-card.type-paiement .card-badge {
+    background: #66bb6a;
+    color: white;
+}
+
+.notif-card.type-admin {
+    border-color: #ffb74d;
+}
+.notif-card.type-admin .card-avatar {
+    background: rgba(255, 183, 77, 0.2);
+    color: #e65100;
+}
+.notif-card.type-admin .card-title {
+    color: #e65100;
+}
+.notif-card.type-admin .card-badge {
+    background: #ffb74d;
+    color: white;
+}
+
+.notif-card.type-seller {
+    border-color: #7986cb;
+}
+.notif-card.type-seller .card-avatar {
+    background: rgba(121, 134, 203, 0.2);
+    color: #283593;
+}
+.notif-card.type-seller .card-title {
+    color: #283593;
+}
+.notif-card.type-seller .card-badge {
+    background: #7986cb;
+    color: white;
+}
+
+.notif-card.type-systeme {
+    border-color: #d0d0d0;
+}
+.notif-card.type-systeme .card-avatar {
+    background: rgba(0,0,0,0.05);
+    color: #555;
+}
+.notif-card.type-systeme .card-title {
+    color: #555;
+}
+.notif-card.type-systeme .card-badge {
+    background: #d0d0d0;
+    color: #555;
+}
+
+.notif-card.type-client_message {
+    border-color: #ce93d8;
+}
+.notif-card.type-client_message .card-avatar {
+    background: rgba(206, 147, 216, 0.2);
+    color: #4a148c;
+}
+.notif-card.type-client_message .card-title {
+    color: #4a148c;
+}
+.notif-card.type-client_message .card-badge {
+    background: #ce93d8;
+    color: white;
+}
+
+/* ===== UNREAD / READ ===== */
 .notif-card.read {
     opacity: 0.7;
 }
 
-.notif-card.unread .body .title {
+.notif-card.unread .card-title {
     font-weight: 800;
 }
 
 /* =============================================================
-   LIEN DANS LA NOTIFICATION
-   ============================================================= */
-
-.notification-link {
-    color: #1a2a6c;
-    font-weight: 700;
-    text-decoration: underline;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.notification-link:hover {
-    color: #0d1a4a;
-}
-
-/* =============================================================
-   FOOTER MESSAGE - AVEC SÉLECTEUR ADMIN/SELLER
+   FOOTER MESSAGE FIXE AVEC SÉLECTEUR ADMIN/SELLER
    ============================================================= */
 
 body {
@@ -673,32 +754,6 @@ body {
     font-size: 14px;
 }
 
-/* ===== SÉLECTEUR BOUTIQUE ===== */
-.shop-selector {
-    margin-bottom: 8px;
-}
-
-.shop-selector select {
-    width: 100%;
-    padding: 8px 14px;
-    border: 2px solid #e8ecf4;
-    border-radius: 12px;
-    font-size: 14px;
-    background: #f8f9fc;
-    color: #1a1a2e;
-    outline: none;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    transition: border-color 0.3s;
-}
-
-.shop-selector select:focus {
-    border-color: #1a2a6c;
-}
-
-.shop-selector select option {
-    padding: 6px;
-}
-
 /* ===== MESSAGE ===== */
 .message-wrapper {
     display: flex;
@@ -748,7 +803,6 @@ body {
 .message-input::-webkit-scrollbar {
     width: 4px;
 }
-
 .message-input::-webkit-scrollbar-thumb {
     background: #ccc;
     border-radius: 10px;
@@ -811,6 +865,204 @@ body {
 }
 
 /* =============================================================
+   OVERLAY CHOIX BOUTIQUE (scrollable avec recherche)
+   ============================================================= */
+
+.shop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.shop-overlay.active {
+    display: flex;
+}
+
+.shop-overlay-content {
+    background: white;
+    border-radius: 24px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.shop-overlay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px 14px 20px;
+    border-bottom: 1px solid #f0f2f5;
+    flex-shrink: 0;
+}
+
+.shop-overlay-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.shop-overlay-header h3 i {
+    color: #17A464;
+}
+
+.shop-overlay-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shop-overlay-close:hover {
+    background: #f0f2f5;
+    color: #1a1a2e;
+}
+
+.shop-overlay-search {
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0f2f5;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.shop-overlay-search i {
+    color: #999;
+    font-size: 16px;
+}
+
+.shop-overlay-search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: #1a1a2e;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: transparent;
+}
+
+.shop-overlay-search input::placeholder {
+    color: #bbb;
+}
+
+.shop-overlay-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.shop-overlay-list::-webkit-scrollbar {
+    width: 4px;
+}
+.shop-overlay-list::-webkit-scrollbar-thumb {
+    background: #d0d0da;
+    border-radius: 10px;
+}
+
+.shop-overlay-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid #f5f5fa;
+}
+
+.shop-overlay-item:hover {
+    background: #f0fbf5;
+}
+
+.shop-overlay-item:last-child {
+    border-bottom: none;
+}
+
+.shop-overlay-item .shop-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.shop-overlay-item .shop-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.shop-overlay-item .shop-info .shop-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.shop-overlay-item .shop-info .shop-seller {
+    font-size: 12px;
+    color: #888;
+}
+
+.shop-overlay-item .shop-check {
+    color: #17A464;
+    font-size: 18px;
+    display: none;
+}
+
+.shop-overlay-item.selected .shop-check {
+    display: block;
+}
+
+.shop-overlay-item.selected {
+    background: #e8f5e9;
+}
+
+.shop-overlay-footer {
+    padding: 12px 20px 18px 20px;
+    border-top: 1px solid #f0f2f5;
+    flex-shrink: 0;
+}
+
+.shop-overlay-cancel {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: #e8e8f0;
+    color: #666;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.shop-overlay-cancel:hover {
+    background: #d5d5e0;
+}
+
+/* =============================================================
    EMPTY STATE
    ============================================================= */
 
@@ -831,6 +1083,11 @@ body {
     font-size: 20px;
     color: #1a1a2e;
     margin-bottom: 6px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #aaa;
 }
 
 .empty-state .btn-shop {
@@ -861,7 +1118,7 @@ body {
     height: 100%;
     background: rgba(0,0,0,0.5);
     backdrop-filter: blur(8px);
-    z-index: 200;
+    z-index: 250;
     display: none;
     justify-content: center;
     align-items: center;
@@ -925,7 +1182,6 @@ body {
 
 .confirm-btn.cancel:hover {
     background: #d5d5e0;
-    transform: scale(1.02);
 }
 
 .confirm-btn.ok {
@@ -952,194 +1208,9 @@ body {
 }
 
 /* =============================================================
-   HEADER WRAPPER - 2 RECTANGLES ARRONDIS
-   ============================================================= */
-
-.notif-header-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    padding: 12px 16px 0 16px;
-    background: transparent;
-}
-
-/* RECTANGLE 1 - HEADER VERT */
-.notif-header {
-    background: #2d7d46;
-    border-radius: 60px 60px 0 0;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    min-height: 60px;
-}
-
-/* RECTANGLE 2 - FILTRES BLANC */
-.notif-filter-bar {
-    background: white;
-    border-radius: 0 0 60px 60px;
-    padding: 8px 16px 12px 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    margin-bottom: 0;
-}
-
-.notif-filter-bar .filter-bar {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    padding: 4px 0;
-}
-
-.notif-filter-bar .filter-bar::-webkit-scrollbar {
-    height: 3px;
-}
-
-.notif-filter-bar .filter-bar::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
-
-/* ===== CONTENU HEADER ===== */
-.notif-header .notif-title {
-    color: white;
-    flex: 1;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.notif-header .back-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    transition: all 0.2s;
-    flex-shrink: 0;
-}
-
-.notif-header .back-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.notif-header .badge-count {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 4px 14px;
-    border-radius: 20px;
-    flex-shrink: 0;
-}
-
-.notif-header .badge-count.zero {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.notif-header .btn-read-all {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.notif-header .btn-read-all:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.notif-header .btn-read-all:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.notif-header .btn-sync {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.notif-header .btn-sync:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.notif-header .btn-sync .sync-status {
-    font-size: 10px;
-    transition: all 0.3s;
-}
-
-.notif-header .btn-sync .sync-status.active {
-    color: #4ade80;
-}
-
-.notif-header .btn-sync .sync-status.paused {
-    color: #f87171;
-}
-
-/* ===== FILTRES ===== */
-.notif-filter-bar .filter-btn {
-    padding: 6px 16px;
-    border: 2px solid #e8e8f0;
-    border-radius: 20px;
-    background: white;
-    font-size: 13px;
-    font-weight: 600;
-    color: #888;
-    cursor: pointer;
-    transition: all 0.3s;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.notif-filter-bar .filter-btn:hover {
-    border-color: #2d7d46;
-    color: #2d7d46;
-}
-
-.notif-filter-bar .filter-btn.active {
-    background: #2d7d46;
-    color: white;
-    border-color: #2d7d46;
-}
-
-.notif-filter-bar .filter-btn.active:hover {
-    background: #1a5a33;
-}
-
-/* =============================================================
    RESPONSIVE
    ============================================================= */
 
-/* ✅ EMPECHER LE SCROLL HORIZONTAL */
 html, body {
     overflow-x: hidden !important;
     max-width: 100% !important;
@@ -1152,7 +1223,6 @@ html, body {
     margin: 0 auto;
 }
 
-/* ✅ FORCER LES CARTES À NE PAS DEPASSER */
 .notif-card {
     max-width: 100% !important;
     overflow-wrap: break-word !important;
@@ -1160,18 +1230,13 @@ html, body {
     word-break: break-word !important;
 }
 
-/* ✅ CONTENU DES NOTIFICATIONS - COUPURE AUTOMATIQUE */
-.notif-card .body .content {
-    font-size: 14px;
-    line-height: 1.5;
-    margin-top: 2px;
+.notif-card .card-content {
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
     max-width: 100% !important;
 }
 
-/* ✅ LIENS DANS LES NOTIFICATIONS - PAS DE DEPASSEMENT */
 .notification-link {
     display: inline-block;
     max-width: 100% !important;
@@ -1181,7 +1246,6 @@ html, body {
     font-size: 13px;
 }
 
-/* ✅ FILTRES - SCROLL HORIZONTAL AUTORISE UNIQUEMENT POUR LES FILTRES */
 .filter-bar {
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -1189,50 +1253,53 @@ html, body {
     scrollbar-width: thin;
 }
 
-/* ✅ BODY - PAS DE SCROLL HORIZONTAL */
 body {
     overflow-x: hidden !important;
 }
 
 @media (max-width: 600px) {
-    body { padding-top: 60px; padding-bottom: 170px !important; }
-
-    .notif-header-wrapper {
-        padding: 8px 10px 0 10px;
-    }
+    body { padding-top: 68px; padding-bottom: 170px !important; }
 
     .notif-header {
-        border-radius: 40px 40px 0 0;
         padding: 10px 14px;
-        min-height: 50px;
+        gap: 8px;
+        height: 60px;
+        min-height: 60px;
+        max-height: 60px;
+        border-radius: 0 0 16px 16px;
     }
 
-    .notif-filter-bar {
-        border-radius: 0 0 40px 40px;
-        padding: 6px 12px 10px 12px;
+    .back-btn { width: 34px; height: 34px; font-size: 15px; }
+    .notif-title { font-size: 15px; }
+    .badge-count { font-size: 11px; padding: 3px 10px; }
+    .btn-read-all { font-size: 11px; padding: 4px 12px; }
+    .btn-sync { width: 34px; height: 34px; font-size: 14px; }
+
+    .filter-bar-wrapper {
+        top: 60px;
+        padding: 0 12px;
     }
 
-    .notif-header .notif-title { font-size: 15px; }
-    .notif-header .back-btn { width: 34px; height: 34px; font-size: 15px; }
-    .notif-header .badge-count { font-size: 11px; padding: 3px 10px; }
-    .notif-header .btn-read-all { font-size: 11px; padding: 4px 12px; }
-    .notif-header .btn-sync { width: 34px; height: 34px; font-size: 14px; }
+    .filter-bar { padding: 8px 0; gap: 6px; }
+    .filter-btn { font-size: 12px; padding: 4px 12px; }
 
-    .notif-filter-bar .filter-btn { font-size: 12px; padding: 4px 12px; }
+    .notif-main { padding: 12px 14px; padding-top: 140px; padding-bottom: 170px; }
 
-    .notif-main { padding: 12px 14px; padding-bottom: 110px; }
+    .notif-card { padding: 14px 14px 12px 14px; gap: 8px; border-radius: 16px; }
+    .notif-card .card-header .card-avatar { width: 36px; height: 36px; font-size: 15px; }
+    .notif-card .card-header .card-info .card-title { font-size: 14px; }
+    .notif-card .card-content { font-size: 13px; }
+    .notif-card .card-shop-image { height: 90px; }
 
-    .notif-card { padding: 14px 14px 12px 14px; gap: 12px; border-width: 2px; }
-    .notif-card .avatar { width: 36px; height: 36px; font-size: 15px; }
-    .notif-card .body .title { font-size: 14px; }
-    .notif-card .body .content { font-size: 13px; }
+    .notif-card .card-product-linked { padding: 10px 12px; gap: 10px; }
+    .notif-card .card-product-linked .p-img { width: 50px; height: 50px; }
+    .notif-card .card-product-linked .p-info .p-name { font-size: 13px; }
 
-    .notif-card .header-actions {
+    .notif-card .card-actions {
         top: 10px;
         right: 12px;
     }
-
-    .notif-card .header-actions .btn {
+    .notif-card .card-actions .btn {
         font-size: 13px;
         width: 24px;
         height: 24px;
@@ -1246,14 +1313,12 @@ body {
         border-radius: 16px;
         min-height: 38px;
     }
-
     .notif-footer .message-input {
         font-size: 14px;
         padding: 8px 0;
         min-height: 30px;
         max-height: 120px;
     }
-
     .notif-footer .btn-send-message {
         width: 38px;
         height: 38px;
@@ -1265,48 +1330,55 @@ body {
         padding: 4px 10px;
     }
 
-    .shop-selector select {
-        font-size: 13px;
-        padding: 6px 12px;
+    .shop-overlay-content {
+        max-height: 90vh;
+        border-radius: 20px;
     }
+    .shop-overlay-header h3 { font-size: 16px; }
+    .shop-overlay-item { padding: 10px 12px; }
+    .shop-overlay-item .shop-info .shop-name { font-size: 14px; }
+    .shop-overlay-item .shop-icon { font-size: 20px; }
 }
 
 @media (max-width: 400px) {
-    body { padding-top: 54px; padding-bottom: 160px !important; }
-
-    .notif-header-wrapper {
-        padding: 6px 6px 0 6px;
-    }
+    body { padding-top: 60px; padding-bottom: 160px !important; }
 
     .notif-header {
-        border-radius: 30px 30px 0 0;
         padding: 8px 10px;
-        min-height: 44px;
         gap: 6px;
+        height: 54px;
+        min-height: 54px;
+        max-height: 54px;
+        border-radius: 0 0 14px 14px;
     }
 
-    .notif-filter-bar {
-        border-radius: 0 0 30px 30px;
-        padding: 4px 8px 8px 8px;
+    .back-btn { width: 30px; height: 30px; font-size: 13px; }
+    .notif-title { font-size: 13px; }
+    .badge-count { font-size: 10px; padding: 2px 8px; }
+    .btn-read-all { font-size: 10px; padding: 3px 10px; }
+    .btn-sync { width: 30px; height: 30px; font-size: 12px; }
+
+    .filter-bar-wrapper {
+        top: 54px;
+        padding: 0 8px;
     }
 
-    .notif-header .notif-title { font-size: 13px; }
-    .notif-header .back-btn { width: 30px; height: 30px; font-size: 13px; }
-    .notif-header .badge-count { font-size: 10px; padding: 2px 8px; }
-    .notif-header .btn-read-all { font-size: 10px; padding: 3px 10px; }
-    .notif-header .btn-sync { width: 30px; height: 30px; font-size: 12px; }
+    .filter-btn { font-size: 11px; padding: 3px 10px; }
 
-    .notif-filter-bar .filter-btn { font-size: 11px; padding: 3px 10px; }
+    .notif-main { padding: 8px 8px; padding-top: 130px; padding-bottom: 150px; }
 
-    .notif-main { padding: 8px 8px; padding-bottom: 100px; }
+    .notif-card { padding: 12px 12px 10px 12px; gap: 6px; border-radius: 14px; }
+    .notif-card .card-header .card-avatar { width: 30px; height: 30px; font-size: 12px; }
+    .notif-card .card-header .card-info .card-title { font-size: 13px; }
+    .notif-card .card-content { font-size: 12px; }
+    .notif-card .card-shop-image { height: 70px; }
 
-    .notif-card { padding: 12px 12px 10px 12px; gap: 10px; border-radius: 12px; }
-    .notif-card .avatar { width: 30px; height: 30px; font-size: 12px; }
-    .notif-card .body .title { font-size: 13px; }
-    .notif-card .body .content { font-size: 12px; }
-    .notif-card .body .date { font-size: 10px; }
+    .notif-card .card-product-linked { padding: 8px 10px; gap: 8px; }
+    .notif-card .card-product-linked .p-img { width: 40px; height: 40px; }
+    .notif-card .card-product-linked .p-info .p-name { font-size: 12px; }
+    .notif-card .card-product-linked .p-info .p-price { font-size: 12px; }
 
-    .notif-card .header-actions .btn {
+    .notif-card .card-actions .btn {
         font-size: 11px;
         width: 20px;
         height: 20px;
@@ -1319,14 +1391,12 @@ body {
         border-radius: 14px;
         min-height: 34px;
     }
-
     .notif-footer .message-input {
         font-size: 13px;
         padding: 6px 0;
         min-height: 26px;
         max-height: 100px;
     }
-
     .notif-footer .btn-send-message {
         width: 34px;
         height: 34px;
@@ -1338,8 +1408,11 @@ body {
         padding: 3px 8px;
     }
 
-    .shop-selector select {
-        font-size: 12px;
-        padding: 4px 10px;
-    }
+    .shop-overlay-content { border-radius: 16px; }
+    .shop-overlay-header { padding: 14px 16px 10px 16px; }
+    .shop-overlay-header h3 { font-size: 15px; }
+    .shop-overlay-search { padding: 8px 14px; }
+    .shop-overlay-search input { font-size: 14px; }
+    .shop-overlay-item { padding: 8px 10px; }
+    .shop-overlay-item .shop-info .shop-name { font-size: 13px; }
 }
