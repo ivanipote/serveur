@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const sendMessageResult = document.getElementById('sendMessageResult');
 
+    // ✅ Nouveaux éléments
+    const destAdminBtn = document.getElementById('destAdminBtn');
+    const destSellerBtn = document.getElementById('destSellerBtn');
+    const shopSelector = document.getElementById('shopSelector');
+    const shopSelect = document.getElementById('shopSelect');
+    const showReadToggle = document.getElementById('showReadToggle');
+
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
@@ -33,6 +40,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let hasNewNotification = false;
     let isSendingMessage = false;
 
+    // ✅ État du destinataire
+    let currentDest = 'admin';
+    let shops = [];
+    let selectedShopId = null;
+
+    // ✅ URL
+    const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
+    const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
+
     // ==========================================
     // COULEURS PAR TYPE
     // ==========================================
@@ -41,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'commande': { bg: '#e3f2fd', border: '#64b5f6', badge: '#64b5f6', text: '#0d47a1', avatar: '#0d47a1' },
         'paiement': { bg: '#e8f5e9', border: '#66bb6a', badge: '#66bb6a', text: '#1b5e20', avatar: '#1b5e20' },
         'admin': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d', text: '#e65100', avatar: '#e65100' },
+        'seller': { bg: '#e8eaf6', border: '#7986cb', badge: '#7986cb', text: '#283593', avatar: '#283593' },
         'systeme': { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' },
         'client_message': { bg: '#f3e5f5', border: '#ce93d8', badge: '#ce93d8', text: '#4a148c', avatar: '#4a148c' }
     };
@@ -106,15 +123,91 @@ document.addEventListener('DOMContentLoaded', function() {
     messageInput.addEventListener('input', autoResizeTextarea);
 
     // ==========================================
-    // ENVOYER UN MESSAGE À L'ADMIN
+    // CHARGER LES BOUTIQUES
     // ==========================================
 
-    async function sendMessageToAdmin() {
+    async function loadShops() {
+        try {
+            const res = await fetch(CLIENT_API_URL + '/api/shops');
+            const data = await res.json();
+
+            if (data.success && data.shops && data.shops.length > 0) {
+                shops = data.shops;
+                renderShopSelect();
+            }
+        } catch (error) {
+            console.error('❌ Erreur chargement boutiques:', error);
+        }
+    }
+
+    function renderShopSelect() {
+        shopSelect.innerHTML = '<option value="">Choisir une boutique...</option>';
+        shops.forEach(shop => {
+            const option = document.createElement('option');
+            option.value = shop.id;
+            option.textContent = shop.name + ' (' + (shop.seller_name || 'Vendeur') + ')';
+            shopSelect.appendChild(option);
+        });
+    }
+
+    // ==========================================
+    // SÉLECTEUR DESTINATAIRE
+    // ==========================================
+
+    function setDest(target) {
+        currentDest = target;
+
+        // Mettre à jour les boutons
+        destAdminBtn.classList.toggle('active', target === 'admin');
+        destSellerBtn.classList.toggle('active', target === 'seller');
+
+        // Afficher/masquer le sélecteur de boutique
+        shopSelector.style.display = target === 'seller' ? 'block' : 'none';
+
+        // Mettre à jour le placeholder
+        if (target === 'admin') {
+            messageInput.placeholder = 'Envoyer un message à l\'admin...';
+        } else {
+            messageInput.placeholder = 'Choisissez une boutique et écrivez votre message...';
+        }
+    }
+
+    destAdminBtn.addEventListener('click', function() {
+        setDest('admin');
+    });
+
+    destSellerBtn.addEventListener('click', function() {
+        setDest('seller');
+        if (shops.length === 0) {
+            loadShops();
+        }
+    });
+
+    shopSelect.addEventListener('change', function() {
+        selectedShopId = this.value ? parseInt(this.value) : null;
+    });
+
+    // ==========================================
+    // ENVOYER UN MESSAGE
+    // ==========================================
+
+    async function sendMessage() {
         const content = messageInput.value.trim();
 
         if (!content) {
             sendMessageResult.className = 'send-message-result error';
             sendMessageResult.textContent = '⚠️ Veuillez écrire un message.';
+            sendMessageResult.style.display = 'block';
+            setTimeout(() => {
+                sendMessageResult.style.display = 'none';
+            }, 3000);
+            return;
+        }
+
+        // Vérifier si seller est sélectionné et une boutique est choisie
+        if (currentDest === 'seller' && !selectedShopId) {
+            sendMessageResult.className = 'send-message-result error';
+            sendMessageResult.textContent = '⚠️ Veuillez choisir une boutique.';
             sendMessageResult.style.display = 'block';
             setTimeout(() => {
                 sendMessageResult.style.display = 'none';
@@ -128,28 +221,47 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessageBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         try {
-            const res = await fetch('/api/client/send-message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            let url, body;
+
+            if (currentDest === 'admin') {
+                // ✅ Envoi à l'admin
+                url = '/api/client/send-message';
+                body = {
                     title: '💬 Message client',
                     content: content
-                })
+                };
+            } else {
+                // ✅ Envoi au seller
+                const username = localStorage.getItem('userName') || 'Client';
+                url = SELLER_API_URL + '/api/seller/message/send';
+                body = {
+                    shop_id: selectedShopId,
+                    username: username,
+                    message: content
+                };
+            }
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
             });
 
             const data = await res.json();
 
             if (res.ok) {
                 sendMessageResult.className = 'send-message-result success';
-                sendMessageResult.textContent = '✅ Message envoyé avec succès !';
+                const destLabel = currentDest === 'admin' ? 'admin' : 'la boutique';
+                sendMessageResult.textContent = `✅ Message envoyé à ${destLabel} avec succès !`;
                 sendMessageResult.style.display = 'block';
                 messageInput.value = '';
                 autoResizeTextarea();
-                
+
+                // Ajouter une notification locale
                 const newNotif = {
                     id: Date.now(),
-                    type: 'client_message',
-                    title: '💬 Vous → Admin',
+                    type: currentDest === 'admin' ? 'client_message' : 'client_message',
+                    title: currentDest === 'admin' ? '💬 Vous → Admin' : '💬 Vous → Boutique',
                     content: content,
                     is_read: 1,
                     created_at: new Date().toISOString()
@@ -185,12 +297,12 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessageBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
     }
 
-    sendMessageBtn.addEventListener('click', sendMessageToAdmin);
+    sendMessageBtn.addEventListener('click', sendMessage);
 
     messageInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessageToAdmin();
+            sendMessage();
         }
     });
 
@@ -316,6 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 userId = data.user.id;
                 localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
                 console.log('👤 Utilisateur connecté:', data.user);
                 return true;
             } else {
@@ -367,6 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': '📦',
             'paiement': '💳',
             'admin': '📢',
+            'seller': '🛍️',
             'systeme': '⚙️',
             'client_message': '💬'
         };
@@ -378,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': '📦 Commande',
             'paiement': '💳 Paiement',
             'admin': '📢 Admin',
+            'seller': '🛍️ Boutique',
             'systeme': '⚙️ Système',
             'client_message': '💬 Message'
         };
@@ -386,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getDisplayTitle(notification) {
         if (notification.type === 'client_message') {
-            return '💬 Vous → Admin';
+            return '💬 Vous → ' + (notification.title.includes('Boutique') ? 'Boutique' : 'Admin');
         }
         return notification.title || 'Notification';
     }
@@ -433,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (AVEC COULEURS)
+    // RENDRE LES NOTIFICATIONS (AVEC COULEURS ET FILTRES)
     // ==========================================
 
     function renderNotifications() {
@@ -446,12 +561,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let filtered = notifications;
 
+        // Filtre par type
         if (currentFilter !== 'all') {
             filtered = filtered.filter(n => n.type === currentFilter);
         }
 
+        // Filtre "Déjà lu" (caché par défaut)
+        const showRead = showReadToggle.checked;
+        if (!showRead) {
+            filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
+        }
+
         if (filtered.length === 0) {
-            renderEmpty('Aucune notification pour ce filtre');
+            renderEmpty(showRead ? 'Aucune notification avec ce filtre' : 'Aucune notification non lue');
             return;
         }
 
@@ -478,7 +600,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
 
-            // ✅ Carte avec couleurs inline
             html += `
                 <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
                      data-id="${n.id}"
@@ -647,9 +768,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filterButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentFilter = this.dataset.filter;
-            if (notifications.length > 0) {
-                renderNotifications();
-            }
+            renderNotifications();
         });
     });
 
@@ -690,6 +809,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
+    // FILTRE DÉJÀ LU
+    // ==========================================
+
+    showReadToggle.addEventListener('change', function() {
+        renderNotifications();
+    });
+
+    // ==========================================
     // OVERLAY CONFIRMATION
     // ==========================================
 
@@ -723,12 +850,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
+            // Charger les boutiques
+            await loadShops();
+
             isSyncActive = true;
             updateSyncUI();
 
             connectSocketIO();
 
             await loadNotifications();
+
+            // Définir le destinataire par défaut
+            setDest('admin');
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
