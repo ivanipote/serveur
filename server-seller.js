@@ -395,7 +395,6 @@ app.post('/api/notification/send', async (req, res) => {
             [userId, null, type || 'systeme', title, content, false]
         );
 
-        // 🔔 Émettre via Socket.IO
         io.to(`user_${userId}`).emit('notification', {
             title: title,
             content: content,
@@ -1201,7 +1200,6 @@ app.get('/api/seller/discussions', async (req, res) => {
     }
 
     try {
-        // Vérifier si la table chat_rooms existe
         const tableCheck = await db.get(`
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.tables 
@@ -1272,14 +1270,12 @@ app.get('/api/seller/messages', async (req, res) => {
             ORDER BY created_at ASC
         `, [shop_id, username]);
 
-        // Marquer les messages comme lus
         await db.query(`
             UPDATE seller_messages 
             SET is_read = true 
             WHERE shop_id = $1 AND user_name = $2 AND is_from_seller = false
         `, [shop_id, username]);
 
-        // Mettre à jour le compteur non lu dans chat_rooms
         await db.query(`
             UPDATE chat_rooms 
             SET unread_count = 0, updated_at = NOW()
@@ -1295,7 +1291,7 @@ app.get('/api/seller/messages', async (req, res) => {
 });
 
 // ============================================================
-// ENVOYER UN MESSAGE (client → vendeur)
+// ENVOYER UN MESSAGE (client → vendeur) - AVEC NOTIFICATION FORMATÉE
 // ============================================================
 
 app.post('/api/seller/message/send', async (req, res) => {
@@ -1344,7 +1340,7 @@ app.post('/api/seller/message/send', async (req, res) => {
             );
         }
 
-        // ✅ CRÉER LA NOTIFICATION POUR LE VENDEUR (formaté)
+        // ✅ CRÉER LA NOTIFICATION POUR LE VENDEUR (formaté comme la démo)
         const notificationTitle = `🛍️ ${shop.name} - Nouveau message`;
         const notificationContent = `
             <div style="padding: 4px 0;">
@@ -1394,6 +1390,7 @@ app.post('/api/seller/message/send', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // ============================================================
 // RÉPONDRE AU CLIENT (vendeur → client)
 // ============================================================
@@ -1407,26 +1404,22 @@ app.post('/api/seller/message/reply', isAuthenticatedSeller, async (req, res) =>
     }
 
     try {
-        // Vérifier que la boutique appartient au vendeur
         const shop = await db.get('SELECT * FROM shops WHERE id = $1 AND seller_id = $2', [shop_id, sellerId]);
         if (!shop) {
             return res.status(403).json({ success: false, error: 'Non autorisé' });
         }
 
-        // Insérer le message
         await db.query(`
             INSERT INTO seller_messages (seller_id, shop_id, user_name, message, is_from_seller, is_read)
             VALUES ($1, $2, $3, $4, $5, $6)
         `, [sellerId, shop_id, username, message, true, false]);
 
-        // Mettre à jour la discussion
         await db.query(`
             UPDATE chat_rooms 
             SET last_message = $1, last_activity = NOW(), unread_count = 0
             WHERE shop_id = $2 AND user_name = $3
         `, [message, shop_id, username]);
 
-        // 🔔 Émettre via Socket.IO au client (si connecté)
         io.to(`user_${username}`).emit('new-message', {
             shop_id: shop_id,
             username: username,
@@ -1507,29 +1500,15 @@ app.get('/chat-seller', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'chat-seller.html'));
 });
 
-
 app.get('/discussion', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'discussion.html'));
 });
 
-// ============================================================
-// ROUTE : PAGE DÉTAIL PRODUIT (client)
-// ============================================================
-
 app.get('/detail-produit', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detail-produit.html'));
 });
 
-// ============================================================
-// ROUTE : PAGE DÉTAIL PRODUIT (client)
-// ============================================================
 
-app.get('/detail-produit', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detail-produit.html'));
-});
-app.get('/messages', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'messages.html'));
-});
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
 // ============================================================
