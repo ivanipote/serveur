@@ -1498,6 +1498,13 @@ app.get('/admin/login', (req, res) => {
 app.get('/admin/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'register.html'));
 });
+// ========================================================
+// ROUTE : NOTIFICATIONS BOUTIQUES
+// ========================================================
+
+app.get('/notifseller', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'notifseller.html'));
+});
 
 app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashboard.html'));
