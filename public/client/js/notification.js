@@ -617,12 +617,10 @@ function renderNotifications() {
 
     let filtered = notifications;
 
-    // Filtre par type
     if (currentFilter !== 'all') {
         filtered = filtered.filter(n => n.type === currentFilter);
     }
 
-    // Filtre "Déjà lu"
     if (showReadToggle && !showReadToggle.checked) {
         filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
     }
@@ -646,7 +644,7 @@ function renderNotifications() {
 
         let contentHtml = n.content || 'Aucun contenu';
         
-        // ✅ NETTOYAGE du contenu (supprimer les balises et retours à la ligne en trop)
+        // ✅ NETTOYAGE du contenu
         contentHtml = contentHtml.replace(/\n\n/g, '<br>');
         contentHtml = contentHtml.replace(/\n/g, '<br>');
         contentHtml = contentHtml.trim();
@@ -663,25 +661,46 @@ function renderNotifications() {
             );
         }
 
-        // ✅ Gérer la carte produit (seller)
+        // ✅ EXTRAIRE LA CARTE PRODUIT du contenu
         let productCardHtml = '';
-        const productMatch = contentHtml.match(/<div style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;" onclick="window.location.href='([^']+)'">([\s\S]*?)<\/div>/);
+        const productMatch = contentHtml.match(/<div[^>]*style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;"[^>]*onclick="window\.location\.href='([^']+)'"[^>]*>([\s\S]*?)<\/div>/);
+        
         if (productMatch) {
             const url = productMatch[1];
-            const content = productMatch[2];
+            let productContent = productMatch[2];
+            
+            // ✅ Extraire les infos du produit depuis le contenu
+            const imgMatch = productContent.match(/<img[^>]*src="([^"]+)"[^>]*>/);
+            const nameMatch = productContent.match(/<div[^>]*style="font-size:15px;font-weight:700;color:#1a1a2e;"[^>]*>([^<]*)<\/div>/);
+            const priceMatch = productContent.match(/<div[^>]*style="font-size:14px;font-weight:700;color:#17A464;"[^>]*>([^<]*)<\/div>/);
+            const stockMatch = productContent.match(/<div[^>]*style="font-size:12px;color:#6B7280;"[^>]*>([^<]*)<\/div>/);
+            
+            const imgSrc = imgMatch ? imgMatch[1] : 'https://via.placeholder.com/50';
+            const productName = nameMatch ? nameMatch[1] : 'Produit';
+            const productPrice = priceMatch ? priceMatch[1] : '0 FCFA';
+            const productStock = stockMatch ? stockMatch[1] : '📦 0 en stock';
+
+            // ✅ Construire la carte produit proprement
             productCardHtml = `
                 <div class="card-product-linked" onclick="window.location.href='${url}'">
-                    ${content}
+                    <img src="${imgSrc}" alt="${productName}" class="p-img" />
+                    <div class="p-info">
+                        <div class="p-name">${productName}</div>
+                        <div class="p-price">${productPrice}</div>
+                        <div class="p-stock">${productStock}</div>
+                    </div>
                     <span class="p-arrow">Voir →</span>
                 </div>
             `;
+            
+            // ✅ Supprimer toute la carte produit du contenu
             contentHtml = contentHtml.replace(productMatch[0], '');
         }
 
         // ✅ Nettoyer les espaces en trop
         contentHtml = contentHtml.trim();
 
-        // ✅ CHAQUE NOTIFICATION EST UNE CARTE INDIVIDUELLE
+        // ✅ CARTE INDIVIDUELLE
         html += `
             <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
                  data-id="${n.id}"
@@ -695,7 +714,10 @@ function renderNotifications() {
                     <div class="title" style="color: ${colors.text};">${displayTitle}</div>
                     <div class="content">${contentHtml}</div>
                     <div class="date">${dateStr}</div>
+                    
+                    <!-- ✅ Carte produit stylée -->
                     ${productCardHtml}
+                    
                     <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
                 </div>
                 
@@ -717,7 +739,6 @@ function renderNotifications() {
         `;
     });
 
-    // ✅ On injecte toutes les cartes individuellement dans notifList
     mainContent.innerHTML = html;
     attachEvents();
 }
