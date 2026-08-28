@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncBtn = document.getElementById('syncBtn');
     const syncStatus = document.getElementById('syncStatus');
 
-    // ✅ Footer message
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const sendMessageResult = document.getElementById('sendMessageResult');
@@ -22,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
+
+    const showReadToggle = document.getElementById('showReadToggle');
 
     let notifications = [];
     let userId = null;
@@ -33,6 +34,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let isFirstLoad = true;
     let hasNewNotification = false;
     let isSendingMessage = false;
+
+    // ==========================================
+    // COULEURS PAR TYPE
+    // ==========================================
+
+    const TYPE_COLORS = {
+        'commande': { bg: '#e3f2fd', border: '#64b5f6', badge: '#64b5f6', text: '#0d47a1', avatar: '#0d47a1' },
+        'paiement': { bg: '#e8f5e9', border: '#66bb6a', badge: '#66bb6a', text: '#1b5e20', avatar: '#1b5e20' },
+        'admin': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d', text: '#e65100', avatar: '#e65100' },
+        'systeme': { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' },
+        'client_message': { bg: '#f3e5f5', border: '#ce93d8', badge: '#ce93d8', text: '#4a148c', avatar: '#4a148c' }
+    };
+
+    const DEFAULT_COLORS = { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' };
+
+    function getTypeColors(type) {
+        return TYPE_COLORS[type] || DEFAULT_COLORS;
+    }
 
     // ==========================================
     // TOAST
@@ -92,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ENVOYER UN MESSAGE À L'ADMIN
     // ==========================================
 
-    async function sendMessageToAdmin() {
+    async function sendMessage() {
         const content = messageInput.value.trim();
 
         if (!content) {
@@ -115,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    title: 'Message client',
+                    title: '💬 Message client',
                     content: content
                 })
             });
@@ -124,10 +143,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (res.ok) {
                 sendMessageResult.className = 'send-message-result success';
-                sendMessageResult.textContent = '✅ Message envoyé avec succès !';
+                sendMessageResult.textContent = '✅ Message envoyé à l\'admin avec succès !';
                 sendMessageResult.style.display = 'block';
                 messageInput.value = '';
                 autoResizeTextarea();
+
+                const newNotif = {
+                    id: Date.now(),
+                    type: 'client_message',
+                    title: '💬 Vous → Admin',
+                    content: content,
+                    is_read: 1,
+                    created_at: new Date().toISOString()
+                };
+                
+                notifications.unshift(newNotif);
+                renderNotifications();
+                updateBadge();
                 
                 setTimeout(() => {
                     sendMessageResult.style.display = 'none';
@@ -155,17 +187,17 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessageBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
     }
 
-    sendMessageBtn.addEventListener('click', sendMessageToAdmin);
+    sendMessageBtn.addEventListener('click', sendMessage);
 
     messageInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessageToAdmin();
+            sendMessage();
         }
     });
 
     // ==========================================
-    // BOUTON SYNC - GESTION
+    // BOUTON SYNC
     // ==========================================
 
     function updateSyncUI() {
@@ -194,18 +226,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SYNC EN PERMANENCE
+    // SYNC
     // ==========================================
 
     function startSync() {
         if (syncInterval) {
             clearInterval(syncInterval);
         }
-
         console.log('🔄 Sync notifications démarré (toutes les 5s)');
-
         loadNotifications();
-
         syncInterval = setInterval(() => {
             if (!isSyncing && isSyncActive) {
                 loadNotifications();
@@ -222,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO - Connexion
+    // SOCKET.IO
     // ==========================================
 
     let socket = null;
@@ -233,8 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
             socket.disconnect();
             socket = null;
         }
-
-        console.log('🔌 Connexion Socket.IO client (notification)...');
 
         try {
             const userIdLocal = localStorage.getItem('userId') || '1';
@@ -286,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 userId = data.user.id;
                 localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userName', data.user.name);
                 console.log('👤 Utilisateur connecté:', data.user);
                 return true;
             } else {
@@ -343,39 +371,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return icons[type] || '🌿';
     }
 
-    function getAvatarClass(type) {
-        const classes = {
-            'commande': 'commande',
-            'paiement': 'paiement',
-            'admin': 'admin',
-            'systeme': 'systeme',
-            'client_message': 'admin'
-        };
-        return classes[type] || 'systeme';
-    }
-
-    function getBadgeClass(type) {
-        const classes = {
-            'commande': 'commande',
-            'paiement': 'paiement',
-            'admin': 'admin',
-            'systeme': 'systeme',
-            'client_message': 'admin'
-        };
-        return classes[type] || 'systeme';
-    }
-
-    function getContentClass(type) {
-        const classes = {
-            'commande': 'commande',
-            'paiement': 'paiement',
-            'admin': 'admin',
-            'systeme': 'systeme',
-            'client_message': 'admin'
-        };
-        return classes[type] || 'systeme';
-    }
-
     function getTypeLabel(type) {
         const labels = {
             'commande': '📦 Commande',
@@ -385,6 +380,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'client_message': '💬 Message'
         };
         return labels[type] || type;
+    }
+
+    function getDisplayTitle(notification) {
+        if (notification.type === 'client_message') {
+            return '💬 Vous → Admin';
+        }
+        return notification.title || 'Notification';
     }
 
     // ==========================================
@@ -406,7 +408,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (res.ok && data.notifications) {
-                notifications = data.notifications;
+                // ✅ Filtrer les notifications seller (elles iront dans notifseller.html)
+                notifications = data.notifications.filter(n => n.type !== 'seller');
                 notifBadge.textContent = data.count || 0;
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
                 isFirstLoad = false;
@@ -446,8 +449,13 @@ document.addEventListener('DOMContentLoaded', function() {
             filtered = filtered.filter(n => n.type === currentFilter);
         }
 
+        if (showReadToggle && !showReadToggle.checked) {
+            filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
+        }
+
         if (filtered.length === 0) {
-            renderEmpty('Aucune notification pour ce filtre');
+            const msg = (showReadToggle && !showReadToggle.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
+            renderEmpty(msg);
             return;
         }
 
@@ -455,15 +463,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         filtered.forEach(n => {
             const isUnread = n.is_read === 0 || n.is_read === false;
-            const typeClass = n.type || 'systeme';
-            const typeLabel = getTypeLabel(n.type);
+            const type = n.type || 'systeme';
+            const typeLabel = getTypeLabel(type);
             const dateStr = timeAgo(n.created_at);
-            const avatarIcon = getAvatarIcon(n.type);
-            const avatarClass = getAvatarClass(n.type);
-            const badgeClass = getBadgeClass(n.type);
-            const contentClass = getContentClass(n.type);
+            const avatarIcon = getAvatarIcon(type);
+            const displayTitle = getDisplayTitle(n);
+            const colors = getTypeColors(type);
 
             let contentHtml = n.content || 'Aucun contenu';
+            contentHtml = contentHtml.trim();
+
+            // Gérer les liens
             const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
             if (linkMatch) {
                 const url = linkMatch[1];
@@ -475,29 +485,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
 
+            // Extraire la carte produit du contenu
+            let productCardHtml = '';
+            const productMatch = contentHtml.match(/<div[^>]*style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;"[^>]*onclick="window\.location\.href='([^']+)'"[^>]*>([\s\S]*?)<\/div>/);
+            
+            if (productMatch) {
+                const url = productMatch[1];
+                let productContent = productMatch[2];
+                
+                const imgMatch = productContent.match(/<img[^>]*src="([^"]+)"[^>]*>/);
+                const nameMatch = productContent.match(/<div[^>]*style="font-size:15px;font-weight:700;color:#1a1a2e;"[^>]*>([^<]*)<\/div>/);
+                const priceMatch = productContent.match(/<div[^>]*style="font-size:14px;font-weight:700;color:#17A464;"[^>]*>([^<]*)<\/div>/);
+                const stockMatch = productContent.match(/<div[^>]*style="font-size:12px;color:#6B7280;"[^>]*>([^<]*)<\/div>/);
+                
+                const imgSrc = imgMatch ? imgMatch[1] : 'https://via.placeholder.com/50';
+                const productName = nameMatch ? nameMatch[1] : 'Produit';
+                const productPrice = priceMatch ? priceMatch[1] : '0 FCFA';
+                const productStock = stockMatch ? stockMatch[1] : '📦 0 en stock';
+
+                productCardHtml = `
+                    <div class="card-product-linked" onclick="window.location.href='${url}'">
+                        <img src="${imgSrc}" alt="${productName}" class="p-img" />
+                        <div class="p-info">
+                            <div class="p-name">${productName}</div>
+                            <div class="p-price">${productPrice}</div>
+                            <div class="p-stock">${productStock}</div>
+                        </div>
+                        <span class="p-arrow">Voir →</span>
+                    </div>
+                `;
+                
+                contentHtml = contentHtml.replace(productMatch[0], '');
+            }
+
+            contentHtml = contentHtml.trim();
+
+            // CARTE
             html += `
-                <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
-                    <div class="avatar ${avatarClass}">${avatarIcon}</div>
-                    <div class="body">
-                        <div class="title">${n.title || 'Notification'}</div>
-                        <div class="content ${contentClass}">${contentHtml}</div>
-                        <div class="date">${dateStr}</div>
-                        <span class="badge-type ${badgeClass}">${typeLabel}</span>
-                    </div>
-                    <div class="header-actions">
-                        ${isUnread ? `
-                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
-                                <i class="fas fa-check"></i>
+                <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
+                     data-id="${n.id}"
+                     style="border-color: ${colors.border};">
+                    
+                    <!-- En-tête -->
+                    <div class="card-header">
+                        <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
+                            ${avatarIcon}
+                        </div>
+                        <div class="card-title" style="color: ${colors.text};">
+                            ${displayTitle}
+                        </div>
+                        <div class="card-top-right">
+                            ${isUnread ? `
+                                <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            ` : `
+                                <button class="btn btn-read already" disabled>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            `}
+                            <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
-                        ` : `
-                            <button class="btn btn-read already" disabled title="Déjà lu">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `}
-                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        </div>
                     </div>
+                    
+                    <!-- Contenu -->
+                    <div class="card-content">${contentHtml}</div>
+                    
+                    <!-- Pied de carte -->
+                    <div class="card-footer">
+                        <span class="date">${dateStr}</span>
+                        <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
+                    </div>
+
+                    <!-- Carte produit intégrée -->
+                    ${productCardHtml}
                 </div>
             `;
         });
@@ -545,15 +608,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.querySelectorAll('.notif-card.unread').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('.btn') || e.target.closest('.notification-link') || e.target.closest('.card-product-linked')) {
+                    return;
+                }
                 const id = this.dataset.id;
                 markAsRead(id);
-            });
-        });
-
-        document.querySelectorAll('.notification-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.stopPropagation();
             });
         });
     }
@@ -636,9 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filterButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentFilter = this.dataset.filter;
-            if (notifications.length > 0) {
-                renderNotifications();
-            }
+            renderNotifications();
         });
     });
 
@@ -677,6 +735,16 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('❌ Erreur de connexion', 'error');
         }
     });
+
+    // ==========================================
+    // FILTRE DÉJÀ LU
+    // ==========================================
+
+    if (showReadToggle) {
+        showReadToggle.addEventListener('change', function() {
+            renderNotifications();
+        });
+    }
 
     // ==========================================
     // OVERLAY CONFIRMATION
