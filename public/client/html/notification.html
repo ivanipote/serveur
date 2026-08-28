@@ -10,9 +10,8 @@
 <body>
 
     <!-- ============================================================= -->
-    <!-- HEADER UNIFIÉ (comme mescommandes, detailcom, etc.)           -->
+    <!-- HEADER UNIFIÉ                                                   -->
     <!-- ============================================================= -->
-
     <header class="notif-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
@@ -29,9 +28,8 @@
     </header>
 
     <!-- ============================================================= -->
-    <!-- BARRE DE FILTRES (sous le header)                              -->
+    <!-- BARRE DE FILTRES                                                -->
     <!-- ============================================================= -->
-
     <div class="filter-bar-wrapper">
         <div class="filter-bar">
             <button class="filter-btn active" data-filter="all">📋 Toutes</button>
@@ -51,27 +49,57 @@
     </div>
 
     <!-- ============================================================= -->
-    <!-- CONTENU PRINCIPAL                                             -->
+    <!-- CONTENU PRINCIPAL                                               -->
     <!-- ============================================================= -->
-
     <main class="notif-main" id="notifMain">
+
         <!-- SKELETON LOADER -->
         <div id="skeletonLoader" class="skeleton-loader">
-            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-            <div class="skeleton-item"><div class="skeleton-avatar"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+            <div class="skeleton-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+            <div class="skeleton-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+            <div class="skeleton-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+            <div class="skeleton-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
         </div>
 
-        <!-- NOTIFICATIONS -->
+        <!-- LISTE DES NOTIFICATIONS -->
         <div id="notifList"></div>
+
     </main>
 
     <!-- ============================================================= -->
     <!-- FOOTER MESSAGE FIXE AVEC SÉLECTEUR ADMIN/SELLER                -->
     <!-- ============================================================= -->
-
     <footer class="notif-footer" id="notifFooter">
         <div class="footer-container">
 
@@ -101,13 +129,13 @@
             </div>
 
             <div id="sendMessageResult" class="send-message-result"></div>
+
         </div>
     </footer>
 
     <!-- ============================================================= -->
     <!-- OVERLAY CHOIX BOUTIQUE (scrollable)                            -->
     <!-- ============================================================= -->
-
     <div class="shop-overlay" id="shopOverlay">
         <div class="shop-overlay-content">
             <div class="shop-overlay-header">
@@ -132,7 +160,6 @@
     <!-- ============================================================= -->
     <!-- OVERLAY CONFIRMATION (suppression)                             -->
     <!-- ============================================================= -->
-
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
             <div class="confirm-icon">🗑️</div>
@@ -148,7 +175,6 @@
     <!-- ============================================================= -->
     <!-- SCRIPTS                                                        -->
     <!-- ============================================================= -->
-
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/notification.js"></script>
 
