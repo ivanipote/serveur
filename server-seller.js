@@ -1291,7 +1291,7 @@ app.get('/api/seller/messages', async (req, res) => {
 });
 
 // ============================================================
-// ENVOYER UN MESSAGE (client → vendeur) - AVEC NOTIFICATION FORMATÉE
+// ✅ ENVOYER UN MESSAGE (client → vendeur) - VERSION CORRIGÉE
 // ============================================================
 
 app.post('/api/seller/message/send', async (req, res) => {
@@ -1340,19 +1340,22 @@ app.post('/api/seller/message/send', async (req, res) => {
             );
         }
 
-        // ✅ CRÉER LA NOTIFICATION POUR LE VENDEUR (formaté comme la démo)
+        // ✅ CRÉER LA NOTIFICATION POUR LE VENDEUR - FORMAT CORRIGÉ
         const notificationTitle = `🛍️ ${shop.name} - Nouveau message`;
+        
+        // ✅ Structure propre : horizontal, sans Font Awesome, avec classes CSS
         const notificationContent = `
-            <div style="padding: 4px 0;">
-                <div style="font-weight: 600; margin-bottom: 6px;">
-                    👤 <span style="color: #1a2a6c;">${username}</span>
+            <div class="seller-notification">
+                <div class="seller-notification-header">
+                    <span class="seller-notification-icon">👤</span>
+                    <span class="seller-notification-username">${username}</span>
                 </div>
-                <div style="background: #f0f2f5; padding: 10px 14px; border-radius: 10px; margin: 4px 0 8px 0; font-size: 14px; line-height: 1.5;">
+                <div class="seller-notification-message">
                     ${message}
                 </div>
-                <div style="margin-top: 6px;">
-                    <a href="/messages" class="notification-link" style="color: #1a2a6c; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="fas fa-reply"></i> Répondre au client
+                <div class="seller-notification-footer">
+                    <a href="/chat-seller" class="seller-notification-link">
+                        Répondre au client
                     </a>
                 </div>
             </div>
