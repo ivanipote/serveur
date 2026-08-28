@@ -10,7 +10,7 @@
 <body>
 
     <!-- ============================================================= -->
-    <!-- HEADER UNIFIÉ                                                   -->
+    <!-- HEADER                                                        -->
     <!-- ============================================================= -->
     <header class="notif-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
@@ -18,7 +18,7 @@
         </button>
         <span class="notif-title">🔔 Notifications</span>
         <span class="badge-count" id="notifBadge">0</span>
-        <button class="btn-sync" id="syncBtn" title="Synchronisation en temps réel">
+        <button class="btn-sync" id="syncBtn" title="Synchronisation">
             <i class="fas fa-sync-alt"></i>
             <span class="sync-status" id="syncStatus">●</span>
         </button>
@@ -28,7 +28,7 @@
     </header>
 
     <!-- ============================================================= -->
-    <!-- BARRE DE FILTRES                                                -->
+    <!-- FILTRES                                                        -->
     <!-- ============================================================= -->
     <div class="filter-bar-wrapper">
         <div class="filter-bar">
@@ -49,26 +49,12 @@
     </div>
 
     <!-- ============================================================= -->
-    <!-- CONTENU PRINCIPAL                                               -->
+    <!-- CONTENU                                                        -->
     <!-- ============================================================= -->
     <main class="notif-main" id="notifMain">
 
-        <!-- SKELETON LOADER -->
+        <!-- SKELETON -->
         <div id="skeletonLoader" class="skeleton-loader">
-            <div class="skeleton-item">
-                <div class="skeleton-avatar"></div>
-                <div class="skeleton-body">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line short"></div>
-                </div>
-            </div>
-            <div class="skeleton-item">
-                <div class="skeleton-avatar"></div>
-                <div class="skeleton-body">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line short"></div>
-                </div>
-            </div>
             <div class="skeleton-item">
                 <div class="skeleton-avatar"></div>
                 <div class="skeleton-body">
@@ -98,7 +84,7 @@
     </main>
 
     <!-- ============================================================= -->
-    <!-- FOOTER MESSAGE FIXE AVEC SÉLECTEUR ADMIN/SELLER                -->
+    <!-- FOOTER MESSAGE                                                -->
     <!-- ============================================================= -->
     <footer class="notif-footer" id="notifFooter">
         <div class="footer-container">
@@ -134,7 +120,7 @@
     </footer>
 
     <!-- ============================================================= -->
-    <!-- OVERLAY CHOIX BOUTIQUE (scrollable)                            -->
+    <!-- OVERLAY BOUTIQUES                                              -->
     <!-- ============================================================= -->
     <div class="shop-overlay" id="shopOverlay">
         <div class="shop-overlay-content">
@@ -148,9 +134,7 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="shopSearchInput" placeholder="Rechercher une boutique..." />
             </div>
-            <div class="shop-overlay-list" id="shopOverlayList">
-                <!-- Injecté par JS -->
-            </div>
+            <div class="shop-overlay-list" id="shopOverlayList"></div>
             <div class="shop-overlay-footer">
                 <button class="shop-overlay-cancel" id="shopOverlayCancel">Annuler</button>
             </div>
@@ -158,7 +142,7 @@
     </div>
 
     <!-- ============================================================= -->
-    <!-- OVERLAY CONFIRMATION (suppression)                             -->
+    <!-- OVERLAY CONFIRMATION                                          -->
     <!-- ============================================================= -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
