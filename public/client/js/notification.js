@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (STYLE DÉMO)
+    // RENDRE LES NOTIFICATIONS (CARTES INDIVIDUELLES)
     // ==========================================
 
     function renderNotifications() {
@@ -672,6 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             contentHtml = contentHtml.trim();
 
+            // ✅ CHAQUE NOTIFICATION EST UNE CARTE INDIVIDUELLE
             html += `
                 <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
                      data-id="${n.id}"
@@ -707,6 +708,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         });
 
+        // ✅ On injecte toutes les cartes individuellement dans notifList
         mainContent.innerHTML = html;
         attachEvents();
     }
