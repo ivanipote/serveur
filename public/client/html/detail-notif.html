@@ -80,6 +80,19 @@
             margin: 0 auto;
         }
 
+        /* ===== LOADING ===== */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        .loading-state i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 12px;
+            color: #17A464;
+        }
+
         /* ===== CARTE ===== */
         .detail-card {
             background: white;
@@ -573,68 +586,77 @@
     <!-- ============================================================= -->
     <main class="detail-main" id="detailMain">
 
-        <!-- ===== CARTE 1 : INFOS GÉNÉRALES ===== -->
-        <div class="detail-card">
-            <div class="card-label"><i class="fas fa-info-circle"></i> Informations générales</div>
-
-            <div class="detail-row">
-                <span class="label">📋 ID</span>
-                <span class="value" id="notifId">#123</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">📌 Titre</span>
-                <span class="value" id="notifTitle">Nouveau produit disponible !</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">📅 Date</span>
-                <span class="value" id="notifDate">Aujourd'hui 14:30</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">📊 Statut</span>
-                <span class="value"><span class="status-badge non-lu" id="notifStatus">Non lu</span></span>
-            </div>
+        <!-- LOADING -->
+        <div id="loadingState" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Chargement du détail...</p>
         </div>
 
-        <!-- ===== CARTE 2 : PRODUIT LIÉ (si présent) ===== -->
-        <div class="detail-card" id="productCard">
-            <div class="card-label"><i class="fas fa-box"></i> Produit lié</div>
-            <div id="productContent">
-                <div class="product-card-detail" id="productLink">
-                    <img src="https://via.placeholder.com/70/cccccc/ffffff?text=📦" alt="Produit" class="p-img" id="productImage" />
-                    <div class="p-info">
-                        <div class="p-name" id="productName">Jus de gingembre</div>
-                        <div class="p-price" id="productPrice">1 000 FCFA</div>
-                        <div class="p-stock" id="productStock">📦 25 en stock</div>
-                    </div>
-                    <span class="p-arrow">Voir →</span>
+        <!-- CONTENU (caché par défaut) -->
+        <div id="detailContent" style="display:none;">
+
+            <!-- CARTE 1 : INFOS GÉNÉRALES -->
+            <div class="detail-card" id="cardGeneral">
+                <div class="card-label"><i class="fas fa-info-circle"></i> Informations générales</div>
+
+                <div class="detail-row" id="rowId">
+                    <span class="label">📋 ID</span>
+                    <span class="value" id="notifId">-</span>
+                </div>
+                <div class="detail-row" id="rowTitle">
+                    <span class="label">📌 Titre</span>
+                    <span class="value" id="notifTitle">-</span>
+                </div>
+                <div class="detail-row" id="rowDate">
+                    <span class="label">📅 Date</span>
+                    <span class="value" id="notifDate">-</span>
+                </div>
+                <div class="detail-row" id="rowStatus">
+                    <span class="label">📊 Statut</span>
+                    <span class="value"><span class="status-badge" id="notifStatus">-</span></span>
                 </div>
             </div>
-        </div>
 
-        <!-- ===== CARTE 3 : BOUTIQUE ===== -->
-        <div class="detail-card">
-            <div class="card-label"><i class="fas fa-store"></i> Boutique</div>
+            <!-- CARTE 2 : PRODUIT LIÉ -->
+            <div class="detail-card" id="cardProduct" style="display:none;">
+                <div class="card-label"><i class="fas fa-box"></i> Produit lié</div>
+                <div id="productContent">
+                    <div class="product-card-detail" id="productLink">
+                        <img src="https://via.placeholder.com/70/cccccc/ffffff?text=📦" alt="Produit" class="p-img" id="productImage" />
+                        <div class="p-info">
+                            <div class="p-name" id="productName">-</div>
+                            <div class="p-price" id="productPrice">-</div>
+                            <div class="p-stock" id="productStock">-</div>
+                        </div>
+                        <span class="p-arrow">Voir →</span>
+                    </div>
+                </div>
+            </div>
 
-            <div class="detail-row">
-                <span class="label">🏪 Nom</span>
-                <span class="value" id="shopName">Ma Boutique Nature</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">🆔 ID</span>
-                <span class="value" id="shopId">#1</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">🔗 Lien</span>
-                <span class="value"><a href="#" class="shop-link" id="shopLink">Voir la boutique →</a></span>
-            </div>
-        </div>
+            <!-- CARTE 3 : BOUTIQUE -->
+            <div class="detail-card" id="cardShop" style="display:none;">
+                <div class="card-label"><i class="fas fa-store"></i> Boutique</div>
 
-        <!-- ===== CARTE 4 : CONTENU ===== -->
-        <div class="detail-card">
-            <div class="card-label"><i class="fas fa-align-left"></i> Contenu</div>
-            <div class="content-text" id="notifContent">
-                Découvrez notre nouveau produit naturel : Jus de gingembre frais, 100% pur, sans conservateurs.
+                <div class="detail-row">
+                    <span class="label">🏪 Nom</span>
+                    <span class="value" id="shopName">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">🆔 ID</span>
+                    <span class="value" id="shopId">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">🔗 Lien</span>
+                    <span class="value"><a href="#" class="shop-link" id="shopLink">Voir la boutique →</a></span>
+                </div>
             </div>
+
+            <!-- CARTE 4 : CONTENU -->
+            <div class="detail-card" id="cardContent">
+                <div class="card-label"><i class="fas fa-align-left"></i> Contenu</div>
+                <div class="content-text" id="notifContent">-</div>
+            </div>
+
         </div>
 
     </main>
@@ -642,7 +664,7 @@
     <!-- ============================================================= -->
     <!-- FOOTER FIXE (2 BOUTONS)                                        -->
     <!-- ============================================================= -->
-    <footer class="detail-footer">
+    <footer class="detail-footer" id="detailFooter" style="display:none;">
         <a href="#" class="btn btn-shop" id="shopBtn">
             <i class="fas fa-store"></i> Voir la boutique
         </a>
@@ -666,12 +688,10 @@
                 </button>
             </div>
 
-            <!-- Historique -->
             <div class="slide-history" id="slideHistory">
                 <div class="history-empty">Aucun message envoyé</div>
             </div>
 
-            <!-- Zone de saisie -->
             <div class="slide-input-area">
                 <textarea id="slideMessageInput" rows="1" placeholder="Votre message..." maxlength="500"></textarea>
                 <button class="btn-send-slide" id="slideSendBtn">
@@ -688,110 +708,161 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ detail-notif.html chargé (version finale)');
+            console.log('✅ detail-notif.html chargé (version API)');
 
             // ==========================================
             // RÉFÉRENCES
             // ==========================================
 
+            const loadingState = document.getElementById('loadingState');
+            const detailContent = document.getElementById('detailContent');
+            const detailFooter = document.getElementById('detailFooter');
+
+            const notifId = document.getElementById('notifId');
+            const notifTitle = document.getElementById('notifTitle');
+            const notifDate = document.getElementById('notifDate');
+            const notifStatus = document.getElementById('notifStatus');
+            const notifContent = document.getElementById('notifContent');
+
+            const cardProduct = document.getElementById('cardProduct');
+            const productName = document.getElementById('productName');
+            const productPrice = document.getElementById('productPrice');
+            const productStock = document.getElementById('productStock');
+            const productImage = document.getElementById('productImage');
+            const productLink = document.getElementById('productLink');
+
+            const cardShop = document.getElementById('cardShop');
+            const shopName = document.getElementById('shopName');
+            const shopId = document.getElementById('shopId');
+            const shopLink = document.getElementById('shopLink');
+            const shopBtn = document.getElementById('shopBtn');
+
+            // Slide
             const slideOverlay = document.getElementById('slideOverlay');
             const slideClose = document.getElementById('slideClose');
             const slideMessageInput = document.getElementById('slideMessageInput');
             const slideSendBtn = document.getElementById('slideSendBtn');
             const slideHistory = document.getElementById('slideHistory');
+            const messageBtn = document.getElementById('messageBtn');
 
             let messageHistory = [];
-            let shopId = null;
-            let shopName = '';
+            let currentShopId = null;
+            let currentShopName = '';
+            let currentProductId = null;
 
             // ==========================================
-            // RÉCUPÉRER LES PARAMÈTRES URL
+            // RÉCUPÉRER L'ID DEPUIS L'URL
             // ==========================================
 
             const urlParams = new URLSearchParams(window.location.search);
+            const notificationId = urlParams.get('id');
 
-            const id = urlParams.get('id') || '123';
-            shopId = urlParams.get('shop_id') || '1';
-            shopName = decodeURIComponent(urlParams.get('shop_name') || 'Ma Boutique Nature');
-            const productId = urlParams.get('product_id') || null;
-            let productData = null;
-
-            try {
-                const rawProductData = urlParams.get('product_data');
-                if (rawProductData) {
-                    productData = JSON.parse(decodeURIComponent(rawProductData));
-                }
-            } catch (e) {
-                console.warn('Erreur parsing product_data:', e);
+            if (!notificationId) {
+                loadingState.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>ID de notification manquant.</p>
+                `;
+                return;
             }
 
             // ==========================================
-            // DONNÉES DE DÉMO (fallback)
+            // CHARGER LA NOTIFICATION DEPUIS L'API
             // ==========================================
 
-            if (!productData) {
-                productData = {
-                    name: 'Jus de gingembre',
-                    price: 1000,
-                    stock: 25,
-                    image1: 'https://via.placeholder.com/70/cccccc/ffffff?text=📦'
-                };
+            async function loadNotification() {
+                try {
+                    const res = await fetch(`/api/notification/${notificationId}`);
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Erreur de chargement');
+                    }
+
+                    const notif = data.notification;
+                    displayNotification(notif);
+
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    loadingState.innerHTML = `
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>${error.message || 'Erreur de chargement'}</p>
+                    `;
+                }
             }
 
             // ==========================================
-            // AFFICHER LES DONNÉES
+            // AFFICHER LA NOTIFICATION
             // ==========================================
 
-            document.getElementById('notifId').textContent = '#' + id;
-            document.getElementById('notifTitle').textContent = urlParams.get('title') || 'Nouveau produit disponible !';
-            document.getElementById('notifDate').textContent = new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('notifContent').textContent = urlParams.get('content') || 'Découvrez notre nouveau produit naturel : Jus de gingembre frais, 100% pur, sans conservateurs.';
+            function displayNotification(notif) {
+                // Cacher le loading, afficher le contenu
+                loadingState.style.display = 'none';
+                detailContent.style.display = 'block';
+                detailFooter.style.display = 'flex';
 
-            const statusEl = document.getElementById('notifStatus');
-            const isRead = Math.random() > 0.5;
-            statusEl.textContent = isRead ? 'Lu' : 'Non lu';
-            statusEl.className = 'status-badge ' + (isRead ? 'lu' : 'non-lu');
+                // 1. Infos générales
+                notifId.textContent = '#' + notif.id;
+                notifTitle.textContent = notif.title || 'Sans titre';
+                const dateObj = new Date(notif.created_at);
+                notifDate.textContent = dateObj.toLocaleDateString('fr-FR') + ' ' + dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const isRead = notif.is_read === true;
+                notifStatus.textContent = isRead ? 'Lu' : 'Non lu';
+                notifStatus.className = 'status-badge ' + (isRead ? 'lu' : 'non-lu');
 
-            document.getElementById('shopName').textContent = shopName;
-            document.getElementById('shopId').textContent = '#' + shopId;
-            document.getElementById('shopLink').href = '/shop-user?id=' + shopId;
-            document.getElementById('shopBtn').href = '/shop-user?id=' + shopId;
+                // 2. Contenu
+                notifContent.textContent = notif.content || 'Aucun contenu';
 
-            if (productId) {
-                document.getElementById('productName').textContent = productData.name || 'Produit sans nom';
-                document.getElementById('productPrice').textContent = (productData.price || 0).toLocaleString() + ' FCFA';
-                document.getElementById('productStock').textContent = '📦 ' + (productData.stock || 0) + ' en stock';
-
-                const imgEl = document.getElementById('productImage');
-                const imgSrc = productData.image1 || 'https://via.placeholder.com/70/cccccc/ffffff?text=📦';
-                if (imgSrc) {
-                    imgEl.src = imgSrc;
-                    imgEl.alt = productData.name || 'Produit';
+                // 3. Produit lié
+                currentProductId = notif.product_id || null;
+                if (notif.product_data && currentProductId) {
+                    const pd = notif.product_data;
+                    cardProduct.style.display = 'block';
+                    productName.textContent = pd.name || 'Produit sans nom';
+                    productPrice.textContent = (pd.price || 0).toLocaleString() + ' FCFA';
+                    productStock.textContent = '📦 ' + (pd.stock || 0) + ' en stock';
+                    productImage.src = pd.image1 || 'https://via.placeholder.com/70/cccccc/ffffff?text=📦';
+                    productImage.alt = pd.name || 'Produit';
+                    productLink.onclick = function(e) {
+                        e.preventDefault();
+                        window.location.href = '/detail-produit?id=' + currentProductId;
+                    };
+                } else {
+                    cardProduct.style.display = 'none';
                 }
 
-                document.getElementById('productLink').onclick = function() {
-                    window.location.href = '/detail-produit?id=' + productId;
-                };
-            } else {
-                document.getElementById('productCard').style.display = 'none';
+                // 4. Boutique
+                currentShopId = notif.shop_id || null;
+                currentShopName = notif.shop_name || 'Boutique inconnue';
+                if (currentShopId) {
+                    cardShop.style.display = 'block';
+                    shopName.textContent = currentShopName;
+                    shopId.textContent = '#' + currentShopId;
+                    shopLink.href = '/shop-user?id=' + currentShopId;
+                    shopBtn.href = '/shop-user?id=' + currentShopId;
+                } else {
+                    cardShop.style.display = 'none';
+                }
+
+                console.log('✅ Notification affichée:', notif);
             }
 
             // ==========================================
             // SLIDE MESSAGE
             // ==========================================
 
-            document.getElementById('messageBtn').addEventListener('click', function() {
+            function openSlide() {
                 slideOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 slideMessageInput.focus();
                 renderHistory();
-            });
+            }
 
             function closeSlide() {
                 slideOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
 
+            messageBtn.addEventListener('click', openSlide);
             slideClose.addEventListener('click', closeSlide);
             slideOverlay.addEventListener('click', function(e) {
                 if (e.target === slideOverlay) closeSlide();
@@ -801,10 +872,6 @@
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
-
-            // ==========================================
-            // ENVOYER UN MESSAGE
-            // ==========================================
 
             function sendSlideMessage() {
                 const text = slideMessageInput.value.trim();
@@ -838,10 +905,6 @@
                 }
             });
 
-            // ==========================================
-            // HISTORIQUE
-            // ==========================================
-
             function renderHistory() {
                 if (messageHistory.length === 0) {
                     slideHistory.innerHTML = `<div class="history-empty">Aucun message envoyé</div>`;
@@ -858,7 +921,11 @@
                 slideHistory.scrollTop = slideHistory.scrollHeight;
             }
 
-            console.log('✅ Données affichées:', { id, shopId, shopName, productId, productData });
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
+            loadNotification();
 
         });
     </script>
