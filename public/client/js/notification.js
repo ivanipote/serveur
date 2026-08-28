@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (AVEC EXTRACTION PROPRE)
+    // RENDRE LES NOTIFICATIONS (VERSION RESTYLÉE)
     // ==========================================
 
     function renderNotifications() {
@@ -700,38 +700,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
             contentHtml = contentHtml.trim();
 
-            // ✅ CARTE INDIVIDUELLE
+            // ✅ CARTE RESTYLÉE
             html += `
                 <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
                      data-id="${n.id}"
                      style="border-color: ${colors.border};">
                     
-                    <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
-                        ${avatarIcon}
+                    <!-- En-tête -->
+                    <div class="card-header">
+                        <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
+                            ${avatarIcon}
+                        </div>
+                        <div class="card-title" style="color: ${colors.text};">
+                            ${displayTitle}
+                        </div>
+                        <div class="card-top-right">
+                            ${isUnread ? `
+                                <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            ` : `
+                                <button class="btn btn-read already" disabled>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            `}
+                            <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="body">
-                        <div class="title" style="color: ${colors.text};">${displayTitle}</div>
-                        <div class="content">${contentHtml}</div>
-                        <div class="date">${dateStr}</div>
-                        ${productCardHtml}
+                    <!-- Contenu -->
+                    <div class="card-content">${contentHtml}</div>
+                    
+                    <!-- Pied de carte -->
+                    <div class="card-footer">
+                        <span class="date">${dateStr}</span>
                         <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
                     </div>
-                    
-                    <div class="header-actions">
-                        ${isUnread ? `
-                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        ` : `
-                            <button class="btn btn-read already" disabled>
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `}
-                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
+
+                    <!-- Carte produit intégrée (si présente) -->
+                    ${productCardHtml}
                 </div>
             `;
         });
