@@ -1505,6 +1505,9 @@ app.get('/admin/register', (req, res) => {
 app.get('/notifseller', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'notifseller.html'));
 });
+app.get('/detail-notif', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'detail-notif.html'));
+});
 
 app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'dashboard.html'));
