@@ -14,24 +14,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncBtn = document.getElementById('syncBtn');
     const syncStatus = document.getElementById('syncStatus');
 
+    // ✅ Footer message
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const sendMessageResult = document.getElementById('sendMessageResult');
 
-    const destAdminBtn = document.getElementById('destAdminBtn');
-    const destSellerBtn = document.getElementById('destSellerBtn');
-
-    const shopOverlay = document.getElementById('shopOverlay');
-    const shopOverlayList = document.getElementById('shopOverlayList');
-    const shopSearchInput = document.getElementById('shopSearchInput');
-    const shopOverlayClose = document.getElementById('shopOverlayClose');
-    const shopOverlayCancel = document.getElementById('shopOverlayCancel');
-
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
-
-    const showReadToggle = document.getElementById('showReadToggle');
 
     let notifications = [];
     let userId = null;
@@ -43,32 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let isFirstLoad = true;
     let hasNewNotification = false;
     let isSendingMessage = false;
-
-    let currentDest = 'admin';
-    let shops = [];
-    let selectedShop = null;
-
-    const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
-    const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
-
-    // ==========================================
-    // COULEURS PAR TYPE
-    // ==========================================
-
-    const TYPE_COLORS = {
-        'commande': { bg: '#e3f2fd', border: '#64b5f6', badge: '#64b5f6', text: '#0d47a1', avatar: '#0d47a1' },
-        'paiement': { bg: '#e8f5e9', border: '#66bb6a', badge: '#66bb6a', text: '#1b5e20', avatar: '#1b5e20' },
-        'admin': { bg: '#fff3e0', border: '#ffb74d', badge: '#ffb74d', text: '#e65100', avatar: '#e65100' },
-        'seller': { bg: '#e8eaf6', border: '#7986cb', badge: '#7986cb', text: '#283593', avatar: '#283593' },
-        'systeme': { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' },
-        'client_message': { bg: '#f3e5f5', border: '#ce93d8', badge: '#ce93d8', text: '#4a148c', avatar: '#4a148c' }
-    };
-
-    const DEFAULT_COLORS = { bg: '#f5f5f5', border: '#d0d0d0', badge: '#d0d0d0', text: '#555', avatar: '#555' };
-
-    function getTypeColors(type) {
-        return TYPE_COLORS[type] || DEFAULT_COLORS;
-    }
 
     // ==========================================
     // TOAST
@@ -125,151 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
     messageInput.addEventListener('input', autoResizeTextarea);
 
     // ==========================================
-    // CHARGER LES BOUTIQUES
+    // ENVOYER UN MESSAGE À L'ADMIN
     // ==========================================
 
-    async function loadShops() {
-        try {
-            const res = await fetch(CLIENT_API_URL + '/api/shops');
-            const data = await res.json();
-
-            if (data.success && data.shops && data.shops.length > 0) {
-                shops = data.shops;
-                renderShopOverlay(shops);
-            }
-        } catch (error) {
-            console.error('❌ Erreur chargement boutiques:', error);
-        }
-    }
-
-    function renderShopOverlay(shopsList) {
-        shopOverlayList.innerHTML = shopsList.map(shop => `
-            <div class="shop-overlay-item" data-id="${shop.id}" data-name="${shop.name}" data-seller="${shop.seller_name || 'Vendeur'}">
-                <span class="shop-icon">🏪</span>
-                <div class="shop-info">
-                    <div class="shop-name">${shop.name}</div>
-                    <div class="shop-seller">👤 ${shop.seller_name || 'Vendeur'}</div>
-                </div>
-                <span class="shop-check"><i class="fas fa-check-circle"></i></span>
-            </div>
-        `).join('');
-
-        document.querySelectorAll('.shop-overlay-item').forEach(item => {
-            item.addEventListener('click', function() {
-                document.querySelectorAll('.shop-overlay-item').forEach(el => el.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedShop = {
-                    id: parseInt(this.dataset.id),
-                    name: this.dataset.name,
-                    seller: this.dataset.seller
-                };
-                setTimeout(() => {
-                    closeShopOverlay();
-                    destSellerBtn.innerHTML = `<i class="fas fa-store"></i> ${selectedShop.name}`;
-                    destSellerBtn.classList.add('active');
-                    destAdminBtn.classList.remove('active');
-                    messageInput.placeholder = `Envoyer un message à ${selectedShop.name}...`;
-                }, 300);
-            });
-        });
-    }
-
-    // ==========================================
-    // OVERLAY BOUTIQUES
-    // ==========================================
-
-    function openShopOverlay() {
-        shopOverlay.classList.add('active');
-        shopSearchInput.value = '';
-        shopSearchInput.focus();
-        filterShopOverlay('');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeShopOverlay() {
-        shopOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    shopOverlayClose.addEventListener('click', closeShopOverlay);
-    shopOverlayCancel.addEventListener('click', closeShopOverlay);
-
-    shopOverlay.addEventListener('click', function(e) {
-        if (e.target === shopOverlay) {
-            closeShopOverlay();
-        }
-    });
-
-    shopSearchInput.addEventListener('input', function() {
-        filterShopOverlay(this.value.trim().toLowerCase());
-    });
-
-    function filterShopOverlay(query) {
-        const items = shopOverlayList.querySelectorAll('.shop-overlay-item');
-        items.forEach(item => {
-            const name = item.dataset.name.toLowerCase();
-            const seller = item.dataset.seller.toLowerCase();
-            const match = name.includes(query) || seller.includes(query);
-            item.style.display = match ? 'flex' : 'none';
-        });
-    }
-
-    // ==========================================
-    // SÉLECTEUR DESTINATAIRE
-    // ==========================================
-
-    function setDest(target) {
-        currentDest = target;
-
-        if (target === 'admin') {
-            destAdminBtn.classList.add('active');
-            destSellerBtn.classList.remove('active');
-            destSellerBtn.innerHTML = '<i class="fas fa-store"></i> Boutique';
-            selectedShop = null;
-            messageInput.placeholder = 'Envoyer un message à l\'admin...';
-        } else {
-            if (shops.length === 0) {
-                loadShops().then(() => {
-                    openShopOverlay();
-                });
-            } else {
-                openShopOverlay();
-            }
-        }
-    }
-
-    destAdminBtn.addEventListener('click', function() {
-        setDest('admin');
-    });
-
-    destSellerBtn.addEventListener('click', function() {
-        if (selectedShop) {
-            openShopOverlay();
-        } else {
-            setDest('seller');
-        }
-    });
-
-    // ==========================================
-    // ENVOYER UN MESSAGE
-    // ==========================================
-
-    async function sendMessage() {
+    async function sendMessageToAdmin() {
         const content = messageInput.value.trim();
 
         if (!content) {
             sendMessageResult.className = 'send-message-result error';
             sendMessageResult.textContent = '⚠️ Veuillez écrire un message.';
-            sendMessageResult.style.display = 'block';
-            setTimeout(() => {
-                sendMessageResult.style.display = 'none';
-            }, 3000);
-            return;
-        }
-
-        if (currentDest === 'seller' && !selectedShop) {
-            sendMessageResult.className = 'send-message-result error';
-            sendMessageResult.textContent = '⚠️ Veuillez choisir une boutique.';
             sendMessageResult.style.display = 'block';
             setTimeout(() => {
                 sendMessageResult.style.display = 'none';
@@ -283,52 +111,23 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessageBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         try {
-            let url, body;
-
-            if (currentDest === 'admin') {
-                url = '/api/client/send-message';
-                body = {
-                    title: '💬 Message client',
-                    content: content
-                };
-            } else {
-                const username = localStorage.getItem('userName') || 'Client';
-                url = SELLER_API_URL + '/api/seller/message/send';
-                body = {
-                    shop_id: selectedShop.id,
-                    username: username,
-                    message: content
-                };
-            }
-
-            const res = await fetch(url, {
+            const res = await fetch('/api/client/send-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                body: JSON.stringify({
+                    title: 'Message client',
+                    content: content
+                })
             });
 
             const data = await res.json();
 
             if (res.ok) {
                 sendMessageResult.className = 'send-message-result success';
-                const destLabel = currentDest === 'admin' ? 'admin' : selectedShop.name;
-                sendMessageResult.textContent = `✅ Message envoyé à ${destLabel} avec succès !`;
+                sendMessageResult.textContent = '✅ Message envoyé avec succès !';
                 sendMessageResult.style.display = 'block';
                 messageInput.value = '';
                 autoResizeTextarea();
-
-                const newNotif = {
-                    id: Date.now(),
-                    type: 'client_message',
-                    title: currentDest === 'admin' ? '💬 Vous → Admin' : `💬 Vous → ${selectedShop.name}`,
-                    content: content,
-                    is_read: 1,
-                    created_at: new Date().toISOString()
-                };
-                
-                notifications.unshift(newNotif);
-                renderNotifications();
-                updateBadge();
                 
                 setTimeout(() => {
                     sendMessageResult.style.display = 'none';
@@ -356,17 +155,17 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessageBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
     }
 
-    sendMessageBtn.addEventListener('click', sendMessage);
+    sendMessageBtn.addEventListener('click', sendMessageToAdmin);
 
     messageInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            sendMessageToAdmin();
         }
     });
 
     // ==========================================
-    // BOUTON SYNC
+    // BOUTON SYNC - GESTION
     // ==========================================
 
     function updateSyncUI() {
@@ -395,15 +194,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SYNC
+    // SYNC EN PERMANENCE
     // ==========================================
 
     function startSync() {
         if (syncInterval) {
             clearInterval(syncInterval);
         }
+
         console.log('🔄 Sync notifications démarré (toutes les 5s)');
+
         loadNotifications();
+
         syncInterval = setInterval(() => {
             if (!isSyncing && isSyncActive) {
                 loadNotifications();
@@ -420,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SOCKET.IO
+    // SOCKET.IO - Connexion
     // ==========================================
 
     let socket = null;
@@ -431,6 +233,8 @@ document.addEventListener('DOMContentLoaded', function() {
             socket.disconnect();
             socket = null;
         }
+
+        console.log('🔌 Connexion Socket.IO client (notification)...');
 
         try {
             const userIdLocal = localStorage.getItem('userId') || '1';
@@ -482,7 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 userId = data.user.id;
                 localStorage.setItem('userId', data.user.id);
-                localStorage.setItem('userName', data.user.name);
                 console.log('👤 Utilisateur connecté:', data.user);
                 return true;
             } else {
@@ -534,11 +337,43 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': '📦',
             'paiement': '💳',
             'admin': '📢',
-            'seller': '🛍️',
             'systeme': '⚙️',
             'client_message': '💬'
         };
         return icons[type] || '🌿';
+    }
+
+    function getAvatarClass(type) {
+        const classes = {
+            'commande': 'commande',
+            'paiement': 'paiement',
+            'admin': 'admin',
+            'systeme': 'systeme',
+            'client_message': 'admin'
+        };
+        return classes[type] || 'systeme';
+    }
+
+    function getBadgeClass(type) {
+        const classes = {
+            'commande': 'commande',
+            'paiement': 'paiement',
+            'admin': 'admin',
+            'systeme': 'systeme',
+            'client_message': 'admin'
+        };
+        return classes[type] || 'systeme';
+    }
+
+    function getContentClass(type) {
+        const classes = {
+            'commande': 'commande',
+            'paiement': 'paiement',
+            'admin': 'admin',
+            'systeme': 'systeme',
+            'client_message': 'admin'
+        };
+        return classes[type] || 'systeme';
     }
 
     function getTypeLabel(type) {
@@ -546,21 +381,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'commande': '📦 Commande',
             'paiement': '💳 Paiement',
             'admin': '📢 Admin',
-            'seller': '🛍️ Boutique',
             'systeme': '⚙️ Système',
             'client_message': '💬 Message'
         };
         return labels[type] || type;
-    }
-
-    function getDisplayTitle(notification) {
-        if (notification.type === 'client_message') {
-            if (notification.title && notification.title.includes('→')) {
-                return notification.title;
-            }
-            return '💬 Vous → ' + (notification.title?.includes('Boutique') ? 'Boutique' : 'Admin');
-        }
-        return notification.title || 'Notification';
     }
 
     // ==========================================
@@ -622,13 +446,8 @@ document.addEventListener('DOMContentLoaded', function() {
             filtered = filtered.filter(n => n.type === currentFilter);
         }
 
-        if (showReadToggle && !showReadToggle.checked) {
-            filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
-        }
-
         if (filtered.length === 0) {
-            const msg = (showReadToggle && !showReadToggle.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
-            renderEmpty(msg);
+            renderEmpty('Aucune notification pour ce filtre');
             return;
         }
 
@@ -636,107 +455,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
         filtered.forEach(n => {
             const isUnread = n.is_read === 0 || n.is_read === false;
-            const type = n.type || 'systeme';
-            const typeLabel = getTypeLabel(type);
+            const typeClass = n.type || 'systeme';
+            const typeLabel = getTypeLabel(n.type);
             const dateStr = timeAgo(n.created_at);
-            const avatarIcon = getAvatarIcon(type);
-            const displayTitle = getDisplayTitle(n);
-            const colors = getTypeColors(type);
+            const avatarIcon = getAvatarIcon(n.type);
+            const avatarClass = getAvatarClass(n.type);
+            const badgeClass = getBadgeClass(n.type);
+            const contentClass = getContentClass(n.type);
 
             let contentHtml = n.content || 'Aucun contenu';
-            contentHtml = contentHtml.trim();
-
-            // ✅ RÉCUPÉRER LES DONNÉES DE LA NOTIFICATION
-            const shopName = n.extra1 || null;
-            const shopId = n.extra2 || null;
-            const productId = n.extra3 || null;
-            let productData = null;
-            try {
-                if (n.extra4) {
-                    productData = typeof n.extra4 === 'string' ? JSON.parse(n.extra4) : n.extra4;
-                }
-            } catch (e) {
-                productData = null;
+            const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
+            if (linkMatch) {
+                const url = linkMatch[1];
+                contentHtml = contentHtml.replace(
+                    /\[Cliquez ici pour payer\]\(([^)]+)\)/,
+                    `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
+                        <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
+                    </a>`
+                );
             }
 
-            // ✅ SI C'EST UNE NOTIFICATION VENDEUR → BOUTON "VOIR"
-            let voirBtnHtml = '';
-            let productCardHtml = '';
-
-            if (type === 'seller' && shopId) {
-                // Construire l'URL vers notifseller.html avec tous les paramètres
-                let voirUrl = `/notifseller.html?shop_id=${shopId}&shop_name=${encodeURIComponent(shopName || '')}&title=${encodeURIComponent(displayTitle)}&content=${encodeURIComponent(contentHtml)}`;
-                if (productId) {
-                    voirUrl += `&product_id=${productId}`;
-                }
-                if (productData) {
-                    voirUrl += `&product_data=${encodeURIComponent(JSON.stringify(productData))}`;
-                }
-
-                voirBtnHtml = `
-                    <a href="${voirUrl}" class="btn-voir-seller" onclick="event.stopPropagation();">
-                        VOIR
-                    </a>
-                `;
-            }
-
-            // ✅ SI PRODUIT LIÉ DANS LA NOTIFICATION (pour les autres types)
-            if (productData && productId && type !== 'seller') {
-                const imgSrc = productData.image1 || 'https://via.placeholder.com/50';
-                productCardHtml = `
-                    <div class="card-product-linked" onclick="window.location.href='/detail-produit?id=${productId}'">
-                        <img src="${imgSrc}" alt="${productData.name}" class="p-img" />
-                        <div class="p-info">
-                            <div class="p-name">${productData.name}</div>
-                            <div class="p-price">${(productData.price || 0).toLocaleString()} FCFA</div>
-                            <div class="p-stock">📦 ${productData.stock || 0} en stock</div>
-                        </div>
-                        <span class="p-arrow">Voir →</span>
-                    </div>
-                `;
-            }
-
-            // ✅ CONSTRUIRE LA CARTE
             html += `
-                <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
-                     data-id="${n.id}"
-                     style="border-color: ${colors.border};">
-                    
-                    <!-- En-tête -->
-                    <div class="card-header">
-                        <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
-                            ${avatarIcon}
-                        </div>
-                        <div class="card-title" style="color: ${colors.text};">
-                            ${displayTitle}
-                        </div>
-                        <div class="card-top-right">
-                            ${isUnread ? `
-                                <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            ` : `
-                                <button class="btn btn-read already" disabled>
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            `}
-                            <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
-                                <i class="fas fa-trash-alt"></i>
+                <div class="notif-card ${isUnread ? 'unread' : 'read'}" data-id="${n.id}">
+                    <div class="avatar ${avatarClass}">${avatarIcon}</div>
+                    <div class="body">
+                        <div class="title">${n.title || 'Notification'}</div>
+                        <div class="content ${contentClass}">${contentHtml}</div>
+                        <div class="date">${dateStr}</div>
+                        <span class="badge-type ${badgeClass}">${typeLabel}</span>
+                    </div>
+                    <div class="header-actions">
+                        ${isUnread ? `
+                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                                <i class="fas fa-check"></i>
                             </button>
-                        </div>
+                        ` : `
+                            <button class="btn btn-read already" disabled title="Déjà lu">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `}
+                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
-                    
-                    <!-- Contenu -->
-                    <div class="card-content">${contentHtml}</div>
-                    
-                    <!-- Pied de carte -->
-                    <div class="card-footer">
-                        <span class="date">${dateStr}</span>
-                        ${type === 'seller' ? voirBtnHtml : `<span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>`}
-                    </div>
-
-                    <!-- Carte produit intégrée (si présente et pas seller) -->
-                    ${productCardHtml}
                 </div>
             `;
         });
@@ -784,12 +545,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.querySelectorAll('.notif-card.unread').forEach(card => {
-            card.addEventListener('click', function(e) {
-                if (e.target.closest('.btn') || e.target.closest('.btn-voir-seller') || e.target.closest('.card-product-linked')) {
-                    return;
-                }
+            card.addEventListener('click', function() {
                 const id = this.dataset.id;
                 markAsRead(id);
+            });
+        });
+
+        document.querySelectorAll('.notification-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.stopPropagation();
             });
         });
     }
@@ -872,7 +636,9 @@ document.addEventListener('DOMContentLoaded', function() {
             filterButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentFilter = this.dataset.filter;
-            renderNotifications();
+            if (notifications.length > 0) {
+                renderNotifications();
+            }
         });
     });
 
@@ -913,16 +679,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // FILTRE DÉJÀ LU
-    // ==========================================
-
-    if (showReadToggle) {
-        showReadToggle.addEventListener('change', function() {
-            renderNotifications();
-        });
-    }
-
-    // ==========================================
     // OVERLAY CONFIRMATION
     // ==========================================
 
@@ -947,48 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // STYLE DU BOUTON VOIR (injecté dynamiquement)
-    // ==========================================
-
-    function injectVoirStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
-            .btn-voir-seller {
-                display: inline-block;
-                padding: 6px 20px;
-                background: #1a1a2e;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 13px;
-                font-weight: 700;
-                text-decoration: none;
-                cursor: pointer;
-                transition: all 0.3s;
-                letter-spacing: 0.5px;
-            }
-            .btn-voir-seller:hover {
-                background: #000000;
-                transform: scale(1.05);
-                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-            }
-            .notif-card .card-footer {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-top: 4px;
-            }
-            .notif-card .card-footer .date {
-                font-size: 12px;
-                color: #999;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    // ==========================================
     // INITIALISATION
     // ==========================================
 
@@ -998,19 +712,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            // Injecter les styles du bouton VOIR
-            injectVoirStyles();
-
-            await loadShops();
-
             isSyncActive = true;
             updateSyncUI();
 
             connectSocketIO();
 
             await loadNotifications();
-
-            setDest('admin');
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
