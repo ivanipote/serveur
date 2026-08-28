@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Détail notification | ComPlus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 76px;
+            padding-bottom: 100px;
+        }
+
+        /* ===== HEADER ===== */
+        .detail-header {
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: #e8e8f0;
+            border: none;
+            color: #1a1a2e;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            background: #d0d0da;
+            transform: scale(1.05);
+        }
+
+        .detail-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+        }
+
+        /* ===== MAIN ===== */
+        .detail-main {
+            flex: 1;
+            padding: 16px 20px 20px 20px;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ===== CARTE ===== */
+        .detail-card {
+            background: white;
+            border-radius: 20px;
+            padding: 18px 20px 16px 20px;
+            border: 2px solid #e8eaf6;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            margin-bottom: 14px;
+        }
+
+        .detail-card .card-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f0f2f5;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-card .card-label i {
+            color: #7986cb;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f5f5fa;
+            font-size: 14px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row .label {
+            color: #888;
+            font-weight: 500;
+        }
+
+        .detail-row .value {
+            color: #1a1a2e;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+
+        .detail-row .value .shop-link {
+            color: #7986cb;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .detail-row .value .shop-link:hover {
+            text-decoration: underline;
+        }
+
+        .detail-row .value .status-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #e8eaf6;
+            color: #283593;
+        }
+
+        .detail-row .value .status-badge.lu {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .detail-row .value .status-badge.non-lu {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* ===== PRODUIT LIÉ ===== */
+        .product-card-detail {
+            background: rgba(23, 164, 100, 0.06);
+            border: 2px solid rgba(23, 164, 100, 0.15);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .product-card-detail:hover {
+            background: rgba(23, 164, 100, 0.1);
+            border-color: rgba(23, 164, 100, 0.3);
+            transform: translateX(4px);
+        }
+
+        .product-card-detail .p-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #f0f2f5;
+            flex-shrink: 0;
+        }
+
+        .product-card-detail .p-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-card-detail .p-info .p-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .product-card-detail .p-info .p-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: #17A464;
+        }
+
+        .product-card-detail .p-info .p-stock {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .product-card-detail .p-arrow {
+            color: #17A464;
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        /* ===== CONTENU ===== */
+        .content-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #1a1a2e;
+            word-wrap: break-word;
+            padding: 4px 0;
+        }
+
+        /* ============================================================= */
+        /* FOOTER FIXE AVEC 2 BOUTONS                                     */
+        /* ============================================================= */
+        .detail-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f0f2f5;
+            padding: 12px 16px 20px 16px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            z-index: 50;
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-footer .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .detail-footer .btn-shop {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .detail-footer .btn-shop:hover {
+            background: #000000;
+            transform: scale(1.02);
+        }
+
+        .detail-footer .btn-message {
+            background: #e8eaf6;
+            color: #283593;
+        }
+
+        .detail-footer .btn-message:hover {
+            background: #d5d8e8;
+            transform: scale(1.02);
+        }
+
+        /* ============================================================= */
+        /* SLIDE MESSAGE                                                 */
+        /* ============================================================= */
+        .slide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .slide-overlay.active {
+            display: flex;
+        }
+
+        .slide-container {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.1);
+            padding: 16px 20px 20px 20px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .slide-handle {
+            width: 40px;
+            height: 4px;
+            background: #d0d0da;
+            border-radius: 4px;
+            margin: 0 auto 12px auto;
+            flex-shrink: 0;
+        }
+
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .slide-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .slide-header .slide-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #888;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .slide-header .slide-close:hover {
+            background: #f0f2f5;
+        }
+
+        /* ===== HISTORIQUE ===== */
+        .slide-history {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 10px;
+            max-height: 200px;
+        }
+
+        .slide-history::-webkit-scrollbar {
+            width: 4px;
+        }
+        .slide-history::-webkit-scrollbar-thumb {
+            background: #d0d0da;
+            border-radius: 10px;
+        }
+
+        .history-item {
+            padding: 8px 12px;
+            background: #f8f9fc;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            border-left: 3px solid #7986cb;
+        }
+
+        .history-item .h-date {
+            font-size: 10px;
+            color: #999;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+
+        /* ===== CHAMP MESSAGE ===== */
+        .slide-input-area {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            padding-top: 10px;
+            border-top: 1px solid #f0f2f5;
+        }
+
+        .slide-input-area textarea {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e8ecf4;
+            border-radius: 16px;
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s;
+            min-height: 44px;
+            max-height: 120px;
+            background: #f8f9fc;
+        }
+
+        .slide-input-area textarea:focus {
+            border-color: #7986cb;
+            background: white;
+        }
+
+        .slide-input-area .btn-send-slide {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: #1a1a2e;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide-input-area .btn-send-slide:hover:not(:disabled) {
+            background: #000000;
+            transform: scale(1.05);
+        }
+
+        .slide-input-area .btn-send-slide:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ============================================================= */
+        /* EMPTY / ERROR                                                 */
+        /* ============================================================= */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            color: #ddd;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+
+        /* ============================================================= */
+        /* RESPONSIVE                                                    */
+        /* ============================================================= */
+
+        @media (max-width: 600px) {
+            body { padding-top: 68px; padding-bottom: 90px; }
+
+            .detail-header { padding: 10px 14px; gap: 10px; }
+            .back-btn { width: 36px; height: 36px; font-size: 16px; }
+            .detail-title { font-size: 16px; }
+
+            .detail-main { padding: 12px 14px; }
+            .detail-card { padding: 16px 14px 14px 14px; border-radius: 16px; }
+            .detail-row { font-size: 13px; padding: 5px 0; }
+            .detail-row .value { max-width: 55%; }
+
+            .product-card-detail { padding: 12px 14px; gap: 12px; }
+            .product-card-detail .p-img { width: 56px; height: 56px; }
+            .product-card-detail .p-info .p-name { font-size: 14px; }
+            .product-card-detail .p-info .p-price { font-size: 14px; }
+
+            .detail-footer { padding: 10px 12px 16px 12px; gap: 8px; }
+            .detail-footer .btn { font-size: 13px; padding: 10px; }
+
+            .slide-container { padding: 14px 16px 16px 16px; max-height: 80vh; }
+            .slide-header h3 { font-size: 16px; }
+            .slide-input-area textarea { font-size: 13px; padding: 8px 12px; }
+            .slide-input-area .btn-send-slide { width: 38px; height: 38px; font-size: 16px; }
+        }
+
+        @media (max-width: 400px) {
+            body { padding-top: 60px; padding-bottom: 80px; }
+
+            .detail-header { padding: 8px 10px; gap: 8px; }
+            .back-btn { width: 32px; height: 32px; font-size: 14px; }
+            .detail-title { font-size: 14px; }
+
+            .detail-main { padding: 10px 10px; }
+            .detail-card { padding: 12px 12px 10px 12px; border-radius: 14px; }
+            .detail-row { font-size: 12px; padding: 4px 0; }
+            .detail-row .value { max-width: 50%; }
+
+            .product-card-detail { padding: 10px 12px; gap: 10px; }
+            .product-card-detail .p-img { width: 48px; height: 48px; }
+            .product-card-detail .p-info .p-name { font-size: 13px; }
+            .product-card-detail .p-info .p-price { font-size: 13px; }
+
+            .detail-footer { padding: 8px 10px 14px 10px; gap: 6px; }
+            .detail-footer .btn { font-size: 12px; padding: 8px; }
+
+            .slide-container { padding: 12px 12px 14px 12px; }
+            .slide-header h3 { font-size: 15px; }
+            .slide-input-area textarea { font-size: 12px; padding: 6px 10px; min-height: 36px; }
+            .slide-input-area .btn-send-slide { width: 34px; height: 34px; font-size: 14px; }
+        }
+
+        /* ========================================== */
+        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
+        /* ========================================== */
+
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================= -->
+    <header class="detail-header">
+        <button class="back-btn" onclick="window.location.href='/notifseller'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="detail-title">📋 Détail notification</span>
+    </header>
+
+    <!-- ============================================================= -->
+    <!-- MAIN                                                          -->
+    <!-- ============================================================= -->
+    <main class="detail-main" id="detailMain">
+
+        <!-- ===== CARTE 1 : INFOS GÉNÉRALES ===== -->
+        <div class="detail-card">
+            <div class="card-label"><i class="fas fa-info-circle"></i> Informations générales</div>
+
+            <div class="detail-row">
+                <span class="label">📋 ID</span>
+                <span class="value" id="notifId">#123</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📌 Titre</span>
+                <span class="value" id="notifTitle">Nouveau produit disponible !</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📅 Date</span>
+                <span class="value" id="notifDate">Aujourd'hui 14:30</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📊 Statut</span>
+                <span class="value"><span class="status-badge non-lu" id="notifStatus">Non lu</span></span>
+            </div>
+        </div>
+
+        <!-- ===== CARTE 2 : PRODUIT LIÉ (si présent) ===== -->
+        <div class="detail-card" id="productCard">
+            <div class="card-label"><i class="fas fa-box"></i> Produit lié</div>
+            <div id="productContent">
+                <div class="product-card-detail" id="productLink">
+                    <img src="https://via.placeholder.com/70/cccccc/ffffff?text=📦" alt="Produit" class="p-img" id="productImage" />
+                    <div class="p-info">
+                        <div class="p-name" id="productName">Jus de gingembre</div>
+                        <div class="p-price" id="productPrice">1 000 FCFA</div>
+                        <div class="p-stock" id="productStock">📦 25 en stock</div>
+                    </div>
+                    <span class="p-arrow">Voir →</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CARTE 3 : BOUTIQUE ===== -->
+        <div class="detail-card">
+            <div class="card-label"><i class="fas fa-store"></i> Boutique</div>
+
+            <div class="detail-row">
+                <span class="label">🏪 Nom</span>
+                <span class="value" id="shopName">Ma Boutique Nature</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">🆔 ID</span>
+                <span class="value" id="shopId">#1</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">🔗 Lien</span>
+                <span class="value"><a href="#" class="shop-link" id="shopLink">Voir la boutique →</a></span>
+            </div>
+        </div>
+
+        <!-- ===== CARTE 4 : CONTENU ===== -->
+        <div class="detail-card">
+            <div class="card-label"><i class="fas fa-align-left"></i> Contenu</div>
+            <div class="content-text" id="notifContent">
+                Découvrez notre nouveau produit naturel : Jus de gingembre frais, 100% pur, sans conservateurs.
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================= -->
+    <!-- FOOTER FIXE (2 BOUTONS)                                        -->
+    <!-- ============================================================= -->
+    <footer class="detail-footer">
+        <a href="#" class="btn btn-shop" id="shopBtn">
+            <i class="fas fa-store"></i> Voir la boutique
+        </a>
+        <button class="btn btn-message" id="messageBtn">
+            <i class="fas fa-paper-plane"></i> Écrire au vendeur
+        </button>
+    </footer>
+
+    <!-- ============================================================= -->
+    <!-- SLIDE MESSAGE                                                 -->
+    <!-- ============================================================= -->
+    <div class="slide-overlay" id="slideOverlay">
+        <div class="slide-container">
+
+            <div class="slide-handle"></div>
+
+            <div class="slide-header">
+                <h3><i class="fas fa-pen"></i> Écrire au vendeur</h3>
+                <button class="slide-close" id="slideClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Historique -->
+            <div class="slide-history" id="slideHistory">
+                <div class="history-empty">Aucun message envoyé</div>
+            </div>
+
+            <!-- Zone de saisie -->
+            <div class="slide-input-area">
+                <textarea id="slideMessageInput" rows="1" placeholder="Votre message..." maxlength="500"></textarea>
+                <button class="btn-send-slide" id="slideSendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ detail-notif.html chargé (version finale)');
+
+            // ==========================================
+            // RÉFÉRENCES
+            // ==========================================
+
+            const slideOverlay = document.getElementById('slideOverlay');
+            const slideClose = document.getElementById('slideClose');
+            const slideMessageInput = document.getElementById('slideMessageInput');
+            const slideSendBtn = document.getElementById('slideSendBtn');
+            const slideHistory = document.getElementById('slideHistory');
+
+            let messageHistory = [];
+            let shopId = null;
+            let shopName = '';
+
+            // ==========================================
+            // RÉCUPÉRER LES PARAMÈTRES URL
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+
+            const id = urlParams.get('id') || '123';
+            shopId = urlParams.get('shop_id') || '1';
+            shopName = decodeURIComponent(urlParams.get('shop_name') || 'Ma Boutique Nature');
+            const productId = urlParams.get('product_id') || null;
+            let productData = null;
+
+            try {
+                const rawProductData = urlParams.get('product_data');
+                if (rawProductData) {
+                    productData = JSON.parse(decodeURIComponent(rawProductData));
+                }
+            } catch (e) {
+                console.warn('Erreur parsing product_data:', e);
+            }
+
+            // ==========================================
+            // DONNÉES DE DÉMO (fallback)
+            // ==========================================
+
+            if (!productData) {
+                productData = {
+                    name: 'Jus de gingembre',
+                    price: 1000,
+                    stock: 25,
+                    image1: 'https://via.placeholder.com/70/cccccc/ffffff?text=📦'
+                };
+            }
+
+            // ==========================================
+            // AFFICHER LES DONNÉES
+            // ==========================================
+
+            document.getElementById('notifId').textContent = '#' + id;
+            document.getElementById('notifTitle').textContent = urlParams.get('title') || 'Nouveau produit disponible !';
+            document.getElementById('notifDate').textContent = new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('notifContent').textContent = urlParams.get('content') || 'Découvrez notre nouveau produit naturel : Jus de gingembre frais, 100% pur, sans conservateurs.';
+
+            const statusEl = document.getElementById('notifStatus');
+            const isRead = Math.random() > 0.5;
+            statusEl.textContent = isRead ? 'Lu' : 'Non lu';
+            statusEl.className = 'status-badge ' + (isRead ? 'lu' : 'non-lu');
+
+            document.getElementById('shopName').textContent = shopName;
+            document.getElementById('shopId').textContent = '#' + shopId;
+            document.getElementById('shopLink').href = '/shop-user?id=' + shopId;
+            document.getElementById('shopBtn').href = '/shop-user?id=' + shopId;
+
+            if (productId) {
+                document.getElementById('productName').textContent = productData.name || 'Produit sans nom';
+                document.getElementById('productPrice').textContent = (productData.price || 0).toLocaleString() + ' FCFA';
+                document.getElementById('productStock').textContent = '📦 ' + (productData.stock || 0) + ' en stock';
+
+                const imgEl = document.getElementById('productImage');
+                const imgSrc = productData.image1 || 'https://via.placeholder.com/70/cccccc/ffffff?text=📦';
+                if (imgSrc) {
+                    imgEl.src = imgSrc;
+                    imgEl.alt = productData.name || 'Produit';
+                }
+
+                document.getElementById('productLink').onclick = function() {
+                    window.location.href = '/detail-produit?id=' + productId;
+                };
+            } else {
+                document.getElementById('productCard').style.display = 'none';
+            }
+
+            // ==========================================
+            // SLIDE MESSAGE
+            // ==========================================
+
+            document.getElementById('messageBtn').addEventListener('click', function() {
+                slideOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                slideMessageInput.focus();
+                renderHistory();
+            });
+
+            function closeSlide() {
+                slideOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            slideClose.addEventListener('click', closeSlide);
+            slideOverlay.addEventListener('click', function(e) {
+                if (e.target === slideOverlay) closeSlide();
+            });
+
+            slideMessageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // ==========================================
+            // ENVOYER UN MESSAGE
+            // ==========================================
+
+            function sendSlideMessage() {
+                const text = slideMessageInput.value.trim();
+                if (!text) return;
+
+                const now = new Date();
+                const timeStr = now.toLocaleDateString('fr-FR') + ' ' + now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+                const newMsg = {
+                    text: text,
+                    date: timeStr,
+                    from: 'vous'
+                };
+
+                messageHistory.push(newMsg);
+                renderHistory();
+
+                slideMessageInput.value = '';
+                slideMessageInput.style.height = 'auto';
+                slideMessageInput.focus();
+
+                console.log('📨 Message envoyé:', text);
+            }
+
+            slideSendBtn.addEventListener('click', sendSlideMessage);
+
+            slideMessageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendSlideMessage();
+                }
+            });
+
+            // ==========================================
+            // HISTORIQUE
+            // ==========================================
+
+            function renderHistory() {
+                if (messageHistory.length === 0) {
+                    slideHistory.innerHTML = `<div class="history-empty">Aucun message envoyé</div>`;
+                    return;
+                }
+
+                slideHistory.innerHTML = messageHistory.map(msg => `
+                    <div class="history-item">
+                        ${msg.text}
+                        <span class="h-date">${msg.date} · Vous</span>
+                    </div>
+                `).join('');
+
+                slideHistory.scrollTop = slideHistory.scrollHeight;
+            }
+
+            console.log('✅ Données affichées:', { id, shopId, shopName, productId, productData });
+
+        });
+    </script>
+
+</body>
+</html>
