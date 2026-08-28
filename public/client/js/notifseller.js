@@ -265,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (res.ok && data.notifications) {
-                // ✅ UNIQUEMENT les notifications de type 'seller'
                 notifications = data.notifications.filter(n => n.type === 'seller');
                 notifBadge.textContent = notifications.length || 0;
                 notifBadge.className = 'badge-count' + (notifications.length === 0 ? ' zero' : '');
@@ -329,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let contentHtml = n.content || 'Aucun contenu';
             contentHtml = contentHtml.trim();
 
-            // Récupérer les données extra
             const shopName = n.extra1 || null;
             const shopId = n.extra2 || null;
             const productId = n.extra3 || null;
@@ -342,8 +340,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 productData = null;
             }
 
-            // Bouton "DÉTAIL" en bas à droite
-            let detailUrl = `/detail-notif.html?id=${n.id}`;
+            // ✅ ROUTE CORRIGÉE : /detail-notif (sans .html)
+            let detailUrl = `/detail-notif?id=${n.id}`;
             if (shopId) detailUrl += `&shop_id=${shopId}`;
             if (shopName) detailUrl += `&shop_name=${encodeURIComponent(shopName)}`;
             if (productId) detailUrl += `&product_id=${productId}`;
@@ -355,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </a>
             `;
 
-            // Carte produit si disponible
             let productCardHtml = '';
             if (productData && productId) {
                 const imgSrc = productData.image1 || 'https://via.placeholder.com/50';
@@ -372,12 +369,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
-            // CARTE
             html += `
                 <div class="notif-card ${isUnread ? 'unread' : 'read'}" 
                      data-id="${n.id}">
                     
-                    <!-- En-tête -->
                     <div class="card-header">
                         <div class="avatar">
                             ${avatarIcon}
@@ -402,16 +397,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     
-                    <!-- Contenu -->
                     <div class="card-content">${contentHtml}</div>
                     
-                    <!-- Pied de carte -->
                     <div class="card-footer">
                         <span class="date">${dateStr}</span>
                         ${detailBtnHtml}
                     </div>
 
-                    <!-- Carte produit intégrée -->
                     ${productCardHtml}
                 </div>
             `;
