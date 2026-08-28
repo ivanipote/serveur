@@ -1403,3 +1403,58 @@ body {
     .shop-overlay-item { padding: 8px 10px; }
     .shop-overlay-item .shop-info .shop-name { font-size: 13px; }
 }
+.notif-card .card-product-linked {
+    margin-top: 8px;
+    border: 2px solid #17A464;
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f8fbf9;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notif-card .card-product-linked:hover {
+    transform: scale(1.01);
+    box-shadow: 0 4px 16px rgba(23, 164, 100, 0.1);
+}
+
+.notif-card .card-product-linked .p-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #f0f2f5;
+    flex-shrink: 0;
+}
+
+.notif-card .card-product-linked .p-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-card .card-product-linked .p-info .p-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.notif-card .card-product-linked .p-info .p-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #17A464;
+}
+
+.notif-card .card-product-linked .p-info .p-stock {
+    font-size: 11px;
+    color: #6B7280;
+}
+
+.notif-card .card-product-linked .p-arrow {
+    color: #17A464;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+}
