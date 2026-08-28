@@ -607,111 +607,120 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // RENDRE LES NOTIFICATIONS (CARTES INDIVIDUELLES)
     // ==========================================
+function renderNotifications() {
+    if (!mainContent) return;
 
-    function renderNotifications() {
-        if (!mainContent) return;
+    if (!notifications || notifications.length === 0) {
+        renderEmpty('Aucune notification');
+        return;
+    }
 
-        if (!notifications || notifications.length === 0) {
-            renderEmpty('Aucune notification');
-            return;
+    let filtered = notifications;
+
+    // Filtre par type
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(n => n.type === currentFilter);
+    }
+
+    // Filtre "Déjà lu"
+    if (showReadToggle && !showReadToggle.checked) {
+        filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
+    }
+
+    if (filtered.length === 0) {
+        const msg = (showReadToggle && !showReadToggle.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
+        renderEmpty(msg);
+        return;
+    }
+
+    let html = '';
+
+    filtered.forEach(n => {
+        const isUnread = n.is_read === 0 || n.is_read === false;
+        const type = n.type || 'systeme';
+        const typeLabel = getTypeLabel(type);
+        const dateStr = timeAgo(n.created_at);
+        const avatarIcon = getAvatarIcon(type);
+        const displayTitle = getDisplayTitle(n);
+        const colors = getTypeColors(type);
+
+        let contentHtml = n.content || 'Aucun contenu';
+        
+        // ✅ NETTOYAGE du contenu (supprimer les balises et retours à la ligne en trop)
+        contentHtml = contentHtml.replace(/\n\n/g, '<br>');
+        contentHtml = contentHtml.replace(/\n/g, '<br>');
+        contentHtml = contentHtml.trim();
+
+        // Gérer les liens
+        const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
+        if (linkMatch) {
+            const url = linkMatch[1];
+            contentHtml = contentHtml.replace(
+                /\[Cliquez ici pour payer\]\(([^)]+)\)/,
+                `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
+                    <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
+                </a>`
+            );
         }
 
-        let filtered = notifications;
-
-        if (currentFilter !== 'all') {
-            filtered = filtered.filter(n => n.type === currentFilter);
-        }
-
-        if (showReadToggle && !showReadToggle.checked) {
-            filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
-        }
-
-        if (filtered.length === 0) {
-            const msg = (showReadToggle && !showReadToggle.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
-            renderEmpty(msg);
-            return;
-        }
-
-        let html = '';
-
-        filtered.forEach(n => {
-            const isUnread = n.is_read === 0 || n.is_read === false;
-            const type = n.type || 'systeme';
-            const typeLabel = getTypeLabel(type);
-            const dateStr = timeAgo(n.created_at);
-            const avatarIcon = getAvatarIcon(type);
-            const displayTitle = getDisplayTitle(n);
-            const colors = getTypeColors(type);
-
-            let contentHtml = n.content || 'Aucun contenu';
-            
-            const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
-            if (linkMatch) {
-                const url = linkMatch[1];
-                contentHtml = contentHtml.replace(
-                    /\[Cliquez ici pour payer\]\(([^)]+)\)/,
-                    `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
-                        <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
-                    </a>`
-                );
-            }
-
-            let productCardHtml = '';
-            const productMatch = contentHtml.match(/<div style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;" onclick="window.location.href='([^']+)'">([\s\S]*?)<\/div>/);
-            if (productMatch) {
-                const url = productMatch[1];
-                const content = productMatch[2];
-                productCardHtml = `
-                    <div class="card-product-linked" onclick="window.location.href='${url}'">
-                        ${content}
-                        <span class="p-arrow">Voir →</span>
-                    </div>
-                `;
-                contentHtml = contentHtml.replace(productMatch[0], '');
-            }
-
-            contentHtml = contentHtml.trim();
-
-            // ✅ CHAQUE NOTIFICATION EST UNE CARTE INDIVIDUELLE
-            html += `
-                <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
-                     data-id="${n.id}"
-                     style="border-color: ${colors.border};">
-                    
-                    <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
-                        ${avatarIcon}
-                    </div>
-                    
-                    <div class="body">
-                        <div class="title" style="color: ${colors.text};">${displayTitle}</div>
-                        <div class="content">${contentHtml}</div>
-                        <div class="date">${dateStr}</div>
-                        ${productCardHtml}
-                        <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
-                    </div>
-                    
-                    <div class="header-actions">
-                        ${isUnread ? `
-                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        ` : `
-                            <button class="btn btn-read already" disabled>
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `}
-                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
+        // ✅ Gérer la carte produit (seller)
+        let productCardHtml = '';
+        const productMatch = contentHtml.match(/<div style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;" onclick="window.location.href='([^']+)'">([\s\S]*?)<\/div>/);
+        if (productMatch) {
+            const url = productMatch[1];
+            const content = productMatch[2];
+            productCardHtml = `
+                <div class="card-product-linked" onclick="window.location.href='${url}'">
+                    ${content}
+                    <span class="p-arrow">Voir →</span>
                 </div>
             `;
-        });
+            contentHtml = contentHtml.replace(productMatch[0], '');
+        }
 
-        // ✅ On injecte toutes les cartes individuellement dans notifList
-        mainContent.innerHTML = html;
-        attachEvents();
-    }
+        // ✅ Nettoyer les espaces en trop
+        contentHtml = contentHtml.trim();
+
+        // ✅ CHAQUE NOTIFICATION EST UNE CARTE INDIVIDUELLE
+        html += `
+            <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
+                 data-id="${n.id}"
+                 style="border-color: ${colors.border};">
+                
+                <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
+                    ${avatarIcon}
+                </div>
+                
+                <div class="body">
+                    <div class="title" style="color: ${colors.text};">${displayTitle}</div>
+                    <div class="content">${contentHtml}</div>
+                    <div class="date">${dateStr}</div>
+                    ${productCardHtml}
+                    <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
+                </div>
+                
+                <div class="header-actions">
+                    ${isUnread ? `
+                        <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    ` : `
+                        <button class="btn btn-read already" disabled>
+                            <i class="fas fa-check"></i>
+                        </button>
+                    `}
+                    <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    // ✅ On injecte toutes les cartes individuellement dans notifList
+    mainContent.innerHTML = html;
+    attachEvents();
+}
 
     // ==========================================
     // RENDER EMPTY
