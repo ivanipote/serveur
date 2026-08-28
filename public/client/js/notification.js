@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS
+    // RENDRE LES NOTIFICATIONS (AVEC EXTRACTION PROPRE)
     // ==========================================
 
     function renderNotifications() {
@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
 
-            // ✅ Extraire la carte produit
+            // ✅ EXTRAIRE LA CARTE PRODUIT du contenu
             let productCardHtml = '';
             const productMatch = contentHtml.match(/<div[^>]*style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;"[^>]*onclick="window\.location\.href='([^']+)'"[^>]*>([\s\S]*?)<\/div>/);
             
@@ -681,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const productPrice = priceMatch ? priceMatch[1] : '0 FCFA';
                 const productStock = stockMatch ? stockMatch[1] : '📦 0 en stock';
 
-                // Construire la carte produit
+                // Construire la carte produit proprement
                 productCardHtml = `
                     <div class="card-product-linked" onclick="window.location.href='${url}'">
                         <img src="${imgSrc}" alt="${productName}" class="p-img" />
@@ -694,6 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 
+                // Supprimer la carte produit du contenu
                 contentHtml = contentHtml.replace(productMatch[0], '');
             }
 
