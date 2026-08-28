@@ -639,7 +639,9 @@
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
+    <!-- ============================================================= -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================= -->
     <header class="page-header">
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
@@ -647,10 +649,12 @@
         <span class="header-title"><i class="fas fa-paper-plane"></i> Envoyer un message</span>
     </header>
 
-    <!-- ===== MAIN ===== -->
+    <!-- ============================================================= -->
+    <!-- MAIN                                                          -->
+    <!-- ============================================================= -->
     <main class="page-main">
 
-        <!-- CARD 0 : BOUTIQUE (NOUVEAU) -->
+        <!-- CARD 0 : BOUTIQUE -->
         <div class="card">
             <span class="card-label"><i class="fas fa-store"></i> Ma boutique</span>
             <div class="form-group">
@@ -720,17 +724,22 @@
 
     </main>
 
-    <!-- ===== FOOTER FIXE ===== -->
+    <!-- ============================================================= -->
+    <!-- FOOTER FIXE                                                    -->
+    <!-- ============================================================= -->
     <footer class="page-footer">
         <button class="btn-send" id="sendBtn" disabled>
             <i class="fas fa-paper-plane"></i> Envoyer
         </button>
     </footer>
 
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                        -->
+    <!-- ============================================================= -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ Messages seller - Version avec boutique source');
+            console.log('✅ Messages seller - Version avec persistance');
 
             // ==========================================
             // URL
@@ -767,6 +776,55 @@
             let selectedShopName = '';
 
             // ==========================================
+            // PERSISTANCE DES CHAMPS (localStorage)
+            // ==========================================
+
+            const STORAGE_KEY = 'seller_message_draft';
+
+            function saveDraft() {
+                const draft = {
+                    title: titleInput.value,
+                    content: contentInput.value,
+                    shop_id: shopSelect.value,
+                    product_id: linkedProduct?.id || null
+                };
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+                } catch (e) {}
+            }
+
+            function loadDraft() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return;
+                    const draft = JSON.parse(raw);
+                    if (draft.title) titleInput.value = draft.title;
+                    if (draft.content) contentInput.value = draft.content;
+                    if (draft.shop_id) {
+                        setTimeout(() => {
+                            shopSelect.value = draft.shop_id;
+                            selectedShopId = parseInt(draft.shop_id);
+                            selectedShopName = shopSelect.options[shopSelect.selectedIndex]?.text || '';
+                        }, 500);
+                    }
+                    if (draft.product_id) {
+                        loadLinkedProduct(draft.product_id);
+                    }
+                } catch (e) {}
+            }
+
+            function clearDraft() {
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                } catch (e) {}
+            }
+
+            // Sauvegarder automatiquement
+            titleInput.addEventListener('input', saveDraft);
+            contentInput.addEventListener('input', saveDraft);
+            shopSelect.addEventListener('change', saveDraft);
+
+            // ==========================================
             // 1. CHARGER LES BOUTIQUES DU VENDEUR
             // ==========================================
 
@@ -788,7 +846,6 @@
                             <option value="${shop.id}">${shop.name}</option>
                         `).join('');
 
-                        // Sélectionner la première boutique par défaut
                         selectedShopId = data.shops[0].id;
                         selectedShopName = data.shops[0].name;
                     } else {
@@ -883,6 +940,7 @@
             shopSelect.addEventListener('change', function() {
                 selectedShopId = parseInt(this.value);
                 selectedShopName = this.options[this.selectedIndex].text;
+                saveDraft();
                 console.log('🏪 Boutique sélectionnée:', selectedShopId, selectedShopName);
             });
 
@@ -891,6 +949,8 @@
             // ==========================================
 
             linkProductBtn.addEventListener('click', function() {
+                // Sauvegarder l'état avant de quitter
+                saveDraft();
                 window.location.href = '/products?return=messages';
             });
 
@@ -921,6 +981,7 @@
                         const url = new URL(window.location);
                         url.searchParams.delete('product_id');
                         window.history.replaceState({}, '', url);
+                        saveDraft();
                     }
                 } catch (error) {
                     console.error('❌ Erreur chargement produit lié:', error);
@@ -938,6 +999,7 @@
                 removeProductBtn.style.display = 'inline-flex';
                 linkProductBtn.textContent = '🔄 Changer de produit';
                 updateSelection();
+                saveDraft();
             }
 
             // ==========================================
@@ -950,10 +1012,11 @@
                 removeProductBtn.style.display = 'none';
                 linkProductBtn.textContent = 'Lier un produit';
                 updateSelection();
+                saveDraft();
             });
 
             // ==========================================
-            // 7. ENVOYER LA NOTIFICATION (AVEC BOUTIQUE)
+            // 7. ENVOYER LA NOTIFICATION
             // ==========================================
 
             sendBtn.addEventListener('click', async function() {
@@ -997,6 +1060,18 @@
                 let successCount = 0;
                 let errorCount = 0;
 
+                // Récupérer les données du produit pour l'envoi
+                let productDataForNotif = null;
+                if (linkedProduct) {
+                    productDataForNotif = {
+                        id: linkedProduct.id,
+                        name: linkedProduct.name,
+                        price: linkedProduct.price,
+                        image1: linkedProduct.image1 || null,
+                        stock: linkedProduct.stock || 0
+                    };
+                }
+
                 for (const client of selectedClients) {
                     try {
                         const res = await fetch(CLIENT_API_URL + '/api/notifications/seller-create', {
@@ -1008,7 +1083,8 @@
                                 content: content,
                                 shop_name: selectedShopName,
                                 shop_id: selectedShopId,
-                                product_id: linkedProduct?.id || null
+                                product_id: linkedProduct?.id || null,
+                                product_data: productDataForNotif
                             })
                         });
 
@@ -1030,13 +1106,18 @@
                             ${errorCount > 0 ? `(${errorCount} échec(s))` : ''}
                         </div>
                     `;
-                    // Réinitialiser
+                    // ✅ Effacer le brouillon après envoi réussi
+                    clearDraft();
+                    // Réinitialiser les champs
                     titleInput.value = '';
                     contentInput.value = '';
                     linkedProduct = null;
                     productCardLinked.classList.remove('active');
                     removeProductBtn.style.display = 'none';
                     linkProductBtn.textContent = 'Lier un produit';
+                    updateSelection();
+                    // Désélectionner les clients
+                    document.querySelectorAll('.client-checkbox').forEach(cb => cb.checked = false);
                     updateSelection();
                 } else {
                     result.innerHTML = `
@@ -1052,17 +1133,17 @@
             });
 
             // ==========================================
-            // 8. INITIALISATION
+            // 8. CHARGER LE BROUILLON AU DÉMARRAGE
             // ==========================================
 
             (async function init() {
                 await loadShops();
                 await loadClients();
+                loadDraft();
 
-                // Vérifier si un produit a été sélectionné
-                const returnUrl = urlParams.get('return');
-                if (returnUrl === 'messages' && productId) {
-                    // Le produit sera chargé via loadLinkedProduct
+                // Si un produit est chargé via le draft, afficher la carte
+                if (linkedProduct) {
+                    displayLinkedProduct(linkedProduct);
                 }
 
                 console.log('✅ Messages seller prêt');
