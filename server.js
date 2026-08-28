@@ -94,13 +94,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
     const allowedOrigins = [
         'https://nature-plus-client.onrender.com',
-        'https://nature-plus-seller.onrender.com',
         'https://nature-plus-pay.onrender.com',
         'https://server-wave-js.onrender.com',
         'http://localhost:3000',
         'http://localhost:3001',
-        'http://localhost:3002',
-        'http://localhost:3006'
+        'http://localhost:3002'
     ];
     
     const origin = req.headers.origin;
@@ -293,7 +291,6 @@ app.post('/api/admin/products', upload.fields([
     }
 
     try {
-        // ✅ Récupérer ou créer un admin
         let adminId = 1;
         let admin = await db.get('SELECT id FROM admins LIMIT 1');
         
@@ -409,7 +406,6 @@ app.get('/api/admin/stats', async (req, res) => {
     }
 });
 
-
 // ========================================================
 // ROUTE : RÉCUPÉRER UNE NOTIFICATION PAR ID
 // ========================================================
@@ -434,10 +430,6 @@ app.get('/api/notification/:id', async (req, res) => {
                 title, 
                 content, 
                 is_read,
-                extra1 as shop_name,
-                extra2 as shop_id,
-                extra3 as product_id,
-                extra4 as product_data,
                 created_at
              FROM messages 
              WHERE id = $1`,
@@ -451,18 +443,6 @@ app.get('/api/notification/:id', async (req, res) => {
             });
         }
 
-        // ✅ Parser le JSON du produit si présent
-        let productData = null;
-        if (notification.product_data) {
-            try {
-                productData = typeof notification.product_data === 'string' 
-                    ? JSON.parse(notification.product_data) 
-                    : notification.product_data;
-            } catch (e) {
-                productData = null;
-            }
-        }
-
         res.json({
             success: true,
             notification: {
@@ -473,10 +453,6 @@ app.get('/api/notification/:id', async (req, res) => {
                 title: notification.title,
                 content: notification.content,
                 is_read: notification.is_read === 1,
-                shop_name: notification.shop_name || null,
-                shop_id: notification.shop_id || null,
-                product_id: notification.product_id || null,
-                product_data: productData,
                 created_at: notification.created_at
             }
         });
@@ -922,7 +898,7 @@ app.post('/api/client/verify-code', isAuthenticated, async (req, res) => {
     }
 });
 
-// ✅ Route client → admin (message)
+// Route client → admin (message)
 app.post('/api/client/send-message', isAuthenticated, async (req, res) => {
     const { title, content } = req.body;
     const userId = req.session.userId;
@@ -932,19 +908,16 @@ app.post('/api/client/send-message', isAuthenticated, async (req, res) => {
     }
 
     try {
-        // Récupérer l'utilisateur
         const user = await db.get('SELECT name FROM users WHERE id = $1', [userId]);
         
-        // Créer la notification pour l'admin (admin_id = 1)
         await createNotification(
-            1, // admin_id
-            null, // commande_id
+            1,
+            null,
             'client_message',
             `📩 ${title}`,
             `De: ${user?.name || 'Client'} (ID: ${userId})\n\n${content}`
         );
         
-        // Émettre via Socket.IO pour l'admin
         global.io.to('admin').emit('notification', {
             title: `📩 Nouveau message de ${user?.name || 'Client'}`,
             content: content,
@@ -972,39 +945,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// ========================================================
-// ROUTE : NOTIFICATION PUBLIQUE POUR LE VENDEUR
-// ========================================================
-
-app.post('/api/notifications/seller-create', async (req, res) => {
-    const { userId, title, content, sellerName } = req.body;
-
-    if (!userId || !title || !content) {
-        return res.status(400).json({ error: 'userId, title et content requis.' });
-    }
-
-    try {
-        // ✅ Type = 'seller' au lieu de 'admin'
-        await db.query(
-            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [userId, null, 'seller', `🛍️ ${title}`, content, false]
-        );
-
-        // Émettre via Socket.IO
-        global.io.to(`user_${userId}`).emit('notification', {
-            title: `🛍️ ${title}`,
-            content: content,
-            type: 'seller'
-        });
-
-        console.log(`✅ Notification vendeur envoyée à l'utilisateur ${userId}: ${title}`);
-        res.json({ success: true, message: 'Notification envoyée' });
-    } catch (err) {
-        console.error('❌ Erreur envoi notification vendeur:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
 // ========================================================
 // ROUTES FRAIS DE LIVRAISON (public)
 // ========================================================
@@ -1069,31 +1009,6 @@ app.get('/api/panier', isAuthenticated, async (req, res) => {
     } catch (err) {
         console.error('❌ Erreur:', err);
         res.status(500).json({ error: err.message });
-    }
-});
-
-// ============================================================
-// ROUTE : RÉCUPÉRER TOUTES LES BOUTIQUES (public)
-// ============================================================
-
-app.get('/api/shops', async (req, res) => {
-    try {
-        const rows = await db.all(`
-            SELECT 
-                s.id, s.name, s.location, s.description, s.logo,
-                u.name as seller_name,
-                (SELECT COUNT(*) FROM seller_products WHERE shop_id = s.id) as total_products,
-                (SELECT COALESCE(SUM(total_views), 0) FROM seller_stats WHERE shop_id = s.id) as total_views,
-                (SELECT COALESCE(SUM(total_likes), 0) FROM seller_stats WHERE shop_id = s.id) as total_likes
-            FROM shops s
-            JOIN sellers u ON u.id = s.seller_id
-            WHERE s.status = 'active'
-            ORDER BY s.created_at DESC
-        `);
-        res.json({ success: true, shops: rows });
-    } catch (error) {
-        console.error('❌ Erreur boutiques:', error);
-        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -1248,7 +1163,6 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
     }
 });
 
-// ✅ ROUTE COMMANDES - CLIENT
 app.get('/api/commandes', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -1552,18 +1466,6 @@ app.get('/paywithwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
 
-// ============================================================
-// ROUTES PAGES SELLER (servies par le client)
-// ============================================================
-
-app.get('/boutiques', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'boutiques.html'));
-});
-
-app.get('/shop-user', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'shop-user.html'));
-});
-
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
@@ -1578,16 +1480,6 @@ app.get('/admin/login', (req, res) => {
 
 app.get('/admin/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'register.html'));
-});
-// ========================================================
-// ROUTE : NOTIFICATIONS BOUTIQUES
-// ========================================================
-
-app.get('/notifseller', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'notifseller.html'));
-});
-app.get('/detail-notif', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'detail-notif.html'));
 });
 
 app.get('/admin/dashboard', (req, res) => {
@@ -1642,7 +1534,6 @@ app.get('/admin/profil.html', (req, res) => {
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
 // ========================================================
 
-// ✅ Créer les tables au démarrage
 (async function initDatabase() {
     try {
         console.log('🔄 Initialisation de la base de données...');
@@ -1650,7 +1541,6 @@ app.get('/admin/profil.html', (req, res) => {
         console.log('✅ Base de données initialisée avec succès');
     } catch (error) {
         console.error('❌ Erreur lors de l\'initialisation de la base:', error.message);
-        // On continue quand même le démarrage, la base sera recréée au prochain redémarrage
     }
 })();
 

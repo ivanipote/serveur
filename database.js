@@ -181,6 +181,7 @@ async function initializeDatabase() {
                 id SERIAL PRIMARY KEY,
                 commune TEXT UNIQUE NOT NULL,
                 tarif INTEGER NOT NULL,
+                precision TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -300,172 +301,6 @@ async function initializeDatabase() {
             )
         `);
 
-        // ========================================================
-        // TABLE SELLERS
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS sellers (
-                id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                status TEXT DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        // ========================================================
-        // TABLE SHOPS
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS shops (
-                id SERIAL PRIMARY KEY,
-                seller_id INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                location TEXT NOT NULL,
-                description TEXT,
-                logo TEXT,
-                status TEXT DEFAULT 'active',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE
-            )
-        `);
-
-        // ========================================================
-        // TABLE SELLER_PRODUCTS
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS seller_products (
-                id SERIAL PRIMARY KEY,
-                shop_id INTEGER NOT NULL,
-                seller_id INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                price INTEGER NOT NULL,
-                image TEXT,
-                description TEXT,
-                stock INTEGER DEFAULT 0,
-                category TEXT DEFAULT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE
-            )
-        `);
-
-        // ========================================================
-        // ✅ AJOUTER LES COLONNES image1, image2, image3
-        // ========================================================
-        await client.query(`
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_products' AND column_name='image1') THEN
-                    ALTER TABLE seller_products ADD COLUMN image1 TEXT;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_products' AND column_name='image2') THEN
-                    ALTER TABLE seller_products ADD COLUMN image2 TEXT;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='seller_products' AND column_name='image3') THEN
-                    ALTER TABLE seller_products ADD COLUMN image3 TEXT;
-                END IF;
-            END $$;
-        `);
-        console.log('   ✅ Colonnes image1, image2, image3 ajoutées à seller_products');
-
-        // ========================================================
-        // TABLE SELLER_ORDERS
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS seller_orders (
-                id SERIAL PRIMARY KEY,
-                seller_id INTEGER NOT NULL,
-                shop_id INTEGER NOT NULL,
-                product_id INTEGER,
-                user_id INTEGER NOT NULL,
-                quantity INTEGER NOT NULL,
-                total INTEGER NOT NULL,
-                status TEXT DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
-                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )
-        `);
-
-        // ========================================================
-        // TABLE SELLER_MESSAGES (user_id NULLABLE)
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS seller_messages (
-                id SERIAL PRIMARY KEY,
-                seller_id INTEGER NOT NULL,
-                user_id INTEGER,  -- ✅ NULL autorisé pour les messages anonymes
-                shop_id INTEGER NOT NULL,
-                user_name TEXT,   -- ✅ pour identifier l'utilisateur
-                message TEXT NOT NULL,
-                is_from_seller BOOLEAN DEFAULT FALSE,
-                is_read BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
-                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
-            )
-        `);
-        console.log('   ✅ Table seller_messages créée (user_id nullable)');
-
-        // ========================================================
-        // TABLE SELLER_LIKES
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS seller_likes (
-                id SERIAL PRIMARY KEY,
-                seller_id INTEGER NOT NULL,
-                shop_id INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
-                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                UNIQUE(shop_id, user_id)
-            )
-        `);
-
-        // ========================================================
-        // TABLE SELLER_STATS
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS seller_stats (
-                id SERIAL PRIMARY KEY,
-                seller_id INTEGER NOT NULL,
-                shop_id INTEGER NOT NULL,
-                total_views INTEGER DEFAULT 0,
-                total_likes INTEGER DEFAULT 0,
-                total_messages INTEGER DEFAULT 0,
-                total_orders INTEGER DEFAULT 0,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
-                FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-                UNIQUE(shop_id)
-            )
-        `);
-
-        // ========================================================
-        // TABLE CHAT_ROOMS
-        // ========================================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS chat_rooms (
-                id SERIAL PRIMARY KEY,
-                shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
-                user_name TEXT NOT NULL,
-                last_message TEXT,
-                last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                unread_count INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(shop_id, user_name)
-            )
-        `);
-        console.log('   ✅ Table chat_rooms créée');
-
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
@@ -478,10 +313,7 @@ async function initializeDatabase() {
         const tables = [
             'admins', 'products', 'users', 'panier', 'payments',
             'frais_livraison', 'commandes', 'messages', 'updates',
-            'session', 'wave_verifications',
-            'sellers', 'shops', 'seller_products', 'seller_orders', 'seller_messages',
-            'seller_likes', 'seller_stats',
-            'chat_rooms'
+            'session', 'wave_verifications'
         ];
 
         for (const table of tables) {
@@ -505,29 +337,6 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_commande_id ON wave_verifications(commande_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
-
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_sellers_email ON sellers(email)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_sellers_status ON sellers(status)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_shops_seller_id ON shops(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_shops_status ON shops(status)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_products_shop_id ON seller_products(shop_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_products_seller_id ON seller_products(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_seller_id ON seller_orders(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_shop_id ON seller_orders(shop_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_orders_user_id ON seller_orders(user_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_seller_id ON seller_messages(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_shop_id ON seller_messages(shop_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_messages_user_name ON seller_messages(user_name)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_shop_id ON seller_likes(shop_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_user_id ON seller_likes(user_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_likes_seller_id ON seller_likes(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_seller_id ON seller_stats(seller_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_seller_stats_shop_id ON seller_stats(shop_id)`);
-
-        // ✅ Index pour chat_rooms
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_chat_rooms_shop_id ON chat_rooms(shop_id)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_chat_rooms_user_name ON chat_rooms(user_name)`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_chat_rooms_last_activity ON chat_rooms(last_activity)`);
 
         console.log('   - Index créés');
 
