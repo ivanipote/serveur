@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (VERSION RESTYLÉE)
+    // RENDRE LES NOTIFICATIONS
     // ==========================================
 
     function renderNotifications() {
@@ -644,63 +644,59 @@ document.addEventListener('DOMContentLoaded', function() {
             const colors = getTypeColors(type);
 
             let contentHtml = n.content || 'Aucun contenu';
-            
-            // Nettoyer le contenu
-            contentHtml = contentHtml.replace(/\n\n/g, '<br>');
-            contentHtml = contentHtml.replace(/\n/g, '<br>');
             contentHtml = contentHtml.trim();
 
-            // Gérer les liens
-            const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
-            if (linkMatch) {
-                const url = linkMatch[1];
-                contentHtml = contentHtml.replace(
-                    /\[Cliquez ici pour payer\]\(([^)]+)\)/,
-                    `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
-                        <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
-                    </a>`
-                );
+            // ✅ RÉCUPÉRER LES DONNÉES DE LA NOTIFICATION
+            const shopName = n.extra1 || null;
+            const shopId = n.extra2 || null;
+            const productId = n.extra3 || null;
+            let productData = null;
+            try {
+                if (n.extra4) {
+                    productData = typeof n.extra4 === 'string' ? JSON.parse(n.extra4) : n.extra4;
+                }
+            } catch (e) {
+                productData = null;
             }
 
-            // ✅ EXTRAIRE LA CARTE PRODUIT du contenu
+            // ✅ SI C'EST UNE NOTIFICATION VENDEUR → BOUTON "VOIR"
+            let voirBtnHtml = '';
             let productCardHtml = '';
-            const productMatch = contentHtml.match(/<div[^>]*style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;"[^>]*onclick="window\.location\.href='([^']+)'"[^>]*>([\s\S]*?)<\/div>/);
-            
-            if (productMatch) {
-                const url = productMatch[1];
-                let productContent = productMatch[2];
-                
-                // Extraire les infos du produit
-                const imgMatch = productContent.match(/<img[^>]*src="([^"]+)"[^>]*>/);
-                const nameMatch = productContent.match(/<div[^>]*style="font-size:15px;font-weight:700;color:#1a1a2e;"[^>]*>([^<]*)<\/div>/);
-                const priceMatch = productContent.match(/<div[^>]*style="font-size:14px;font-weight:700;color:#17A464;"[^>]*>([^<]*)<\/div>/);
-                const stockMatch = productContent.match(/<div[^>]*style="font-size:12px;color:#6B7280;"[^>]*>([^<]*)<\/div>/);
-                
-                const imgSrc = imgMatch ? imgMatch[1] : 'https://via.placeholder.com/50';
-                const productName = nameMatch ? nameMatch[1] : 'Produit';
-                const productPrice = priceMatch ? priceMatch[1] : '0 FCFA';
-                const productStock = stockMatch ? stockMatch[1] : '📦 0 en stock';
 
-                // Construire la carte produit proprement
+            if (type === 'seller' && shopId) {
+                // Construire l'URL vers notifseller.html avec tous les paramètres
+                let voirUrl = `/notifseller.html?shop_id=${shopId}&shop_name=${encodeURIComponent(shopName || '')}&title=${encodeURIComponent(displayTitle)}&content=${encodeURIComponent(contentHtml)}`;
+                if (productId) {
+                    voirUrl += `&product_id=${productId}`;
+                }
+                if (productData) {
+                    voirUrl += `&product_data=${encodeURIComponent(JSON.stringify(productData))}`;
+                }
+
+                voirBtnHtml = `
+                    <a href="${voirUrl}" class="btn-voir-seller" onclick="event.stopPropagation();">
+                        VOIR
+                    </a>
+                `;
+            }
+
+            // ✅ SI PRODUIT LIÉ DANS LA NOTIFICATION (pour les autres types)
+            if (productData && productId && type !== 'seller') {
+                const imgSrc = productData.image1 || 'https://via.placeholder.com/50';
                 productCardHtml = `
-                    <div class="card-product-linked" onclick="window.location.href='${url}'">
-                        <img src="${imgSrc}" alt="${productName}" class="p-img" />
+                    <div class="card-product-linked" onclick="window.location.href='/detail-produit?id=${productId}'">
+                        <img src="${imgSrc}" alt="${productData.name}" class="p-img" />
                         <div class="p-info">
-                            <div class="p-name">${productName}</div>
-                            <div class="p-price">${productPrice}</div>
-                            <div class="p-stock">${productStock}</div>
+                            <div class="p-name">${productData.name}</div>
+                            <div class="p-price">${(productData.price || 0).toLocaleString()} FCFA</div>
+                            <div class="p-stock">📦 ${productData.stock || 0} en stock</div>
                         </div>
                         <span class="p-arrow">Voir →</span>
                     </div>
                 `;
-                
-                // Supprimer la carte produit du contenu
-                contentHtml = contentHtml.replace(productMatch[0], '');
             }
 
-            contentHtml = contentHtml.trim();
-
-            // ✅ CARTE RESTYLÉE
+            // ✅ CONSTRUIRE LA CARTE
             html += `
                 <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
                      data-id="${n.id}"
@@ -736,10 +732,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <!-- Pied de carte -->
                     <div class="card-footer">
                         <span class="date">${dateStr}</span>
-                        <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
+                        ${type === 'seller' ? voirBtnHtml : `<span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>`}
                     </div>
 
-                    <!-- Carte produit intégrée (si présente) -->
+                    <!-- Carte produit intégrée (si présente et pas seller) -->
                     ${productCardHtml}
                 </div>
             `;
@@ -789,17 +785,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.querySelectorAll('.notif-card.unread').forEach(card => {
             card.addEventListener('click', function(e) {
-                if (e.target.closest('.btn') || e.target.closest('.notification-link') || e.target.closest('.card-product-linked')) {
+                if (e.target.closest('.btn') || e.target.closest('.btn-voir-seller') || e.target.closest('.card-product-linked')) {
                     return;
                 }
                 const id = this.dataset.id;
                 markAsRead(id);
-            });
-        });
-
-        document.querySelectorAll('.notification-link, .card-product-linked').forEach(el => {
-            el.addEventListener('click', function(e) {
-                e.stopPropagation();
             });
         });
     }
@@ -957,6 +947,48 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
+    // STYLE DU BOUTON VOIR (injecté dynamiquement)
+    // ==========================================
+
+    function injectVoirStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .btn-voir-seller {
+                display: inline-block;
+                padding: 6px 20px;
+                background: #1a1a2e;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 700;
+                text-decoration: none;
+                cursor: pointer;
+                transition: all 0.3s;
+                letter-spacing: 0.5px;
+            }
+            .btn-voir-seller:hover {
+                background: #000000;
+                transform: scale(1.05);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            }
+            .notif-card .card-footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 4px;
+            }
+            .notif-card .card-footer .date {
+                font-size: 12px;
+                color: #999;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ==========================================
     // INITIALISATION
     // ==========================================
 
@@ -965,6 +997,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Initialisation des notifications...');
             const isAuth = await checkAuth();
             if (!isAuth) return;
+
+            // Injecter les styles du bouton VOIR
+            injectVoirStyles();
 
             await loadShops();
 

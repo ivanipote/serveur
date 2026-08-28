@@ -764,6 +764,83 @@ app.get('/api/seller/products/:shopId', async (req, res) => {
 
 
 // ============================================================
+// ROUTE : NOTIFICATION VENDEUR → CLIENT (avec boutique + produit)
+// ============================================================
+
+app.post('/api/notifications/seller-create', async (req, res) => {
+    const { 
+        userId, 
+        title, 
+        content, 
+        shop_name,      // ✅ NOUVEAU : nom de la boutique
+        shop_id,        // ✅ NOUVEAU : ID de la boutique
+        product_id      // ✅ NOUVEAU : ID du produit lié (optionnel)
+    } = req.body;
+
+    if (!userId || !title || !content) {
+        return res.status(400).json({ error: 'userId, title et content requis.' });
+    }
+
+    try {
+        // ✅ Construire le contenu de la notification
+        let notificationContent = content;
+
+        // Si un produit est lié, on ajoute ses infos
+        let productData = null;
+        if (product_id) {
+            try {
+                const product = await db.get(
+                    `SELECT id, name, price, image1, stock FROM seller_products WHERE id = $1`,
+                    [product_id]
+                );
+                if (product) {
+                    productData = product;
+                }
+            } catch (err) {
+                console.warn('⚠️ Erreur récupération produit lié:', err.message);
+            }
+        }
+
+        // ✅ Envoyer la notification avec toutes les infos
+        const result = await db.query(
+            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read, extra1, extra2, extra3, extra4)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                userId,
+                null,
+                'seller',
+                title,
+                notificationContent,
+                false,
+                shop_name || null,        // extra1 : nom de la boutique
+                shop_id ? String(shop_id) : null,  // extra2 : ID boutique
+                product_id ? String(product_id) : null, // extra3 : ID produit
+                productData ? JSON.stringify(productData) : null // extra4 : données produit
+            ]
+        );
+
+        // ✅ Émettre via Socket.IO
+        global.io.to(`user_${userId}`).emit('notification', {
+            id: result.rows[0].id,
+            type: 'seller',
+            title: title,
+            content: notificationContent,
+            shop_name: shop_name,
+            shop_id: shop_id,
+            product_id: product_id,
+            product_data: productData
+        });
+
+        console.log(`✅ Notification vendeur envoyée à l'utilisateur ${userId}: ${title}`);
+        res.json({ success: true, message: 'Notification envoyée' });
+
+    } catch (err) {
+        console.error('❌ Erreur envoi notification vendeur:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ============================================================
 // ROUTES API : PRODUITS (commentaires + likes + vues)
 // ============================================================
 
