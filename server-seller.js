@@ -1306,37 +1306,80 @@ app.post('/api/seller/message/send', async (req, res) => {
     }
 
     try {
-        // Récupérer le seller_id de la boutique
-        const shop = await db.get('SELECT seller_id FROM shops WHERE id = $1', [shop_id]);
+        // Récupérer la boutique
+        const shop = await db.get('SELECT * FROM shops WHERE id = $1', [shop_id]);
         if (!shop) {
             return res.status(404).json({ success: false, error: 'Boutique non trouvée' });
         }
 
-        // Insérer le message
-        await db.query(`
-            INSERT INTO seller_messages (seller_id, shop_id, user_name, message, is_from_seller, is_read)
-            VALUES ($1, $2, $3, $4, $5, $6)
-        `, [shop.seller_id, shop_id, username, message, false, true]);
+        // Récupérer le vendeur
+        const seller = await db.get('SELECT name FROM sellers WHERE id = $1', [shop.seller_id]);
+        const sellerName = seller?.name || 'Vendeur';
 
-        // Mettre à jour la discussion dans chat_rooms
-        const room = await db.get(`
-            SELECT * FROM chat_rooms WHERE shop_id = $1 AND user_name = $2
-        `, [shop_id, username]);
+        // ✅ Insérer le message
+        await db.query(
+            `INSERT INTO seller_messages (seller_id, shop_id, user_name, message, is_from_seller, is_read)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [shop.seller_id, shop_id, username, message, false, true]
+        );
+
+        // ✅ Mettre à jour la discussion
+        const room = await db.get(
+            `SELECT * FROM chat_rooms WHERE shop_id = $1 AND user_name = $2`,
+            [shop_id, username]
+        );
 
         if (room) {
-            await db.query(`
-                UPDATE chat_rooms 
-                SET last_message = $1, last_activity = NOW(), unread_count = unread_count + 1
-                WHERE id = $2
-            `, [message, room.id]);
+            await db.query(
+                `UPDATE chat_rooms 
+                 SET last_message = $1, last_activity = NOW(), unread_count = unread_count + 1
+                 WHERE id = $2`,
+                [message, room.id]
+            );
         } else {
-            await db.query(`
-                INSERT INTO chat_rooms (shop_id, user_name, last_message, last_activity, unread_count)
-                VALUES ($1, $2, $3, NOW(), 1)
-            `, [shop_id, username, message]);
+            await db.query(
+                `INSERT INTO chat_rooms (shop_id, user_name, last_message, last_activity, unread_count)
+                 VALUES ($1, $2, $3, NOW(), 1)`,
+                [shop_id, username, message]
+            );
         }
 
-        // 🔔 Émettre via Socket.IO au vendeur
+        // ✅ CRÉER LA NOTIFICATION POUR LE VENDEUR (formaté)
+        const notificationTitle = `🛍️ ${shop.name} - Nouveau message`;
+        const notificationContent = `
+            <div style="padding: 4px 0;">
+                <div style="font-weight: 600; margin-bottom: 6px;">
+                    👤 <span style="color: #1a2a6c;">${username}</span>
+                </div>
+                <div style="background: #f0f2f5; padding: 10px 14px; border-radius: 10px; margin: 4px 0 8px 0; font-size: 14px; line-height: 1.5;">
+                    ${message}
+                </div>
+                <div style="margin-top: 6px;">
+                    <a href="/messages" class="notification-link" style="color: #1a2a6c; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-reply"></i> Répondre au client
+                    </a>
+                </div>
+            </div>
+        `;
+
+        // ✅ Appel à l'API client pour créer la notification
+        const response = await fetch('https://nature-plus-client.onrender.com/api/notifications/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: shop.seller_id,
+                commandeId: null,
+                type: 'seller',
+                title: notificationTitle,
+                content: notificationContent
+            })
+        });
+
+        if (!response.ok) {
+            console.warn('⚠️ Erreur envoi notification:', await response.text());
+        }
+
+        // ✅ Émettre via Socket.IO au vendeur
         io.to(`seller_${shop.seller_id}`).emit('new-message', {
             shop_id: shop_id,
             username: username,
@@ -1351,7 +1394,6 @@ app.post('/api/seller/message/send', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-
 // ============================================================
 // RÉPONDRE AU CLIENT (vendeur → client)
 // ============================================================
@@ -1484,6 +1526,9 @@ app.get('/detail-produit', (req, res) => {
 
 app.get('/detail-produit', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'detail-produit.html'));
+});
+app.get('/messages', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'seller', 'html', 'messages.html'));
 });
 // ============================================================
 // INITIALISATION DE LA BASE DE DONNÉES
