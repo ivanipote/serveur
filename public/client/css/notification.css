@@ -1300,3 +1300,60 @@ input, textarea {
     -webkit-user-select: text !important;
     user-select: text !important;
 }
+/* =============================================================
+   NOTIFICATIONS VENDEUR (seller-notification)
+   ============================================================= */
+
+.seller-notification {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px 16px;
+    border-left: 4px solid #7986cb;
+    margin: 4px 0;
+}
+
+.seller-notification-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.seller-notification-icon {
+    font-size: 16px;
+}
+
+.seller-notification-username {
+    font-weight: 700;
+    color: #283593;
+    font-size: 14px;
+}
+
+.seller-notification-message {
+    font-size: 14px;
+    color: #1a1a2e;
+    line-height: 1.5;
+    padding: 4px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.seller-notification-footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e8ecf4;
+}
+
+.seller-notification-link {
+    color: #1a2a6c;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.seller-notification-link:hover {
+    text-decoration: underline;
+}
