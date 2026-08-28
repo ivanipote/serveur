@@ -340,7 +340,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 productData = null;
             }
 
-            // ✅ ROUTE CORRIGÉE : /detail-notif (sans .html)
             let detailUrl = `/detail-notif?id=${n.id}`;
             if (shopId) detailUrl += `&shop_id=${shopId}`;
             if (shopName) detailUrl += `&shop_name=${encodeURIComponent(shopName)}`;

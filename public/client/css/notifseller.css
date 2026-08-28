@@ -1,5 +1,5 @@
 /* =============================================================
-   NOTIFSELLER - STYLES
+   NOTIFSELLER - STYLES COMPLETS
    ============================================================= */
 
 * {
@@ -461,7 +461,7 @@ body {
     color: #999;
 }
 
-/* ===== BOUTON VOIR DÉTAIL ===== */
+/* ===== BOUTON DÉTAIL ===== */
 .btn-detail {
     display: inline-block;
     padding: 6px 18px;
@@ -495,7 +495,7 @@ body {
 }
 
 /* =============================================================
-   CARTE PRODUIT INTÉGRÉE (dans la notification)
+   CARTE PRODUIT INTÉGRÉE
    ============================================================= */
 
 .card-product-linked {
