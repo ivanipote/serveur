@@ -409,6 +409,87 @@ app.get('/api/admin/stats', async (req, res) => {
     }
 });
 
+
+// ========================================================
+// ROUTE : RÉCUPÉRER UNE NOTIFICATION PAR ID
+// ========================================================
+
+app.get('/api/notification/:id', async (req, res) => {
+    const { id } = req.params;
+
+    if (!id || isNaN(id)) {
+        return res.status(400).json({
+            success: false,
+            error: 'ID de notification invalide.'
+        });
+    }
+
+    try {
+        const notification = await db.get(
+            `SELECT 
+                id, 
+                user_id, 
+                commande_id, 
+                type, 
+                title, 
+                content, 
+                is_read,
+                extra1 as shop_name,
+                extra2 as shop_id,
+                extra3 as product_id,
+                extra4 as product_data,
+                created_at
+             FROM messages 
+             WHERE id = $1`,
+            [id]
+        );
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                error: 'Notification non trouvée.'
+            });
+        }
+
+        // ✅ Parser le JSON du produit si présent
+        let productData = null;
+        if (notification.product_data) {
+            try {
+                productData = typeof notification.product_data === 'string' 
+                    ? JSON.parse(notification.product_data) 
+                    : notification.product_data;
+            } catch (e) {
+                productData = null;
+            }
+        }
+
+        res.json({
+            success: true,
+            notification: {
+                id: notification.id,
+                user_id: notification.user_id,
+                commande_id: notification.commande_id,
+                type: notification.type,
+                title: notification.title,
+                content: notification.content,
+                is_read: notification.is_read === 1,
+                shop_name: notification.shop_name || null,
+                shop_id: notification.shop_id || null,
+                product_id: notification.product_id || null,
+                product_data: productData,
+                created_at: notification.created_at
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération notification:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 app.get('/api/admin/payments', async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM payments ORDER BY created_at DESC');
