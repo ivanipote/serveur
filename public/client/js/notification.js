@@ -605,143 +605,139 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // RENDRE LES NOTIFICATIONS (CARTES INDIVIDUELLES)
+    // RENDRE LES NOTIFICATIONS
     // ==========================================
-function renderNotifications() {
-    if (!mainContent) return;
 
-    if (!notifications || notifications.length === 0) {
-        renderEmpty('Aucune notification');
-        return;
-    }
+    function renderNotifications() {
+        if (!mainContent) return;
 
-    let filtered = notifications;
-
-    if (currentFilter !== 'all') {
-        filtered = filtered.filter(n => n.type === currentFilter);
-    }
-
-    if (showReadToggle && !showReadToggle.checked) {
-        filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
-    }
-
-    if (filtered.length === 0) {
-        const msg = (showReadToggle && !showReadToggle.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
-        renderEmpty(msg);
-        return;
-    }
-
-    let html = '';
-
-    filtered.forEach(n => {
-        const isUnread = n.is_read === 0 || n.is_read === false;
-        const type = n.type || 'systeme';
-        const typeLabel = getTypeLabel(type);
-        const dateStr = timeAgo(n.created_at);
-        const avatarIcon = getAvatarIcon(type);
-        const displayTitle = getDisplayTitle(n);
-        const colors = getTypeColors(type);
-
-        let contentHtml = n.content || 'Aucun contenu';
-        
-        // ✅ NETTOYAGE du contenu
-        contentHtml = contentHtml.replace(/\n\n/g, '<br>');
-        contentHtml = contentHtml.replace(/\n/g, '<br>');
-        contentHtml = contentHtml.trim();
-
-        // Gérer les liens
-        const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
-        if (linkMatch) {
-            const url = linkMatch[1];
-            contentHtml = contentHtml.replace(
-                /\[Cliquez ici pour payer\]\(([^)]+)\)/,
-                `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
-                    <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
-                </a>`
-            );
+        if (!notifications || notifications.length === 0) {
+            renderEmpty('Aucune notification');
+            return;
         }
 
-        // ✅ EXTRAIRE LA CARTE PRODUIT du contenu
-        let productCardHtml = '';
-        const productMatch = contentHtml.match(/<div[^>]*style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;"[^>]*onclick="window\.location\.href='([^']+)'"[^>]*>([\s\S]*?)<\/div>/);
-        
-        if (productMatch) {
-            const url = productMatch[1];
-            let productContent = productMatch[2];
-            
-            // ✅ Extraire les infos du produit depuis le contenu
-            const imgMatch = productContent.match(/<img[^>]*src="([^"]+)"[^>]*>/);
-            const nameMatch = productContent.match(/<div[^>]*style="font-size:15px;font-weight:700;color:#1a1a2e;"[^>]*>([^<]*)<\/div>/);
-            const priceMatch = productContent.match(/<div[^>]*style="font-size:14px;font-weight:700;color:#17A464;"[^>]*>([^<]*)<\/div>/);
-            const stockMatch = productContent.match(/<div[^>]*style="font-size:12px;color:#6B7280;"[^>]*>([^<]*)<\/div>/);
-            
-            const imgSrc = imgMatch ? imgMatch[1] : 'https://via.placeholder.com/50';
-            const productName = nameMatch ? nameMatch[1] : 'Produit';
-            const productPrice = priceMatch ? priceMatch[1] : '0 FCFA';
-            const productStock = stockMatch ? stockMatch[1] : '📦 0 en stock';
+        let filtered = notifications;
 
-            // ✅ Construire la carte produit proprement
-            productCardHtml = `
-                <div class="card-product-linked" onclick="window.location.href='${url}'">
-                    <img src="${imgSrc}" alt="${productName}" class="p-img" />
-                    <div class="p-info">
-                        <div class="p-name">${productName}</div>
-                        <div class="p-price">${productPrice}</div>
-                        <div class="p-stock">${productStock}</div>
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(n => n.type === currentFilter);
+        }
+
+        if (showReadToggle && !showReadToggle.checked) {
+            filtered = filtered.filter(n => n.is_read === 0 || n.is_read === false);
+        }
+
+        if (filtered.length === 0) {
+            const msg = (showReadToggle && !showReadToggle.checked) ? 'Aucune notification non lue' : 'Aucune notification avec ce filtre';
+            renderEmpty(msg);
+            return;
+        }
+
+        let html = '';
+
+        filtered.forEach(n => {
+            const isUnread = n.is_read === 0 || n.is_read === false;
+            const type = n.type || 'systeme';
+            const typeLabel = getTypeLabel(type);
+            const dateStr = timeAgo(n.created_at);
+            const avatarIcon = getAvatarIcon(type);
+            const displayTitle = getDisplayTitle(n);
+            const colors = getTypeColors(type);
+
+            let contentHtml = n.content || 'Aucun contenu';
+            
+            // Nettoyer le contenu
+            contentHtml = contentHtml.replace(/\n\n/g, '<br>');
+            contentHtml = contentHtml.replace(/\n/g, '<br>');
+            contentHtml = contentHtml.trim();
+
+            // Gérer les liens
+            const linkMatch = contentHtml.match(/\[Cliquez ici pour payer\]\(([^)]+)\)/);
+            if (linkMatch) {
+                const url = linkMatch[1];
+                contentHtml = contentHtml.replace(
+                    /\[Cliquez ici pour payer\]\(([^)]+)\)/,
+                    `<a href="${url}" target="_blank" class="notification-link" onclick="event.stopPropagation();">
+                        <i class="fas fa-external-link-alt"></i> Cliquez ici pour payer
+                    </a>`
+                );
+            }
+
+            // ✅ Extraire la carte produit
+            let productCardHtml = '';
+            const productMatch = contentHtml.match(/<div[^>]*style="margin-top:12px;border:2px solid #17A464;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#f8fbf9;cursor:pointer;"[^>]*onclick="window\.location\.href='([^']+)'"[^>]*>([\s\S]*?)<\/div>/);
+            
+            if (productMatch) {
+                const url = productMatch[1];
+                let productContent = productMatch[2];
+                
+                // Extraire les infos du produit
+                const imgMatch = productContent.match(/<img[^>]*src="([^"]+)"[^>]*>/);
+                const nameMatch = productContent.match(/<div[^>]*style="font-size:15px;font-weight:700;color:#1a1a2e;"[^>]*>([^<]*)<\/div>/);
+                const priceMatch = productContent.match(/<div[^>]*style="font-size:14px;font-weight:700;color:#17A464;"[^>]*>([^<]*)<\/div>/);
+                const stockMatch = productContent.match(/<div[^>]*style="font-size:12px;color:#6B7280;"[^>]*>([^<]*)<\/div>/);
+                
+                const imgSrc = imgMatch ? imgMatch[1] : 'https://via.placeholder.com/50';
+                const productName = nameMatch ? nameMatch[1] : 'Produit';
+                const productPrice = priceMatch ? priceMatch[1] : '0 FCFA';
+                const productStock = stockMatch ? stockMatch[1] : '📦 0 en stock';
+
+                // Construire la carte produit
+                productCardHtml = `
+                    <div class="card-product-linked" onclick="window.location.href='${url}'">
+                        <img src="${imgSrc}" alt="${productName}" class="p-img" />
+                        <div class="p-info">
+                            <div class="p-name">${productName}</div>
+                            <div class="p-price">${productPrice}</div>
+                            <div class="p-stock">${productStock}</div>
+                        </div>
+                        <span class="p-arrow">Voir →</span>
                     </div>
-                    <span class="p-arrow">Voir →</span>
+                `;
+                
+                contentHtml = contentHtml.replace(productMatch[0], '');
+            }
+
+            contentHtml = contentHtml.trim();
+
+            // ✅ CARTE INDIVIDUELLE
+            html += `
+                <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
+                     data-id="${n.id}"
+                     style="border-color: ${colors.border};">
+                    
+                    <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
+                        ${avatarIcon}
+                    </div>
+                    
+                    <div class="body">
+                        <div class="title" style="color: ${colors.text};">${displayTitle}</div>
+                        <div class="content">${contentHtml}</div>
+                        <div class="date">${dateStr}</div>
+                        ${productCardHtml}
+                        <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
+                    </div>
+                    
+                    <div class="header-actions">
+                        ${isUnread ? `
+                            <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-read already" disabled>
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `}
+                        <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
             `;
-            
-            // ✅ Supprimer toute la carte produit du contenu
-            contentHtml = contentHtml.replace(productMatch[0], '');
-        }
+        });
 
-        // ✅ Nettoyer les espaces en trop
-        contentHtml = contentHtml.trim();
-
-        // ✅ CARTE INDIVIDUELLE
-        html += `
-            <div class="notif-card type-${type} ${isUnread ? 'unread' : 'read'}" 
-                 data-id="${n.id}"
-                 style="border-color: ${colors.border};">
-                
-                <div class="avatar" style="background: ${colors.bg}; color: ${colors.avatar};">
-                    ${avatarIcon}
-                </div>
-                
-                <div class="body">
-                    <div class="title" style="color: ${colors.text};">${displayTitle}</div>
-                    <div class="content">${contentHtml}</div>
-                    <div class="date">${dateStr}</div>
-                    
-                    <!-- ✅ Carte produit stylée -->
-                    ${productCardHtml}
-                    
-                    <span class="badge-type" style="background: ${colors.badge}; color: white;">${typeLabel}</span>
-                </div>
-                
-                <div class="header-actions">
-                    ${isUnread ? `
-                        <button class="btn btn-read" data-id="${n.id}" title="Marquer comme lu">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    ` : `
-                        <button class="btn btn-read already" disabled>
-                            <i class="fas fa-check"></i>
-                        </button>
-                    `}
-                    <button class="btn btn-delete" data-id="${n.id}" title="Supprimer">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-
-    mainContent.innerHTML = html;
-    attachEvents();
-}
+        mainContent.innerHTML = html;
+        attachEvents();
+    }
 
     // ==========================================
     // RENDER EMPTY
