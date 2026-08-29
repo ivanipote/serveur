@@ -199,6 +199,10 @@
             transform: scale(1.2);
         }
 
+        /* ==========================================
+           RÉSULTATS STYLÉS
+           ========================================== */
+
         .result-item {
             background: white;
             padding: 12px 16px;
@@ -237,12 +241,45 @@
             font-size: 15px;
             font-weight: 600;
             color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
-        .result-item .result-info .price {
-            font-size: 14px;
+        .result-item .result-info .name .badge-new {
+            background: #DC2626;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .result-item .result-info .price-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .result-item .result-info .price-wrapper .price {
+            font-size: 16px;
             font-weight: 700;
             color: #2d7d46;
+        }
+
+        .result-item .result-info .price-wrapper .price.promo {
+            color: #DC2626;
+        }
+
+        .result-item .result-info .price-wrapper .price-old {
+            font-size: 14px;
+            font-weight: 500;
+            color: #aaa;
+            text-decoration: line-through;
         }
 
         .result-item .result-info .desc {
@@ -251,38 +288,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        .result-item .result-info .shop-tag {
-            font-size: 11px;
-            color: #888;
             margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .result-item .result-info .shop-tag i {
-            color: #17A464;
-        }
-
-        .result-item .result-info .source-badge {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-left: 6px;
-            display: inline-block;
-        }
-
-        .result-item .result-info .source-badge.catalogue {
-            background: #e8f5e9;
-            color: #2d7d46;
-        }
-
-        .result-item .result-info .source-badge.seller {
-            background: #e3f2fd;
-            color: #1565c0;
         }
 
         .result-item .open-icon {
@@ -338,6 +344,10 @@
             margin-bottom: 16px;
         }
 
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
         @media (max-width: 600px) {
             body { padding-top: 68px; }
             .search-header { padding: 10px 14px; gap: 10px; }
@@ -347,7 +357,7 @@
             .result-item { padding: 10px 14px; gap: 10px; }
             .result-item .result-img { width: 40px; height: 40px; }
             .result-item .result-info .name { font-size: 14px; }
-            .result-item .result-info .price { font-size: 13px; }
+            .result-item .result-info .price-wrapper .price { font-size: 14px; }
             .history-item { padding: 10px 14px; }
             .history-item .term { font-size: 14px; }
         }
@@ -355,7 +365,15 @@
         @media (max-width: 400px) {
             .result-item .result-info .desc { display: none; }
             .result-item .result-img { width: 36px; height: 36px; }
+            .result-item .result-info .name { font-size: 13px; }
+            .result-item .result-info .price-wrapper .price { font-size: 13px; }
+            .result-item .result-info .price-wrapper .price-old { font-size: 12px; }
+            .result-item .result-info .name .badge-new { font-size: 8px; padding: 1px 8px; }
         }
+
+        /* ========================================== */
+        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
+        /* ========================================== */
 
         * {
             -webkit-tap-highlight-color: transparent !important;
@@ -395,17 +413,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
+            console.log('✅ searchproduct.html chargé');
+
             const searchInput = document.getElementById('searchInput');
             const container = document.getElementById('resultsContainer');
 
             const HISTORY_KEY = 'searchHistory';
             const MAX_HISTORY = 10;
 
-            const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
             const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
 
-            let products = [];
-            let sellerProducts = [];
             let allProducts = [];
             let timeoutId = null;
 
@@ -467,60 +484,30 @@
             }
 
             // ==========================================
-            // CHARGER TOUS LES PRODUITS (catalogue + boutiques)
+            // CHARGER TOUS LES PRODUITS (catalogue uniquement)
             // ==========================================
 
             async function loadAllProducts() {
                 try {
-                    // 1. Produits catalogue
-                    const res1 = await fetch('/api/products');
-                    const data1 = await res1.json();
-                    if (res1.ok) {
-                        products = data1.map(p => ({
+                    const res = await fetch('/api/products');
+                    const data = await res.json();
+
+                    if (res.ok && data.length > 0) {
+                        allProducts = data.map(p => ({
                             ...p,
-                            source: 'catalogue',
-                            shop_name: 'Nature+',
-                            shop_id: null
+                            effective_price: p.promo_price && p.promo_price > 0 ? p.promo_price : p.price,
+                            is_new: p.is_new || false,
+                            has_promo: p.promo_price && p.promo_price > 0
                         }));
+                    } else {
+                        allProducts = [];
                     }
 
-                    // 2. Produits des boutiques
-                    try {
-                        const res2 = await fetch('/api/shops');
-                        const data2 = await res2.json();
-
-                        if (data2.success && data2.shops) {
-                            const shopPromises = data2.shops.map(async (shop) => {
-                                try {
-                                    const res = await fetch(SELLER_API_URL + '/api/seller/products/' + shop.id);
-                                    const data = await res.json();
-                                    if (data.success && data.products) {
-                                        return data.products.map(p => ({
-                                            ...p,
-                                            source: 'seller',
-                                            shop_name: shop.name,
-                                            shop_id: shop.id
-                                        }));
-                                    }
-                                    return [];
-                                } catch (e) {
-                                    return [];
-                                }
-                            });
-
-                            const results = await Promise.all(shopPromises);
-                            sellerProducts = results.flat();
-                        }
-                    } catch (e) {
-                        console.warn('Erreur chargement produits boutiques:', e);
-                    }
-
-                    // Fusionner
-                    allProducts = [...products, ...sellerProducts];
                     console.log('✅ Produits chargés:', allProducts.length);
 
                 } catch (error) {
-                    console.error('Erreur chargement produits:', error);
+                    console.error('❌ Erreur chargement produits:', error);
+                    allProducts = [];
                 }
             }
 
@@ -616,45 +603,35 @@
                 }
 
                 container.innerHTML = results.map(p => {
-                    const isCatalogue = p.source === 'catalogue';
-                    const badgeClass = isCatalogue ? 'catalogue' : 'seller';
-                    const badgeText = isCatalogue ? '📦 Catalogue' : '🛍️ Boutique';
+                    const hasPromo = p.has_promo;
+                    const displayPrice = p.effective_price || p.price;
+                    const oldPrice = p.price;
 
                     return `
-                        <div class="result-item" data-id="${p.id}" data-source="${p.source}" data-shop="${p.shop_id || ''}">
+                        <div class="result-item" data-id="${p.id}">
                             <img src="${p.image1 || 'https://via.placeholder.com/50'}" alt="${p.name}" class="result-img" loading="lazy">
                             <div class="result-info">
                                 <div class="name">
                                     ${p.name}
-                                    <span class="source-badge ${badgeClass}">${badgeText}</span>
+                                    ${p.is_new ? '<span class="badge-new">⭐ Nouveau</span>' : ''}
                                 </div>
-                                <div class="price">${p.price.toLocaleString()} FCFA</div>
+                                <div class="price-wrapper">
+                                    <span class="price ${hasPromo ? 'promo' : ''}">${displayPrice.toLocaleString()} FCFA</span>
+                                    ${hasPromo ? `<span class="price-old">${oldPrice.toLocaleString()} FCFA</span>` : ''}
+                                </div>
                                 <div class="desc">${p.description || ''}</div>
-                                <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
                             </div>
                             <span class="open-icon"><i class="fas fa-chevron-right"></i></span>
                         </div>
                     `;
                 }).join('');
 
-                // ✅ Clic sur un résultat → redirection selon la source
                 document.querySelectorAll('.result-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const id = this.dataset.id;
-                        const source = this.dataset.source;
-                        const shopId = this.dataset.shop;
-
-                        // Sauvegarder la recherche
                         const name = this.querySelector('.name')?.textContent?.trim() || '';
                         saveHistory(name);
-
-                        if (source === 'catalogue') {
-                            // ✅ Produit catalogue → infoproduit (client)
-                            window.location.href = CLIENT_API_URL + '/infoproduit?id=' + id;
-                        } else {
-                            // ✅ Produit boutique → detail-produit (seller)
-                            window.location.href = SELLER_API_URL + '/detail-produit?id=' + id;
-                        }
+                        window.location.href = CLIENT_API_URL + '/infoproduit?id=' + id;
                     });
                 });
             }
