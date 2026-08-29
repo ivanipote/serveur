@@ -1518,6 +1518,13 @@ app.get('/paywithwave', (req, res) => {
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
+// ========================================================
+// ROUTES PAGES (ADMIN)
+// ========================================================
+
+app.get('/admin/add-produit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'add-produit.html'));
+});
 
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'login.html'));
