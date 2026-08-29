@@ -50,6 +50,60 @@ async function ensureFlexColumns(tableName) {
 }
 
 // ========================================================
+// FONCTION : AJOUTER LES COLONNES EXTRA1-4 À WAVE_VERIFICATIONS
+// ========================================================
+
+async function ensureExtraColumns() {
+    const client = await pool.connect();
+    try {
+        const tableCheck = await client.query(`
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_name = 'wave_verifications'
+            )
+        `);
+
+        if (!tableCheck.rows[0].exists) {
+            console.log('   ⚠️ Table wave_verifications n\'existe pas encore');
+            return;
+        }
+
+        const extraColumns = ['extra1', 'extra2', 'extra3', 'extra4'];
+        for (const colName of extraColumns) {
+            const colCheck = await client.query(`
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'wave_verifications' AND column_name = $1
+                )
+            `, [colName]);
+
+            if (!colCheck.rows[0].exists) {
+                await client.query(`ALTER TABLE wave_verifications ADD COLUMN ${colName} TEXT`);
+                console.log(`   ✅ Colonne ${colName} ajoutée à wave_verifications`);
+            }
+        }
+
+        // ✅ Vérifier extra1 dans admins (solde)
+        const colCheckAdmin = await client.query(`
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name = 'admins' AND column_name = 'extra1'
+            )
+        `);
+
+        if (!colCheckAdmin.rows[0].exists) {
+            await client.query(`ALTER TABLE admins ADD COLUMN extra1 TEXT DEFAULT '0'`);
+            console.log('   ✅ Colonne extra1 ajoutée à admins (solde)');
+        }
+
+    } catch (error) {
+        console.log(`   ⚠️ Erreur vérification extra columns:`, error.message);
+    } finally {
+        client.release();
+    }
+}
+
+// ========================================================
 // CRÉATION DES TABLES
 // ========================================================
 
@@ -304,7 +358,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE WAVE_VERIFICATIONS
+        // TABLE WAVE_VERIFICATIONS (avec extra1-4)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS wave_verifications (
@@ -319,12 +373,35 @@ async function initializeDatabase() {
                 date_validation TIMESTAMP DEFAULT NULL,
                 validateur_id INTEGER DEFAULT NULL,
                 notes_validation TEXT DEFAULT NULL,
+                extra1 TEXT DEFAULT NULL,
+                extra2 TEXT DEFAULT NULL,
+                extra3 TEXT DEFAULT NULL,
+                extra4 TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (commande_id) REFERENCES commandes(id),
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         `);
+        console.log('   ✅ Table wave_verifications créée avec extra1-4');
+
+        // ========================================================
+        // TABLE COMMITS (historique des commits GitHub)
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS commits (
+                id SERIAL PRIMARY KEY,
+                sha TEXT UNIQUE NOT NULL,
+                message TEXT NOT NULL,
+                author TEXT,
+                date TIMESTAMP,
+                url TEXT,
+                branch TEXT DEFAULT 'master',
+                deployed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('   ✅ Table commits créée pour l\'historique des commits');
 
         await client.query('COMMIT');
 
@@ -348,6 +425,13 @@ async function initializeDatabase() {
         console.log('✅ Toutes les colonnes flex vérifiées');
 
         // ========================================================
+        // AJOUTER LES COLONNES EXTRA1-4 À WAVE_VERIFICATIONS
+        // ========================================================
+        console.log('🔄 Vérification des colonnes extra...');
+        await ensureExtraColumns();
+        console.log('✅ Colonnes extra vérifiées');
+
+        // ========================================================
         // INDEX
         // ========================================================
         await client.query(`CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)`);
@@ -362,6 +446,8 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_commande_id ON wave_verifications(commande_id)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_status ON wave_verifications(status)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_commits_sha ON commits(sha)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_commits_date ON commits(date)`);
 
         console.log('   - Index créés');
 
