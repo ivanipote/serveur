@@ -17,9 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const productName = document.getElementById('productName');
     const productPrice = document.getElementById('productPrice');
+    const productPriceOld = document.getElementById('productPriceOld');
     const productStock = document.getElementById('productStock');
     const productImage = document.getElementById('productImage');
     const productImagePlaceholder = document.getElementById('productImagePlaceholder');
+    const badgeNew = document.getElementById('badgeNew');
+    const productInfosWrapper = document.getElementById('productInfosWrapper');
     const prevBtn = document.getElementById('prevProduct');
     const nextBtn = document.getElementById('nextProduct');
     const addToCartBtn = document.getElementById('addToCartBtn');
@@ -31,9 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dashboardHeader = document.getElementById('dashboardHeader');
     const dynamicCard = document.getElementById('dynamicCard');
     const searchInput = document.getElementById('searchInput');
-
-    // ✨ Carte boutiques
-    const shopsCard = document.getElementById('shopsCard');
+    const newPromoCard = document.getElementById('newPromoCard');
 
     const commandeBadge = document.getElementById('commandeBadge');
     const notifBadge = document.getElementById('notifBadge');
@@ -53,8 +54,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     name: p.name,
                     description: p.description || 'Aucune description',
                     price: p.price || 0,
+                    promo_price: p.promo_price || null,
                     stock: p.quantity || 0,
-                    image: p.image1 || ''
+                    image: p.image1 || '',
+                    is_new: p.is_new || false,
+                    flex1: p.flex1 || '',
+                    flex2: p.flex2 || '',
+                    flex3: p.flex3 || '',
+                    flex4: p.flex4 || '',
+                    flex5: p.flex5 || '',
+                    flex6: p.flex6 || '',
+                    flex7: p.flex7 || '',
+                    flex8: p.flex8 || ''
                 }));
                 console.log(`✅ ${products.length} produits chargés`);
                 return true;
@@ -193,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CARROUSEL + SYNC CARTE BOUTIQUES
+    // CARROUSEL + SYNC CARTE NOUVEAUTÉS
     // ==========================================
 
     function updateCarousel(index) {
@@ -201,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!product) {
             productName.textContent = 'Aucun produit';
             productPrice.textContent = '0 FCFA';
+            productPriceOld.textContent = '';
             productStock.textContent = '🚫 Indisponible';
             productImage.style.display = 'none';
             productImagePlaceholder.style.display = 'flex';
@@ -208,14 +220,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="fas fa-exclamation-circle" style="font-size:36px;color:#ccc;"></i>
                 <span>Aucun produit</span>
             `;
+            badgeNew.style.display = 'none';
+            productInfosWrapper.innerHTML = '';
             return;
         }
 
-        // Mise à jour des infos
+        // Nom
         productName.textContent = product.name;
-        productPrice.textContent = product.price.toLocaleString() + ' FCFA';
+
+        // Prix
+        if (product.promo_price && product.promo_price < product.price) {
+            productPriceOld.textContent = product.price.toLocaleString() + ' FCFA';
+            productPrice.textContent = product.promo_price.toLocaleString() + ' FCFA';
+        } else {
+            productPriceOld.textContent = '';
+            productPrice.textContent = product.price.toLocaleString() + ' FCFA';
+        }
+
+        // Stock
         productStock.textContent = product.stock > 0 ? `📦 ${product.stock} en stock` : '🚫 Rupture de stock';
         productStock.style.color = product.stock > 0 ? '#4ade80' : '#f87171';
+
+        // Badge Nouveau
+        if (product.is_new) {
+            badgeNew.style.display = 'inline-block';
+        } else {
+            badgeNew.style.display = 'none';
+        }
 
         // Gestion image / placeholder
         if (product.image) {
@@ -231,15 +262,47 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // Image de fond pour header, footer, header global
+        // Image de fond pour header, footer, header global, carte nouveautés
         const bgImage = product.image ? `url(${product.image})` : 'none';
         dashboardHeader.style.backgroundImage = bgImage;
         carouselHeader.style.backgroundImage = bgImage;
         carouselFooter.style.backgroundImage = bgImage;
+        if (newPromoCard) {
+            newPromoCard.style.backgroundImage = bgImage;
+        }
 
-        // ✨ SYNC : CARTE BOUTIQUES (même image)
-        if (shopsCard) {
-            shopsCard.style.backgroundImage = bgImage;
+        // ✅ INFOS SUPPLÉMENTAIRES (flex1-7)
+        const infoFields = [
+            { icon: 'fas fa-box', label: 'Stock', value: `${product.stock} unités` },
+            { icon: 'fas fa-ruler', label: 'Taille', value: product.flex1 },
+            { icon: 'fas fa-calendar', label: 'Arrivage', value: product.flex2 },
+            { icon: 'fas fa-globe-africa', label: 'Origine', value: product.flex3 },
+            { icon: 'fas fa-list-ul', label: 'Composition', value: product.flex4 },
+            { icon: 'fas fa-lightbulb', label: 'Conseils', value: product.flex5 },
+            { icon: 'fas fa-snowflake', label: 'Conservation', value: product.flex6 },
+            { icon: 'fas fa-pen', label: 'Notes', value: product.flex7 }
+        ];
+
+        let infoHtml = '';
+        infoFields.forEach(f => {
+            if (f.value && f.value.trim() !== '') {
+                infoHtml += `
+                    <span class="info-item">
+                        <i class="${f.icon}"></i>
+                        <span class="info-value">${f.value}</span>
+                    </span>
+                `;
+            }
+        });
+
+        if (infoHtml) {
+            productInfosWrapper.innerHTML = infoHtml;
+        } else {
+            productInfosWrapper.innerHTML = `
+                <span class="info-item" style="color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-info-circle"></i> Aucune information supplémentaire
+                </span>
+            `;
         }
 
         // Indicateur
@@ -382,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!loaded || products.length === 0) {
             productName.textContent = 'Aucun produit disponible';
             productPrice.textContent = '0 FCFA';
+            productPriceOld.textContent = '';
             productStock.textContent = '🚫 Aucun produit';
             productImage.style.display = 'none';
             productImagePlaceholder.style.display = 'flex';
@@ -396,7 +460,9 @@ document.addEventListener('DOMContentLoaded', function() {
             dashboardHeader.style.backgroundImage = 'none';
             carouselHeader.style.backgroundImage = 'none';
             carouselFooter.style.backgroundImage = 'none';
-            if (shopsCard) shopsCard.style.backgroundImage = 'none';
+            if (newPromoCard) newPromoCard.style.backgroundImage = 'none';
+            badgeNew.style.display = 'none';
+            productInfosWrapper.innerHTML = '';
             console.log('⚠️ Aucun produit disponible');
         }
 

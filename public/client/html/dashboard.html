@@ -72,18 +72,41 @@
                     </div>
                 </div>
 
+                <!-- ✅ NOUVEAU FOOTER AVEC SCROLL + BADGE NOUVEAU -->
                 <div class="carousel-footer" id="carouselFooter">
+                    
+                    <!-- Badge Nouveau (rouge) -->
+                    <span class="badge-new" id="badgeNew" style="display:none;">⭐ Nouveau</span>
+
+                    <!-- Stock -->
                     <span class="product-stock" id="productStock">📦 En stock</span>
-                    <span class="product-price" id="productPrice">0 FCFA</span>
+
+                    <!-- Prix : ancien barré + nouveau en vert -->
+                    <div class="product-price-wrapper">
+                        <span class="product-price-old" id="productPriceOld"></span>
+                        <span class="product-price" id="productPrice">0 FCFA</span>
+                    </div>
+
+                    <!-- Boutons -->
                     <button class="btn-add-cart" id="addToCartBtn">
                         <i class="fas fa-plus-circle"></i> Ajouter
                     </button>
                     <button class="btn-view-detail" id="viewDetailBtn">
                         <i class="fas fa-eye"></i> Voir
                     </button>
+
+                    <!-- Indicateur -->
                     <span class="carousel-indicator-inline">
                         <span id="currentIndex">1</span> / <span id="totalProducts">1</span>
                     </span>
+
+                    <!-- ✅ INFOS SUPPÉLÉMENTAIRES (scrollable) -->
+                    <div class="product-infos-scroll" id="productInfosScroll">
+                        <div class="product-infos-wrapper" id="productInfosWrapper">
+                            <!-- Injecté par JS -->
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -97,24 +120,23 @@
             <!-- Injecté par JS -->
         </div>
 
-        <!-- ESPACE POUR LA CARTE BOUTIQUES (10px) -->
+        <!-- ESPACE -->
         <div class="spacer-10px"></div>
 
     </main>
 
     <!-- ========================================= -->
-    <!-- CARTE BOUTIQUES (FIXE EN BAS)             -->
+    <!-- ✅ CARTE NOUVEAUTÉS & PROMOTIONS (remplace boutiques) -->
     <!-- ========================================= -->
-    <div class="shops-card" id="shopsCard">
-
-        <div class="shops-content" onclick="window.location.href='/boutiques'">
-            <div class="shops-top">
-                <span class="shops-icon">🛍️</span>
-                <h2>Découvrez nos boutiques</h2>
+    <div class="new-promo-card" id="newPromoCard">
+        <div class="new-promo-content" onclick="window.location.href='/new.html'">
+            <div class="new-promo-top">
+                <span class="new-promo-icon">🔥</span>
+                <h2>Nouveautés &amp; Promotions</h2>
             </div>
-            <p>Contactez directement les vendeurs</p>
-            <div class="shops-arrow">
-                Voir les boutiques <i class="fas fa-arrow-right"></i>
+            <p>Découvrez nos derniers produits et offres exclusives</p>
+            <div class="new-promo-arrow">
+                Voir les nouveautés <i class="fas fa-arrow-right"></i>
             </div>
         </div>
     </div>
