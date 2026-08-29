@@ -241,36 +241,47 @@
             font-weight: 700;
             color: #1a1a2e;
             margin-bottom: 2px;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
-        .product-card .card-body .name .source-badge {
+        .product-card .card-body .name .badge-new {
+            background: #DC2626;
+            color: white;
             font-size: 9px;
             font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-left: 6px;
-            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
         }
 
-        .product-card .card-body .name .source-badge.catalogue {
-            background: #e8f5e9;
-            color: #2d7d46;
+        .product-card .card-body .price-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 2px 0 4px 0;
         }
 
-        .product-card .card-body .name .source-badge.seller {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .product-card .card-body .price {
+        .product-card .card-body .price-wrapper .price {
             font-size: 20px;
             font-weight: 800;
             color: #2d7d46;
-            margin: 2px 0 4px 0;
+        }
+
+        .product-card .card-body .price-wrapper .price.promo {
+            color: #DC2626;
+        }
+
+        .product-card .card-body .price-wrapper .price-old {
+            font-size: 14px;
+            font-weight: 500;
+            color: #aaa;
+            text-decoration: line-through;
         }
 
         .product-card .card-body .desc {
@@ -283,19 +294,6 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             flex: 1;
-        }
-
-        .product-card .card-body .shop-tag {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .product-card .card-body .shop-tag i {
-            color: #17A464;
         }
 
         .product-card .card-body .stock-info {
@@ -338,26 +336,10 @@
             background: #27ae60;
         }
 
-        .product-card .card-body .view-shop-btn {
-            background: linear-gradient(135deg, #1565c0, #0d47a1);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
-
-        .product-card .card-body .view-shop-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 16px rgba(21, 101, 192, 0.2);
+        .product-card .card-body .add-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .no-result {
@@ -445,12 +427,11 @@
                 font-size: 14px;
             }
 
-            .product-card .card-body .price {
+            .product-card .card-body .price-wrapper .price {
                 font-size: 17px;
             }
 
-            .product-card .card-body .add-btn,
-            .product-card .card-body .view-shop-btn {
+            .product-card .card-body .add-btn {
                 font-size: 13px;
                 padding: 8px 12px;
             }
@@ -505,8 +486,17 @@
                 font-size: 13px;
             }
 
-            .product-card .card-body .price {
+            .product-card .card-body .name .badge-new {
+                font-size: 8px;
+                padding: 1px 8px;
+            }
+
+            .product-card .card-body .price-wrapper .price {
                 font-size: 15px;
+            }
+
+            .product-card .card-body .price-wrapper .price-old {
+                font-size: 12px;
             }
 
             .product-card .card-body .desc {
@@ -514,8 +504,7 @@
                 -webkit-line-clamp: 1;
             }
 
-            .product-card .card-body .add-btn,
-            .product-card .card-body .view-shop-btn {
+            .product-card .card-body .add-btn {
                 font-size: 11px;
                 padding: 6px 10px;
             }
@@ -594,7 +583,6 @@
             // URL
             // ==========================================
 
-            const SELLER_API_URL = 'https://nature-plus-seller.onrender.com';
             const CLIENT_API_URL = 'https://nature-plus-client.onrender.com';
 
             // ==========================================
@@ -633,67 +621,32 @@
             const countEl = document.getElementById('resultCount');
 
             let allProducts = [];
-            let products = [];
-            let sellerProducts = [];
 
             // ==========================================
-            // CHARGER TOUS LES PRODUITS (catalogue + boutiques)
+            // CHARGER TOUS LES PRODUITS
             // ==========================================
 
             async function loadAllProducts() {
                 try {
-                    // 1. Produits catalogue
-                    const res1 = await fetch('/api/products');
-                    const data1 = await res1.json();
-                    if (res1.ok) {
-                        products = data1.map(p => ({
+                    const res = await fetch('/api/products');
+                    const data = await res.json();
+
+                    if (res.ok && data.length > 0) {
+                        allProducts = data.map(p => ({
                             ...p,
-                            source: 'catalogue',
-                            shop_name: 'Nature+',
-                            shop_id: null
+                            effective_price: p.promo_price && p.promo_price > 0 ? p.promo_price : p.price,
+                            is_new: p.is_new || false,
+                            has_promo: p.promo_price && p.promo_price > 0
                         }));
+                    } else {
+                        allProducts = [];
                     }
 
-                    // 2. Produits des boutiques
-                    try {
-                        const res2 = await fetch('/api/shops');
-                        const data2 = await res2.json();
-
-                        if (data2.success && data2.shops) {
-                            const shopPromises = data2.shops.map(async (shop) => {
-                                try {
-                                    const res = await fetch(SELLER_API_URL + '/api/seller/products/' + shop.id);
-                                    const data = await res.json();
-                                    if (data.success && data.products) {
-                                        return data.products.map(p => ({
-                                            ...p,
-                                            source: 'seller',
-                                            shop_name: shop.name,
-                                            shop_id: shop.id
-                                        }));
-                                    }
-                                    return [];
-                                } catch (e) {
-                                    return [];
-                                }
-                            });
-
-                            const results = await Promise.all(shopPromises);
-                            sellerProducts = results.flat();
-                        }
-                    } catch (e) {
-                        console.warn('Erreur chargement produits boutiques:', e);
-                    }
-
-                    // Fusionner
-                    allProducts = [...products, ...sellerProducts];
                     console.log('✅ Produits chargés:', allProducts.length);
-
-                    // Afficher les résultats
                     displayResults(query);
 
                 } catch (error) {
-                    console.error('Erreur chargement produits:', error);
+                    console.error('❌ Erreur chargement produits:', error);
                     grid.innerHTML = `
                         <div class="no-result">
                             <i class="fas fa-exclamation-circle"></i>
@@ -747,52 +700,52 @@
                 countEl.textContent = filtered.length + ' produit' + (filtered.length > 1 ? 's' : '');
 
                 grid.innerHTML = filtered.map(p => {
-                    const isCatalogue = p.source === 'catalogue';
-                    const badgeClass = isCatalogue ? 'catalogue' : 'seller';
-                    const badgeText = isCatalogue ? '📦 Catalogue' : '🛍️ Boutique';
+                    const hasPromo = p.has_promo;
+                    const displayPrice = p.effective_price || p.price;
+                    const oldPrice = p.price;
+                    const stock = p.quantity || 0;
+                    let stockClass = '';
+                    let stockLabel = '📦 En stock';
+                    if (stock === 0) {
+                        stockClass = 'out';
+                        stockLabel = '🚫 Rupture';
+                    } else if (stock <= 5) {
+                        stockClass = 'low';
+                        stockLabel = '⚠️ Stock limité';
+                    }
 
                     return `
-                        <div class="product-card" data-id="${p.id}" data-source="${p.source}" data-shop="${p.shop_id || ''}">
+                        <div class="product-card" data-id="${p.id}">
                             <img src="${p.image1 || 'https://via.placeholder.com/400x300'}" alt="${p.name}" class="card-img" loading="lazy">
                             <div class="card-body">
                                 <div class="name">
                                     ${p.name}
-                                    <span class="source-badge ${badgeClass}">${badgeText}</span>
+                                    ${p.is_new ? '<span class="badge-new">⭐ Nouveau</span>' : ''}
                                 </div>
-                                <div class="price">${p.price.toLocaleString()} FCFA</div>
+                                <div class="price-wrapper">
+                                    <span class="price ${hasPromo ? 'promo' : ''}">${displayPrice.toLocaleString()} FCFA</span>
+                                    ${hasPromo ? `<span class="price-old">${oldPrice.toLocaleString()} FCFA</span>` : ''}
+                                </div>
                                 <div class="desc">${p.description || ''}</div>
-                                <div class="shop-tag"><i class="fas fa-store"></i> ${p.shop_name || 'Nature+'}</div>
-                                <div class="stock-info ${p.quantity <= 0 ? 'out' : p.quantity <= 5 ? 'low' : ''}">📦 ${p.quantity || p.stock || 0} en stock</div>
-                                ${isCatalogue ? `
-                                    <button class="add-btn" data-id="${p.id}">
-                                        <i class="fas fa-plus-circle"></i> Ajouter au panier
-                                    </button>
-                                ` : `
-                                    <button class="view-shop-btn" data-shop="${p.shop_id}">
-                                        <i class="fas fa-store"></i> Voir la boutique
-                                    </button>
-                                `}
+                                <div class="stock-info ${stockClass}">${stockLabel}</div>
+                                <button class="add-btn" data-id="${p.id}">
+                                    <i class="fas fa-plus-circle"></i> Ajouter au panier
+                                </button>
                             </div>
                         </div>
                     `;
                 }).join('');
 
-                // ✅ Clic sur la carte → redirection selon source
+                // ✅ Clic sur la carte → infoproduit
                 document.querySelectorAll('.product-card').forEach(card => {
                     card.addEventListener('click', function(e) {
-                        if (e.target.closest('.add-btn') || e.target.closest('.view-shop-btn')) return;
+                        if (e.target.closest('.add-btn')) return;
                         const id = this.dataset.id;
-                        const source = this.dataset.source;
-
-                        if (source === 'catalogue') {
-                            window.location.href = CLIENT_API_URL + '/infoproduit?id=' + id;
-                        } else {
-                            window.location.href = SELLER_API_URL + '/detail-produit?id=' + id;
-                        }
+                        window.location.href = CLIENT_API_URL + '/infoproduit?id=' + id;
                     });
                 });
 
-                // ✅ Ajouter au panier (catalogue uniquement)
+                // ✅ Ajouter au panier
                 document.querySelectorAll('.add-btn').forEach(btn => {
                     btn.addEventListener('click', async function(e) {
                         e.stopPropagation();
@@ -818,17 +771,6 @@
                             }
                         } catch (error) {
                             console.error('Erreur ajout panier:', error);
-                        }
-                    });
-                });
-
-                // ✅ Voir la boutique (seller uniquement)
-                document.querySelectorAll('.view-shop-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const shopId = this.dataset.shop;
-                        if (shopId) {
-                            window.location.href = CLIENT_API_URL + '/shop-user?id=' + shopId;
                         }
                     });
                 });
