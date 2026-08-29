@@ -137,7 +137,7 @@ app.post('/api/wave/verify', async (req, res) => {
     console.log('📥 Demande Wave reçue');
     console.log('📦 Body:', req.body);
 
-    const { commande_id, code_login, wave_id } = req.body;
+    const { commande_id, code_login, wave_id, montant_wave } = req.body;
 
     if (!commande_id || !code_login || !wave_id) {
         return res.status(400).json({
@@ -200,15 +200,18 @@ app.post('/api/wave/verify', async (req, res) => {
             ['wave', commande_id]
         );
 
+        // ✅ STOCKER LE MONTANT WAVE DANS extra4
+        const montantWave = montant_wave || commande.total || 0;
+
         const result = await db.query(
-            `INSERT INTO wave_verifications (commande_id, user_id, wave_id, code_login, status)
-             VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-            [commande_id, commande.user_id, wave_id, code_login, 'pending']
+            `INSERT INTO wave_verifications (commande_id, user_id, wave_id, code_login, status, extra4)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+            [commande_id, commande.user_id, wave_id, code_login, 'pending', montantWave.toString()]
         );
 
         const verificationId = result.rows[0].id;
 
-        console.log(`✅ Demande Wave #${verificationId} créée pour commande #${commande_id}`);
+        console.log(`✅ Demande Wave #${verificationId} créée pour commande #${commande_id} avec montant: ${montantWave} FCFA`);
 
         // ✅ Mettre à jour le statut de la commande
         await db.query(
@@ -224,7 +227,7 @@ app.post('/api/wave/verify', async (req, res) => {
             reference: commande.reference || `NAT-${commande_id}`,
             client: client?.name || 'Inconnu',
             telephone: client?.phone || '-',
-            montant: commande.total || 0,
+            montant: montantWave,
             wave_id: wave_id,
             code_login: code_login,
             created_at: new Date().toISOString()
@@ -239,7 +242,7 @@ app.post('/api/wave/verify', async (req, res) => {
             commande_id,
             'paiement',
             '🔍 Vérification en cours',
-            `Votre paiement Wave (ID: ${wave_id}) est en cours de vérification. Durée estimée : 1-10 min.`
+            `Votre paiement Wave (ID: ${wave_id}) est en cours de vérification. Montant: ${montantWave} FCFA. Durée estimée : 1-10 min.`
         );
 
         res.json({
@@ -340,9 +343,9 @@ app.post('/api/wave/validate', async (req, res) => {
             });
         }
 
-        // ✅ Récupérer le montant de la commande
+        // ✅ Récupérer le montant Wave depuis extra4 (ou le total de la commande)
         const commande = await db.get('SELECT total, user_id, nom FROM commandes WHERE id = $1', [verification.commande_id]);
-        const montant = commande?.total || 0;
+        const montant = verification.extra4 ? parseInt(verification.extra4) : (commande?.total || 0);
         const userId = commande?.user_id;
         const clientName = commande?.nom || 'Client';
 
@@ -412,7 +415,7 @@ app.post('/api/wave/validate', async (req, res) => {
                     'manual'
                 ]
             );
-            console.log(`✅ Paiement Wave enregistré dans payments pour commande #${commandeId}`);
+            console.log(`✅ Paiement Wave enregistré dans payments pour commande #${commandeId} (${montant} FCFA)`);
 
             // ✅ AJOUTER LE MONTANT AU SOLDE (admins.extra1)
             if (montant > 0) {
@@ -431,7 +434,7 @@ app.post('/api/wave/validate', async (req, res) => {
                 commandeId,
                 'paiement',
                 '✅ Paiement Wave confirmé',
-                `Votre paiement Wave (ID: ${verification.wave_id}) a été confirmé avec succès. Commande #${commandeId} validée.`
+                `Votre paiement Wave (ID: ${verification.wave_id}) a été confirmé avec succès. Montant: ${montant} FCFA. Commande #${commandeId} validée.`
             );
 
             // ✅ Émettre via Socket.IO
@@ -460,7 +463,7 @@ app.post('/api/wave/validate', async (req, res) => {
                 commandeId,
                 'paiement',
                 '❌ Paiement Wave refusé',
-                `Votre paiement Wave (ID: ${verification.wave_id}) a été refusé. Motif : ${cause}`
+                `Votre paiement Wave (ID: ${verification.wave_id}) a été refusé. Montant: ${montant} FCFA. Motif : ${cause}`
             );
 
             io.emit('commande-update', {
@@ -718,19 +721,11 @@ app.post('/api/wave/remboursement', async (req, res) => {
             });
         }
 
-        // 3. Récupérer la commande et le client
+        // 3. Récupérer le montant depuis extra4 ou la commande
         const commande = await db.get('SELECT total, user_id, nom FROM commandes WHERE id = $1', [verification.commande_id]);
-        
-        if (!commande) {
-            return res.status(404).json({
-                success: false,
-                error: 'Commande non trouvée.'
-            });
-        }
-
-        const montant = commande.total || 0;
-        const userId = commande.user_id;
-        const clientName = commande.nom || 'Client';
+        const montant = verification.extra4 ? parseInt(verification.extra4) : (commande?.total || 0);
+        const userId = commande?.user_id;
+        const clientName = commande?.nom || 'Client';
 
         // 4. Envoyer la notification à l'utilisateur
         await createNotification(
