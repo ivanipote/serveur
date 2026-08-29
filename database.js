@@ -75,31 +75,56 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE PRODUCTS
+        // TABLE PRODUCTS (avec tous les nouveaux champs)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS products (
                 id SERIAL PRIMARY KEY,
                 admin_id INTEGER NOT NULL,
+                
+                -- Informations générales
                 name TEXT NOT NULL,
-                image1 TEXT NOT NULL,
-                image2 TEXT,
                 description TEXT,
-                quantity INTEGER DEFAULT 0,
-                price INTEGER NOT NULL,
                 categorie TEXT DEFAULT NULL,
                 tags TEXT[] DEFAULT NULL,
+                
+                -- Prix et stock
+                price INTEGER NOT NULL,
+                quantity INTEGER DEFAULT 0,
+                stock_min INTEGER DEFAULT NULL,
+                
+                -- Images
+                image1 TEXT NOT NULL,
+                image2 TEXT,
+                
+                -- Poids et unité
                 poids DECIMAL DEFAULT NULL,
                 unite TEXT DEFAULT NULL,
-                promotion BOOLEAN DEFAULT FALSE,
-                prix_promotion INTEGER DEFAULT NULL,
-                stock_min INTEGER DEFAULT NULL,
+                
+                -- 🔥 NOUVEAUX CHAMPS (Promotion + Nouveau)
+                is_new BOOLEAN DEFAULT FALSE,
+                promo_price INTEGER DEFAULT NULL,
+                promo_end_date DATE DEFAULT NULL,
+                
+                -- 📦 COLONNES FLEX (Informations client)
+                flex1 TEXT DEFAULT NULL,  -- Taille (ex: 500ml, 1kg)
+                flex2 TEXT DEFAULT NULL,  -- Date d'arrivage
+                flex3 TEXT DEFAULT NULL,  -- Origine
+                flex4 TEXT DEFAULT NULL,  -- Composition / Ingrédients
+                flex5 TEXT DEFAULT NULL,  -- Conseils d'utilisation
+                flex6 TEXT DEFAULT NULL,  -- Conservation
+                flex7 TEXT DEFAULT NULL,  -- Notes supplémentaires
+                flex8 TEXT DEFAULT NULL,  -- Réservé
+                
+                -- Fournisseur et péremption
                 fournisseur TEXT DEFAULT NULL,
                 date_peremption DATE DEFAULT NULL,
+                
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (admin_id) REFERENCES admins(id)
             )
         `);
+        console.log('   ✅ Table products créée avec tous les champs (nouveau, promo, flex1-8)');
 
         // ========================================================
         // TABLE USERS
