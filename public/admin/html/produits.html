@@ -77,7 +77,7 @@
                     <span class="stat-value negative" id="statOutOfStock">0</span>
                 </div>
             </div>
-            <a href="/admin/add-produit.html" class="btn-add-product">
+            <a href="/admin/add-produit" class="btn-add-product">
                 <i class="fas fa-plus-circle"></i> Ajouter
             </a>
         </div>
@@ -88,7 +88,6 @@
             <!-- SIDEBAR (37%) -->
             <aside class="sidebar-products" id="sidebarProducts">
 
-                <!-- Header -->
                 <div class="sidebar-header">
                     <div class="sidebar-title">
                         <i class="fas fa-filter"></i> Filtres
@@ -101,7 +100,7 @@
                     <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un produit..." />
                 </div>
 
-                <!-- Filtres -->
+                <!-- Filtres stock -->
                 <div class="filter-section">
                     <div class="filter-label">📊 Statut stock</div>
                     <div class="filter-switch" id="stockFilterSwitch">
@@ -112,7 +111,17 @@
                     </div>
                 </div>
 
-                <!-- Mini stats par catégorie -->
+                <!-- Filtres nouveau/promo -->
+                <div class="filter-section" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+                    <div class="filter-label">🏷️ Statut produit</div>
+                    <div class="filter-switch" id="statusFilterSwitch">
+                        <button class="filter-btn active" data-status="all">📋 Tous</button>
+                        <button class="filter-btn" data-status="new">⭐ Nouveau</button>
+                        <button class="filter-btn" data-status="promo">🔥 Promo</button>
+                    </div>
+                </div>
+
+                <!-- Mini stats catégories -->
                 <div class="mini-stats">
                     <div class="mini-title">🏷️ Catégories</div>
                     <div class="mini-grid" id="categoryStats">
@@ -120,7 +129,6 @@
                             <span class="mini-label">Toutes</span>
                             <span class="mini-count" id="catTotal">0</span>
                         </div>
-                        <!-- Les catégories seront injectées par JS -->
                     </div>
                 </div>
 
@@ -129,7 +137,6 @@
             <!-- CONTENU PRINCIPAL (63%) -->
             <main class="content-products">
 
-                <!-- Header -->
                 <div class="content-header">
                     <div class="content-title">
                         <i class="fas fa-list"></i> Liste des produits
@@ -137,7 +144,7 @@
                     <span class="content-count" id="productCount">0 produits</span>
                 </div>
 
-                <!-- Tableau (scrollable) -->
+                <!-- Tableau -->
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -147,7 +154,7 @@
                                 <th>Nom</th>
                                 <th>Prix</th>
                                 <th>Stock</th>
-                                <th>Catégorie</th>
+                                <th>Statut</th>
                                 <th>Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -178,6 +185,32 @@
             <div class="delete-actions">
                 <button class="btn-cancel" id="deleteCancel">Annuler</button>
                 <button class="btn-confirm delete" id="deleteConfirm">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- OVERLAY DÉTAIL PRODUIT                                          -->
+    <!-- ============================================================= -->
+    <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-box">
+            <div class="detail-header">
+                <h3 id="detailTitle">📦 Détail produit</h3>
+                <button class="detail-close" id="detailClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="detail-body" id="detailBody">
+                <!-- Injecté par JS -->
+            </div>
+            <div class="detail-footer">
+                <button class="btn-edit-detail" id="detailEditBtn">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+                <button class="btn-delete-detail" id="detailDeleteBtn">
+                    <i class="fas fa-trash-alt"></i> Supprimer
+                </button>
+                <button class="btn-close-detail" id="detailCloseBtn">Fermer</button>
             </div>
         </div>
     </div>
