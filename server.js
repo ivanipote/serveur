@@ -1067,14 +1067,21 @@ app.get('/api/panier', isAuthenticated, async (req, res) => {
 
     try {
         const rows = await db.all(
-            `SELECT p.id, p.name, p.price, p.image1, p.image2, 
+            `SELECT p.id, p.name, p.price, p.promo_price, p.image1, p.image2, 
                     panier.quantity, panier.product_id
              FROM panier 
              JOIN products p ON panier.product_id = p.id 
              WHERE panier.user_id = $1`,
             [userId]
         );
-        res.json({ success: true, panier: rows });
+
+        // ✅ Ajouter le prix effectif (promo si disponible)
+        const panierWithPrice = rows.map(item => ({
+            ...item,
+            effective_price: item.promo_price && item.promo_price > 0 ? item.promo_price : item.price
+        }));
+
+        res.json({ success: true, panier: panierWithPrice });
     } catch (err) {
         console.error('❌ Erreur:', err);
         res.status(500).json({ error: err.message });
