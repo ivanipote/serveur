@@ -88,7 +88,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========================================================
-// CORS - Configuration complète (AVANT TOUTES LES ROUTES)
+// CORS
 // ========================================================
 
 app.use((req, res, next) => {
@@ -117,6 +117,20 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+// ========================================================
+// INITIALISATION DE LA BASE (AVANT LA SESSION)
+// ========================================================
+
+(async function initDatabase() {
+    try {
+        console.log('🔄 Initialisation de la base de données...');
+        await db.initialize();
+        console.log('✅ Base de données initialisée avec succès');
+    } catch (error) {
+        console.error('❌ Erreur lors de l\'initialisation de la base:', error.message);
+    }
+})();
 
 // ========================================================
 // SESSIONS (PostgreSQL)
@@ -272,7 +286,7 @@ app.post('/api/admin/products', upload.fields([
     { name: 'image1', maxCount: 1 },
     { name: 'image2', maxCount: 1 }
 ]), async (req, res) => {
-    const { name, price, quantity, description } = req.body;
+    const { name, price, quantity, description, categorie, is_new, promo_price, promo_end_date, flex1, flex2, flex3, flex4, flex5, flex6, flex7, flex8 } = req.body;
 
     if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Nom du produit requis.' });
@@ -295,7 +309,6 @@ app.post('/api/admin/products', upload.fields([
         let admin = await db.get('SELECT id FROM admins LIMIT 1');
         
         if (!admin) {
-            const bcrypt = require('bcrypt');
             const hashedPassword = await bcrypt.hash('admin123', 10);
             const result = await db.query(
                 `INSERT INTO admins (email, password, merchant_name) 
@@ -308,10 +321,34 @@ app.post('/api/admin/products', upload.fields([
             adminId = admin.id;
         }
 
+        // ✅ Construction de la requête avec tous les champs
         const result = await db.query(
-            `INSERT INTO products (admin_id, name, price, quantity, image1, image2, description)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-            [adminId, name.trim(), parsedPrice, parseInt(quantity) || 0, image1, image2, description || '']
+            `INSERT INTO products (
+                admin_id, name, price, quantity, image1, image2, description,
+                categorie, is_new, promo_price, promo_end_date,
+                flex1, flex2, flex3, flex4, flex5, flex6, flex7, flex8
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING id`,
+            [
+                adminId,
+                name.trim(),
+                parsedPrice,
+                parseInt(quantity) || 0,
+                image1,
+                image2,
+                description || '',
+                categorie || null,
+                is_new === 'true' || false,
+                promo_price ? parseInt(promo_price) : null,
+                promo_end_date || null,
+                flex1 || null,
+                flex2 || null,
+                flex3 || null,
+                flex4 || null,
+                flex5 || null,
+                flex6 || null,
+                flex7 || null,
+                flex8 || null
+            ]
         );
         res.json({ success: true, id: result.rows[0].id, message: 'Produit ajouté avec succès' });
     } catch (err) {
@@ -339,7 +376,7 @@ app.put('/api/admin/products/:id', upload.fields([
     { name: 'image2', maxCount: 1 }
 ]), async (req, res) => {
     const { id } = req.params;
-    const { name, price, quantity, description } = req.body;
+    const { name, price, quantity, description, categorie, is_new, promo_price, promo_end_date, flex1, flex2, flex3, flex4, flex5, flex6, flex7, flex8 } = req.body;
 
     if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Nom du produit requis.' });
@@ -367,10 +404,32 @@ app.put('/api/admin/products/:id', upload.fields([
         }
 
         await db.query(
-            `UPDATE products 
-             SET name = $1, price = $2, quantity = $3, description = $4, image1 = $5, image2 = $6
-             WHERE id = $7`,
-            [name.trim(), parsedPrice, parseInt(quantity) || 0, description || '', image1, image2, id]
+            `UPDATE products SET
+                name = $1, price = $2, quantity = $3, description = $4, image1 = $5, image2 = $6,
+                categorie = $7, is_new = $8, promo_price = $9, promo_end_date = $10,
+                flex1 = $11, flex2 = $12, flex3 = $13, flex4 = $14, flex5 = $15, flex6 = $16, flex7 = $17, flex8 = $18
+             WHERE id = $19`,
+            [
+                name.trim(),
+                parsedPrice,
+                parseInt(quantity) || 0,
+                description || '',
+                image1,
+                image2,
+                categorie || null,
+                is_new === 'true' || false,
+                promo_price ? parseInt(promo_price) : null,
+                promo_end_date || null,
+                flex1 || null,
+                flex2 || null,
+                flex3 || null,
+                flex4 || null,
+                flex5 || null,
+                flex6 || null,
+                flex7 || null,
+                flex8 || null,
+                id
+            ]
         );
 
         res.json({ success: true, message: 'Produit mis à jour avec succès' });
@@ -422,17 +481,8 @@ app.get('/api/notification/:id', async (req, res) => {
 
     try {
         const notification = await db.get(
-            `SELECT 
-                id, 
-                user_id, 
-                commande_id, 
-                type, 
-                title, 
-                content, 
-                is_read,
-                created_at
-             FROM messages 
-             WHERE id = $1`,
+            `SELECT id, user_id, commande_id, type, title, content, is_read, created_at
+             FROM messages WHERE id = $1`,
             [id]
         );
 
@@ -898,7 +948,6 @@ app.post('/api/client/verify-code', isAuthenticated, async (req, res) => {
     }
 });
 
-// Route client → admin (message)
 app.post('/api/client/send-message', isAuthenticated, async (req, res) => {
     const { title, content } = req.body;
     const userId = req.session.userId;
@@ -1529,20 +1578,6 @@ app.get('/admin/updates.html', (req, res) => {
 app.get('/admin/profil.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'profil.html'));
 });
-
-// ========================================================
-// INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
-// ========================================================
-
-(async function initDatabase() {
-    try {
-        console.log('🔄 Initialisation de la base de données...');
-        await db.initialize();
-        console.log('✅ Base de données initialisée avec succès');
-    } catch (error) {
-        console.error('❌ Erreur lors de l\'initialisation de la base:', error.message);
-    }
-})();
 
 // ========================================================
 // DÉMARRAGE
