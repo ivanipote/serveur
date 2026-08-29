@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (panier.length > 0) {
             panier.forEach(p => {
-                // ✅ CORRECTION : Utiliser effective_price comme dans passcommande
+                // ✅ CORRECTION : Utiliser effective_price
                 const effectivePrice = p.effective_price || p.price || 0;
                 const qte = p.quantity || 1;
                 const totalLigne = effectivePrice * qte;
@@ -645,7 +645,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (AVEC REDIRECTION + LOADER)
+    // VÉRIFIER LE PAIEMENT (AVEC MONTANT WAVE)
     // ==========================================
 
     verifyBtn.addEventListener('click', async function() {
@@ -692,13 +692,17 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoader();
 
         try {
+            // ✅ ENVOYER LE MONTANT WAVE CORRECT DANS LA REQUÊTE
+            const montantWave = commandeData?.montantWave || 0;
+
             const res = await fetch(`${WAVE_API_URL}/api/wave/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     commande_id: parseInt(commandeId),
                     code_login: code,
-                    wave_id: waveId
+                    wave_id: waveId,
+                    montant_wave: montantWave  // ✅ AJOUT DU MONTANT WAVE
                 })
             });
 
