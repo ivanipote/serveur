@@ -233,16 +233,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderRecap() {
-        sousTotal = panier.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        // ✅ CORRECTION : Utiliser effective_price pour les produits en promo
+        sousTotal = panier.reduce((sum, item) => {
+            const price = item.effective_price || item.price || 0;
+            return sum + (price * item.quantity);
+        }, 0);
+
         let html = '';
         panier.forEach(item => {
+            const effectivePrice = item.effective_price || item.price || 0;
+            const totalLigne = effectivePrice * item.quantity;
+            const hasPromo = item.promo_price && item.promo_price > 0 && item.promo_price < item.price;
+
+            // Affichage du prix : promo barré si applicable
+            let priceDisplay = `${totalLigne.toLocaleString()} FCFA`;
+            if (hasPromo) {
+                const oldTotal = item.price * item.quantity;
+                priceDisplay = `
+                    <span style="color:#2d7d46;font-weight:700;">${totalLigne.toLocaleString()} FCFA</span>
+                    <span style="text-decoration:line-through;color:#aaa;font-size:13px;margin-left:6px;">${oldTotal.toLocaleString()} FCFA</span>
+                `;
+            }
+
             html += `
                 <div class="recap-item">
                     <span class="label">${item.name} × ${item.quantity}</span>
-                    <span class="value">${(item.price * item.quantity).toLocaleString()} FCFA</span>
+                    <span class="value">${priceDisplay}</span>
                 </div>
             `;
         });
+
         recapItems.innerHTML = html;
         subtotalEl.textContent = sousTotal.toLocaleString() + ' FCFA';
         footerSubtotal.textContent = sousTotal.toLocaleString() + ' FCFA';
@@ -377,14 +397,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 distanceEstimee.value = distance.toFixed(2) + ' km';
 
-                let fraisCalcules = 0;
+                // ✅ Calcul des frais de livraison basé sur la distance
                 if (distance >= 1.5) {
-                    fraisCalcules = 140;
+                    fraisActuels = 140;
                 } else {
-                    fraisCalcules = 0;
+                    fraisActuels = 0;
                 }
 
-                fraisActuels = fraisCalcules;
                 console.log(`📍 Distance: ${distance.toFixed(2)} km → Frais: ${fraisActuels} FCFA`);
 
                 updateFooter();
@@ -537,12 +556,22 @@ document.addEventListener('DOMContentLoaded', function() {
             gpsRue.value :
             'Adresse saisie';
 
-        let productsHtml = panier.map(item =>
-            `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(45,125,70,0.06);font-size:14px;">
-                <span>${item.name} × ${item.quantity}</span>
-                <span style="font-weight:600;color:#2d7d46;">${(item.price * item.quantity).toLocaleString()} FCFA</span>
-            </div>`
-        ).join('');
+        let productsHtml = panier.map(item => {
+            const effectivePrice = item.effective_price || item.price || 0;
+            const totalLigne = effectivePrice * item.quantity;
+            const hasPromo = item.promo_price && item.promo_price > 0 && item.promo_price < item.price;
+            let priceDisplay = `${totalLigne.toLocaleString()} FCFA`;
+            if (hasPromo) {
+                const oldTotal = item.price * item.quantity;
+                priceDisplay = `${totalLigne.toLocaleString()} FCFA <span style="text-decoration:line-through;color:#aaa;font-size:12px;">${oldTotal.toLocaleString()} FCFA</span>`;
+            }
+            return `
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(45,125,70,0.06);font-size:14px;">
+                    <span>${item.name} × ${item.quantity}</span>
+                    <span style="font-weight:600;color:#2d7d46;">${priceDisplay}</span>
+                </div>
+            `;
+        }).join('');
 
         recapDetail.innerHTML = `
             <div style="margin-bottom:12px;">
