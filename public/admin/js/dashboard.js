@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         wave: '/admin/wave.html',
         payments: '/admin/paiements.html',
         products: '/admin/produits.html',
-        'add-product': '/admin/add-produit.html',
+        'add-product': '/admin/add-produit',  // ✅ CORRIGÉ
         clients: '/admin/clients.html',
         livraison: '/admin/livraison.html',
         'send-message': '/admin/message.html',
@@ -103,6 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
+            // Si le lien a un href direct, on le laisse faire
+            if (this.getAttribute('href') && this.getAttribute('href') !== '#') {
+                return;
+            }
             e.preventDefault();
             const page = this.dataset.page;
             showPage(page);
@@ -288,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // METTRE À JOUR LES BADGES (CORRIGÉ)
+    // METTRE À JOUR LES BADGES
     // ==========================================
 
     async function updateBadges() {
@@ -357,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } catch (error) {
-            // ✅ Erreur Wave → badge à 0 (silencieux)
             if (badgeWave) {
                 badgeWave.textContent = '0';
                 badgeWave.className = 'badge-nav badge-red zero';
