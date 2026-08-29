@@ -1021,7 +1021,25 @@ app.post('/api/panier/add', isAuthenticated, async (req, res) => {
     }
 
     try {
-        const row = await db.get('SELECT * FROM panier WHERE user_id = $1 AND product_id = $2', [userId, productId]);
+        // ✅ Récupérer le produit avec ses prix
+        const product = await db.get(
+            'SELECT id, price, promo_price FROM products WHERE id = $1',
+            [productId]
+        );
+
+        if (!product) {
+            return res.status(404).json({ error: 'Produit non trouvé.' });
+        }
+
+        // ✅ Déterminer le prix à utiliser (promo si disponible)
+        const priceToUse = product.promo_price && product.promo_price > 0 
+            ? product.promo_price 
+            : product.price;
+
+        const row = await db.get(
+            'SELECT * FROM panier WHERE user_id = $1 AND product_id = $2',
+            [userId, productId]
+        );
 
         if (row) {
             await db.query(
@@ -1030,8 +1048,10 @@ app.post('/api/panier/add', isAuthenticated, async (req, res) => {
             );
             res.json({ success: true, message: 'Quantité mise à jour' });
         } else {
+            // ✅ Insérer avec le bon prix
             await db.query(
-                'INSERT INTO panier (user_id, product_id, quantity) VALUES ($1, $2, $3)',
+                `INSERT INTO panier (user_id, product_id, quantity) 
+                 VALUES ($1, $2, $3)`,
                 [userId, productId, quantity]
             );
             res.json({ success: true, message: 'Produit ajouté au panier' });
