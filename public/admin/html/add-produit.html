@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>➕ Ajouter un produit | Nature+</title>
+    <title>➕ Ajouter / Modifier un produit | Nature+</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/admin/css/admin-common.css">
     <style>
-        /* =============================================================
-           ADD-PRODUIT - STYLES DÉDIÉS
-           ============================================================= */
-
         * {
             margin: 0;
             padding: 0;
@@ -34,10 +30,6 @@
             flex-direction: column;
             -webkit-font-smoothing: antialiased;
         }
-
-        /* =============================================================
-           HEADER COMMUN (intégré)
-           ============================================================= */
 
         .admin-header {
             background: #0A0E1A;
@@ -95,12 +87,6 @@
         .admin-header .header-center .header-badge:hover {
             background: rgba(255,255,255,0.1);
             color: #F3F5FA;
-        }
-
-        .admin-header .header-center .header-badge.active {
-            background: rgba(23, 164, 100, 0.15);
-            color: #F3F5FA;
-            border-color: rgba(23, 164, 100, 0.25);
         }
 
         .admin-header .header-center .header-badge i {
@@ -167,19 +153,15 @@
             background: rgba(255,255,255,0.05);
         }
 
-        /* =============================================================
-           PAGE CONTENT
-           ============================================================= */
-
         .page-container {
             padding: 24px 30px 40px 30px;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             flex: 1;
             width: 100%;
         }
 
-        .page-container .page-header {
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -188,7 +170,7 @@
             gap: 12px;
         }
 
-        .page-container .page-header .page-title {
+        .page-header .page-title {
             font-size: 24px;
             font-weight: 700;
             color: #10141F;
@@ -197,14 +179,10 @@
             gap: 12px;
         }
 
-        .page-container .page-header .page-title i {
+        .page-header .page-title i {
             color: #9CA3AF;
             font-size: 22px;
         }
-
-        /* =============================================================
-           FORM CARD
-           ============================================================= */
 
         .form-card {
             background: #FFFFFF;
@@ -219,6 +197,10 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 18px;
+        }
+
+        .form-card .form-row.three {
+            grid-template-columns: 1fr 1fr 1fr;
         }
 
         .form-card .form-group {
@@ -241,8 +223,15 @@
             font-weight: 700;
         }
 
+        .form-card .form-group label .hint {
+            font-weight: 400;
+            color: #9CA3AF;
+            font-size: 11px;
+        }
+
         .form-card .form-group input,
-        .form-card .form-group textarea {
+        .form-card .form-group textarea,
+        .form-card .form-group select {
             padding: 10px 14px;
             border: 1.5px solid #E6E8EF;
             border-radius: 10px;
@@ -256,7 +245,8 @@
         }
 
         .form-card .form-group input:focus,
-        .form-card .form-group textarea:focus {
+        .form-card .form-group textarea:focus,
+        .form-card .form-group select:focus {
             border-color: #17A464;
             background: #FFFFFF;
             box-shadow: 0 0 0 4px rgba(23, 164, 100, 0.08);
@@ -269,7 +259,7 @@
 
         .form-card .form-group textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 60px;
         }
 
         .form-card .form-group input[type="file"] {
@@ -295,7 +285,6 @@
             background: #D8DBE4;
         }
 
-        /* ===== IMAGE PREVIEW ===== */
         .form-card .image-preview-container {
             display: flex;
             gap: 16px;
@@ -359,15 +348,31 @@
             transition: transform 0.2s;
         }
 
-        .form-card .image-preview-container .preview-box .remove-image:hover {
-            transform: scale(1.1);
-        }
-
         .form-card .image-preview-container .preview-box.has-image .remove-image {
             display: flex;
         }
 
-        /* ===== SUBMIT BUTTON ===== */
+        .form-card .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .form-card .toggle-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #3A4152;
+            cursor: pointer;
+        }
+
+        .form-card .toggle-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #17A464;
+            cursor: pointer;
+        }
+
         .btn-submit {
             width: 100%;
             padding: 14px;
@@ -398,7 +403,14 @@
             transform: none;
         }
 
-        /* ===== FORM MESSAGE ===== */
+        .btn-submit.edit-mode {
+            background: #2563EB;
+        }
+
+        .btn-submit.edit-mode:hover {
+            background: #1D4ED8;
+        }
+
         .form-message {
             margin-top: 16px;
             padding: 12px 16px;
@@ -431,8 +443,38 @@
         }
 
         /* =============================================================
+           SECTION DIVIDER
+           ============================================================= */
+        .section-divider {
+            border: none;
+            border-top: 2px solid #E6E8EF;
+            margin: 22px 0 18px 0;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #10141F;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #17A464;
+            font-size: 16px;
+        }
+
+        /* =============================================================
            RESPONSIVE
            ============================================================= */
+
+        @media (max-width: 992px) {
+            .form-card .form-row.three {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
 
         @media (max-width: 768px) {
             .admin-header {
@@ -467,6 +509,9 @@
             .form-card .form-row {
                 grid-template-columns: 1fr;
                 gap: 14px;
+            }
+            .form-card .form-row.three {
+                grid-template-columns: 1fr;
             }
             .form-card .image-preview-container .preview-box {
                 width: 100px;
@@ -514,7 +559,8 @@
                 font-size: 12px;
             }
             .form-card .form-group input,
-            .form-card .form-group textarea {
+            .form-card .form-group textarea,
+            .form-card .form-group select {
                 font-size: 13px;
                 padding: 8px 12px;
             }
@@ -526,11 +572,10 @@
                 font-size: 14px;
                 padding: 12px;
             }
+            .section-title {
+                font-size: 14px;
+            }
         }
-
-        /* ========================================== */
-        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
-        /* ========================================== */
 
         * {
             -webkit-tap-highlight-color: transparent !important;
@@ -550,9 +595,6 @@
 </head>
 <body>
 
-    <!-- ============================================================= -->
-    <!-- HEADER COMMUN                                                  -->
-    <!-- ============================================================= -->
     <header class="admin-header">
         <div class="header-left">
             <span class="logo">🌿 Nature<span>+</span></span>
@@ -573,61 +615,66 @@
         </div>
         <div class="header-right">
             <span class="admin-name" id="adminName">Admin</span>
-            <a href="/admin/dashboard" class="btn-back" title="Retour au Dashboard">
+            <a href="/admin/dashboard" class="btn-back" title="Retour">
                 <i class="fas fa-arrow-left"></i> Retour
             </a>
         </div>
     </header>
 
-    <!-- ============================================================= -->
-    <!-- CONTENU DE LA PAGE                                             -->
-    <!-- ============================================================= -->
     <div class="page-container">
 
         <div class="page-header">
             <div class="page-title">
-                <i class="fas fa-plus-circle"></i> Ajouter un produit
+                <i class="fas fa-plus-circle" id="pageIcon"></i>
+                <span id="pageTitle">Ajouter un produit</span>
             </div>
         </div>
 
-        <!-- ===== FORMULAIRE ===== -->
         <form id="addProductForm" class="form-card" enctype="multipart/form-data">
 
-            <!-- Ligne 1 : Nom + Prix -->
+            <!-- ============================================================= -->
+            <!-- SECTION 1 : INFORMATIONS GÉNÉRALES                            -->
+            <!-- ============================================================= -->
+            <hr class="section-divider">
+            <div class="section-title"><i class="fas fa-info-circle"></i> Informations générales</div>
+
             <div class="form-row">
                 <div class="form-group">
-                    <label>
-                        Nom du produit <span class="required">*</span>
-                    </label>
+                    <label>Nom du produit <span class="required">*</span></label>
                     <input type="text" id="productName" placeholder="Ex: Jus de gingembre" required />
                 </div>
                 <div class="form-group">
-                    <label>
-                        Prix (FCFA) <span class="required">*</span>
-                    </label>
+                    <label>Prix (FCFA) <span class="required">*</span></label>
                     <input type="number" id="productPrice" placeholder="Ex: 500" required min="1" />
                 </div>
             </div>
 
-            <!-- Ligne 2 : Stock + Description -->
             <div class="form-row">
                 <div class="form-group">
                     <label>Quantité en stock</label>
                     <input type="number" id="productQuantity" placeholder="Ex: 50" value="0" min="0" />
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="productDescription" placeholder="Brève description du produit..." rows="2"></textarea>
+                    <label>Catégorie</label>
+                    <input type="text" id="productCategorie" placeholder="Ex: Boisson, Aliment, Cosmétique..." />
                 </div>
             </div>
 
-            <!-- Ligne 3 : Images -->
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="productDescription" placeholder="Brève description du produit..." rows="2"></textarea>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- SECTION 2 : IMAGES                                            -->
+            <!-- ============================================================= -->
+            <hr class="section-divider">
+            <div class="section-title"><i class="fas fa-image"></i> Images</div>
+
             <div class="form-row">
                 <div class="form-group">
-                    <label>
-                        Image 1 <span class="required">*</span>
-                    </label>
-                    <input type="file" id="productImage1" accept="image/*" required />
+                    <label>Image 1 <span class="required">*</span></label>
+                    <input type="file" id="productImage1" accept="image/*" />
                     <div class="image-preview-container">
                         <div class="preview-box" id="preview1">
                             <div class="placeholder">
@@ -657,21 +704,120 @@
                 </div>
             </div>
 
-            <!-- Submit -->
+            <!-- ============================================================= -->
+            <!-- SECTION 3 : NOUVEAU & PROMOTION                               -->
+            <!-- ============================================================= -->
+            <hr class="section-divider">
+            <div class="section-title"><i class="fas fa-tag"></i> Nouveau &amp; Promotion</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <div class="toggle-group">
+                        <input type="checkbox" id="productIsNew" />
+                        <label for="productIsNew">⭐ Marquer comme <strong>Nouveau</strong></label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Prix promotionnel</label>
+                    <input type="number" id="productPromoPrice" placeholder="Ex: 400" min="0" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date de fin de promotion</label>
+                    <input type="date" id="productPromoEndDate" />
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <div style="font-size:12px;color:#9CA3AF;padding:6px 0;">
+                        <i class="fas fa-info-circle"></i> Laissez vide pour une durée indéterminée
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- SECTION 4 : INFORMATIONS CLIENT (flex1-8)                    -->
+            <!-- ============================================================= -->
+            <hr class="section-divider">
+            <div class="section-title"><i class="fas fa-users"></i> Informations pour le client</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>📏 Taille <span class="hint">(ex: 500ml, 1kg)</span></label>
+                    <input type="text" id="productFlex1" placeholder="Ex: 500ml, 1kg, 100g" />
+                </div>
+                <div class="form-group">
+                    <label>📅 Date d'arrivage</label>
+                    <input type="text" id="productFlex2" placeholder="Ex: Septembre 2026, Nouvelle récolte" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🌍 Origine</label>
+                    <input type="text" id="productFlex3" placeholder="Ex: Côte d'Ivoire, France, Bio" />
+                </div>
+                <div class="form-group">
+                    <label>📋 Composition / Ingrédients</label>
+                    <input type="text" id="productFlex4" placeholder="Ex: Gingembre, eau, sucre de canne" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>💡 Conseils d'utilisation</label>
+                    <input type="text" id="productFlex5" placeholder="Ex: À consommer frais, agiter avant..." />
+                </div>
+                <div class="form-group">
+                    <label>❄️ Conservation</label>
+                    <input type="text" id="productFlex6" placeholder="Ex: À conserver au frais, 2 semaines" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>📝 Notes supplémentaires</label>
+                    <input type="text" id="productFlex7" placeholder="Ex: Certifié bio, sans conservateurs" />
+                </div>
+                <div class="form-group">
+                    <label>🔒 Réservé</label>
+                    <input type="text" id="productFlex8" placeholder="Réservé pour usage futur" />
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- SECTION 5 : FOURNISSEUR & PÉREMPTION                         -->
+            <!-- ============================================================= -->
+            <hr class="section-divider">
+            <div class="section-title"><i class="fas fa-truck"></i> Fournisseur &amp; Péremption</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fournisseur</label>
+                    <input type="text" id="productFournisseur" placeholder="Ex: Nature Plus, Producteur local" />
+                </div>
+                <div class="form-group">
+                    <label>Date de péremption</label>
+                    <input type="date" id="productDatePeremption" />
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- SUBMIT                                                       -->
+            <!-- ============================================================= -->
+            <input type="hidden" id="productId" value="" />
+
             <button type="submit" class="btn-submit" id="submitBtn">
-                <i class="fas fa-plus-circle"></i> Ajouter le produit
+                <i class="fas fa-plus-circle"></i> <span id="submitText">Ajouter le produit</span>
             </button>
 
-            <!-- Message -->
             <div id="formMessage" class="form-message"></div>
 
         </form>
 
     </div>
 
-    <!-- ============================================================= -->
-    <!-- SCRIPTS                                                        -->
-    <!-- ============================================================= -->
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/admin/js/admin-common.js"></script>
     <script>
@@ -685,22 +831,127 @@
 
             const form = document.getElementById('addProductForm');
             const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const pageTitle = document.getElementById('pageTitle');
+            const pageIcon = document.getElementById('pageIcon');
             const message = document.getElementById('formMessage');
+            const productIdHidden = document.getElementById('productId');
 
             const nameInput = document.getElementById('productName');
             const priceInput = document.getElementById('productPrice');
             const quantityInput = document.getElementById('productQuantity');
             const descInput = document.getElementById('productDescription');
+            const categorieInput = document.getElementById('productCategorie');
+
             const image1Input = document.getElementById('productImage1');
             const image2Input = document.getElementById('productImage2');
-
             const preview1 = document.getElementById('preview1');
             const preview2 = document.getElementById('preview2');
             const remove1 = document.getElementById('remove1');
             const remove2 = document.getElementById('remove2');
 
+            const isNewCheck = document.getElementById('productIsNew');
+            const promoPriceInput = document.getElementById('productPromoPrice');
+            const promoEndDateInput = document.getElementById('productPromoEndDate');
+
+            const flex1 = document.getElementById('productFlex1');
+            const flex2 = document.getElementById('productFlex2');
+            const flex3 = document.getElementById('productFlex3');
+            const flex4 = document.getElementById('productFlex4');
+            const flex5 = document.getElementById('productFlex5');
+            const flex6 = document.getElementById('productFlex6');
+            const flex7 = document.getElementById('productFlex7');
+            const flex8 = document.getElementById('productFlex8');
+
+            const fournisseurInput = document.getElementById('productFournisseur');
+            const datePeremptionInput = document.getElementById('productDatePeremption');
+
             let image1Data = null;
             let image2Data = null;
+            let isEditMode = false;
+            let existingImage1 = '';
+            let existingImage2 = '';
+
+            // ==========================================
+            // DÉTECTION DU MODE ÉDITION
+            // ==========================================
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('id');
+
+            if (editId) {
+                isEditMode = true;
+                productIdHidden.value = editId;
+                pageTitle.textContent = 'Modifier un produit';
+                pageIcon.className = 'fas fa-edit';
+                submitText.textContent = 'Mettre à jour le produit';
+                submitBtn.classList.add('edit-mode');
+                loadProduct(editId);
+            }
+
+            // ==========================================
+            // CHARGER LE PRODUIT POUR ÉDITION
+            // ==========================================
+
+            async function loadProduct(id) {
+                try {
+                    const res = await fetch('/api/admin/products');
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error('Erreur chargement');
+
+                    const product = data.find(p => p.id == id);
+                    if (!product) {
+                        showMessage('❌ Produit non trouvé.', 'error');
+                        return;
+                    }
+
+                    // Remplir les champs
+                    nameInput.value = product.name || '';
+                    priceInput.value = product.price || '';
+                    quantityInput.value = product.quantity || 0;
+                    descInput.value = product.description || '';
+                    categorieInput.value = product.categorie || '';
+
+                    isNewCheck.checked = product.is_new === true;
+                    promoPriceInput.value = product.promo_price || '';
+                    promoEndDateInput.value = product.promo_end_date || '';
+
+                    flex1.value = product.flex1 || '';
+                    flex2.value = product.flex2 || '';
+                    flex3.value = product.flex3 || '';
+                    flex4.value = product.flex4 || '';
+                    flex5.value = product.flex5 || '';
+                    flex6.value = product.flex6 || '';
+                    flex7.value = product.flex7 || '';
+                    flex8.value = product.flex8 || '';
+
+                    fournisseurInput.value = product.fournisseur || '';
+                    datePeremptionInput.value = product.date_peremption || '';
+
+                    // Images existantes
+                    existingImage1 = product.image1 || '';
+                    existingImage2 = product.image2 || '';
+
+                    if (existingImage1) {
+                        preview1.innerHTML = `<img src="${existingImage1}" alt="Image 1" />`;
+                        preview1.classList.add('has-image');
+                        image1Data = { data: existingImage1, file: null };
+                    }
+
+                    if (existingImage2) {
+                        preview2.innerHTML = `<img src="${existingImage2}" alt="Image 2" />`;
+                        preview2.classList.add('has-image');
+                        image2Data = { data: existingImage2, file: null };
+                    }
+
+                    showMessage('✅ Produit chargé pour modification.', 'info');
+
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showMessage('❌ Erreur de chargement du produit.', 'error');
+                }
+            }
 
             // ==========================================
             // APERÇU DES IMAGES
@@ -714,8 +965,6 @@
                 reader.onload = function(e) {
                     const img = document.createElement('img');
                     img.src = e.target.result;
-
-                    // Nettoyer l'aperçu
                     previewBox.innerHTML = '';
                     previewBox.appendChild(img);
                     previewBox.classList.add('has-image');
@@ -748,12 +997,14 @@
                 e.stopPropagation();
                 clearPreview(preview1, image1Input);
                 image1Data = null;
+                existingImage1 = '';
             });
 
             remove2.addEventListener('click', function(e) {
                 e.stopPropagation();
                 clearPreview(preview2, image2Input);
                 image2Data = null;
+                existingImage2 = '';
             });
 
             // ==========================================
@@ -782,7 +1033,23 @@
                 const price = parseInt(priceInput.value);
                 const quantity = parseInt(quantityInput.value) || 0;
                 const description = descInput.value.trim();
-                const image1 = image1Input.files[0];
+                const categorie = categorieInput.value.trim();
+
+                const isNew = isNewCheck.checked;
+                const promoPrice = promoPriceInput.value ? parseInt(promoPriceInput.value) : null;
+                const promoEndDate = promoEndDateInput.value || null;
+
+                const f1 = flex1.value.trim();
+                const f2 = flex2.value.trim();
+                const f3 = flex3.value.trim();
+                const f4 = flex4.value.trim();
+                const f5 = flex5.value.trim();
+                const f6 = flex6.value.trim();
+                const f7 = flex7.value.trim();
+                const f8 = flex8.value.trim();
+
+                const fournisseur = fournisseurInput.value.trim();
+                const datePeremption = datePeremptionInput.value || null;
 
                 // ✅ Validation
                 if (!name) {
@@ -797,7 +1064,11 @@
                     return;
                 }
 
-                if (!image1) {
+                const image1 = image1Input.files[0];
+                const image2 = image2Input.files[0];
+
+                // ✅ Vérifier qu'au moins une image est présente (nouvelle ou existante)
+                if (!image1 && !existingImage1) {
                     showMessage('⚠️ Veuillez sélectionner une image 1.', 'error');
                     image1Input.focus();
                     return;
@@ -805,7 +1076,7 @@
 
                 // ✅ Désactiver le bouton
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (isEditMode ? 'Mise à jour...' : 'Envoi en cours...');
 
                 // ✅ Construire FormData
                 const formData = new FormData();
@@ -813,43 +1084,54 @@
                 formData.append('price', price);
                 formData.append('quantity', quantity);
                 formData.append('description', description);
-                formData.append('image1', image1);
+                formData.append('categorie', categorie);
 
-                if (image2Input.files[0]) {
-                    formData.append('image2', image2Input.files[0]);
-                }
+                formData.append('is_new', isNew ? 'true' : 'false');
+                if (promoPrice) formData.append('promo_price', promoPrice);
+                if (promoEndDate) formData.append('promo_end_date', promoEndDate);
+
+                formData.append('flex1', f1);
+                formData.append('flex2', f2);
+                formData.append('flex3', f3);
+                formData.append('flex4', f4);
+                formData.append('flex5', f5);
+                formData.append('flex6', f6);
+                formData.append('flex7', f7);
+                formData.append('flex8', f8);
+
+                if (fournisseur) formData.append('fournisseur', fournisseur);
+                if (datePeremption) formData.append('date_peremption', datePeremption);
+
+                // Images
+                if (image1) formData.append('image1', image1);
+                if (image2) formData.append('image2', image2);
+
+                const url = isEditMode ? `/api/admin/products/${editId}` : '/api/admin/products';
+                const method = isEditMode ? 'PUT' : 'POST';
 
                 try {
-                    const res = await fetch('/api/admin/products', {
-                        method: 'POST',
+                    const res = await fetch(url, {
+                        method: method,
                         body: formData
                     });
 
                     const data = await res.json();
 
                     if (res.ok) {
-                        showMessage('✅ Produit ajouté avec succès !', 'success');
+                        showMessage(isEditMode ? '✅ Produit modifié avec succès !' : '✅ Produit ajouté avec succès !', 'success');
 
-                        // ✅ Réinitialiser le formulaire
-                        form.reset();
-                        clearPreview(preview1, image1Input);
-                        clearPreview(preview2, image2Input);
-                        image1Data = null;
-                        image2Data = null;
-
-                        // ✅ Rediriger après 2 secondes
                         setTimeout(() => {
                             window.location.href = '/admin/dashboard';
-                        }, 2000);
+                        }, 1500);
                     } else {
-                        showMessage('❌ ' + (data.error || 'Erreur lors de l\'ajout du produit.'), 'error');
+                        showMessage('❌ ' + (data.error || 'Erreur lors de l\'opération.'), 'error');
                     }
                 } catch (error) {
                     console.error('Erreur:', error);
                     showMessage('❌ Erreur de connexion au serveur.', 'error');
                 } finally {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter le produit';
+                    submitBtn.innerHTML = '<i class="fas fa-plus-circle"></i> ' + (isEditMode ? 'Mettre à jour' : 'Ajouter le produit');
                 }
             });
 
@@ -860,8 +1142,7 @@
             const adminName = localStorage.getItem('adminName') || 'Admin';
             document.getElementById('adminName').textContent = adminName;
 
-            console.log('✅ add-produit.html initialisé');
-
+            console.log('✅ add-produit.html initialisé' + (isEditMode ? ' (mode édition)' : ''));
         });
     </script>
 
