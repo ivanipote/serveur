@@ -29,7 +29,7 @@
             display: flex;
             flex-direction: column;
             padding-top: 76px;
-            padding-bottom: 20px;
+            padding-bottom: 90px;
         }
 
         .info-header {
@@ -147,6 +147,9 @@
         .info-main {
             flex: 1;
             padding: 8px 16px 12px 16px;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
         }
 
         .product-image-container {
@@ -157,7 +160,7 @@
             position: relative;
             box-shadow: 0 4px 16px rgba(0,0,0,0.04);
             aspect-ratio: 4/3;
-            max-height: 60vh;
+            max-height: 50vh;
         }
 
         .product-image-container img {
@@ -215,14 +218,165 @@
 
         .image-counter span:first-child { color: #4ade80; }
 
-        .info-footer {
+        /* ==========================================
+           INFOS PRODUIT
+           ========================================== */
+
+        .product-info-section {
             background: white;
-            border-top-left-radius: 30px;
-            border-top-right-radius: 30px;
-            padding: 24px 24px 32px 24px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            border-radius: 20px;
+            padding: 20px 22px 18px 22px;
+            margin-top: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+        .product-info-section .product-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .product-info-section .product-name .badge-new {
+            background: #DC2626;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 14px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .product-info-section .price-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 6px 0;
+            flex-wrap: wrap;
+        }
+
+        .product-info-section .price-wrapper .price {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2d7d46;
+        }
+
+        .product-info-section .price-wrapper .price.promo {
+            color: #DC2626;
+        }
+
+        .product-info-section .price-wrapper .price-old {
+            font-size: 18px;
+            font-weight: 500;
+            color: #aaa;
+            text-decoration: line-through;
+        }
+
+        .product-info-section .product-desc {
+            font-size: 15px;
+            color: #4B5563;
+            line-height: 1.6;
+            margin: 4px 0 12px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        /* ==========================================
+           INFOS CLIENT (flex1-8)
+           ========================================== */
+
+        .client-infos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            margin: 8px 0 4px 0;
+        }
+
+        .client-infos .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #1a1a2e;
+            padding: 4px 0;
+            border-bottom: 1px solid #f5f5fa;
+        }
+
+        .client-infos .info-item .info-icon {
+            font-size: 14px;
+            color: #2d7d46;
+            width: 20px;
+            text-align: center;
             flex-shrink: 0;
-            margin-top: 8px;
+        }
+
+        .client-infos .info-item .info-label {
+            font-weight: 500;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .client-infos .info-item .info-value {
+            font-weight: 500;
+            color: #1a1a2e;
+            word-break: break-word;
+            text-align: right;
+            flex: 1;
+        }
+
+        /* ==========================================
+           FOURNISSEUR & PÉREMPTION
+           ========================================== */
+
+        .supplier-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f2f5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+        }
+
+        .supplier-section .supplier-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #1a1a2e;
+        }
+
+        .supplier-section .supplier-item .s-icon {
+            color: #2d7d46;
+            font-size: 14px;
+        }
+
+        .supplier-section .supplier-item .s-label {
+            color: #888;
+            font-weight: 500;
+        }
+
+        .supplier-section .supplier-item .s-value {
+            font-weight: 600;
+        }
+
+        /* ==========================================
+           QUANTITÉ + AJOUTER (footer fixe)
+           ========================================== */
+
+        .info-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f0f2f5;
+            padding: 14px 20px 20px 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            z-index: 50;
         }
 
         .footer-content {
@@ -230,52 +384,31 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .footer-content .product-name {
-            font-size: 26px;
-            font-weight: 800;
-            color: #1a1a2e;
-            letter-spacing: 0.5px;
-        }
-
-        .footer-content .product-price {
-            font-size: 32px;
-            font-weight: 800;
-            color: #2d7d46;
-            margin-top: 2px;
-        }
-
-        .footer-content .product-desc {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2563eb;
-            line-height: 1.6;
-            max-width: 90%;
-            margin: 4px 0;
-        }
-
-        .quantity-selector {
+        .footer-content .add-row {
             display: flex;
             align-items: center;
             gap: 16px;
-            margin: 6px 0 4px 0;
         }
 
-        .quantity-selector .qty-label {
-            font-size: 15px;
-            font-weight: 600;
-            color: #555;
+        .footer-content .add-row .qty-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8f9fc;
+            padding: 4px 8px;
+            border-radius: 30px;
+            border: 1px solid #e8ecf4;
+            flex-shrink: 0;
         }
 
-        .quantity-selector .qty-btn {
-            background: #e8e8f0;
+        .footer-content .add-row .qty-selector .qty-btn {
+            background: none;
             border: none;
-            width: 38px;
-            height: 38px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             cursor: pointer;
             font-size: 18px;
@@ -287,62 +420,62 @@
             justify-content: center;
         }
 
-        .quantity-selector .qty-btn:hover {
-            background: #d0d0da;
-            transform: scale(1.05);
+        .footer-content .add-row .qty-selector .qty-btn:hover {
+            background: #e8ecf4;
         }
 
-        .quantity-selector .qty-btn:disabled {
+        .footer-content .add-row .qty-selector .qty-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .quantity-selector .qty-value {
-            font-size: 22px;
+        .footer-content .add-row .qty-selector .qty-value {
+            font-size: 18px;
             font-weight: 700;
             color: #1a1a2e;
-            min-width: 40px;
+            min-width: 30px;
             text-align: center;
         }
 
-        .footer-content .add-btn {
-            margin-top: 8px;
+        .footer-content .add-row .add-btn {
+            flex: 1;
             background: linear-gradient(135deg, #2d7d46, #1a5a33);
             color: white;
             border: none;
-            padding: 16px 28px;
+            padding: 14px 20px;
             border-radius: 30px;
-            font-size: 19px;
+            font-size: 17px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            width: 100%;
-            max-width: 400px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .footer-content .add-btn:hover:not(:disabled) {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(45, 125, 70, 0.25);
+        .footer-content .add-row .add-btn:hover:not(:disabled) {
+            transform: scale(1.01);
+            box-shadow: 0 8px 30px rgba(45, 125, 70, 0.2);
         }
 
-        .footer-content .add-btn:disabled {
+        .footer-content .add-row .add-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
-        .footer-content .add-btn.added {
+        .footer-content .add-row .add-btn.added {
             background: #27ae60;
         }
 
+        /* ==========================================
+           TOAST
+           ========================================== */
+
         .toast-container {
             position: fixed;
-            bottom: 100px;
+            bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 999;
@@ -375,42 +508,99 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
         @media (max-width: 600px) {
-            body { padding-top: 68px; }
+            body { padding-top: 68px; padding-bottom: 80px; }
+
             .info-header { padding: 10px 14px; gap: 10px; }
             .back-btn, .cart-btn { width: 36px; height: 36px; font-size: 16px; }
             .app-name { font-size: 15px; }
+
             .nature-message { padding: 8px 16px 4px 16px; }
             .nature-message p { font-size: 13px; }
             .nature-message .merci { font-size: 14px; }
+
             .info-main { padding: 6px 12px 10px 12px; }
-            .product-image-container { border-radius: 16px; max-height: 50vh; }
+            .product-image-container { border-radius: 16px; max-height: 40vh; }
+
             .image-nav { width: 30px; height: 30px; font-size: 13px; }
             .image-nav.prev { left: 6px; }
             .image-nav.next { right: 6px; }
             .image-counter { font-size: 11px; padding: 3px 10px; bottom: 10px; }
-            .info-footer { border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 18px 16px 28px 16px; }
-            .footer-content .product-name { font-size: 22px; }
-            .footer-content .product-price { font-size: 28px; }
-            .footer-content .product-desc { font-size: 16px; }
-            .footer-content .add-btn { font-size: 17px; padding: 14px 20px; max-width: 100%; }
-            .quantity-selector .qty-btn { width: 34px; height: 34px; font-size: 16px; }
-            .quantity-selector .qty-value { font-size: 20px; min-width: 30px; }
-            .toast-container { bottom: 80px; }
+
+            .product-info-section { padding: 16px 16px 14px 16px; border-radius: 16px; }
+            .product-info-section .product-name { font-size: 20px; }
+            .product-info-section .price-wrapper .price { font-size: 24px; }
+            .product-info-section .price-wrapper .price-old { font-size: 16px; }
+            .product-info-section .product-desc { font-size: 14px; }
+
+            .client-infos { grid-template-columns: 1fr; gap: 4px; }
+            .client-infos .info-item { font-size: 13px; }
+            .client-infos .info-item .info-value { text-align: left; }
+
+            .supplier-section .supplier-item { font-size: 12px; }
+
+            .info-footer { padding: 10px 14px 16px 14px; }
+            .footer-content .add-row .qty-selector .qty-btn { width: 30px; height: 30px; font-size: 16px; }
+            .footer-content .add-row .qty-selector .qty-value { font-size: 16px; min-width: 24px; }
+            .footer-content .add-row .add-btn { font-size: 15px; padding: 12px 16px; }
+
+            .toast-container { bottom: 100px; }
             .toast { font-size: 14px; padding: 10px 18px; }
         }
 
         @media (max-width: 400px) {
-            .product-image-container { max-height: 40vh; }
+            body { padding-top: 60px; padding-bottom: 72px; }
+
+            .info-header { padding: 8px 10px; gap: 8px; }
+            .back-btn, .cart-btn { width: 32px; height: 32px; font-size: 14px; }
+            .app-name { font-size: 13px; }
+
             .nature-message p { font-size: 12px; }
             .nature-message .merci { font-size: 13px; }
-            .info-footer { border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 14px 12px 24px 12px; }
-            .footer-content .product-name { font-size: 19px; }
-            .footer-content .product-price { font-size: 24px; }
-            .footer-content .product-desc { font-size: 14px; }
-            .footer-content .add-btn { font-size: 15px; padding: 12px 16px; }
-            .quantity-selector .qty-btn { width: 30px; height: 30px; font-size: 14px; }
-            .quantity-selector .qty-value { font-size: 18px; min-width: 26px; }
+
+            .product-image-container { max-height: 35vh; }
+            .info-main { padding: 4px 8px 8px 8px; }
+
+            .product-info-section { padding: 12px 12px 10px 12px; border-radius: 14px; }
+            .product-info-section .product-name { font-size: 17px; }
+            .product-info-section .product-name .badge-new { font-size: 9px; padding: 2px 10px; }
+            .product-info-section .price-wrapper .price { font-size: 20px; }
+            .product-info-section .price-wrapper .price-old { font-size: 14px; }
+            .product-info-section .product-desc { font-size: 13px; }
+
+            .client-infos .info-item { font-size: 12px; }
+
+            .info-footer { padding: 8px 10px 14px 10px; }
+            .footer-content .add-row .qty-selector { padding: 2px 6px; gap: 8px; }
+            .footer-content .add-row .qty-selector .qty-btn { width: 26px; height: 26px; font-size: 14px; }
+            .footer-content .add-row .qty-selector .qty-value { font-size: 14px; min-width: 20px; }
+            .footer-content .add-row .add-btn { font-size: 13px; padding: 10px 12px; }
+
+            .toast-container { bottom: 90px; }
+            .toast { font-size: 13px; padding: 8px 14px; }
+        }
+
+        /* ========================================== */
+        /* SUPPRIMER L'EFFET BLEU DE SURVOL / CLIC    */
+        /* ========================================== */
+
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        button, a, .btn, .clickable {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        input, textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
         }
     </style>
 </head>
@@ -446,24 +636,40 @@
                 <span id="navCurrent">1</span> / <span id="navTotal">1</span>
             </div>
         </div>
-    </main>
 
-    <footer class="info-footer">
-        <div class="footer-content">
-            <div class="product-name" id="productName">Nom du produit</div>
-            <div class="product-price" id="productPrice">0 FCFA</div>
+        <!-- ===== INFOS PRODUIT ===== -->
+        <div class="product-info-section" id="productInfo">
+            <div class="product-name" id="productName">
+                Nom du produit
+                <span class="badge-new" id="badgeNew" style="display:none;">⭐ Nouveau</span>
+            </div>
+            <div class="price-wrapper">
+                <span class="price" id="productPrice">0 FCFA</span>
+                <span class="price-old" id="productPriceOld" style="display:none;"></span>
+            </div>
             <div class="product-desc" id="productDesc">Description du produit</div>
 
-            <div class="quantity-selector">
-                <span class="qty-label">Quantité :</span>
-                <button class="qty-btn" id="qtyMinus">−</button>
-                <span class="qty-value" id="qtyValue">1</span>
-                <button class="qty-btn" id="qtyPlus">+</button>
-            </div>
+            <!-- Infos client (flex1-8) -->
+            <div class="client-infos" id="clientInfos"></div>
 
-            <button class="add-btn" id="addToCartBtn">
-                <i class="fas fa-plus-circle"></i> Ajouter au panier
-            </button>
+            <!-- Fournisseur & Péremption -->
+            <div class="supplier-section" id="supplierSection" style="display:none;"></div>
+        </div>
+    </main>
+
+    <!-- ===== FOOTER FIXE ===== -->
+    <footer class="info-footer">
+        <div class="footer-content">
+            <div class="add-row">
+                <div class="qty-selector">
+                    <button class="qty-btn" id="qtyMinus">−</button>
+                    <span class="qty-value" id="qtyValue">1</span>
+                    <button class="qty-btn" id="qtyPlus">+</button>
+                </div>
+                <button class="add-btn" id="addToCartBtn">
+                    <i class="fas fa-plus-circle"></i> Ajouter au panier
+                </button>
+            </div>
         </div>
     </footer>
 
@@ -471,6 +677,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('✅ infoproduit.html chargé');
 
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('id');
@@ -483,7 +691,12 @@
 
             const productName = document.getElementById('productName');
             const productPrice = document.getElementById('productPrice');
+            const productPriceOld = document.getElementById('productPriceOld');
             const productDesc = document.getElementById('productDesc');
+            const badgeNew = document.getElementById('badgeNew');
+            const clientInfos = document.getElementById('clientInfos');
+            const supplierSection = document.getElementById('supplierSection');
+
             const addBtn = document.getElementById('addToCartBtn');
 
             const qtyMinus = document.getElementById('qtyMinus');
@@ -496,6 +709,10 @@
             let currentIndex = 0;
             let quantity = 1;
             let currentProduct = null;
+
+            // ==========================================
+            // TOAST
+            // ==========================================
 
             function showToast(message, type = 'success') {
                 const toast = document.createElement('div');
@@ -511,6 +728,10 @@
                 }, 2500);
             }
 
+            // ==========================================
+            // PANIER COUNT
+            // ==========================================
+
             async function loadPanierCount() {
                 try {
                     const res = await fetch('/api/panier/count');
@@ -522,6 +743,10 @@
                     console.error('Erreur panier:', error);
                 }
             }
+
+            // ==========================================
+            // IMAGES
+            // ==========================================
 
             function goToSlide(index) {
                 const total = images.length;
@@ -538,6 +763,10 @@
             prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
             nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
 
+            // ==========================================
+            // QUANTITÉ
+            // ==========================================
+
             qtyMinus.addEventListener('click', function() {
                 if (quantity > 1) {
                     quantity--;
@@ -549,6 +778,10 @@
                 quantity++;
                 qtyValue.textContent = quantity;
             });
+
+            // ==========================================
+            // CHARGER LE PRODUIT
+            // ==========================================
 
             async function loadProduct() {
                 if (!productId) {
@@ -571,18 +804,111 @@
 
                     currentProduct = product;
 
+                    // Images
                     images = [];
                     if (product.image1) images.push(product.image1);
                     if (product.image2) images.push(product.image2);
                     if (images.length === 0) images.push('https://via.placeholder.com/800x600');
-
                     navTotal.textContent = images.length;
                     goToSlide(0);
 
+                    // Nom
                     productName.textContent = product.name;
-                    productPrice.textContent = product.price.toLocaleString() + ' FCFA';
+
+                    // Badge Nouveau
+                    if (product.is_new) {
+                        badgeNew.style.display = 'inline-block';
+                    } else {
+                        badgeNew.style.display = 'none';
+                    }
+
+                    // Prix
+                    const hasPromo = product.promo_price && product.promo_price > 0 && product.promo_price < product.price;
+                    if (hasPromo) {
+                        productPrice.textContent = product.promo_price.toLocaleString() + ' FCFA';
+                        productPrice.className = 'price promo';
+                        productPriceOld.textContent = product.price.toLocaleString() + ' FCFA';
+                        productPriceOld.style.display = 'inline';
+                    } else {
+                        productPrice.textContent = product.price.toLocaleString() + ' FCFA';
+                        productPrice.className = 'price';
+                        productPriceOld.style.display = 'none';
+                    }
+
+                    // Description
                     productDesc.textContent = product.description || 'Aucune description disponible.';
 
+                    // ✅ Infos client (flex1-8)
+                    const flexFields = [
+                        { icon: 'fa-ruler', label: 'Taille', value: product.flex1 },
+                        { icon: 'fa-calendar', label: 'Arrivage', value: product.flex2 },
+                        { icon: 'fa-globe-africa', label: 'Origine', value: product.flex3 },
+                        { icon: 'fa-list-ul', label: 'Composition', value: product.flex4 },
+                        { icon: 'fa-lightbulb', label: 'Conseils', value: product.flex5 },
+                        { icon: 'fa-snowflake', label: 'Conservation', value: product.flex6 },
+                        { icon: 'fa-pen', label: 'Notes', value: product.flex7 }
+                    ];
+
+                    let infoHtml = '';
+                    flexFields.forEach(f => {
+                        if (f.value && f.value.trim() !== '') {
+                            infoHtml += `
+                                <div class="info-item">
+                                    <span class="info-icon"><i class="fas ${f.icon}"></i></span>
+                                    <span class="info-label">${f.label}</span>
+                                    <span class="info-value">${f.value}</span>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    if (infoHtml) {
+                        clientInfos.innerHTML = infoHtml;
+                    } else {
+                        clientInfos.innerHTML = `
+                            <div class="info-item" style="grid-column:span 2;justify-content:center;color:#aaa;font-size:13px;border-bottom:none;">
+                                <i class="fas fa-info-circle" style="color:#aaa;"></i> Aucune information supplémentaire
+                            </div>
+                        `;
+                    }
+
+                    // ✅ Fournisseur & Péremption
+                    const hasSupplier = product.fournisseur && product.fournisseur.trim() !== '';
+                    const hasExpiry = product.date_peremption;
+
+                    if (hasSupplier || hasExpiry) {
+                        supplierSection.style.display = 'flex';
+
+                        let supplierHtml = '';
+
+                        if (hasSupplier) {
+                            supplierHtml += `
+                                <div class="supplier-item">
+                                    <span class="s-icon"><i class="fas fa-truck"></i></span>
+                                    <span class="s-label">Fournisseur</span>
+                                    <span class="s-value">${product.fournisseur}</span>
+                                </div>
+                            `;
+                        }
+
+                        if (hasExpiry) {
+                            const expiryDate = new Date(product.date_peremption);
+                            const expiryStr = expiryDate.toLocaleDateString('fr-FR');
+                            supplierHtml += `
+                                <div class="supplier-item">
+                                    <span class="s-icon"><i class="fas fa-hourglass-end"></i></span>
+                                    <span class="s-label">Péremption</span>
+                                    <span class="s-value">${expiryStr}</span>
+                                </div>
+                            `;
+                        }
+
+                        supplierSection.innerHTML = supplierHtml;
+                    } else {
+                        supplierSection.style.display = 'none';
+                    }
+
+                    // Reset quantité
                     quantity = 1;
                     qtyValue.textContent = quantity;
 
@@ -593,6 +919,10 @@
                     productName.textContent = 'Erreur de chargement';
                 }
             }
+
+            // ==========================================
+            // AJOUTER AU PANIER
+            // ==========================================
 
             addBtn.addEventListener('click', async function() {
                 const id = this.dataset.id;
@@ -629,8 +959,14 @@
                 }
             });
 
+            // ==========================================
+            // INITIALISATION
+            // ==========================================
+
             loadProduct();
             loadPanierCount();
+
+            console.log('✅ infoproduit.html initialisé');
 
         });
     </script>
