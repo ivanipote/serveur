@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const payBtn = document.getElementById('payWaveBtn');
     const errorMessage = document.getElementById('errorMessage');
     const loadingOverlay = document.getElementById('loadingOverlay');
-    const verifyOverlay = document.getElementById('verifyOverlay');
-    const verifyOverlayMessage = document.getElementById('verifyOverlayMessage');
     const loaderOverlay = document.getElementById('loaderOverlay');
 
     // Onglets
@@ -36,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let commandeData = null;
     let currentUser = null;
     let isVerifying = false;
-    let verificationStatusChecked = false;
 
     // ==========================================
     // LOADER OVERLAY
@@ -453,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LE RÉCAPITULATIF
+    // AFFICHER LE RÉCAPITULATIF (avec promo)
     // ==========================================
 
     function renderRecap(commande) {
@@ -466,16 +463,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let totalProduits = 0;
         let produitsHtml = '';
+
         if (panier.length > 0) {
             panier.forEach(p => {
-                const prix = p.price || 0;
+                // ✅ CORRECTION : Utiliser effective_price comme dans passcommande
+                const effectivePrice = p.effective_price || p.price || 0;
                 const qte = p.quantity || 1;
-                const totalLigne = prix * qte;
+                const totalLigne = effectivePrice * qte;
                 totalProduits += totalLigne;
+
+                const hasPromo = p.promo_price && p.promo_price > 0 && p.promo_price < p.price;
+
+                let priceDisplay = `${totalLigne.toLocaleString()} FCFA`;
+                if (hasPromo) {
+                    const oldTotal = p.price * qte;
+                    priceDisplay = `
+                        <span style="color:#1a2a6c;font-weight:700;">${totalLigne.toLocaleString()} FCFA</span>
+                        <span style="text-decoration:line-through;color:#aaa;font-size:13px;margin-left:6px;">${oldTotal.toLocaleString()} FCFA</span>
+                    `;
+                }
+
                 produitsHtml += `
                     <div class="recap-item">
                         <span class="label">${p.name || 'Produit'} × ${qte}</span>
-                        <span class="value">${totalLigne.toLocaleString()} FCFA</span>
+                        <span class="value">${priceDisplay}</span>
                     </div>
                 `;
             });
@@ -587,15 +598,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.classList.remove('active');
     }
 
-    function showVerifyOverlay(message) {
-        verifyOverlayMessage.textContent = message || '🔍 Envoi de votre demande...';
-        verifyOverlay.style.display = 'flex';
-    }
-
-    function hideVerifyOverlay() {
-        verifyOverlay.style.display = 'none';
-    }
-
     // ==========================================
     // PAYER AVEC WAVE
     // ==========================================
@@ -687,7 +689,6 @@ document.addEventListener('DOMContentLoaded', function() {
         verifyBtn.classList.add('loading');
         verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
-        // ✅ AFFICHER LE LOADER OVERLAY
         showLoader();
 
         try {
@@ -704,7 +705,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
 
             if (data.success) {
-                // ✅ REDIRECTION VERS detailcom.html
                 window.location.href = `/detailcom?id=${commandeId}`;
             } else {
                 hideLoader();

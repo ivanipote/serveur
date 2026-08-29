@@ -58,11 +58,13 @@
                 <div class="code-hint">Entrez votre code à 4 chiffres</div>
             </div>
 
-            <!-- BOUTON PAYER -->
-            <button class="btn-pay-wave" id="payWaveBtn">
+            <!-- BOUTON PAYER AVEC WAVE + ICÔNE DEVANT -->
+            <div class="wave-button-wrapper">
                 <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon-btn" />
-                Payer avec Wave
-            </button>
+                <button class="btn-pay-wave" id="payWaveBtn">
+                    Payer avec Wave
+                </button>
+            </div>
         </div>
 
         <!-- ========================================== -->
@@ -131,15 +133,14 @@
         <p>🔄 Redirection vers Wave...</p>
     </div>
 
-    <!-- ===== OVERLAY VÉRIFICATION ===== -->
-   <!-- OVERLAY LOADER (Commande en cours) -->
-<div class="loader-overlay" id="loaderOverlay">
-    <div class="loader-box">
-        <div class="loader-spinner"></div>
-        <h3>⏳ Demande de vérification en cours d'envoi...</h3>
-        <p>Veuillez patienter quelques instants</p>
+    <!-- ===== OVERLAY LOADER ===== -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-box">
+            <div class="loader-spinner"></div>
+            <h3>⏳ Demande de vérification en cours d'envoi...</h3>
+            <p>Veuillez patienter quelques instants</p>
+        </div>
     </div>
-</div>
 
     <script src="/client/js/paywithwave.js"></script>
 </body>
