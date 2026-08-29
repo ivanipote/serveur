@@ -309,7 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
             
-            // Easing function (easeOut)
             const eased = 1 - Math.pow(1 - progress, 3);
             const currentValue = Math.round(startValue + (targetValue - startValue) * eased);
             
@@ -319,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestAnimationFrame(update);
             } else {
                 totalPrice.textContent = targetValue.toLocaleString() + ' FCFA';
-                // Animation pop à la fin
                 totalPrice.classList.remove('pop');
                 void totalPrice.offsetWidth;
                 totalPrice.classList.add('pop');
@@ -330,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LE PANIER
+    // AFFICHER LE PANIER (avec prix promo)
     // ==========================================
 
     function renderPanier() {
@@ -341,14 +339,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        total = panier.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        // ✅ Utiliser effective_price (retourné par l'API)
+        total = panier.reduce((sum, item) => {
+            const price = item.effective_price || item.price || 0;
+            return sum + (price * item.quantity);
+        }, 0);
         const totalItems = panier.reduce((sum, item) => sum + item.quantity, 0);
 
         let html = '';
 
         panier.forEach((item, index) => {
             const imgSrc = item.image1 || 'https://via.placeholder.com/50';
-            const totalLigne = item.price * item.quantity;
+            const effectivePrice = item.effective_price || item.price || 0;
+            const totalLigne = effectivePrice * item.quantity;
             const stockDispo = item.stock || 999;
             let stockClass = '';
             let stockLabel = '📦 En stock';
@@ -360,8 +363,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 stockLabel = '⚠️ Stock limité';
             }
 
-            const promoBadge = item.promotion ? '<span class="promo-badge">Promo</span>' : '';
-            const oldPriceHtml = item.prix_promotion ? `<span class="old-price">${item.prix_promotion.toLocaleString()} FCFA</span>` : '';
+            const isPromo = item.promo_price && item.promo_price > 0;
+            const promoBadge = isPromo ? '<span class="promo-badge">Promo</span>' : '';
+            const oldPriceHtml = isPromo ? `<span class="old-price">${(item.price * item.quantity).toLocaleString()} FCFA</span>` : '';
 
             html += `
                 <div class="cart-item" data-index="${index}" data-id="${item.product_id || item.id}">
@@ -374,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${totalLigne.toLocaleString()} FCFA
                             ${oldPriceHtml}
                             <span style="font-size:13px;color:#aaa;font-weight:400;display:block;">
-                                (${item.price.toLocaleString()} × ${item.quantity})
+                                (${effectivePrice.toLocaleString()} × ${item.quantity})
                             </span>
                         </div>
                         <div class="item-desc">${item.description || ''}</div>
@@ -397,7 +401,6 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = html;
         if (cartCount) cartCount.textContent = `(${totalItems})`;
         
-        // ✅ Animation du prix total (0 → total)
         animatePrice(total);
 
         if (checkoutBtn) {
@@ -501,27 +504,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 item.quantity = newQty;
-                // Recalculer le total et animer
-                const newTotal = panier.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+                const newTotal = panier.reduce((sum, i) => {
+                    const price = i.effective_price || i.price || 0;
+                    return sum + (price * i.quantity);
+                }, 0);
                 animatePrice(newTotal);
                 
-                // Mettre à jour l'affichage de la quantité
                 const qtyEl = document.getElementById(`qty-${index}`);
                 if (qtyEl) {
                     qtyEl.textContent = newQty;
                 }
                 
-                // Mettre à jour le prix de la ligne
                 const items = document.querySelectorAll('.cart-item');
                 if (items[index]) {
                     const priceEl = items[index].querySelector('.item-price');
                     if (priceEl) {
-                        const totalLigne = item.price * newQty;
+                        const effectivePrice = item.effective_price || item.price || 0;
+                        const totalLigne = effectivePrice * newQty;
+                        const isPromo = item.promo_price && item.promo_price > 0;
                         priceEl.innerHTML = `
                             ${totalLigne.toLocaleString()} FCFA
-                            ${item.prix_promotion ? `<span class="old-price">${item.prix_promotion.toLocaleString()} FCFA</span>` : ''}
+                            ${isPromo ? `<span class="old-price">${(item.price * newQty).toLocaleString()} FCFA</span>` : ''}
                             <span style="font-size:13px;color:#aaa;font-weight:400;display:block;">
-                                (${item.price.toLocaleString()} × ${newQty})
+                                (${effectivePrice.toLocaleString()} × ${newQty})
                             </span>
                         `;
                     }
