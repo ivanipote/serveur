@@ -539,10 +539,13 @@ app.get('/api/admin/clients', async (req, res) => {
 app.get('/api/admin/commandes', async (req, res) => {
     try {
         const rows = await db.all(
-            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url,
+            `SELECT c.*, 
+                    p.genius_reference, p.genius_status, p.checkout_url,
+                    w.extra4,
                     to_char(c.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at
              FROM commandes c
              LEFT JOIN payments p ON p.commande_id = c.id
+             LEFT JOIN wave_verifications w ON w.commande_id = c.id AND w.status = 'pending'
              ORDER BY c.created_at DESC`
         );
         res.json(rows);
@@ -551,7 +554,6 @@ app.get('/api/admin/commandes', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 app.put('/api/admin/commande/status', async (req, res) => {
     const { commandeId, status, causeRefus } = req.body;
 
@@ -569,7 +571,13 @@ app.put('/api/admin/commande/status', async (req, res) => {
     }
 
     try {
-        const commande = await db.get('SELECT user_id, nom FROM commandes WHERE id = $1', [commandeId]);
+        const commande = await db.get(
+    `SELECT c.user_id, c.nom, w.extra4 
+     FROM commandes c
+     LEFT JOIN wave_verifications w ON w.commande_id = c.id AND w.status = 'pending'
+     WHERE c.id = $1`,
+    [commandeId]
+);
 
         if (!commande) {
             return res.status(404).json({ error: 'Commande non trouvée.' });
@@ -1238,16 +1246,18 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 app.get('/api/commandes', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
     try {
         const rows = await db.all(
-            `SELECT c.*, p.genius_reference, p.genius_status, p.checkout_url, p.amount as payment_amount,
+            `SELECT c.*, 
+                    p.genius_reference, p.genius_status, p.checkout_url, p.amount as payment_amount,
+                    w.extra4,
                     to_char(c.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at
              FROM commandes c
              LEFT JOIN payments p ON p.commande_id = c.id
+             LEFT JOIN wave_verifications w ON w.commande_id = c.id AND w.status = 'pending'
              WHERE c.user_id = $1 
              ORDER BY c.created_at DESC`,
             [userId]
@@ -1258,7 +1268,6 @@ app.get('/api/commandes', isAuthenticated, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 // ========================================================
 // ROUTES NOTIFICATIONS
 // ========================================================
