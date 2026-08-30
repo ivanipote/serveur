@@ -930,6 +930,45 @@ app.get('/api/admin/deploys', async (req, res) => {
         });
     }
 });
+
+// ========================================================
+// ROUTE : TEST API RENDER (DEBUG)
+// ========================================================
+
+app.get('/api/admin/test-render', async (req, res) => {
+    try {
+        const RENDER_API_KEY = process.env.RENDER_API_KEY;
+        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g';
+
+        if (!RENDER_API_KEY) {
+            return res.status(500).json({
+                success: false,
+                error: 'RENDER_API_KEY non configurée'
+            });
+        }
+
+        const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
+            headers: {
+                'Authorization': `Bearer ${RENDER_API_KEY}`
+            }
+        });
+
+        const data = await response.json();
+
+        res.json({
+            success: true,
+            count: data.length || 0,
+            raw_data: data.slice(0, 3) // Envoyer seulement les 3 premiers pour debug
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur test:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
 // ========================================================
 // ROUTES CLIENT - AUTH
 // ========================================================
