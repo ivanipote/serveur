@@ -58,7 +58,7 @@
             display: flex;
             flex-direction: column;
             padding-top: 76px;
-            padding-bottom: 30px;
+            padding-bottom: 120px;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -122,32 +122,65 @@
             color: var(--brand);
         }
 
-        .sync-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--ink-400);
+        .status-badge-header {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid transparent;
             flex-shrink: 0;
         }
 
-        .sync-indicator .sync-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #34D399;
-            display: inline-block;
-            animation: pulse-dot 1.5s ease-in-out infinite;
+        .status-badge-header.paiement_effectue {
+            background: var(--brand-tint);
+            color: var(--brand-dark);
+            border-color: var(--brand-line);
         }
-
-        .sync-indicator .sync-dot.paused {
-            background: #F87171;
-            animation: none;
+        .status-badge-header.en_attente {
+            background: var(--amber-tint);
+            color: var(--amber);
+            border-color: #F5DBAA;
         }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+        .status-badge-header.accepter {
+            background: var(--blue-tint);
+            color: var(--blue);
+            border-color: #C7D9FB;
+        }
+        .status-badge-header.paiement_en_cours {
+            background: #FFF3DF;
+            color: var(--amber);
+            border-color: #F5DBAA;
+        }
+        .status-badge-header.verification_en_cours {
+            background: #FFF3DF;
+            color: var(--amber);
+            border-color: #F5DBAA;
+        }
+        .status-badge-header.livraison_en_cours {
+            background: var(--violet-tint);
+            color: var(--violet);
+            border-color: #DBCBFC;
+        }
+        .status-badge-header.disponible {
+            background: var(--brand-tint);
+            color: var(--brand-dark);
+            border-color: var(--brand-line);
+        }
+        .status-badge-header.recuperee {
+            background: #DCF5E7;
+            color: #0E5B37;
+            border-color: #B4E7CB;
+        }
+        .status-badge-header.refuse {
+            background: var(--red-tint);
+            color: var(--red);
+            border-color: #F3C6C2;
+        }
+        .status-badge-header.annulee {
+            background: var(--red-tint);
+            color: var(--red);
+            border-color: #F3C6C2;
         }
 
         /* =============================================================
@@ -313,70 +346,239 @@
            PRODUITS
            ============================================================= */
 
-        .detail-products {
-            background: var(--surface-alt);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-top: 4px;
-            border: 1px solid var(--border);
-        }
-
-        .detail-products .product-item {
+        .product-item {
             display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 14px;
-            border-bottom: 1px solid var(--border);
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--surface-alt);
+            align-items: flex-start;
         }
 
-        .detail-products .product-item:last-child {
+        .product-item:last-child {
             border-bottom: none;
         }
 
-        .detail-products .product-item .name {
-            color: var(--ink-900);
+        .product-item .product-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .product-item .product-info {
             flex: 1;
-            font-weight: 500;
+            min-width: 0;
         }
 
-        .detail-products .product-item .qty {
-            color: var(--ink-400);
-            margin: 0 12px;
-            font-family: var(--font-mono);
-        }
-
-        .detail-products .product-item .price {
-            color: var(--brand-dark);
+        .product-item .product-info .product-name {
+            font-size: 14px;
             font-weight: 700;
-            font-family: var(--font-mono);
+            color: var(--ink-900);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .product-item .product-info .product-name .badge-promo {
+            font-size: 9px;
+            background: var(--red);
+            color: white;
+            padding: 1px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .product-item .product-info .product-price-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 2px 0 4px 0;
+            flex-wrap: wrap;
+        }
+
+        .product-item .product-info .product-price-row .price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .product-item .product-info .product-price-row .price.promo {
+            color: var(--red);
+        }
+
+        .product-item .product-info .product-price-row .price-old {
+            font-size: 13px;
+            color: var(--ink-400);
+            text-decoration: line-through;
+        }
+
+        .product-item .product-info .product-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            margin-top: 2px;
+        }
+
+        .product-item .product-info .product-meta .meta-item {
+            font-size: 11px;
+            color: var(--ink-500);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .product-item .product-info .product-meta .meta-item i {
+            font-size: 10px;
+            color: var(--ink-400);
+        }
+
+        .product-item .product-info .product-qty {
+            font-size: 12px;
+            color: var(--ink-400);
+            margin-top: 2px;
+        }
+
+        .product-item .product-info .product-stock {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .product-item .product-info .product-stock.instock {
+            color: var(--brand-dark);
+        }
+
+        .product-item .product-info .product-stock.lowstock {
+            color: var(--amber);
+        }
+
+        .product-item .product-info .product-stock.outofstock {
+            color: var(--red);
         }
 
         /* =============================================================
-           TOTAL
+           MONTANT WAVE
            ============================================================= */
 
-        .detail-total {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0 4px 0;
-            border-top: 2px solid var(--brand);
-            font-size: 18px;
+        .wave-amount {
+            background: var(--blue-tint);
+            border-radius: 8px;
+            padding: 6px 12px;
+            border: 1px solid #C7D9FB;
+            display: inline-block;
+        }
+
+        .wave-amount .wave-label {
+            font-size: 11px;
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .wave-amount .wave-value {
+            font-size: 16px;
             font-weight: 700;
-            color: var(--ink-900);
-            margin-top: 6px;
+            color: var(--blue);
         }
 
-        .detail-total .total-value {
-            color: var(--brand-dark);
-            font-family: var(--font-mono);
+        /* =============================================================
+           TOTAL FOOTER FIXE
+           ============================================================= */
+
+        .detail-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 14px 20px 20px 20px;
+            z-index: 50;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
         }
 
-        .detail-frais {
+        .detail-footer .footer-content {
+            max-width: 700px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
+            align-items: center;
+        }
+
+        .detail-footer .footer-content .footer-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-footer .footer-content .footer-left .label {
+            font-size: 12px;
             color: var(--ink-400);
-            padding: 4px 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .detail-footer .footer-content .footer-left .total {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--brand-dark);
+        }
+
+        .detail-footer .footer-content .footer-left .total .total-old {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--ink-400);
+            text-decoration: line-through;
+            margin-left: 8px;
+        }
+
+        .detail-footer .footer-content .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-footer .footer-content .footer-right .btn-print {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--ink-700);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-footer .footer-content .footer-right .btn-print:hover {
+            background: var(--border);
+        }
+
+        .detail-footer .footer-content .footer-right .btn-contact {
+            background: var(--brand);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .detail-footer .footer-content .footer-right .btn-contact:hover {
+            background: var(--brand-dark);
+            transform: scale(1.02);
         }
 
         /* =============================================================
@@ -384,35 +586,40 @@
            ============================================================= */
 
         @media (max-width: 600px) {
-            body { padding-top: 68px; }
+            body { padding-top: 68px; padding-bottom: 100px; }
             .detail-header { padding: 10px 14px; gap: 10px; }
             .back-btn { width: 36px; height: 36px; font-size: 16px; }
-            .detail-title { font-size: 16px; }
-            .detail-title i { font-size: 14px; }
-            .sync-indicator { font-size: 10px; }
+            .detail-title { font-size: 15px; }
             .detail-main { padding: 12px 14px; }
-            .detail-card { padding: 16px 16px 14px 16px; border-radius: 16px; }
-            .detail-row { font-size: 13px; padding: 5px 0; }
+            .detail-card { padding: 14px 14px 12px 14px; border-radius: 14px; }
+            .detail-row { font-size: 13px; }
             .detail-row .value { max-width: 55%; }
-            .detail-products .product-item { font-size: 13px; }
-            .detail-total { font-size: 16px; }
-            .error-state h3 { font-size: 18px; }
+            .product-item .product-img { width: 55px; height: 55px; }
+            .product-item .product-info .product-name { font-size: 13px; }
+            .product-item .product-info .product-price-row .price { font-size: 14px; }
+            .detail-footer .footer-content .footer-left .total { font-size: 20px; }
+            .detail-footer .footer-content .footer-right .btn-contact { font-size: 13px; padding: 8px 16px; }
+            .detail-footer .footer-content .footer-right .btn-print { font-size: 12px; padding: 8px 12px; }
+            .product-item .product-info .product-meta .meta-item { font-size: 10px; }
         }
 
         @media (max-width: 400px) {
-            body { padding-top: 60px; }
+            body { padding-top: 60px; padding-bottom: 90px; }
             .detail-header { padding: 8px 10px; gap: 8px; }
             .back-btn { width: 32px; height: 32px; font-size: 14px; }
-            .detail-title { font-size: 14px; }
+            .detail-title { font-size: 13px; }
             .detail-main { padding: 10px 10px; }
-            .detail-card { padding: 12px 12px 10px 12px; border-radius: 14px; }
+            .detail-card { padding: 12px 12px 10px 12px; border-radius: 12px; }
             .detail-row { font-size: 12px; }
             .detail-row .value { max-width: 50%; }
-            .detail-products .product-item { font-size: 12px; }
-            .detail-total { font-size: 15px; }
-            .detail-card .section-title { font-size: 11px; }
-            .error-state h3 { font-size: 16px; }
-            .error-state .btn-back-home { font-size: 14px; padding: 10px 24px; }
+            .product-item { padding: 8px 0; gap: 10px; }
+            .product-item .product-img { width: 45px; height: 45px; border-radius: 8px; }
+            .product-item .product-info .product-name { font-size: 12px; }
+            .product-item .product-info .product-price-row .price { font-size: 13px; }
+            .product-item .product-info .product-meta .meta-item { font-size: 9px; }
+            .detail-footer .footer-content { flex-direction: column; gap: 8px; align-items: stretch; }
+            .detail-footer .footer-content .footer-right { justify-content: center; }
+            .detail-footer { padding: 10px 14px 14px 14px; }
         }
     </style>
 </head>
@@ -426,10 +633,7 @@
         <span class="detail-title">
             <i class="fas fa-receipt"></i> Détail de la commande
         </span>
-        <span class="sync-indicator">
-            <span class="sync-dot" id="syncDot"></span>
-            <span id="syncLabel">Live</span>
-        </span>
+        <span class="status-badge-header" id="headerStatus">⏳ En attente</span>
     </header>
 
     <!-- ===== CONTENU ===== -->
@@ -439,6 +643,27 @@
             <p>Chargement du détail...</p>
         </div>
     </main>
+
+    <!-- ===== FOOTER FIXE ===== -->
+    <footer class="detail-footer" id="detailFooter">
+        <div class="footer-content">
+            <div class="footer-left">
+                <span class="label">Total</span>
+                <span class="total" id="footerTotal">
+                    0 FCFA
+                    <span class="total-old" id="footerTotalOld"></span>
+                </span>
+            </div>
+            <div class="footer-right">
+                <button class="btn-print" onclick="alert('🔜 Fonction d\'impression à venir')">
+                    <i class="fas fa-print"></i> Imprimer
+                </button>
+                <a href="mailto:ipoteivan23@gmail.com?subject=Question%20sur%20ma%20commande%20Nature%2B" class="btn-contact">
+                    <i class="fas fa-headset"></i> Contacter
+                </a>
+            </div>
+        </div>
+    </footer>
 
     <!-- ============================================================= -->
     <!-- SCRIPTS                                                        -->
@@ -455,8 +680,9 @@
 
             const mainContent = document.getElementById('detailMain');
             const loadingState = document.getElementById('loadingState');
-            const syncDot = document.getElementById('syncDot');
-            const syncLabel = document.getElementById('syncLabel');
+            const headerStatus = document.getElementById('headerStatus');
+            const footerTotal = document.getElementById('footerTotal');
+            const footerTotalOld = document.getElementById('footerTotalOld');
 
             let commandeId = null;
             let currentCommande = null;
@@ -513,15 +739,11 @@
                     socket.on('connect', function() {
                         console.log('✅ Socket.IO (detailcom) connecté');
                         isSocketConnected = true;
-                        syncDot.className = 'sync-dot';
-                        syncLabel.textContent = 'Live';
                     });
 
                     socket.on('disconnect', function() {
                         console.log('❌ Socket.IO (detailcom) déconnecté');
                         isSocketConnected = false;
-                        syncDot.className = 'sync-dot paused';
-                        syncLabel.textContent = 'Offline';
                         setTimeout(() => {
                             if (!isSocketConnected) connectSocketIO();
                         }, 3000);
@@ -530,16 +752,7 @@
                     socket.on('commande-update', function(data) {
                         console.log('📦 Mise à jour commande (detailcom):', data);
                         if (data.commandeId == commandeId) {
-                            // Recharger le détail
                             loadDetail();
-                            // Faire clignoter le dot
-                            syncDot.style.animation = 'none';
-                            setTimeout(() => {
-                                syncDot.style.animation = 'pulse-dot 0.5s ease-in-out 3';
-                            }, 10);
-                            setTimeout(() => {
-                                syncDot.style.animation = 'pulse-dot 1.5s ease-in-out infinite';
-                            }, 2000);
                         }
                     });
 
@@ -557,11 +770,8 @@
                 if (syncInterval) {
                     clearInterval(syncInterval);
                 }
-
                 console.log('🔄 Sync detailcom démarré (toutes les 5s)');
-
                 loadDetail();
-
                 syncInterval = setInterval(() => {
                     if (!isSyncing) {
                         loadDetail();
@@ -634,19 +844,21 @@
 
             function renderDetail(commande) {
                 const statusLabels = {
-                    'en_attente': { label: '⏳ En attente', class: 'en_attente' },
-                    'accepter': { label: '💳 Paiement requis', class: 'accepter' },
-                    'paiement_en_cours': { label: '⏳ En cours...', class: 'paiement_en_cours' },
-                    'verification_en_cours': { label: '🔍 Vérification en cours', class: 'verification_en_cours' },
-                    'paiement_effectue': { label: '✅ Payée', class: 'paiement_effectue' },
-                    'livraison_en_cours': { label: '🚚 En livraison', class: 'livraison_en_cours' },
-                    'disponible': { label: '📍 Disponible', class: 'disponible' },
-                    'recuperee': { label: '✅ Récupérée', class: 'recuperee' },
-                    'refuse': { label: '❌ Refusée', class: 'refuse' },
-                    'annulee': { label: '❌ Annulée', class: 'annulee' }
+                    'en_attente': { label: '⏳ En attente', class: 'en_attente', icon: '⏳' },
+                    'accepter': { label: '💳 Paiement requis', class: 'accepter', icon: '💳' },
+                    'paiement_en_cours': { label: '⏳ En cours...', class: 'paiement_en_cours', icon: '⏳' },
+                    'verification_en_cours': { label: '🔍 Vérification en cours', class: 'verification_en_cours', icon: '🔍' },
+                    'paiement_effectue': { label: '✅ Payée', class: 'paiement_effectue', icon: '✅' },
+                    'livraison_en_cours': { label: '🚚 En livraison', class: 'livraison_en_cours', icon: '🚚' },
+                    'disponible': { label: '📍 Disponible', class: 'disponible', icon: '📍' },
+                    'recuperee': { label: '✅ Récupérée', class: 'recuperee', icon: '✅' },
+                    'refuse': { label: '❌ Refusée', class: 'refuse', icon: '❌' },
+                    'annulee': { label: '❌ Annulée', class: 'annulee', icon: '❌' }
                 };
 
-                const statusInfo = statusLabels[commande.status] || { label: commande.status, class: 'en_attente' };
+                const statusInfo = statusLabels[commande.status] || { label: commande.status, class: 'en_attente', icon: '⏳' };
+                headerStatus.textContent = statusInfo.icon + ' ' + statusInfo.label;
+                headerStatus.className = 'status-badge-header ' + statusInfo.class;
 
                 let panier = [];
                 try {
@@ -658,28 +870,99 @@
                 const date = new Date(commande.created_at);
                 const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
+                // ✅ DÉTERMINER LE MONTANT À AFFICHER
+                const montantBrut = commande.total || 0;
+                let montantAffiche = montantBrut;
+
+                // Si la commande est en vérification Wave ou payée par Wave
+                if ((commande.status === 'verification_en_cours' || commande.methode_paiement === 'wave') && commande.extra4) {
+                    montantAffiche = parseInt(commande.extra4);
+                }
+
                 let productsHtml = '';
                 let sousTotal = 0;
 
                 if (panier.length > 0) {
                     panier.forEach(p => {
-                        const price = p.price || 0;
+                        const effectivePrice = p.effective_price || p.price || 0;
                         const qty = p.quantity || 1;
-                        const totalLigne = price * qty;
+                        const totalLigne = effectivePrice * qty;
                         sousTotal += totalLigne;
+
+                        const hasPromo = p.promo_price && p.promo_price > 0 && p.promo_price < p.price;
+                        const imgSrc = p.image1 || 'https://via.placeholder.com/70/cccccc/ffffff?text=📦';
+
+                        let priceDisplay = `
+                            <span class="price ${hasPromo ? 'promo' : ''}">${effectivePrice.toLocaleString()} FCFA</span>
+                        `;
+                        if (hasPromo) {
+                            priceDisplay += `<span class="price-old">${p.price.toLocaleString()} FCFA</span>`;
+                        }
+
+                        // Métadonnées du produit
+                        let metaHtml = '';
+                        const metaFields = [
+                            { icon: 'fa-ruler', value: p.flex1 },
+                            { icon: 'fa-calendar', value: p.flex2 },
+                            { icon: 'fa-globe-africa', value: p.flex3 },
+                            { icon: 'fa-list-ul', value: p.flex4 },
+                            { icon: 'fa-lightbulb', value: p.flex5 },
+                            { icon: 'fa-snowflake', value: p.flex6 },
+                            { icon: 'fa-pen', value: p.flex7 }
+                        ];
+                        metaFields.forEach(f => {
+                            if (f.value && f.value.trim() !== '') {
+                                metaHtml += `
+                                    <span class="meta-item"><i class="fas ${f.icon}"></i> ${f.value}</span>
+                                `;
+                            }
+                        });
+
+                        const stock = p.stock || 0;
+                        let stockClass = 'instock';
+                        let stockLabel = '✅ En stock';
+                        if (stock === 0) {
+                            stockClass = 'outofstock';
+                            stockLabel = '🚫 Rupture';
+                        } else if (stock <= 5) {
+                            stockClass = 'lowstock';
+                            stockLabel = '⚠️ Stock limité';
+                        }
+
                         productsHtml += `
                             <div class="product-item">
-                                <span class="name">${p.name || 'Produit'}</span>
-                                <span class="qty">× ${qty}</span>
-                                <span class="price">${totalLigne.toLocaleString()} FCFA</span>
+                                <img src="${imgSrc}" alt="${p.name}" class="product-img" loading="lazy">
+                                <div class="product-info">
+                                    <div class="product-name">
+                                        ${p.name || 'Produit'}
+                                        ${hasPromo ? '<span class="badge-promo">Promo</span>' : ''}
+                                        ${p.is_new ? '<span class="badge-promo" style="background:#DC2626;">Nouveau</span>' : ''}
+                                    </div>
+                                    <div class="product-price-row">
+                                        ${priceDisplay}
+                                    </div>
+                                    ${metaHtml ? `<div class="product-meta">${metaHtml}</div>` : ''}
+                                    <div class="product-qty">Quantité: <strong>${qty}</strong></div>
+                                    <div class="product-stock ${stockClass}">${stockLabel} (${stock})</div>
+                                </div>
                             </div>
                         `;
                     });
                 } else {
-                    productsHtml = '<p style="color:var(--ink-400);font-size:13px;padding:4px 0;">Aucun produit</p>';
+                    productsHtml = '<p style="color:var(--ink-400);font-size:13px;padding:12px 0;">Aucun produit</p>';
                 }
 
-                const total = commande.total || sousTotal + (commande.frais_livraison || 0);
+                const totalFinal = montantAffiche || sousTotal + (commande.frais_livraison || 0);
+                const isWave = commande.methode_paiement === 'wave' || commande.status === 'verification_en_cours';
+
+                // Mise à jour du footer
+                footerTotal.innerHTML = `${totalFinal.toLocaleString()} FCFA`;
+                if (isWave && commande.total && commande.total !== totalFinal) {
+                    footerTotalOld.textContent = `${commande.total.toLocaleString()} FCFA`;
+                    footerTotalOld.style.display = 'inline';
+                } else {
+                    footerTotalOld.style.display = 'none';
+                }
 
                 const gpsHtml = (commande.latitude && commande.longitude) ?
                     `<a href="https://www.google.com/maps?q=${commande.latitude},${commande.longitude}" target="_blank" class="detail-gps-link">
@@ -689,21 +972,28 @@
 
                 const livraisonLabel = commande.option === 'chezmoi' ? '📍 Chez moi' : '✏️ Adresse';
 
-                // ✅ Afficher la méthode de paiement si disponible
                 const methodeHtml = commande.methode_paiement ? `
                     <div class="detail-row">
                         <span class="label">💳 Méthode</span>
                         <span class="value" style="color:var(--brand-dark);font-weight:600;">
-                            ${commande.methode_paiement === 'genius_pay' ? 'Genius Pay' : commande.methode_paiement === 'wave' ? 'Wave (manuel)' : commande.methode_paiement}
+                            ${commande.methode_paiement === 'genius_pay' ? 'Genius Pay' : commande.methode_paiement === 'wave' ? '🌊 Wave' : commande.methode_paiement}
                         </span>
                     </div>
                 ` : '';
 
-                // ✅ Afficher la référence Genius Pay si disponible
                 const geniusRefHtml = commande.genius_reference ? `
                     <div class="detail-row">
                         <span class="label">🔗 Réf. Genius</span>
                         <span class="value" style="font-size:12px;color:var(--ink-500);font-family:var(--font-mono);">${commande.genius_reference}</span>
+                    </div>
+                ` : '';
+
+                const waveAmountHtml = (isWave && commande.extra4) ? `
+                    <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
+                        <span style="font-size:13px;color:var(--ink-500);">🌊 Montant Wave</span>
+                        <span class="wave-amount">
+                            <span class="wave-value">${parseInt(commande.extra4).toLocaleString()} FCFA</span>
+                        </span>
                     </div>
                 ` : '';
 
@@ -726,7 +1016,7 @@
                         </div>
                         <div class="detail-row">
                             <span class="label">Statut</span>
-                            <span class="value"><span class="status-badge ${statusInfo.class}">${statusInfo.label}</span></span>
+                            <span class="value"><span class="status-badge ${statusInfo.class}">${statusInfo.icon} ${statusInfo.label}</span></span>
                         </div>
                         ${methodeHtml}
                         ${commande.cause_refus ? `
@@ -747,10 +1037,6 @@
                         <div class="detail-row">
                             <span class="label">Téléphone</span>
                             <span class="value" style="font-family:var(--font-mono);">${commande.telephone || '-'}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="label">Code secret</span>
-                            <span class="value" style="letter-spacing:2px;color:var(--ink-500);font-family:var(--font-mono);">${commande.code_login || '••••'}</span>
                         </div>
                     </div>
 
@@ -777,29 +1063,49 @@
                             <span class="label">GPS</span>
                             <span class="value">${gpsHtml}</span>
                         </div>
+                        <div class="detail-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+                            <span class="label">🚚 Frais de livraison</span>
+                            <span class="value" style="font-weight:700;color:var(--brand-dark);">${(commande.frais_livraison || 0).toLocaleString()} FCFA</span>
+                        </div>
                     </div>
 
                     <!-- CARTE 4 : PRODUITS -->
                     <div class="detail-card">
-                        <div class="section-title"><i class="fas fa-box"></i> Produits</div>
-                        <div class="detail-products">
-                            ${productsHtml}
-                        </div>
-                        <div class="detail-frais">
-                            <span>Sous-total</span>
-                            <span style="font-family:var(--font-mono);">${sousTotal.toLocaleString()} FCFA</span>
-                        </div>
-                        ${commande.frais_livraison ? `
-                            <div class="detail-frais">
-                                <span>Frais de livraison</span>
-                                <span style="font-family:var(--font-mono);">${commande.frais_livraison.toLocaleString()} FCFA</span>
+                        <div class="section-title"><i class="fas fa-box"></i> Produits <span style="font-weight:400;text-transform:none;color:var(--ink-400);">(${panier.length} articles)</span></div>
+                        ${productsHtml}
+                        <div style="border-top:2px solid var(--brand);padding-top:10px;margin-top:4px;">
+                            <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--ink-500);padding:2px 0;">
+                                <span>Sous-total</span>
+                                <span style="font-family:var(--font-mono);color:var(--ink-900);font-weight:600;">${sousTotal.toLocaleString()} FCFA</span>
                             </div>
-                        ` : ''}
-                        <div class="detail-total">
-                            <span>TOTAL</span>
-                            <span class="total-value">${total.toLocaleString()} FCFA</span>
+                            <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--ink-500);padding:2px 0;">
+                                <span>Frais de livraison</span>
+                                <span style="font-family:var(--font-mono);color:var(--ink-900);font-weight:600;">${(commande.frais_livraison || 0).toLocaleString()} FCFA</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:2px solid var(--brand);">
+                            <span style="font-size:18px;font-weight:700;color:var(--ink-900);">TOTAL</span>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                                <span style="font-size:22px;font-weight:800;color:var(--brand-dark);">${totalFinal.toLocaleString()} FCFA</span>
+                                ${waveAmountHtml}
+                            </div>
                         </div>
                     </div>
+
+                    <!-- CARTE 5 : HISTORIQUE DES STATUTS (si disponible) -->
+                    ${commande.status_history ? `
+                        <div class="detail-card">
+                            <div class="section-title"><i class="fas fa-clock"></i> Historique des statuts</div>
+                            <div style="display:flex;flex-direction:column;gap:4px;">
+                                ${commande.status_history.map(h => `
+                                    <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--surface-alt);">
+                                        <span style="color:var(--ink-500);">${h.icon || '📌'} ${h.label || h.status}</span>
+                                        <span style="color:var(--ink-400);font-size:12px;">${h.date}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 `;
             }
 
@@ -807,13 +1113,9 @@
             // INITIALISATION
             // ==========================================
 
-            // Connecter Socket.IO
             connectSocketIO();
-
-            // Démarrer la sync
             startSync();
 
-            // Nettoyer à la fermeture
             window.addEventListener('beforeunload', function() {
                 stopSync();
                 if (socket) socket.disconnect();
