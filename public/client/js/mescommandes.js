@@ -806,6 +806,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const refDisplay = c.reference || `NAT-${c.id}`;
 
+            // ✅ DÉTERMINER LE MONTANT À AFFICHER
+            const montantBrut = c.total || 0;
+            let montantAffiche = montantBrut;
+
+            // Si la commande est en vérification Wave et a extra4
+            if (c.status === 'verification_en_cours' && c.extra4) {
+                montantAffiche = parseInt(c.extra4);
+            }
+            // Si la commande est payée par Wave et a extra4
+            else if (c.methode_paiement === 'wave' && c.extra4) {
+                montantAffiche = parseInt(c.extra4);
+            }
+            // Si le statut est paiement_effectue et methode wave
+            else if (c.status === 'paiement_effectue' && c.methode_paiement === 'wave' && c.extra4) {
+                montantAffiche = parseInt(c.extra4);
+            }
+
             // Historique des statuts
             let statusTransitionHtml = '';
             if (history.old && history.old !== history.current) {
@@ -888,12 +905,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 buttonsHtml = `
                     <button class="btn btn-pay-genius ${hasPaymentLink ? 'link-generated' : ''}" 
                             data-id="${c.id}" 
-                            data-total="${c.total}" 
+                            data-total="${montantAffiche}" 
                             data-ref="${c.reference || c.id}"
                             ${isGenerating ? 'disabled' : ''}>
                         <i class="fas fa-credit-card"></i> ${hasPaymentLink ? 'Payer' : 'Générer le lien'}
                     </button>
-                    <button class="btn btn-wave" data-id="${c.id}" data-total="${c.total}" data-ref="${c.reference || c.id}">
+                    <button class="btn btn-wave" data-id="${c.id}" data-total="${montantAffiche}" data-ref="${c.reference || c.id}">
                         <img src="/client/images/wave-logo.png" alt="Wave" class="wave-icon" /> Wave
                     </button>
                 `;
@@ -909,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="id" style="font-size: 15px; font-weight: 700; color: #1a2a6c; margin-top: 4px;">#${c.id}</div>
                     <span class="ref" style="font-size: 11px; color: #666; display: block;">${refDisplay}</span>
                     <span class="date" style="font-size: 11px; color: #888; display: block;">${dateStr}</span>
-                    <div class="total" style="font-size: 24px; font-weight: 700; color: #1a5a33; margin: 6px 0 2px 0;">${(c.total || 0).toLocaleString()} FCFA</div>
+                    <div class="total" style="font-size: 24px; font-weight: 700; color: #1a5a33; margin: 6px 0 2px 0;">${montantAffiche.toLocaleString()} FCFA</div>
                     
                     <div class="status-transition" style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin: 4px 0 6px 0; flex-wrap: wrap;">
                         ${statusTransitionHtml}
@@ -923,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="actions" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); align-items: center; min-height: 44px;">
                         ${buttonsHtml}
                         ${showContinue && !isExpired && !isTerminal && !isVerificationInProgress ? `
-                            <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${c.total}" style="background: #e67e22; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
+                            <button class="btn btn-continue" data-id="${c.id}" data-ref="${c.reference || c.id}" data-total="${montantAffiche}" style="background: #e67e22; color: white; padding: 8px 20px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; height: 40px; min-height: 40px;">
                                 <i class="fas fa-arrow-right"></i> Continuer
                             </button>
                         ` : ''}
