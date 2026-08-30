@@ -13,7 +13,7 @@
 <body>
 
     <!-- ============================================================= -->
-    <!-- HEADER COMMUN                                                  -->
+    <!-- HEADER COMMUN (fixe en haut)                                  -->
     <!-- ============================================================= -->
     <header class="admin-header">
         <div class="header-left">
@@ -42,11 +42,11 @@
     </header>
 
     <!-- ============================================================= -->
-    <!-- PAGE CONTENT                                                   -->
+    <!-- CONTENU PRINCIPAL (hauteur fixe = 100vh - header)             -->
     <!-- ============================================================= -->
     <div class="page-container">
 
-        <!-- STATS BAR -->
+        <!-- STATS BAR (fixe) -->
         <div class="stats-bar">
             <div class="stats-item">
                 <span class="stats-icon">📦</span>
@@ -73,38 +73,46 @@
             </button>
         </div>
 
-        <!-- MAIN LAYOUT : SIDEBAR + CONTENT -->
+        <!-- MAIN LAYOUT (occupe l'espace restant) -->
         <div class="main-layout">
 
-            <!-- SIDEBAR (30%) -->
+            <!-- SIDEBAR (30% - contenu scrollable, header et footer fixes) -->
             <aside class="sidebar-updates" id="sidebarUpdates">
+                <!-- Header fixe -->
                 <div class="sidebar-header">
                     <span class="sidebar-title">
                         <i class="fas fa-code-branch"></i> Versions
                     </span>
                     <span class="sidebar-count" id="sidebarCount">0</span>
                 </div>
+
+                <!-- Liste scrollable -->
                 <div class="sidebar-list" id="sidebarList">
                     <div class="loading-state">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>Chargement...</p>
                     </div>
                 </div>
+
+                <!-- Footer fixe -->
                 <div class="sidebar-footer">
                     <span class="footer-info" id="footerInfo">Dernier déploiement : -</span>
                 </div>
             </aside>
 
-            <!-- MAIN CONTENT (70%) -->
+            <!-- MAIN CONTENT (70% - fixe) -->
             <main class="main-content" id="mainContent">
+
+                <!-- État vide (centré) -->
                 <div class="empty-state" id="emptyState">
                     <i class="fas fa-code-branch"></i>
                     <h3>Aucun déploiement sélectionné</h3>
                     <p>Cliquez sur une version dans la barre latérale pour voir les détails.</p>
                 </div>
 
+                <!-- Détail (contenu scrollable) -->
                 <div class="detail-content" id="detailContent" style="display:none;">
-                    <!-- HEADER DETAIL -->
+                    <!-- Header du détail (fixe) -->
                     <div class="detail-header">
                         <div class="detail-status">
                             <span class="status-badge" id="detailStatus">✅ Succès</span>
@@ -117,19 +125,20 @@
                         </div>
                     </div>
 
-                    <!-- MESSAGE -->
+                    <!-- Message (scrollable) -->
                     <div class="detail-message">
                         <div class="message-label"><i class="fas fa-comment"></i> Message du commit</div>
                         <div class="message-content" id="detailMessage">feat(server): ajout de la route /api/admin/deploys</div>
                     </div>
 
-                    <!-- LIEN -->
+                    <!-- Actions (fixe) -->
                     <div class="detail-actions">
                         <a href="#" target="_blank" class="btn-dashboard" id="detailLink">
                             <i class="fas fa-external-link-alt"></i> Voir sur Render Dashboard
                         </a>
                     </div>
                 </div>
+
             </main>
 
         </div>
