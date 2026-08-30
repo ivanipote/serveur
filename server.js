@@ -840,6 +840,8 @@ app.get('/api/admin/deploys', async (req, res) => {
             });
         }
 
+        console.log('🔍 Récupération des déploiements depuis Render...');
+
         const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
             headers: {
                 'Authorization': `Bearer ${RENDER_API_KEY}`
@@ -847,13 +849,17 @@ app.get('/api/admin/deploys', async (req, res) => {
         });
 
         if (!response.ok) {
-            throw new Error(`Erreur API Render: ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Erreur API Render:', response.status, errorText);
+            throw new Error(`Erreur API Render: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log(`✅ ${data.length} déploiements récupérés`);
 
-        // ✅ Les données sont dans data[0].deploy
+        // Formater les données
         const formattedDeploys = data.map(item => {
+            // ✅ Accès correct à la structure: data[0].deploy
             const deploy = item.deploy || item;
 
             // Normaliser le statut
@@ -872,7 +878,7 @@ app.get('/api/admin/deploys', async (req, res) => {
                 sha = deploy.id.substring(0, 7);
             }
 
-            // Récupérer le message
+            // Récupérer le message du commit
             let message = 'Déploiement';
             if (deploy.commit && deploy.commit.message) {
                 message = deploy.commit.message.split('\n')[0];
@@ -890,7 +896,7 @@ app.get('/api/admin/deploys', async (req, res) => {
             }
 
             // Normaliser le déclencheur
-            let trigger = 'Manual';
+            let trigger = 'Manuel';
             if (deploy.trigger) {
                 if (deploy.trigger === 'new_commit' || deploy.trigger === 'auto') trigger = 'Auto';
                 else if (deploy.trigger === 'deploy_hook') trigger = 'Hook';
@@ -899,11 +905,20 @@ app.get('/api/admin/deploys', async (req, res) => {
                 else trigger = deploy.trigger;
             }
 
-            // Formater la date
-            const date = deploy.createdAt ? new Date(deploy.createdAt) : null;
-            const dateStr = date && !isNaN(date) 
-                ? date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) 
-                : '-';
+            // ✅ Gestion robuste des dates
+            let dateStr = '-';
+            if (deploy.createdAt) {
+                try {
+                    const date = new Date(deploy.createdAt);
+                    // Vérifier si la date est valide
+                    if (!isNaN(date.getTime())) {
+                        dateStr = date.toLocaleDateString('fr-FR') + ' ' + 
+                                  date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch (e) {
+                    // Si la date échoue, on garde '-'
+                }
+            }
 
             return {
                 sha: sha,
