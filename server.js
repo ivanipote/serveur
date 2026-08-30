@@ -1513,6 +1513,14 @@ app.get('/results', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'results.html'));
 });
 
+// ========================================================
+// ROUTE : PAGE NOUVEAUTÉS & PROMOTIONS
+// ========================================================
+
+app.get('/new', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'new.html'));
+});
+
 app.get('/infoproduit', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'infoproduit.html'));
 });
