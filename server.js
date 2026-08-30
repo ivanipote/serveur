@@ -827,7 +827,7 @@ app.get('/api/admin/updates', async (req, res) => {
 app.get('/api/admin/deploys', async (req, res) => {
     try {
         const RENDER_API_KEY = process.env.RENDER_API_KEY;
-        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g'; // ✅ À remplacer par ton vrai service ID
+        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g';
 
         if (!RENDER_API_KEY) {
             return res.status(500).json({
@@ -836,6 +836,8 @@ app.get('/api/admin/deploys', async (req, res) => {
             });
         }
 
+        console.log('🔍 Récupération des déploiements depuis Render...');
+
         const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
             headers: {
                 'Authorization': `Bearer ${RENDER_API_KEY}`
@@ -843,24 +845,77 @@ app.get('/api/admin/deploys', async (req, res) => {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erreur API Render:', response.status, errorText);
             throw new Error(`Erreur API Render: ${response.status} ${response.statusText}`);
         }
 
         const deploys = await response.json();
+        console.log(`✅ ${deploys.length} déploiements récupérés`);
 
-        // Formater les données pour notre page
-        const formattedDeploys = deploys.map(deploy => ({
-            id: deploy.id,
-            sha: deploy.commit?.id || deploy.id?.substring(0, 7) || '-',
-            message: deploy.commit?.message || 'Déploiement',
-            status: deploy.status || 'unknown',
-            duration: deploy.finishedAt && deploy.createdAt 
-                ? Math.round((new Date(deploy.finishedAt) - new Date(deploy.createdAt)) / 1000) + 's'
-                : '-',
-            trigger: deploy.trigger?.type || 'Manual',
-            created_at: deploy.createdAt,
-            url: `https://dashboard.render.com/web/${SERVICE_ID}/deploys/${deploy.id}`
-        }));
+        // Afficher la structure du premier déploiement pour debug
+        if (deploys.length > 0) {
+            console.log('📦 Structure du premier déploiement:', JSON.stringify(deploys[0], null, 2));
+        }
+
+        // Formater les données
+        const formattedDeploys = deploys.map(deploy => {
+            // Déterminer le statut
+            let status = deploy.status || deploy.state || 'unknown';
+            // Normaliser les statuts
+            if (status === 'succeeded' || status === 'live') status = 'success';
+            if (status === 'failed' || status === 'build_failed') status = 'failed';
+            if (status === 'in_progress' || status === 'building') status = 'in_progress';
+
+            // Récupérer le SHA
+            let sha = '-';
+            if (deploy.commit && deploy.commit.id) {
+                sha = deploy.commit.id.substring(0, 7);
+            } else if (deploy.id) {
+                sha = deploy.id.substring(0, 7);
+            }
+
+            // Récupérer le message du commit
+            let message = 'Déploiement';
+            if (deploy.commit && deploy.commit.message) {
+                message = deploy.commit.message;
+            } else if (deploy.deploy_message) {
+                message = deploy.deploy_message;
+            }
+
+            // Calculer la durée
+            let duration = '-';
+            if (deploy.finishedAt && deploy.createdAt) {
+                const start = new Date(deploy.createdAt);
+                const end = new Date(deploy.finishedAt);
+                const diff = Math.round((end - start) / 1000);
+                if (diff > 0) {
+                    duration = diff + 's';
+                }
+            }
+
+            // Déterminer le déclencheur
+            let trigger = 'Manual';
+            if (deploy.trigger && deploy.trigger.type) {
+                trigger = deploy.trigger.type;
+            }
+
+            // Formater la date
+            const date = deploy.createdAt ? new Date(deploy.createdAt) : null;
+            const dateStr = date && !isNaN(date) ? date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+            return {
+                id: deploy.id || '-',
+                sha: sha,
+                message: message,
+                status: status,
+                duration: duration,
+                trigger: trigger,
+                created_at: dateStr,
+                raw_date: deploy.createdAt || null,
+                url: `https://dashboard.render.com/web/${SERVICE_ID}/deploys/${deploy.id || ''}`
+            };
+        });
 
         res.json({
             success: true,
@@ -875,7 +930,6 @@ app.get('/api/admin/deploys', async (req, res) => {
         });
     }
 });
-
 // ========================================================
 // ROUTES CLIENT - AUTH
 // ========================================================
