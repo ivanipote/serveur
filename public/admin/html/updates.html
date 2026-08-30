@@ -206,7 +206,7 @@
 
         .page-container {
             padding: 24px 30px 40px 30px;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             flex: 1;
             width: 100%;
@@ -235,7 +235,7 @@
             font-size: 22px;
         }
 
-        .page-header .btn-check-update {
+        .page-header .btn-refresh {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -251,19 +251,19 @@
             text-decoration: none;
         }
 
-        .page-header .btn-check-update:hover {
+        .page-header .btn-refresh:hover {
             background: var(--brand-dark);
             transform: scale(1.02);
             box-shadow: 0 8px 30px rgba(23,164,100,0.25);
         }
 
-        .page-header .btn-check-update:disabled {
+        .page-header .btn-refresh:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
-        .page-header .btn-check-update i.fa-spin {
+        .page-header .btn-refresh i.fa-spin {
             animation: spin 1s linear infinite;
         }
 
@@ -330,15 +330,19 @@
             font-size: 13px;
         }
 
+        .stats-card .stats-content .stat-item .stat-value.failed {
+            color: var(--red);
+        }
+
         .stats-card .stats-content .stat-item .stat-icon {
             font-size: 16px;
         }
 
         /* =============================================================
-           COMMIT LIST
+           DEPLOY LIST
            ============================================================= */
 
-        .commit-list {
+        .deploy-list {
             background: var(--surface);
             border-radius: 16px;
             border: 1px solid var(--border);
@@ -346,7 +350,7 @@
             box-shadow: 0 1px 2px rgba(16,20,31,0.05);
         }
 
-        .commit-list .list-header {
+        .deploy-list .list-header {
             padding: 14px 20px;
             background: var(--surface-alt);
             border-bottom: 1px solid var(--border);
@@ -357,7 +361,7 @@
             gap: 8px;
         }
 
-        .commit-list .list-header .list-title {
+        .deploy-list .list-header .list-title {
             font-size: 14px;
             font-weight: 700;
             color: var(--ink-700);
@@ -366,117 +370,157 @@
             gap: 8px;
         }
 
-        .commit-list .list-header .list-title i {
+        .deploy-list .list-header .list-title i {
             color: var(--brand);
         }
 
-        .commit-list .list-header .list-count {
+        .deploy-list .list-header .list-count {
             font-family: var(--font-mono);
             font-size: 13px;
             font-weight: 600;
             color: var(--ink-500);
         }
 
-        .commit-list .commit-item {
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--surface-alt);
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            transition: background 0.2s;
+        /* =============================================================
+           TABLEAU
+           ============================================================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0;
         }
 
-        .commit-list .commit-item:last-child {
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 700px;
+        }
+
+        .table-wrapper th {
+            background: var(--surface-alt);
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink-500);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .table-wrapper td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--surface-alt);
+            color: var(--ink-700);
+            vertical-align: middle;
+        }
+
+        .table-wrapper tr:last-child td {
             border-bottom: none;
         }
 
-        .commit-list .commit-item:hover {
+        .table-wrapper tr:hover td {
             background: var(--surface-alt);
         }
 
-        .commit-list .commit-item .commit-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--blue-tint);
-            color: var(--blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-            margin-top: 2px;
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid transparent;
         }
 
-        .commit-list .commit-item .commit-icon.new {
-            background: var(--brand-tint);
+        .status-badge.success {
+            background: var(--green-tint);
+            color: var(--brand-dark);
+            border-color: var(--brand-line);
+        }
+
+        .status-badge.failed {
+            background: var(--red-tint);
+            color: var(--red);
+            border-color: #F3C6C2;
+        }
+
+        .status-badge.pending {
+            background: var(--amber-tint);
+            color: var(--amber);
+            border-color: #F5DBAA;
+        }
+
+        .status-badge.in_progress {
+            background: var(--blue-tint);
+            color: var(--blue);
+            border-color: #C7D9FB;
+        }
+
+        .status-badge.canceled {
+            background: var(--slate-tint);
+            color: var(--slate);
+            border-color: #D8DBE4;
+        }
+
+        /* ===== SHA BADGE ===== */
+        .sha-badge {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            background: var(--surface-alt);
+            padding: 2px 10px;
+            border-radius: 12px;
+            color: var(--ink-500);
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+
+        /* ===== TRIGGER BADGE ===== */
+        .trigger-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .trigger-badge.auto {
+            background: var(--blue-tint);
+            color: var(--blue);
+        }
+
+        .trigger-badge.manual {
+            background: var(--amber-tint);
+            color: var(--amber);
+        }
+
+        .trigger-badge.deploy_hook {
+            background: var(--violet-tint);
+            color: var(--violet);
+        }
+
+        .trigger-badge.api {
+            background: var(--green-tint);
             color: var(--brand-dark);
         }
 
-        .commit-list .commit-item .commit-info {
-            flex: 1;
-            min-width: 0;
-        }
+        /* =============================================================
+           EMPTY
+           ============================================================= */
 
-        .commit-list .commit-item .commit-info .commit-message {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--ink-900);
-            line-height: 1.4;
-        }
-
-        .commit-list .commit-item .commit-info .commit-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 4px;
-            font-size: 12px;
-            color: var(--ink-400);
-        }
-
-        .commit-list .commit-item .commit-info .commit-meta .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .commit-list .commit-item .commit-info .commit-meta .meta-item i {
-            font-size: 11px;
-        }
-
-        .commit-list .commit-item .commit-info .commit-meta .meta-item .sha {
-            font-family: var(--font-mono);
-            background: var(--surface-alt);
-            padding: 1px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            color: var(--ink-500);
-        }
-
-        .commit-list .commit-item .commit-link {
-            color: var(--blue);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 2px;
-        }
-
-        .commit-list .commit-item .commit-link:hover {
-            text-decoration: underline;
-        }
-
-        .commit-list .empty-msg {
+        .empty-msg {
             text-align: center;
             padding: 40px 20px;
             color: var(--ink-400);
             font-size: 14px;
         }
 
-        .commit-list .empty-msg i {
+        .empty-msg i {
             font-size: 32px;
             display: block;
             margin-bottom: 8px;
@@ -565,7 +609,7 @@
                 gap: 12px;
             }
 
-            .page-header .btn-check-update {
+            .page-header .btn-refresh {
                 width: 100%;
                 justify-content: center;
             }
@@ -589,14 +633,14 @@
                 font-size: 14px;
             }
 
-            .commit-list .commit-item {
-                flex-wrap: wrap;
-                padding: 12px 16px;
+            .table-wrapper table {
+                min-width: 500px;
+                font-size: 12px;
             }
 
-            .commit-list .commit-item .commit-link {
-                width: 100%;
-                margin-left: 50px;
+            .table-wrapper th,
+            .table-wrapper td {
+                padding: 8px 12px;
             }
         }
 
@@ -647,29 +691,29 @@
                 font-size: 13px;
             }
 
-            .commit-list .commit-item {
-                padding: 10px 12px;
-                gap: 10px;
-            }
-
-            .commit-list .commit-item .commit-icon {
-                width: 30px;
-                height: 30px;
-                font-size: 12px;
-            }
-
-            .commit-list .commit-item .commit-info .commit-message {
-                font-size: 13px;
-            }
-
-            .commit-list .commit-item .commit-info .commit-meta {
+            .table-wrapper table {
+                min-width: 400px;
                 font-size: 11px;
-                gap: 8px;
             }
 
-            .commit-list .commit-item .commit-link {
-                font-size: 12px;
-                margin-left: 40px;
+            .table-wrapper th,
+            .table-wrapper td {
+                padding: 6px 8px;
+            }
+
+            .sha-badge {
+                font-size: 10px;
+                padding: 1px 6px;
+            }
+
+            .status-badge {
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+
+            .trigger-badge {
+                font-size: 10px;
+                padding: 1px 8px;
             }
 
             .toast-container {
@@ -743,50 +787,71 @@
 
         <div class="page-header">
             <div class="page-title">
-                <i class="fas fa-sync-alt"></i> Mises à jour
+                <i class="fas fa-rocket"></i> Déploiements
             </div>
-            <button class="btn-check-update" id="checkUpdateBtn">
-                <i class="fas fa-cloud-download-alt"></i> Vérifier les mises à jour
+            <button class="btn-refresh" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Rafraîchir
             </button>
         </div>
 
         <!-- ===== STATS ===== -->
         <div class="stats-card" id="statsCard">
             <div class="stats-title">
-                <i class="fas fa-info-circle"></i> État du système
+                <i class="fas fa-chart-bar"></i> Statistiques
             </div>
             <div class="stats-content">
                 <div class="stat-item">
                     <span class="stat-icon">📦</span>
-                    <span>Versions :</span>
+                    <span>Total :</span>
                     <span class="stat-value" id="statTotal">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-icon">🕐</span>
-                    <span>Dernière mise à jour :</span>
-                    <span class="stat-value latest" id="statLatest">-</span>
+                    <span class="stat-icon">✅</span>
+                    <span>Succès :</span>
+                    <span class="stat-value" id="statSuccess">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-icon">📌</span>
-                    <span>Dernier SHA :</span>
-                    <span class="stat-value latest" id="statSha">-</span>
+                    <span class="stat-icon">❌</span>
+                    <span>Échecs :</span>
+                    <span class="stat-value" id="statFailed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🕐</span>
+                    <span>Dernier déploiement :</span>
+                    <span class="stat-value latest" id="statLatest">-</span>
                 </div>
             </div>
         </div>
 
-        <!-- ===== LISTE DES COMMITS ===== -->
-        <div class="commit-list" id="commitList">
+        <!-- ===== TABLEAU DES DÉPLOIEMENTS ===== -->
+        <div class="deploy-list" id="deployList">
             <div class="list-header">
                 <span class="list-title">
-                    <i class="fas fa-code-branch"></i> Historique des mises à jour
+                    <i class="fas fa-history"></i> Historique des déploiements
                 </span>
-                <span class="list-count" id="listCount">0 commits</span>
+                <span class="list-count" id="listCount">0 déploiements</span>
             </div>
-            <div id="commitItems">
-                <div class="empty-msg">
-                    <i class="fas fa-inbox"></i>
-                    <p>Chargement de l'historique...</p>
-                </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Statut</th>
+                            <th>SHA</th>
+                            <th>Message</th>
+                            <th>Durée</th>
+                            <th>Déclencheur</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deployBody">
+                        <tr>
+                            <td colspan="6" class="empty-msg">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Chargement des déploiements...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -805,15 +870,15 @@
             // RÉFÉRENCES
             // ==========================================
 
-            const commitItems = document.getElementById('commitItems');
+            const deployBody = document.getElementById('deployBody');
             const listCount = document.getElementById('listCount');
             const statTotal = document.getElementById('statTotal');
+            const statSuccess = document.getElementById('statSuccess');
+            const statFailed = document.getElementById('statFailed');
             const statLatest = document.getElementById('statLatest');
-            const statSha = document.getElementById('statSha');
-            const checkBtn = document.getElementById('checkUpdateBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
 
-            let updates = [];
-            let isChecking = false;
+            let isRefreshing = false;
 
             // ==========================================
             // NOM ADMIN
@@ -868,81 +933,90 @@
             }
 
             // ==========================================
-            // CHARGER LES UPDATES
+            // CHARGER LES DÉPLOIEMENTS
             // ==========================================
 
-            async function loadUpdates() {
+            async function loadDeploys() {
                 try {
-                    const res = await fetch('/api/admin/updates');
+                    const res = await fetch('/api/admin/deploys');
                     const data = await res.json();
 
                     if (res.ok && data.success) {
-                        updates = data.updates || [];
-                        renderUpdates(updates);
+                        renderDeploys(data.deploys || []);
                     } else {
-                        updates = [];
-                        renderEmpty('Aucune mise à jour enregistrée.');
+                        renderEmpty(data.error || 'Erreur de chargement');
                     }
                 } catch (error) {
-                    console.error('Erreur chargement updates:', error);
-                    renderEmpty('Erreur de chargement.');
+                    console.error('Erreur chargement déploiements:', error);
+                    renderEmpty('Erreur de connexion');
                 }
             }
 
             // ==========================================
-            // AFFICHER LES UPDATES
+            // AFFICHER LES DÉPLOIEMENTS
             // ==========================================
 
-            function renderUpdates(updatesData) {
-                if (!updatesData || updatesData.length === 0) {
-                    renderEmpty('Aucune mise à jour enregistrée.');
+            function renderDeploys(deploys) {
+                if (!deploys || deploys.length === 0) {
+                    renderEmpty('Aucun déploiement trouvé.');
                     return;
                 }
 
-                // Trier par date (plus récent en premier)
-                const sorted = [...updatesData].sort((a, b) => {
-                    return new Date(b.created_at) - new Date(a.created_at);
-                });
+                // Calculer les stats
+                const total = deploys.length;
+                const successCount = deploys.filter(d => d.status === 'success' || d.status === 'live').length;
+                const failedCount = deploys.filter(d => d.status === 'failed' || d.status === 'build_failed').length;
 
-                listCount.textContent = sorted.length + ' commit' + (sorted.length > 1 ? 's' : '');
-                statTotal.textContent = sorted.length;
+                listCount.textContent = total + ' déploiement' + (total > 1 ? 's' : '');
+                statTotal.textContent = total;
+                statSuccess.textContent = successCount;
+                statFailed.textContent = failedCount;
 
-                // Dernière mise à jour
-                if (sorted.length > 0) {
-                    const latest = sorted[0];
+                // Dernier déploiement
+                if (deploys.length > 0) {
+                    const latest = deploys[0];
                     const date = new Date(latest.created_at);
                     statLatest.textContent = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    statSha.textContent = latest.commit_sha ? latest.commit_sha.substring(0, 7) : '-';
                 }
 
+                // Afficher le tableau
                 let html = '';
-                sorted.forEach((u, index) => {
-                    const isNew = index === 0;
-                    const date = new Date(u.created_at);
+                deploys.forEach(d => {
+                    const statusLabels = {
+                        'success': { label: '✅ Succès', class: 'success' },
+                        'live': { label: '✅ Live', class: 'success' },
+                        'failed': { label: '❌ Échec', class: 'failed' },
+                        'build_failed': { label: '❌ Build échoué', class: 'failed' },
+                        'pending': { label: '⏳ En attente', class: 'pending' },
+                        'in_progress': { label: '🔨 En cours', class: 'in_progress' },
+                        'canceled': { label: '⏹️ Annulé', class: 'canceled' }
+                    };
+                    const statusInfo = statusLabels[d.status] || { label: d.status, class: 'pending' };
+
+                    const triggerLabels = {
+                        'auto': { label: 'Auto', class: 'auto' },
+                        'manual': { label: 'Manuel', class: 'manual' },
+                        'deploy_hook': { label: 'Hook', class: 'deploy_hook' },
+                        'api': { label: 'API', class: 'api' }
+                    };
+                    const triggerInfo = triggerLabels[d.trigger] || { label: d.trigger || 'Manual', class: 'manual' };
+
+                    const date = new Date(d.created_at);
                     const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    const sha = u.commit_sha ? u.commit_sha.substring(0, 7) : '-';
-                    const message = u.commit_message || 'Mise à jour';
-                    const url = u.commit_url || '#';
 
                     html += `
-                        <div class="commit-item">
-                            <div class="commit-icon ${isNew ? 'new' : ''}">
-                                <i class="fas ${isNew ? 'fa-star' : 'fa-code-commit'}"></i>
-                            </div>
-                            <div class="commit-info">
-                                <div class="commit-message">${message}</div>
-                                <div class="commit-meta">
-                                    <span class="meta-item"><i class="fas fa-hashtag"></i> <span class="sha">${sha}</span></span>
-                                    <span class="meta-item"><i class="fas fa-calendar"></i> ${dateStr}</span>
-                                    ${u.author ? `<span class="meta-item"><i class="fas fa-user"></i> ${u.author}</span>` : ''}
-                                </div>
-                            </div>
-                            ${url !== '#' ? `<a href="${url}" target="_blank" class="commit-link"><i class="fas fa-external-link-alt"></i> Voir</a>` : ''}
-                        </div>
+                        <tr>
+                            <td><span class="status-badge ${statusInfo.class}">${statusInfo.label}</span></td>
+                            <td><span class="sha-badge">${d.sha}</span></td>
+                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.message}</td>
+                            <td>${d.duration}</td>
+                            <td><span class="trigger-badge ${triggerInfo.class}">${triggerInfo.label}</span></td>
+                            <td style="font-size:12px;color:var(--ink-400);">${dateStr}</td>
+                        </tr>
                     `;
                 });
 
-                commitItems.innerHTML = html;
+                deployBody.innerHTML = html;
             }
 
             // ==========================================
@@ -950,51 +1024,41 @@
             // ==========================================
 
             function renderEmpty(message) {
-                commitItems.innerHTML = `
-                    <div class="empty-msg">
-                        <i class="fas fa-inbox"></i>
-                        <p>${message}</p>
-                    </div>
+                deployBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-msg">
+                            <i class="fas fa-inbox"></i>
+                            <p>${message}</p>
+                        </td>
+                    </tr>
                 `;
-                listCount.textContent = '0 commit';
+                listCount.textContent = '0 déploiement';
                 statTotal.textContent = '0';
+                statSuccess.textContent = '0';
+                statFailed.textContent = '0';
                 statLatest.textContent = '-';
-                statSha.textContent = '-';
             }
 
             // ==========================================
-            // VÉRIFIER LES MISES À JOUR
+            // RAFRAÎCHIR
             // ==========================================
 
-            async function checkUpdates() {
-                if (isChecking) return;
-                isChecking = true;
-                checkBtn.disabled = true;
-                checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
+            async function refreshDeploys() {
+                if (isRefreshing) return;
+                isRefreshing = true;
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
 
                 try {
-                    const res = await fetch('/api/admin/check-updates');
-                    const data = await res.json();
-
-                    if (res.ok) {
-                        if (data.isNew) {
-                            showToast(`✅ Nouvelle mise à jour détectée : ${data.commit.message}`, 'success');
-                            // Recharger la liste
-                            await loadUpdates();
-                        } else {
-                            showToast('ℹ️ Aucune nouvelle mise à jour disponible.', 'info');
-                        }
-                    } else {
-                        showToast('❌ ' + (data.error || 'Erreur lors de la vérification.'), 'error');
-                    }
+                    await loadDeploys();
+                    showToast('✅ Déploiements actualisés', 'success');
                 } catch (error) {
-                    console.error('Erreur check-updates:', error);
-                    showToast('❌ Erreur de connexion au serveur.', 'error');
+                    showToast('❌ Erreur lors du rafraîchissement', 'error');
                 }
 
-                isChecking = false;
-                checkBtn.disabled = false;
-                checkBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Vérifier les mises à jour';
+                isRefreshing = false;
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Rafraîchir';
             }
 
             // ==========================================
@@ -1045,7 +1109,7 @@
             // ÉVÉNEMENTS
             // ==========================================
 
-            checkBtn.addEventListener('click', checkUpdates);
+            refreshBtn.addEventListener('click', refreshDeploys);
 
             // ==========================================
             // INITIALISATION
@@ -1056,12 +1120,12 @@
                 updateBadges();
             }
 
-            loadUpdates();
+            loadDeploys();
             connectSocketIO();
 
             // Rafraîchir toutes les 60 secondes
             setInterval(() => {
-                loadUpdates();
+                loadDeploys();
             }, 60000);
 
             console.log('✅ updates.html initialisé');
