@@ -216,6 +216,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const clientName = r.client_name || r.user_name || 'Client inconnu';
 
+        // ✅ Récupérer le montant Wave depuis extra4
+        const montantWave = r.extra4 ? parseInt(r.extra4) : (r.total || 0);
+        const montantDisplay = montantWave.toLocaleString() + ' FCFA';
+
         return `
             <div class="request-item ${isDone ? 'done' : ''} ${currentRequestId === r.id ? 'active' : ''}" data-id="${r.id}">
                 <span class="status-dot ${r.status}"></span>
@@ -223,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="name">${clientName}</div>
                     <span class="ref">#${r.commande_id} · ${r.reference || '-'}</span>
                     <div class="phone">📱 ${r.telephone || '-'}</div>
+                    <div class="phone" style="font-weight:600;color:#1a2a6c;">💰 ${montantDisplay}</div>
                 </div>
                 <div class="item-right">
                     <span class="status-badge ${r.status}">${statusInfo.label}</span>
@@ -278,13 +283,14 @@ document.addEventListener('DOMContentLoaded', function() {
         pCode.textContent = data.code_login || '••••';
         pCode.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.code_login || '';
 
-        // 2. Vérification Info
+        // 2. Vérification Info (avec montant Wave)
         vWaveId.textContent = data.wave_id || '-';
         vWaveId.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.wave_id || '';
 
-        const montant = data.total || data.montant || 0;
-        vMontant.textContent = montant ? montant.toLocaleString() + ' FCFA' : '-';
-        vMontant.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = montant ? montant.toString() : '';
+        // ✅ AFFICHER LE MONTANT WAVE DEPUIS extra4
+        const montantWave = data.extra4 ? parseInt(data.extra4) : (data.total || 0);
+        vMontant.textContent = montantWave ? montantWave.toLocaleString() + ' FCFA' : '-';
+        vMontant.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = montantWave ? montantWave.toString() : '';
 
         const date = new Date(data.created_at);
         const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -296,8 +302,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 3. Statut
         const statusLabels = {
-            'pending': { icon: '⏳', text: 'En attente de vérification', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
-            'success': { icon: '✅', text: 'Paiement vérifié avec succès', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
+            'pending': { icon: '⏳', text: 'En attente de vérification', sub: `Demande #${data.id} · Commande #${data.commande_id} · Montant: ${montantWave.toLocaleString()} FCFA` },
+            'success': { icon: '✅', text: 'Paiement vérifié avec succès', sub: `Demande #${data.id} · Commande #${data.commande_id} · Montant: ${montantWave.toLocaleString()} FCFA` },
             'refused': { icon: '❌', text: 'Paiement refusé', sub: `Demande #${data.id} · Commande #${data.commande_id}` }
         };
 
@@ -365,15 +371,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
 
-                recentOrdersList.innerHTML = recent.map(c => `
-                    <tr>
-                        <td>#${c.id}</td>
-                        <td>${c.nom}</td>
-                        <td>${(c.total || 0).toLocaleString()} FCFA</td>
-                        <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
-                        <td>${new Date(c.created_at).toLocaleDateString('fr-FR', dateOptions)}</td>
-                    </tr>
-                `).join('');
+                recentOrdersList.innerHTML = recent.map(c => {
+                    // ✅ Vérifier si la commande a été payée par Wave
+                    const isWave = c.methode_paiement === 'wave';
+                    // ✅ Récupérer le montant Wave depuis extra4 si disponible
+                    const montantDisplay = (isWave && c.extra4) ? parseInt(c.extra4) : (c.total || 0);
+
+                    return `
+                        <tr>
+                            <td>#${c.id}</td>
+                            <td>${c.nom}</td>
+                            <td>${montantDisplay.toLocaleString()} FCFA ${isWave ? '🌊' : ''}</td>
+                            <td><span class="status-badge ${c.status}">${labels[c.status] || c.status}</span></td>
+                            <td>${new Date(c.created_at).toLocaleDateString('fr-FR', dateOptions)}</td>
+                        </tr>
+                    `;
+                }).join('');
             } else {
                 recentOrdersList.innerHTML = `<tr><td colspan="5" class="empty-msg">Aucune commande récente</td></tr>`;
                 recentCount.textContent = '0';
@@ -391,7 +404,9 @@ document.addEventListener('DOMContentLoaded', function() {
         let total = 0;
         requests.forEach(r => {
             if (r.status === 'success') {
-                total += (r.total || r.montant || 0);
+                // ✅ Utiliser extra4 pour le montant Wave
+                const montant = r.extra4 ? parseInt(r.extra4) : (r.total || 0);
+                total += montant;
             }
         });
         soldeValue.textContent = total.toLocaleString() + ' FCFA';
@@ -461,7 +476,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (!confirm(`Confirmer le paiement Wave pour la commande #${data.commande_id} ?`)) return;
+        // ✅ Récupérer le montant Wave depuis extra4
+        const montantWave = data.extra4 ? parseInt(data.extra4) : (data.total || 0);
+
+        if (!confirm(`Confirmer le paiement Wave pour la commande #${data.commande_id} ? Montant: ${montantWave.toLocaleString()} FCFA`)) return;
 
         isProcessing = true;
         this.disabled = true;
@@ -489,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayDetail(data.id);
                 updateSolde();
                 loadStats();
-                showToast(`✅ Paiement confirmé pour la commande #${data.commande_id}`, 'success');
+                showToast(`✅ Paiement Wave confirmé ! Montant: ${montantWave.toLocaleString()} FCFA`, 'success');
             } else {
                 showToast('❌ ' + (result.error || 'Erreur'), 'error');
             }

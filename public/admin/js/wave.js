@@ -201,6 +201,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const clientName = r.client_name || r.user_name || 'Client inconnu';
 
+        // ✅ CORRECTION : Utiliser extra4 comme montant Wave
+        const montantWave = r.extra4 ? parseInt(r.extra4) : (r.total || 0);
+        const montantDisplay = montantWave.toLocaleString() + ' FCFA';
+
         return `
             <div class="request-item ${isDone ? 'done' : ''} ${currentRequestId === r.id ? 'active' : ''}" data-id="${r.id}">
                 <span class="status-dot ${r.status}"></span>
@@ -208,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="name">${clientName}</div>
                     <span class="ref">#${r.commande_id} · ${r.reference || '-'}</span>
                     <div class="phone">📱 ${r.telephone || '-'}</div>
+                    <div class="phone" style="font-weight:600;color:#1a2a6c;">💰 ${montantDisplay}</div>
                 </div>
                 <div class="item-right">
                     <span class="status-badge ${r.status}">${statusInfo.label}</span>
@@ -228,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER LE DÉTAIL
+    // AFFICHER LE DÉTAIL (avec montant Wave)
     // ==========================================
 
     function displayDetail(requestId) {
@@ -256,13 +261,14 @@ document.addEventListener('DOMContentLoaded', function() {
         pCode.textContent = data.code_login || '••••';
         pCode.closest('.profile-item').querySelector('.copy-btn-mini').dataset.copy = data.code_login || '';
 
-        // 2. Vérification Info
+        // 2. Vérification Info (avec montant Wave)
         vWaveId.textContent = data.wave_id || '-';
         vWaveId.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.wave_id || '';
 
-        const montant = data.total || data.montant || 0;
-        vMontant.textContent = montant ? montant.toLocaleString() + ' FCFA' : '-';
-        vMontant.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = montant ? montant.toString() : '';
+        // ✅ CORRECTION : Afficher extra4 comme montant Wave
+        const montantWave = data.extra4 ? parseInt(data.extra4) : (data.total || 0);
+        vMontant.textContent = montantWave ? montantWave.toLocaleString() + ' FCFA' : '-';
+        vMontant.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = montantWave ? montantWave.toString() : '';
 
         const date = new Date(data.created_at);
         const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -272,10 +278,10 @@ document.addEventListener('DOMContentLoaded', function() {
         vRef.textContent = data.reference || '-';
         vRef.closest('.verif-item').querySelector('.copy-btn-mini').dataset.copy = data.reference || '';
 
-        // 3. Statut
+        // 3. Statut (avec montant Wave dans le subtitle)
         const statusLabels = {
-            'pending': { icon: '⏳', text: 'En attente de vérification', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
-            'success': { icon: '✅', text: 'Paiement vérifié avec succès', sub: `Demande #${data.id} · Commande #${data.commande_id}` },
+            'pending': { icon: '⏳', text: 'En attente de vérification', sub: `Demande #${data.id} · Commande #${data.commande_id} · Montant: ${montantWave.toLocaleString()} FCFA` },
+            'success': { icon: '✅', text: 'Paiement vérifié avec succès', sub: `Demande #${data.id} · Commande #${data.commande_id} · Montant: ${montantWave.toLocaleString()} FCFA` },
             'refused': { icon: '❌', text: 'Paiement refusé', sub: `Demande #${data.id} · Commande #${data.commande_id}` }
         };
 
@@ -291,18 +297,15 @@ document.addEventListener('DOMContentLoaded', function() {
         refuseBtn.disabled = !isPending || isProcessing;
 
         // ✅ GESTION DU BOUTON REMBOURSEMENT
-        // Vérifier si un remboursement a déjà été effectué (extra3 === 'remboursement')
         const isAlreadyRefunded = data.extra3 === 'remboursement';
 
         if (isSuccess && !isAlreadyRefunded) {
-            // ✅ Paiement validé ET pas encore remboursé → bouton actif
             remboursementBtn.style.display = 'inline-flex';
             remboursementBtn.disabled = false;
             remboursementBtn.innerHTML = '<i class="fas fa-undo-alt"></i> Remboursement';
             remboursementBtn.style.opacity = '1';
             remboursementBtn.title = 'Rembourser ce paiement';
         } else if (isSuccess && isAlreadyRefunded) {
-            // ✅ Paiement validé ET déjà remboursé → bouton désactivé
             remboursementBtn.style.display = 'inline-flex';
             remboursementBtn.disabled = true;
             remboursementBtn.innerHTML = '✅ Remboursement effectué';
@@ -310,11 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
             remboursementBtn.style.cursor = 'not-allowed';
             remboursementBtn.title = 'Ce paiement a déjà été remboursé';
         } else {
-            // ✅ Ni success → cacher le bouton
             remboursementBtn.style.display = 'none';
         }
 
-        // 4. Historique
+        // 4. Historique (avec extra1-4)
         renderHistorique(data);
 
         document.querySelectorAll('.request-item').forEach(item => {
@@ -326,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER L'HISTORIQUE
+    // AFFICHER L'HISTORIQUE (extra1-4)
     // ==========================================
 
     function renderHistorique(data) {
@@ -367,12 +369,15 @@ document.addEventListener('DOMContentLoaded', function() {
             actionLabel = statusInfo.label;
         }
 
+        // ✅ Afficher le montant Wave dans l'historique
+        const montantDisplay = montantValide ? montantValide.toLocaleString() + ' FCFA' : '';
+
         html += `
             <div class="historique-item">
                 <div class="h-info">
                     <span class="h-status ${data.status}">${actionLabel}</span>
                     <span class="h-badge ${data.status}">${data.status === 'success' ? '✅ Confirmé' : data.status === 'refused' ? '❌ Refusé' : isRemboursement ? '🔄 Remboursé' : '⏳ En attente'}</span>
-                    ${montantValide > 0 ? `<span class="h-montant">${montantValide.toLocaleString()} FCFA</span>` : ''}
+                    ${montantDisplay ? `<span class="h-montant">${montantDisplay}</span>` : ''}
                     ${data.cause ? `<span style="font-size:12px;color:var(--ink-500);">· ${data.cause}</span>` : ''}
                     ${isRemboursement ? `<span style="font-size:12px;color:var(--red);">· Motif: ${data.extra4 || 'Non précisé'}</span>` : ''}
                 </div>
@@ -443,7 +448,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = requests.find(r => r.id === currentRequestId);
         if (!data) return;
 
-        if (!confirm(`Confirmer le paiement Wave pour la commande #${data.commande_id} ?`)) return;
+        // ✅ Utiliser extra4 comme montant Wave
+        const montantWave = data.extra4 ? parseInt(data.extra4) : (data.total || 0);
+
+        if (!confirm(`Confirmer le paiement Wave pour la commande #${data.commande_id} ? Montant: ${montantWave.toLocaleString()} FCFA`)) return;
 
         isProcessing = true;
         this.disabled = true;
@@ -470,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayDetail(data.id);
                 loadSolde();
                 if (window.updateBadges) window.updateBadges();
-                alert('✅ Paiement confirmé avec succès !');
+                alert(`✅ Paiement Wave confirmé ! Montant: ${montantWave.toLocaleString()} FCFA`);
             } else {
                 alert('❌ ' + (result.error || 'Erreur'));
             }
@@ -585,14 +593,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = requests.find(r => r.id === currentRequestId);
         if (!data) return;
 
-        // ✅ Vérifier si déjà remboursé
         if (data.extra3 === 'remboursement') {
             alert('⚠️ Cette demande a déjà été remboursée.');
             remboursementOverlay.classList.remove('active');
             return;
         }
 
-        if (!confirm(`Confirmer le remboursement pour la commande #${data.commande_id} ?`)) return;
+        // ✅ Utiliser extra4 comme montant Wave
+        const montantWave = data.extra4 ? parseInt(data.extra4) : (data.total || 0);
+
+        if (!confirm(`Confirmer le remboursement pour la commande #${data.commande_id} ? Montant: ${montantWave.toLocaleString()} FCFA`)) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
@@ -611,7 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await res.json();
 
             if (result.success) {
-                // ✅ Mettre à jour localement
                 data.extra1 = new Date().toISOString();
                 data.extra2 = `Remboursement pour ${data.client_name || data.user_name || 'Client'}`;
                 data.extra3 = 'remboursement';
@@ -623,7 +632,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 remboursementOverlay.classList.remove('active');
                 remboursementCause.value = '';
                 if (window.updateBadges) window.updateBadges();
-                alert(`✅ Remboursement effectué avec succès !\nMontant: ${(data.total || 0).toLocaleString()} FCFA`);
+                alert(`✅ Remboursement effectué avec succès !\nMontant: ${montantWave.toLocaleString()} FCFA`);
             } else {
                 alert('❌ ' + (result.error || 'Erreur lors du remboursement'));
             }
