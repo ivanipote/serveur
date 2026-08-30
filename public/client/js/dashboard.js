@@ -467,6 +467,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         renderDynamicCard();
+
+        // ✅ Mise à jour du lien vers /new (au lieu de /new.html)
+        if (newPromoCard) {
+            const promoContent = newPromoCard.querySelector('.new-promo-content');
+            if (promoContent) {
+                promoContent.onclick = function() {
+                    window.location.href = '/new';
+                };
+            }
+        }
+
         if (products.length > 0) {
             updateCarousel(0);
             startAutoScroll();
