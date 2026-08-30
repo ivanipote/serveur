@@ -819,6 +819,63 @@ app.get('/api/admin/updates', async (req, res) => {
         });
     }
 });
+
+// ========================================================
+// ROUTE : RÉCUPÉRER L'HISTORIQUE DES DÉPLOIEMENTS (RENDER)
+// ========================================================
+
+app.get('/api/admin/deploys', async (req, res) => {
+    try {
+        const RENDER_API_KEY = process.env.RENDER_API_KEY;
+        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g'; // ✅ À remplacer par ton vrai service ID
+
+        if (!RENDER_API_KEY) {
+            return res.status(500).json({
+                success: false,
+                error: 'RENDER_API_KEY non configurée'
+            });
+        }
+
+        const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
+            headers: {
+                'Authorization': `Bearer ${RENDER_API_KEY}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur API Render: ${response.status} ${response.statusText}`);
+        }
+
+        const deploys = await response.json();
+
+        // Formater les données pour notre page
+        const formattedDeploys = deploys.map(deploy => ({
+            id: deploy.id,
+            sha: deploy.commit?.id || deploy.id?.substring(0, 7) || '-',
+            message: deploy.commit?.message || 'Déploiement',
+            status: deploy.status || 'unknown',
+            duration: deploy.finishedAt && deploy.createdAt 
+                ? Math.round((new Date(deploy.finishedAt) - new Date(deploy.createdAt)) / 1000) + 's'
+                : '-',
+            trigger: deploy.trigger?.type || 'Manual',
+            created_at: deploy.createdAt,
+            url: `https://dashboard.render.com/web/${SERVICE_ID}/deploys/${deploy.id}`
+        }));
+
+        res.json({
+            success: true,
+            deploys: formattedDeploys
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération déploiements:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // ========================================================
 // ROUTES CLIENT - AUTH
 // ========================================================
