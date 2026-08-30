@@ -799,6 +799,27 @@ app.get('/api/admin/check-updates', async (req, res) => {
 });
 
 // ========================================================
+// ROUTE : RÉCUPÉRER L'HISTORIQUE DES MISES À JOUR
+// ========================================================
+
+app.get('/api/admin/updates', async (req, res) => {
+    try {
+        const rows = await db.all(
+            `SELECT * FROM updates ORDER BY created_at DESC LIMIT 50`
+        );
+        res.json({
+            success: true,
+            updates: rows
+        });
+    } catch (err) {
+        console.error('❌ Erreur récupération updates:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+});
+// ========================================================
 // ROUTES CLIENT - AUTH
 // ========================================================
 
