@@ -170,17 +170,38 @@ function isAuthenticated(req, res, next) {
 }
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION
+// ✅ FONCTION : CRÉER UNE NOTIFICATION (AVEC SOCKET.IO)
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
     try {
-        await db.query(
+        const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
             [userId, commandeId, type, title, content, false]
         );
+
+        const notificationId = result.rows[0].id;
         console.log(`✅ Notification créée pour user ${userId}: ${title}`);
+
+        // ✅ Émettre en temps réel vers le client via Socket.IO
+        if (global.io) {
+            const notificationData = {
+                id: notificationId,
+                user_id: userId,
+                commande_id: commandeId,
+                type: type,
+                title: title,
+                content: content,
+                is_read: false,
+                created_at: new Date().toISOString()
+            };
+
+            // Envoyer au client spécifique
+            global.io.to(`user_${userId}`).emit('notification', notificationData);
+            console.log(`📨 Notification envoyée en temps réel à l'utilisateur ${userId}`);
+        }
+
         return true;
     } catch (err) {
         console.error('❌ Erreur création notification:', err);
@@ -321,7 +342,6 @@ app.post('/api/admin/products', upload.fields([
             adminId = admin.id;
         }
 
-        // ✅ Construction de la requête avec tous les champs
         const result = await db.query(
             `INSERT INTO products (
                 admin_id, name, price, quantity, image1, image2, description,
@@ -553,6 +573,7 @@ app.get('/api/admin/commandes', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 app.put('/api/admin/commande/status', async (req, res) => {
     const { commandeId, status, causeRefus } = req.body;
 
@@ -571,12 +592,12 @@ app.put('/api/admin/commande/status', async (req, res) => {
 
     try {
         const commande = await db.get(
-    `SELECT c.user_id, c.nom, w.extra4 
-     FROM commandes c
-     LEFT JOIN wave_verifications w ON w.commande_id = c.id AND w.status = 'pending'
-     WHERE c.id = $1`,
-    [commandeId]
-);
+            `SELECT c.user_id, c.nom, w.extra4 
+             FROM commandes c
+             LEFT JOIN wave_verifications w ON w.commande_id = c.id AND w.status = 'pending'
+             WHERE c.id = $1`,
+            [commandeId]
+        );
 
         if (!commande) {
             return res.status(404).json({ error: 'Commande non trouvée.' });
@@ -824,10 +845,6 @@ app.get('/api/admin/updates', async (req, res) => {
 // ROUTE : RÉCUPÉRER L'HISTORIQUE DES DÉPLOIEMENTS (RENDER)
 // ========================================================
 
-// ========================================================
-// ROUTE : RÉCUPÉRER L'HISTORIQUE DES DÉPLOIEMENTS (RENDER)
-// ========================================================
-
 app.get('/api/admin/deploys', async (req, res) => {
     try {
         const RENDER_API_KEY = process.env.RENDER_API_KEY;
@@ -857,12 +874,9 @@ app.get('/api/admin/deploys', async (req, res) => {
         const data = await response.json();
         console.log(`✅ ${data.length} déploiements récupérés`);
 
-        // Formater les données
         const formattedDeploys = data.map(item => {
-            // ✅ Accès correct à la structure: data[0].deploy
             const deploy = item.deploy || item;
 
-            // Normaliser le statut
             let status = deploy.status || 'unknown';
             if (status === 'live' || status === 'succeeded') status = 'success';
             if (status === 'failed' || status === 'build_failed') status = 'failed';
@@ -870,7 +884,6 @@ app.get('/api/admin/deploys', async (req, res) => {
             if (status === 'deactivated' || status === 'canceled') status = 'canceled';
             if (status === 'pending') status = 'pending';
 
-            // Récupérer le SHA
             let sha = '-';
             if (deploy.commit && deploy.commit.id) {
                 sha = deploy.commit.id.substring(0, 7);
@@ -878,13 +891,11 @@ app.get('/api/admin/deploys', async (req, res) => {
                 sha = deploy.id.substring(0, 7);
             }
 
-            // Récupérer le message du commit
             let message = 'Déploiement';
             if (deploy.commit && deploy.commit.message) {
                 message = deploy.commit.message.split('\n')[0];
             }
 
-            // Calculer la durée
             let duration = '-';
             if (deploy.finishedAt && deploy.createdAt) {
                 const start = new Date(deploy.createdAt);
@@ -895,7 +906,6 @@ app.get('/api/admin/deploys', async (req, res) => {
                 }
             }
 
-            // Normaliser le déclencheur
             let trigger = 'Manuel';
             if (deploy.trigger) {
                 if (deploy.trigger === 'new_commit' || deploy.trigger === 'auto') trigger = 'Auto';
@@ -905,19 +915,15 @@ app.get('/api/admin/deploys', async (req, res) => {
                 else trigger = deploy.trigger;
             }
 
-            // ✅ Gestion robuste des dates
             let dateStr = '-';
             if (deploy.createdAt) {
                 try {
                     const date = new Date(deploy.createdAt);
-                    // Vérifier si la date est valide
                     if (!isNaN(date.getTime())) {
                         dateStr = date.toLocaleDateString('fr-FR') + ' ' + 
                                   date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
                     }
-                } catch (e) {
-                    // Si la date échoue, on garde '-'
-                }
+                } catch (e) {}
             }
 
             return {
@@ -944,6 +950,7 @@ app.get('/api/admin/deploys', async (req, res) => {
         });
     }
 });
+
 // ========================================================
 // ROUTE : TEST API RENDER (DEBUG)
 // ========================================================
@@ -971,7 +978,7 @@ app.get('/api/admin/test-render', async (req, res) => {
         res.json({
             success: true,
             count: data.length || 0,
-            raw_data: data.slice(0, 3) // Envoyer seulement les 3 premiers pour debug
+            raw_data: data.slice(0, 3)
         });
 
     } catch (error) {
@@ -982,6 +989,7 @@ app.get('/api/admin/test-render', async (req, res) => {
         });
     }
 });
+
 // ========================================================
 // ROUTES CLIENT - AUTH
 // ========================================================
@@ -1212,7 +1220,6 @@ app.post('/api/panier/add', isAuthenticated, async (req, res) => {
     }
 
     try {
-        // ✅ Récupérer le produit avec ses prix
         const product = await db.get(
             'SELECT id, price, promo_price FROM products WHERE id = $1',
             [productId]
@@ -1222,7 +1229,6 @@ app.post('/api/panier/add', isAuthenticated, async (req, res) => {
             return res.status(404).json({ error: 'Produit non trouvé.' });
         }
 
-        // ✅ Déterminer le prix à utiliser (promo si disponible)
         const priceToUse = product.promo_price && product.promo_price > 0 
             ? product.promo_price 
             : product.price;
@@ -1239,7 +1245,6 @@ app.post('/api/panier/add', isAuthenticated, async (req, res) => {
             );
             res.json({ success: true, message: 'Quantité mise à jour' });
         } else {
-            // ✅ Insérer avec le bon prix
             await db.query(
                 `INSERT INTO panier (user_id, product_id, quantity) 
                  VALUES ($1, $2, $3)`,
@@ -1266,7 +1271,6 @@ app.get('/api/panier', isAuthenticated, async (req, res) => {
             [userId]
         );
 
-        // ✅ Ajouter le prix effectif (promo si disponible)
         const panierWithPrice = rows.map(item => ({
             ...item,
             effective_price: item.promo_price && item.promo_price > 0 ? item.promo_price : item.price
@@ -1429,6 +1433,7 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 app.get('/api/commandes', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
@@ -1450,8 +1455,9 @@ app.get('/api/commandes', isAuthenticated, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 // ========================================================
-// ROUTES NOTIFICATIONS
+// ROUTES NOTIFICATIONS (avec Socket.IO)
 // ========================================================
 
 app.get('/api/notifications', isAuthenticated, async (req, res) => {
@@ -1461,7 +1467,7 @@ app.get('/api/notifications', isAuthenticated, async (req, res) => {
         const rows = await db.all(
             `SELECT * FROM messages 
              WHERE user_id = $1 
-             ORDER BY is_read ASC, created_at DESC`,
+             ORDER BY created_at DESC`,
             [userId]
         );
         const unreadCount = rows.filter(r => !r.is_read).length;
@@ -1556,11 +1562,7 @@ app.post('/api/notifications/create', isAuthenticated, async (req, res) => {
     }
 
     try {
-        await db.query(
-            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [userId, commandeId, type, title, content, false]
-        );
+        await createNotification(userId, commandeId, type, title, content);
         res.json({ success: true, message: 'Notification créée' });
     } catch (err) {
         console.error('❌ Erreur:', err);
@@ -1697,10 +1699,6 @@ app.get('/results', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'results.html'));
 });
 
-// ========================================================
-// ROUTE : PAGE NOUVEAUTÉS & PROMOTIONS
-// ========================================================
-
 app.get('/new', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'new.html'));
 });
@@ -1741,9 +1739,6 @@ app.get('/paywithwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
 
-// ========================================================
-// ROUTES PAGES (ADMIN)
-// ========================================================
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
