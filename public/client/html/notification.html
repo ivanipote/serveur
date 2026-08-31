@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Notifications | ComPlus</title>
+    <title>🔔 Notifications | ComPlus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/client/css/notification.css">
 </head>
@@ -16,97 +16,26 @@
         <button class="back-btn" onclick="window.location.href='/dashboard'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <span class="notif-title">🔔 Notifications</span>
+        <span class="notif-title">
+            <i class="fas fa-bell"></i> Notifications
+        </span>
         <span class="badge-count" id="notifBadge">0</span>
-        <button class="btn-sync" id="syncBtn" title="Synchronisation">
+        <button class="btn-sync active" id="syncBtn" title="Synchronisation active">
             <i class="fas fa-sync-alt"></i>
-            <span class="sync-status" id="syncStatus">●</span>
-        </button>
-        <button class="btn-read-all" id="readAllBtn">
-            <i class="fas fa-check-double"></i> Tout lu
+            <span class="sync-status active" id="syncStatus">●</span>
         </button>
     </header>
-
-    <!-- ============================================================= -->
-    <!-- FILTRES                                                        -->
-    <!-- ============================================================= -->
-    <div class="filter-bar-wrapper">
-        <div class="filter-bar">
-            <button class="filter-btn active" data-filter="all">📋 Toutes</button>
-            <button class="filter-btn" data-filter="commande">📦 Commandes</button>
-            <button class="filter-btn" data-filter="paiement">💳 Paiements</button>
-            <button class="filter-btn" data-filter="admin">📢 Admin</button>
-            <button class="filter-btn" data-filter="systeme">⚙️ Système</button>
-        </div>
-        <div class="filter-read-toggle">
-            <label class="toggle-label">
-                <input type="checkbox" id="showReadToggle" />
-                <span class="toggle-slider"></span>
-                <span class="toggle-text">Afficher les lues</span>
-            </label>
-        </div>
-    </div>
 
     <!-- ============================================================= -->
     <!-- CONTENU                                                        -->
     <!-- ============================================================= -->
     <main class="notif-main" id="notifMain">
-
-        <!-- SKELETON -->
-        <div id="skeletonLoader" class="skeleton-loader">
-            <div class="skeleton-item">
-                <div class="skeleton-avatar"></div>
-                <div class="skeleton-body">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line short"></div>
-                </div>
-            </div>
-            <div class="skeleton-item">
-                <div class="skeleton-avatar"></div>
-                <div class="skeleton-body">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line short"></div>
-                </div>
-            </div>
-            <div class="skeleton-item">
-                <div class="skeleton-avatar"></div>
-                <div class="skeleton-body">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line short"></div>
-                </div>
-            </div>
+        <!-- Les notifications seront injectées ici par JS -->
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-bell-slash"></i>
+            <h3>Aucune notification</h3>
         </div>
-
-        <!-- LISTE DES NOTIFICATIONS -->
-        <div id="notifList"></div>
-
     </main>
-
-    <!-- ============================================================= -->
-    <!-- FOOTER MESSAGE                                                -->
-    <!-- ============================================================= -->
-    <footer class="notif-footer">
-        <div class="footer-container">
-
-            <!-- Message + Envoyer (Admin uniquement) -->
-            <div class="message-wrapper">
-                <div class="message-input-container">
-                    <textarea 
-                        id="messageInput" 
-                        class="message-input" 
-                        rows="1"
-                        placeholder="Envoyer un message à l'admin..."
-                    ></textarea>
-                </div>
-                <button class="btn-send-message" id="sendMessageBtn">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-
-            <div id="sendMessageResult" class="send-message-result"></div>
-
-        </div>
-    </footer>
 
     <!-- ============================================================= -->
     <!-- OVERLAY CONFIRMATION                                          -->
@@ -123,11 +52,7 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
-    <!-- SCRIPTS                                                        -->
-    <!-- ============================================================= -->
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
     <script src="/client/js/notification.js"></script>
-
 </body>
 </html>
