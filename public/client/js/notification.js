@@ -389,15 +389,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const exists = notifications.some(n => n.id === notification.id);
         if (exists) return;
 
+        console.log('🔔 Nouvelle notification ajoutée:', notification);
+
         // Ajouter en tête de liste
-        notifications.unshift(notification);
+        notifications.unshift({
+            id: notification.id,
+            type: notification.type || 'systeme',
+            title: notification.title || 'Notification',
+            content: notification.content || '',
+            is_read: 0,
+            created_at: notification.created_at || new Date().toISOString()
+        });
 
         // Mettre à jour le badge
         const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
         notifBadge.textContent = count;
         notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
 
-        // Re-rendre
+        // Re-rendre immédiatement
         renderNotifications();
     }
 
@@ -439,18 +448,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
+            // ✅ ÉCOUTER LES NOUVELLES NOTIFICATIONS
             socket.on('notification', function(data) {
-                console.log('🔔 Nouvelle notification reçue:', data);
-                // Ajouter la notification en temps réel
-                if (data.id) {
-                    addNotification({
-                        id: data.id,
-                        type: data.type || 'systeme',
-                        title: data.title || 'Notification',
-                        content: data.content || '',
-                        is_read: 0,
-                        created_at: data.created_at || new Date().toISOString()
-                    });
+                console.log('🔔 Notification reçue du serveur:', data);
+                // Ajouter la notification directement sans recharger
+                if (data && data.id) {
+                    addNotification(data);
                 } else {
                     // Fallback : recharger toutes les notifications
                     loadNotifications();
