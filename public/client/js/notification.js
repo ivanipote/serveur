@@ -123,27 +123,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER SKELETON
+    // AFFICHER / CACHER SKELETON (déclaré AVANT loadNotifications)
     // ==========================================
 
     function showSkeleton() {
-        skeletonLoader.classList.add('active');
-        notifList.innerHTML = '';
+        if (skeletonLoader) {
+            skeletonLoader.classList.add('active');
+        }
+        if (notifList) {
+            notifList.innerHTML = '';
+        }
     }
 
     function hideSkeleton() {
-        skeletonLoader.classList.remove('active');
+        if (skeletonLoader) {
+            skeletonLoader.classList.remove('active');
+        }
     }
 
     // ==========================================
     // CHARGER LES NOTIFICATIONS
     // ==========================================
 
-    async function loadNotifications(showSkeleton = true) {
+    async function loadNotifications(showSkeletonLoader = true) {
         if (isSyncing) return;
         isSyncing = true;
 
-        if (showSkeleton && isFirstLoad) {
+        if (showSkeletonLoader && isFirstLoad) {
             showSkeleton();
         }
 
@@ -188,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Trier par date (plus récent en premier)
         const sorted = [...notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         let html = '';
@@ -200,22 +205,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const avatarIcon = getAvatarIcon(type);
             const displayTitle = n.title || 'Notification';
 
-            // Vérifier si c'est un lien de paiement
             const isPaymentLink = hasPaymentLink(n.content);
             const linkUrl = isPaymentLink ? extractLink(n.content) : null;
             const cleanMsg = isPaymentLink ? cleanContent(n.content) : (n.content || 'Aucun contenu');
 
-            // Badge de type
             let typeClass = 'systeme';
             if (type === 'commande') typeClass = 'commande';
             else if (type === 'paiement') typeClass = 'paiement';
             else if (type === 'admin') typeClass = 'admin';
             else if (type === 'systeme') typeClass = 'systeme';
 
-            // Badge urgent
             const urgentBadge = isPaymentLink ? `<span class="badge-urgent">🔥 URGENT</span>` : '';
 
-            // Lien avec boutons
             let linkHtml = '';
             if (isPaymentLink && linkUrl) {
                 linkHtml = `
@@ -235,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
-            // Carte
             html += `
                 <div class="notif-card" data-id="${n.id}">
                     <div class="card-header">
@@ -259,15 +259,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            // Séparateur (sauf après le dernier)
             if (index < sorted.length - 1) {
                 html += `<div class="notif-divider"></div>`;
             }
         });
 
         notifList.innerHTML = html;
-
-        // Attacher les événements
         attachEvents();
     }
 
@@ -289,7 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function attachEvents() {
-        // Boutons supprimer
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -298,7 +294,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Boutons copier
         document.querySelectorAll('.btn-link.copy').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -312,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             this.innerHTML = '<i class="fas fa-copy"></i> Copier';
                         }, 2000);
                     }).catch(() => {
-                        // Fallback
                         const input = document.createElement('input');
                         input.value = link;
                         document.body.appendChild(input);
@@ -350,7 +344,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     renderNotifications();
                 }
-                // Mettre à jour le badge
                 const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
                 notifBadge.textContent = count;
                 notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
