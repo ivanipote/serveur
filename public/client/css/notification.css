@@ -1,5 +1,5 @@
 /* =============================================================
-   NOTIFICATION.CSS - STYLES COMPLETS AVEC SKELETON + ANIMATIONS
+   NOTIFICATION.CSS - STYLES COMPLETS
    ============================================================= */
 
 * {
@@ -116,19 +116,6 @@ body {
     color: #1a2a6c;
 }
 
-.btn-sync .sync-status {
-    font-size: 10px;
-    transition: all 0.3s;
-}
-
-.btn-sync .sync-status.active {
-    color: #27ae60;
-}
-
-.btn-sync .sync-status.paused {
-    color: #e74c3c;
-}
-
 .btn-sync .fa-sync-alt {
     transition: transform 0.3s;
 }
@@ -225,7 +212,7 @@ body {
 }
 
 /* =============================================================
-   NOTIFICATION CARD - AVEC ANIMATION D'ENTRÉE
+   NOTIFICATION CARD
    ============================================================= */
 
 .notif-card {
@@ -249,7 +236,6 @@ body {
     margin-bottom: 0;
 }
 
-/* Délai progressif pour chaque carte */
 .notif-card:nth-child(1) { animation-delay: 0.05s; }
 .notif-card:nth-child(2) { animation-delay: 0.10s; }
 .notif-card:nth-child(3) { animation-delay: 0.15s; }
@@ -494,6 +480,30 @@ body {
 }
 
 /* =============================================================
+   EMPTY STATE
+   ============================================================= */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+    animation: slideUp 0.4s ease forwards;
+}
+
+.empty-state i {
+    font-size: 56px;
+    color: #ddd;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+}
+
+/* =============================================================
    OVERLAY CONFIRMATION
    ============================================================= */
 
@@ -585,30 +595,6 @@ body {
 @keyframes scaleIn {
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
-}
-
-/* =============================================================
-   EMPTY STATE
-   ============================================================= */
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #888;
-    animation: slideUp 0.4s ease forwards;
-}
-
-.empty-state i {
-    font-size: 56px;
-    color: #ddd;
-    display: block;
-    margin-bottom: 16px;
-}
-
-.empty-state h3 {
-    font-size: 20px;
-    color: #1a1a2e;
-    margin-bottom: 6px;
 }
 
 /* =============================================================

@@ -448,10 +448,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
-            // ✅ ÉCOUTER LES NOUVELLES NOTIFICATIONS
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue du serveur:', data);
-                // Ajouter la notification directement sans recharger
                 if (data && data.id) {
                     addNotification(data);
                 } else {
