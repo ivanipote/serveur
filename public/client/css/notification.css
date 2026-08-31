@@ -1,5 +1,5 @@
 /* =============================================================
-   NOTIFICATION.CSS - STYLES COMPLETS
+   NOTIFICATION.CSS - STYLES COMPLETS AVEC SKELETON + ANIMATIONS
    ============================================================= */
 
 * {
@@ -165,7 +165,67 @@ body {
 }
 
 /* =============================================================
-   NOTIFICATION CARD
+   SKELETON LOADER
+   ============================================================= */
+
+.skeleton-loader {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skeleton-loader.active {
+    display: flex;
+}
+
+.skeleton-item {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px 14px 18px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #f0f0f5;
+    align-items: flex-start;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e8e8f0;
+    flex-shrink: 0;
+}
+
+.skeleton-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skeleton-line {
+    height: 14px;
+    background: #e8e8f0;
+    border-radius: 8px;
+}
+
+.skeleton-line.short {
+    width: 60%;
+}
+
+.skeleton-line:last-child {
+    width: 80%;
+}
+
+@keyframes shimmer {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* =============================================================
+   NOTIFICATION CARD - AVEC ANIMATION D'ENTRÉE
    ============================================================= */
 
 .notif-card {
@@ -180,10 +240,36 @@ body {
     gap: 10px;
     position: relative;
     margin-bottom: 2px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideUp 0.4s ease forwards;
 }
 
 .notif-card:last-child {
     margin-bottom: 0;
+}
+
+/* Délai progressif pour chaque carte */
+.notif-card:nth-child(1) { animation-delay: 0.05s; }
+.notif-card:nth-child(2) { animation-delay: 0.10s; }
+.notif-card:nth-child(3) { animation-delay: 0.15s; }
+.notif-card:nth-child(4) { animation-delay: 0.20s; }
+.notif-card:nth-child(5) { animation-delay: 0.25s; }
+.notif-card:nth-child(6) { animation-delay: 0.30s; }
+.notif-card:nth-child(7) { animation-delay: 0.35s; }
+.notif-card:nth-child(8) { animation-delay: 0.40s; }
+.notif-card:nth-child(9) { animation-delay: 0.45s; }
+.notif-card:nth-child(10) { animation-delay: 0.50s; }
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .notif-card:hover {
@@ -509,6 +595,7 @@ body {
     text-align: center;
     padding: 60px 20px;
     color: #888;
+    animation: slideUp 0.4s ease forwards;
 }
 
 .empty-state i {
@@ -557,6 +644,9 @@ body {
     .confirm-box { padding: 24px 18px 20px 18px; }
     .confirm-box h3 { font-size: 18px; }
     .confirm-btn { font-size: 14px; padding: 10px; }
+
+    .skeleton-item { padding: 14px 14px 12px 14px; }
+    .skeleton-avatar { width: 36px; height: 36px; }
 }
 
 @media (max-width: 400px) {
@@ -587,4 +677,8 @@ body {
     .link-wrapper { padding: 6px 10px; }
     .link-wrapper .link-url { font-size: 11px; }
     .btn-link { font-size: 10px; padding: 3px 10px; }
+
+    .skeleton-item { padding: 12px 12px 10px 12px; }
+    .skeleton-avatar { width: 30px; height: 30px; }
+    .skeleton-line { height: 12px; }
 }

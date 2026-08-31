@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     const mainContent = document.getElementById('notifMain');
+    const notifList = document.getElementById('notifList');
+    const skeletonLoader = document.getElementById('skeletonLoader');
     const notifBadge = document.getElementById('notifBadge');
     const syncBtn = document.getElementById('syncBtn');
     const syncStatus = document.getElementById('syncStatus');
@@ -117,17 +119,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function cleanContent(content) {
-        // Supprimer le lien en mode texte
         return content.replace(/\[Cliquez ici pour payer\]\([^)]+\)/, '').trim();
+    }
+
+    // ==========================================
+    // AFFICHER SKELETON
+    // ==========================================
+
+    function showSkeleton() {
+        skeletonLoader.classList.add('active');
+        notifList.innerHTML = '';
+    }
+
+    function hideSkeleton() {
+        skeletonLoader.classList.remove('active');
     }
 
     // ==========================================
     // CHARGER LES NOTIFICATIONS
     // ==========================================
 
-    async function loadNotifications(showSkeleton = false) {
+    async function loadNotifications(showSkeleton = true) {
         if (isSyncing) return;
         isSyncing = true;
+
+        if (showSkeleton && isFirstLoad) {
+            showSkeleton();
+        }
 
         try {
             const res = await fetch('/api/notifications');
@@ -138,17 +156,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBadge.textContent = data.count || 0;
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
                 isFirstLoad = false;
+                hideSkeleton();
                 renderNotifications();
             } else {
                 notifications = [];
                 notifBadge.textContent = '0';
                 notifBadge.className = 'badge-count zero';
                 isFirstLoad = false;
+                hideSkeleton();
                 renderEmpty();
             }
         } catch (error) {
             console.error('❌ Erreur:', error);
             isFirstLoad = false;
+            hideSkeleton();
             renderEmpty();
         } finally {
             isSyncing = false;
@@ -160,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // =============================================================
 
     function renderNotifications() {
-        if (!mainContent) return;
+        if (!notifList) return;
 
         if (!notifications || notifications.length === 0) {
             renderEmpty();
@@ -244,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        mainContent.innerHTML = html;
+        notifList.innerHTML = html;
 
         // Attacher les événements
         attachEvents();
@@ -255,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function renderEmpty() {
-        mainContent.innerHTML = `
+        notifList.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-bell-slash"></i>
                 <h3>Aucune notification</h3>
@@ -368,10 +389,10 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(syncInterval);
         }
         console.log('🔄 Sync notifications démarré (toutes les 5s)');
-        loadNotifications();
+        loadNotifications(true);
         syncInterval = setInterval(() => {
             if (!isSyncing && isSyncActive) {
-                loadNotifications();
+                loadNotifications(false);
             }
         }, 5000);
     }
@@ -431,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
-                loadNotifications();
+                loadNotifications(false);
             });
 
         } catch (error) {
@@ -479,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             connectSocketIO();
 
-            await loadNotifications();
+            await loadNotifications(true);
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
