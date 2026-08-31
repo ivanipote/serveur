@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const skeletonLoader = document.getElementById('skeletonLoader');
     const notifBadge = document.getElementById('notifBadge');
     const syncBtn = document.getElementById('syncBtn');
-    const syncStatus = document.getElementById('syncStatus');
 
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
@@ -20,9 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let userId = null;
     let notifications = [];
     let deleteTargetId = null;
-    let syncInterval = null;
     let isSyncing = false;
-    let isSyncActive = true;
     let isFirstLoad = true;
 
     // ==========================================
@@ -123,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER / CACHER SKELETON (déclaré AVANT loadNotifications)
+    // AFFICHER / CACHER SKELETON
     // ==========================================
 
     function showSkeleton() {
@@ -142,14 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS
+    // CHARGER LES NOTIFICATIONS (UNIQUEMENT INITIAL)
     // ==========================================
 
-    async function loadNotifications(showSkeletonLoader = true) {
+    async function loadNotifications() {
         if (isSyncing) return;
         isSyncing = true;
 
-        if (showSkeletonLoader && isFirstLoad) {
+        if (isFirstLoad) {
             showSkeleton();
         }
 
@@ -179,6 +176,34 @@ document.addEventListener('DOMContentLoaded', function() {
             renderEmpty();
         } finally {
             isSyncing = false;
+        }
+    }
+
+    // =============================================================
+    // RAFRAÎCHIR MANUELLEMENT (bouton sync)
+    // =============================================================
+
+    async function refreshNotifications() {
+        if (isSyncing) return;
+
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+
+            if (res.ok && data.notifications) {
+                notifications = data.notifications;
+                notifBadge.textContent = data.count || 0;
+                notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
+                renderNotifications();
+            }
+        } catch (error) {
+            console.error('❌ Erreur refresh:', error);
+        } finally {
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         }
     }
 
@@ -356,53 +381,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // SYNC
+    // AJOUTER UNE NOTIFICATION EN TEMPS RÉEL
     // ==========================================
 
-    function updateSyncUI() {
-        if (isSyncActive) {
-            syncBtn.classList.add('active');
-            syncBtn.classList.remove('paused');
-            syncStatus.textContent = '●';
-            syncStatus.className = 'sync-status active';
-            syncBtn.title = 'Synchronisation active - Cliquer pour mettre en pause';
-            startSync();
-        } else {
-            syncBtn.classList.remove('active');
-            syncBtn.classList.add('paused');
-            syncStatus.textContent = '○';
-            syncStatus.className = 'sync-status paused';
-            syncBtn.title = 'Synchronisation en pause - Cliquer pour reprendre';
-            stopSync();
-        }
-    }
+    function addNotification(notification) {
+        // Vérifier si la notification existe déjà
+        const exists = notifications.some(n => n.id === notification.id);
+        if (exists) return;
 
-    function startSync() {
-        if (syncInterval) {
-            clearInterval(syncInterval);
-        }
-        console.log('🔄 Sync notifications démarré (toutes les 5s)');
-        loadNotifications(true);
-        syncInterval = setInterval(() => {
-            if (!isSyncing && isSyncActive) {
-                loadNotifications(false);
-            }
-        }, 5000);
-    }
+        // Ajouter en tête de liste
+        notifications.unshift(notification);
 
-    function stopSync() {
-        if (syncInterval) {
-            clearInterval(syncInterval);
-            syncInterval = null;
-            console.log('⏹️ Sync notifications arrêté');
-        }
-    }
+        // Mettre à jour le badge
+        const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+        notifBadge.textContent = count;
+        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
 
-    if (syncBtn) {
-        syncBtn.addEventListener('click', function() {
-            isSyncActive = !isSyncActive;
-            updateSyncUI();
-        });
+        // Re-rendre
+        renderNotifications();
     }
 
     // ==========================================
@@ -444,8 +440,21 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             socket.on('notification', function(data) {
-                console.log('🔔 Notification reçue (client):', data);
-                loadNotifications(false);
+                console.log('🔔 Nouvelle notification reçue:', data);
+                // Ajouter la notification en temps réel
+                if (data.id) {
+                    addNotification({
+                        id: data.id,
+                        type: data.type || 'systeme',
+                        title: data.title || 'Notification',
+                        content: data.content || '',
+                        is_read: 0,
+                        created_at: data.created_at || new Date().toISOString()
+                    });
+                } else {
+                    // Fallback : recharger toutes les notifications
+                    loadNotifications();
+                }
             });
 
         } catch (error) {
@@ -479,6 +488,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
+    // BOUTON SYNC (rafraîchissement manuel)
+    // ==========================================
+
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function() {
+            refreshNotifications();
+        });
+    }
+
+    // ==========================================
     // INITIALISATION
     // ==========================================
 
@@ -488,12 +507,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const isAuth = await checkAuth();
             if (!isAuth) return;
 
-            isSyncActive = true;
-            updateSyncUI();
-
             connectSocketIO();
 
-            await loadNotifications(true);
+            await loadNotifications();
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
