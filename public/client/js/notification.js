@@ -116,16 +116,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return match ? match[1] : null;
     }
 
-    ffunction extractExpiresAt(content) {
-    // Recherche d'une date ISO complète après "expires_at"
-    const match = content.match(/expires_at[:\\s]+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
-    if (match) {
-        return match[1];
+    // ✅ FONCTION CORRIGÉE POUR EXTRAIRE LA DATE D'EXPIRATION
+    function extractExpiresAt(content) {
+        // Recherche d'une date ISO complète après "expires_at"
+        const match = content.match(/expires_at[:\\s]+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+        if (match) {
+            return match[1];
+        }
+        // Fallback : chercher n'importe quelle date ISO
+        const fallbackMatch = content.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+        return fallbackMatch ? fallbackMatch[1] : null;
     }
-    // Fallback : chercher n'importe quelle date ISO
-    const fallbackMatch = content.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
-    return fallbackMatch ? fallbackMatch[1] : null;
-}
 
     function cleanContent(content) {
         return content.replace(/\[Cliquez ici pour payer\]\([^)]+\)/, '').trim();
@@ -269,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let timerHtml = '';
 
             if (isPaymentLink && linkUrl) {
-                // Timer avec expires_at
                 const timerId = `timer-${n.id}`;
                 timerHtml = `
                     <div class="timer-row" id="${timerId}">
@@ -344,15 +344,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const expiresAt = el.dataset.expires;
 
             if (expiresAt) {
-                // Arrêter l'ancien timer
                 if (timerIntervals[notifId]) {
                     clearInterval(timerIntervals[notifId]);
                 }
-
-                // Démarrer le nouveau timer
                 timerIntervals[notifId] = startTimer(notifId, expiresAt);
             } else {
-                // Pas d'expiration, le timer n'est pas affiché
                 el.textContent = '--:--';
                 el.className = 'timer-value';
             }
@@ -381,13 +377,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const diff = expiryDate - now;
 
             if (diff <= 0) {
-                // EXPIRÉ
                 timerEl.textContent = '⏳ Expiré';
                 timerEl.className = 'timer-value expired-text';
                 if (linkWrapper) linkWrapper.classList.add('expired');
                 if (expiredBadge) expiredBadge.classList.add('show');
 
-                // Désactiver le lien et les boutons
                 if (link) {
                     link.classList.add('expired-link');
                     link.removeAttribute('href');
@@ -396,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (openBtn) openBtn.disabled = true;
                 if (copyBtn) copyBtn.disabled = true;
 
-                // Arrêter le timer
                 clearInterval(timerIntervals[notifId]);
                 delete timerIntervals[notifId];
                 return;
@@ -407,11 +400,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-            // Changer la couleur selon le temps restant
             if (diff <= 60000) {
-                timerEl.className = 'timer-value danger'; // < 1 min
+                timerEl.className = 'timer-value danger';
             } else if (diff <= 300000) {
-                timerEl.className = 'timer-value warning'; // < 5 min
+                timerEl.className = 'timer-value warning';
             } else {
                 timerEl.className = 'timer-value';
             }
@@ -489,7 +481,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await res.json();
             if (res.ok) {
-                // Arrêter le timer
                 if (timerIntervals[id]) {
                     clearInterval(timerIntervals[id]);
                     delete timerIntervals[id];
@@ -519,13 +510,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
 
     function addNotification(notification) {
-        // Vérifier si la notification existe déjà
         const exists = notifications.some(n => n.id === notification.id);
         if (exists) return;
 
         console.log('🔔 Nouvelle notification ajoutée:', notification);
 
-        // Ajouter en tête de liste
         notifications.unshift({
             id: notification.id,
             type: notification.type || 'systeme',
@@ -535,7 +524,6 @@ document.addEventListener('DOMContentLoaded', function() {
             created_at: notification.created_at || new Date().toISOString()
         });
 
-        // Re-trier par date + ID
         notifications.sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
             const dateB = new Date(b.created_at).getTime();
@@ -545,12 +533,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return dateB - dateA;
         });
 
-        // Mettre à jour le badge
         const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
         notifBadge.textContent = count;
         notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
 
-        // Re-rendre complètement (garantit l'ordre et les timers)
         renderNotifications();
     }
 
