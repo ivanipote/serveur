@@ -354,61 +354,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // SUPPRIMER UNE NOTIFICATION
     // ==========================================
 
-    async function deleteNotification(id) {
-        try {
-            const res = await fetch(`/api/notifications/delete/${id}`, {
-                method: 'DELETE'
-            });
-            const data = await res.json();
-            if (res.ok) {
-                notifications = notifications.filter(n => n.id != id);
-                if (notifications.length === 0) {
-                    renderEmpty();
-                    notifBadge.textContent = '0';
-                    notifBadge.className = 'badge-count zero';
-                } else {
-                    renderNotifications();
-                }
-                const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
-                notifBadge.textContent = count;
-                notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
-            } else {
-                console.error('Erreur:', data);
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
+// ==========================================
+// AJOUTER UNE NOTIFICATION EN TEMPS RÉEL
+// ==========================================
+
+function addNotification(notification) {
+    // Vérifier si la notification existe déjà
+    const exists = notifications.some(n => n.id === notification.id);
+    if (exists) return;
+
+    console.log('🔔 Nouvelle notification ajoutée:', notification);
+
+    // Ajouter en tête de liste
+    notifications.unshift({
+        id: notification.id,
+        type: notification.type || 'systeme',
+        title: notification.title || 'Notification',
+        content: notification.content || '',
+        is_read: 0,
+        created_at: notification.created_at || new Date().toISOString()
+    });
+
+    // ✅ FORCER LE RE-TRI PAR DATE + ID
+    notifications.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        if (dateA === dateB) {
+            return b.id - a.id; // Si même date, ID le plus grand en premier
         }
-    }
+        return dateB - dateA;
+    });
 
-    // ==========================================
-    // AJOUTER UNE NOTIFICATION EN TEMPS RÉEL (UNIQUEMENT LA NOUVELLE)
-    // ==========================================
+    // Mettre à jour le badge
+    const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+    notifBadge.textContent = count;
+    notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
 
-    function addNotification(notification) {
-        // Vérifier si la notification existe déjà
-        const exists = notifications.some(n => n.id === notification.id);
-        if (exists) return;
-
-        console.log('🔔 Nouvelle notification ajoutée:', notification);
-
-        // Ajouter en tête de liste
-        notifications.unshift({
-            id: notification.id,
-            type: notification.type || 'systeme',
-            title: notification.title || 'Notification',
-            content: notification.content || '',
-            is_read: 0,
-            created_at: notification.created_at || new Date().toISOString()
-        });
-
-        // Mettre à jour le badge
-        const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
-        notifBadge.textContent = count;
-        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
-
-        // ✅ Rendre UNIQUEMENT la nouvelle notification (pas tout recharger)
-        renderNewNotification(notification);
-    }
+    // ✅ RE-RENDRE COMPLÈTEMENT (garantit l'ordre)
+    renderNotifications();
+}
 
     // =============================================================
     // RENDRE UNIQUEMENT LA NOUVELLE NOTIFICATION (SUBTTILE)
