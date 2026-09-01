@@ -1,5 +1,5 @@
 /* =============================================================
-   NOTIFICATION.CSS - STYLES COMPLETS
+   NOTIFICATION.CSS - STYLES COMPLETS AVEC ANIMATION SUBTILE
    ============================================================= */
 
 * {
@@ -120,14 +120,6 @@ body {
     transition: transform 0.3s;
 }
 
-.btn-sync.active .fa-sync-alt {
-    animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
 /* =============================================================
    CONTENU
    ============================================================= */
@@ -212,7 +204,7 @@ body {
 }
 
 /* =============================================================
-   NOTIFICATION CARD
+   NOTIFICATION CARD - ANIMATION D'APPARITION SUBTILE
    ============================================================= */
 
 .notif-card {
@@ -227,35 +219,30 @@ body {
     gap: 10px;
     position: relative;
     margin-bottom: 2px;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: slideUp 0.4s ease forwards;
+}
+
+/* ✅ Animation d'apparition subtile : fondue + translation douce */
+.notif-card.appearing {
+    animation: subtleAppear 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes subtleAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(2px) scale(1.002);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .notif-card:last-child {
     margin-bottom: 0;
-}
-
-.notif-card:nth-child(1) { animation-delay: 0.05s; }
-.notif-card:nth-child(2) { animation-delay: 0.10s; }
-.notif-card:nth-child(3) { animation-delay: 0.15s; }
-.notif-card:nth-child(4) { animation-delay: 0.20s; }
-.notif-card:nth-child(5) { animation-delay: 0.25s; }
-.notif-card:nth-child(6) { animation-delay: 0.30s; }
-.notif-card:nth-child(7) { animation-delay: 0.35s; }
-.notif-card:nth-child(8) { animation-delay: 0.40s; }
-.notif-card:nth-child(9) { animation-delay: 0.45s; }
-.notif-card:nth-child(10) { animation-delay: 0.50s; }
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .notif-card:hover {
@@ -487,7 +474,6 @@ body {
     text-align: center;
     padding: 60px 20px;
     color: #888;
-    animation: slideUp 0.4s ease forwards;
 }
 
 .empty-state i {
@@ -667,40 +653,4 @@ body {
     .skeleton-item { padding: 12px 12px 10px 12px; }
     .skeleton-avatar { width: 30px; height: 30px; }
     .skeleton-line { height: 12px; }
-}
-/* =============================================================
-   AJOUTS — à coller à la fin de notification.css
-   Animations pour le rechargement subtil (Socket.IO)
-   ============================================================= */
-
-/* Nouvelle carte qui arrive : léger fondu + surlignage discret */
-.notif-card-incoming {
-    background: #eef4ff;
-    box-shadow: 0 0 0 2px rgba(26, 42, 108, 0.15);
-    transition: background 1.8s ease, box-shadow 1.8s ease;
-}
-
-.notif-card-incoming-active {
-    background: white;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-}
-
-/* Carte qui disparaît (suppression) */
-.notif-card-leaving {
-    opacity: 0;
-    transform: translateX(20px) scale(0.98);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none;
-}
-
-/* Petit pulse discret sur le badge quand une notif arrive */
-.badge-count.badge-pulse {
-    animation: badgePulse 0.9s ease;
-}
-
-@keyframes badgePulse {
-    0%   { transform: scale(1); }
-    30%  { transform: scale(1.25); }
-    60%  { transform: scale(0.95); }
-    100% { transform: scale(1); }
 }

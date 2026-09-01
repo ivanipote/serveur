@@ -20,10 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let notifications = [];
     let deleteTargetId = null;
     let isSyncing = false;
-    let pendingReload = false;
     let isFirstLoad = true;
-    let isSocketConnected = false;
-    let socket = null;
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -31,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function checkAuth() {
         try {
-            const res = await fetch('/api/client/me', { cache: 'no-store' });
+            const res = await fetch('/api/client/me');
             const data = await res.json();
             if (data.success) {
                 userId = data.user.id;
@@ -80,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AVATAR / LABEL PAR TYPE
+    // AVATAR PAR TYPE
     // ==========================================
 
     function getAvatarIcon(type) {
@@ -105,13 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return labels[type] || type;
     }
 
-    function getTypeClass(type) {
-        if (type === 'commande') return 'commande';
-        if (type === 'paiement') return 'paiement';
-        if (type === 'admin') return 'admin';
-        return 'systeme';
-    }
-
     // ==========================================
     // DÉTECTER LES LIENS DE PAIEMENT
     // ==========================================
@@ -130,225 +120,177 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ÉCHAPPEMENT HTML (sécurité basique)
-    // ==========================================
-
-    function escapeAttr(str) {
-        return String(str).replace(/"/g, '&quot;');
-    }
-
-    // ==========================================
     // AFFICHER / CACHER SKELETON
     // ==========================================
 
     function showSkeleton() {
-        if (skeletonLoader) skeletonLoader.classList.add('active');
-        if (notifList) notifList.innerHTML = '';
+        if (skeletonLoader) {
+            skeletonLoader.classList.add('active');
+        }
+        if (notifList) {
+            notifList.innerHTML = '';
+        }
     }
 
     function hideSkeleton() {
-        if (skeletonLoader) skeletonLoader.classList.remove('active');
+        if (skeletonLoader) {
+            skeletonLoader.classList.remove('active');
+        }
     }
 
     // ==========================================
-    // CONSTRUIRE UNE CARTE (élément DOM, pas juste du HTML)
+    // CHARGER LES NOTIFICATIONS (UNIQUEMENT INITIAL)
     // ==========================================
 
-    function buildCardElement(n) {
-        const type = n.type || 'systeme';
-        const typeLabel = getTypeLabel(type);
-        const typeClass = getTypeClass(type);
-        const dateStr = timeAgo(n.created_at);
-        const avatarIcon = getAvatarIcon(type);
-        const displayTitle = n.title || 'Notification';
+    async function loadNotifications() {
+        if (isSyncing) return;
+        isSyncing = true;
 
-        const isPaymentLink = hasPaymentLink(n.content);
-        const linkUrl = isPaymentLink ? extractLink(n.content) : null;
-        const cleanMsg = isPaymentLink ? cleanContent(n.content) : (n.content || 'Aucun contenu');
+        if (isFirstLoad) {
+            showSkeleton();
+        }
 
-        const urgentBadge = isPaymentLink ? `<span class="badge-urgent">🔥 URGENT</span>` : '';
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
 
-        let linkHtml = '';
-        if (isPaymentLink && linkUrl) {
-            linkHtml = `
-                <div class="link-wrapper">
-                    <span class="link-url">
-                        <a href="${linkUrl}" target="_blank">${linkUrl}</a>
-                    </span>
-                    <div class="link-actions">
-                        <button class="btn-link open" onclick="window.open('${linkUrl}', '_blank')">
-                            <i class="fas fa-external-link-alt"></i> Ouvrir
-                        </button>
-                        <button class="btn-link copy" data-link="${escapeAttr(linkUrl)}">
-                            <i class="fas fa-copy"></i> Copier
-                        </button>
+            if (res.ok && data.notifications) {
+                notifications = data.notifications;
+                notifBadge.textContent = data.count || 0;
+                notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
+                isFirstLoad = false;
+                hideSkeleton();
+                renderNotifications();
+            } else {
+                notifications = [];
+                notifBadge.textContent = '0';
+                notifBadge.className = 'badge-count zero';
+                isFirstLoad = false;
+                hideSkeleton();
+                renderEmpty();
+            }
+        } catch (error) {
+            console.error('❌ Erreur:', error);
+            isFirstLoad = false;
+            hideSkeleton();
+            renderEmpty();
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    // =============================================================
+    // RAFRAÎCHIR MANUELLEMENT (bouton sync)
+    // =============================================================
+
+    async function refreshNotifications() {
+        if (isSyncing) return;
+
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+
+            if (res.ok && data.notifications) {
+                notifications = data.notifications;
+                notifBadge.textContent = data.count || 0;
+                notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
+                renderNotifications();
+            }
+        } catch (error) {
+            console.error('❌ Erreur refresh:', error);
+        } finally {
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        }
+    }
+
+    // =============================================================
+    // AFFICHER LES NOTIFICATIONS
+    // =============================================================
+
+    function renderNotifications() {
+        if (!notifList) return;
+
+        if (!notifications || notifications.length === 0) {
+            renderEmpty();
+            return;
+        }
+
+        const sorted = [...notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        let html = '';
+
+        sorted.forEach((n, index) => {
+            const type = n.type || 'systeme';
+            const typeLabel = getTypeLabel(type);
+            const dateStr = timeAgo(n.created_at);
+            const avatarIcon = getAvatarIcon(type);
+            const displayTitle = n.title || 'Notification';
+
+            const isPaymentLink = hasPaymentLink(n.content);
+            const linkUrl = isPaymentLink ? extractLink(n.content) : null;
+            const cleanMsg = isPaymentLink ? cleanContent(n.content) : (n.content || 'Aucun contenu');
+
+            let typeClass = 'systeme';
+            if (type === 'commande') typeClass = 'commande';
+            else if (type === 'paiement') typeClass = 'paiement';
+            else if (type === 'admin') typeClass = 'admin';
+            else if (type === 'systeme') typeClass = 'systeme';
+
+            const urgentBadge = isPaymentLink ? `<span class="badge-urgent">🔥 URGENT</span>` : '';
+
+            let linkHtml = '';
+            if (isPaymentLink && linkUrl) {
+                linkHtml = `
+                    <div class="link-wrapper">
+                        <span class="link-url">
+                            <a href="${linkUrl}" target="_blank">${linkUrl}</a>
+                        </span>
+                        <div class="link-actions">
+                            <button class="btn-link open" onclick="window.open('${linkUrl}', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> Ouvrir
+                            </button>
+                            <button class="btn-link copy" data-link="${linkUrl}">
+                                <i class="fas fa-copy"></i> Copier
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="notif-card" data-id="${n.id}">
+                    <div class="card-header">
+                        <div class="avatar">${avatarIcon}</div>
+                        <div class="card-title">${displayTitle}</div>
+                        <div class="card-top-right">
+                            ${urgentBadge}
+                            <button class="btn-delete" data-id="${n.id}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        ${cleanMsg}
+                        ${linkHtml}
+                    </div>
+                    <div class="card-footer">
+                        <span class="date">${dateStr}</span>
+                        <span class="badge-type ${typeClass}">${typeLabel}</span>
                     </div>
                 </div>
             `;
-        }
 
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = `
-            <div class="notif-card" data-id="${n.id}">
-                <div class="card-header">
-                    <div class="avatar">${avatarIcon}</div>
-                    <div class="card-title">${displayTitle}</div>
-                    <div class="card-top-right">
-                        ${urgentBadge}
-                        <button class="btn-delete" data-id="${n.id}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="card-content">
-                    ${cleanMsg}
-                    ${linkHtml}
-                </div>
-                <div class="card-footer">
-                    <span class="date">${dateStr}</span>
-                    <span class="badge-type ${typeClass}">${typeLabel}</span>
-                </div>
-            </div>
-        `;
-        return wrapper.firstElementChild;
-    }
-
-    function buildDivider() {
-        const div = document.createElement('div');
-        div.className = 'notif-divider';
-        return div;
-    }
-
-    // ==========================================
-    // RENDU COMPLET (utilisé au tout premier chargement)
-    // ==========================================
-
-    function renderNotificationsFull() {
-        if (!notifList) return;
-
-        if (!notifications || notifications.length === 0) {
-            renderEmpty();
-            return;
-        }
-
-        const sorted = [...notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        const frag = document.createDocumentFragment();
-
-        sorted.forEach((n, index) => {
-            frag.appendChild(buildCardElement(n));
-            if (index < sorted.length - 1) frag.appendChild(buildDivider());
-        });
-
-        notifList.innerHTML = '';
-        notifList.appendChild(frag);
-        attachEvents();
-    }
-
-    // ==========================================
-    // MISE À JOUR "SUBTILE" (diff) — n'écrase pas tout,
-    // insère juste les nouvelles cartes avec une animation
-    // et retire celles qui ont disparu.
-    // ==========================================
-
-    function renderNotificationsDiff(previousNotifications) {
-        if (!notifList) return;
-
-        if (!notifications || notifications.length === 0) {
-            renderEmpty();
-            return;
-        }
-
-        // Si la liste était vide avant (ou état "empty"), on repart d'un rendu complet
-        const emptyStateEl = notifList.querySelector('.empty-state');
-        if (emptyStateEl || !previousNotifications || previousNotifications.length === 0) {
-            renderNotificationsFull();
-            highlightNewCards(getNewIds(previousNotifications || []));
-            return;
-        }
-
-        const sorted = [...notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        const newIds = getNewIds(previousNotifications);
-        const currentIdsInDom = new Set(
-            Array.from(notifList.querySelectorAll('.notif-card')).map(el => el.dataset.id)
-        );
-        const freshIds = new Set(sorted.map(n => String(n.id)));
-
-        // 1. Retirer en douceur les cartes qui n'existent plus (supprimées ailleurs, expirées, etc.)
-        currentIdsInDom.forEach(id => {
-            if (!freshIds.has(id)) {
-                const el = notifList.querySelector(`.notif-card[data-id="${id}"]`);
-                if (el) fadeOutAndRemove(el);
+            if (index < sorted.length - 1) {
+                html += `<div class="notif-divider"></div>`;
             }
         });
 
-        // 2. Reconstruire l'ordre en réinjectant les cartes existantes et en créant les nouvelles,
-        //    sans jamais vider notifList d'un coup (pas de flash / pas de scroll-jump).
-        const frag = document.createDocumentFragment();
-        const existingCards = new Map(
-            Array.from(notifList.querySelectorAll('.notif-card')).map(el => [el.dataset.id, el])
-        );
-
-        sorted.forEach((n, index) => {
-            const idStr = String(n.id);
-            let cardEl = existingCards.get(idStr);
-            if (!cardEl) {
-                cardEl = buildCardElement(n);
-            } else {
-                cardEl.remove(); // on le détache pour le replacer au bon endroit
-            }
-            frag.appendChild(cardEl);
-            if (index < sorted.length - 1) frag.appendChild(buildDivider());
-        });
-
-        // Nettoyer les vieux séparateurs orphelins puis réinjecter dans le bon ordre
-        notifList.querySelectorAll('.notif-divider').forEach(d => d.remove());
-        notifList.appendChild(frag);
-
+        notifList.innerHTML = html;
         attachEvents();
-        highlightNewCards(newIds);
-    }
-
-    function getNewIds(previousNotifications) {
-        const previousIds = new Set(previousNotifications.map(n => String(n.id)));
-        return notifications
-            .filter(n => !previousIds.has(String(n.id)))
-            .map(n => String(n.id));
-    }
-
-    // ==========================================
-    // ANIMATIONS SUBTILES
-    // ==========================================
-
-    function highlightNewCards(newIds) {
-        if (!newIds || newIds.length === 0) return;
-        newIds.forEach(id => {
-            const el = notifList.querySelector(`.notif-card[data-id="${id}"]`);
-            if (!el) return;
-            el.classList.add('notif-card-incoming');
-            // force reflow puis on retire la classe pour laisser la transition CSS jouer
-            requestAnimationFrame(() => {
-                el.classList.add('notif-card-incoming-active');
-            });
-            setTimeout(() => {
-                el.classList.remove('notif-card-incoming');
-                el.classList.remove('notif-card-incoming-active');
-            }, 2200);
-        });
-
-        // Petit "pulse" discret sur le badge pour signaler l'arrivée
-        if (notifBadge) {
-            notifBadge.classList.add('badge-pulse');
-            setTimeout(() => notifBadge.classList.remove('badge-pulse'), 900);
-        }
-    }
-
-    function fadeOutAndRemove(el) {
-        el.classList.add('notif-card-leaving');
-        setTimeout(() => {
-            const next = el.nextElementSibling;
-            if (next && next.classList.contains('notif-divider')) next.remove();
-            el.remove();
-        }, 300);
     }
 
     // ==========================================
@@ -365,91 +307,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS (fetch + décision du type de rendu)
-    // ==========================================
-
-    async function loadNotifications(showSkeletonLoader = true, silent = false) {
-        if (isSyncing) {
-            pendingReload = true;
-            return;
-        }
-        isSyncing = true;
-
-        if (showSkeletonLoader && isFirstLoad) {
-            showSkeleton();
-        }
-
-        const previousNotifications = notifications;
-
-        try {
-            const res = await fetch('/api/notifications', { cache: 'no-store' });
-            const data = await res.json();
-
-            if (res.ok && data.notifications) {
-                notifications = data.notifications;
-                updateBadge(data.count || 0);
-                hideSkeleton();
-
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    renderNotificationsFull();
-                } else if (silent) {
-                    // rechargement subtil : on ne touche au DOM que pour ce qui a changé
-                    renderNotificationsDiff(previousNotifications);
-                } else {
-                    renderNotificationsFull();
-                }
-            } else {
-                notifications = [];
-                updateBadge(0);
-                isFirstLoad = false;
-                hideSkeleton();
-                renderEmpty();
-            }
-        } catch (error) {
-            console.error('❌ Erreur:', error);
-            isFirstLoad = false;
-            hideSkeleton();
-            if (!notifications || notifications.length === 0) renderEmpty();
-        } finally {
-            isSyncing = false;
-            if (pendingReload) {
-                pendingReload = false;
-                loadNotifications(false, true);
-            }
-        }
-    }
-
-    function updateBadge(count) {
-        notifBadge.textContent = count;
-        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
-    }
-
-    // =============================================================
-    // RAFRAÎCHIR MANUELLEMENT (bouton sync) — rendu complet volontaire
-    // =============================================================
-
-    async function refreshNotifications() {
-        if (isSyncing) return;
-
-        syncBtn.disabled = true;
-        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-        await loadNotifications(false, false);
-
-        syncBtn.disabled = false;
-        syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-    }
-
-    // ==========================================
     // ATTACHER LES ÉVÉNEMENTS
     // ==========================================
 
     function attachEvents() {
-        notifList.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.replaceWith(btn.cloneNode(true)); // évite les doublons d'event listeners
-        });
-        notifList.querySelectorAll('.btn-delete').forEach(btn => {
+        document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 deleteTargetId = this.dataset.id;
@@ -457,35 +319,33 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        notifList.querySelectorAll('.btn-link.copy').forEach(btn => {
-            btn.replaceWith(btn.cloneNode(true));
-        });
-        notifList.querySelectorAll('.btn-link.copy').forEach(btn => {
+        document.querySelectorAll('.btn-link.copy').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const link = this.dataset.link;
-                if (!link) return;
-                navigator.clipboard.writeText(link).then(() => {
-                    this.classList.add('copied');
-                    this.innerHTML = '<i class="fas fa-check"></i> Copié !';
-                    setTimeout(() => {
-                        this.classList.remove('copied');
-                        this.innerHTML = '<i class="fas fa-copy"></i> Copier';
-                    }, 2000);
-                }).catch(() => {
-                    const input = document.createElement('input');
-                    input.value = link;
-                    document.body.appendChild(input);
-                    input.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(input);
-                    this.classList.add('copied');
-                    this.innerHTML = '<i class="fas fa-check"></i> Copié !';
-                    setTimeout(() => {
-                        this.classList.remove('copied');
-                        this.innerHTML = '<i class="fas fa-copy"></i> Copier';
-                    }, 2000);
-                });
+                if (link) {
+                    navigator.clipboard.writeText(link).then(() => {
+                        this.classList.add('copied');
+                        this.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                        setTimeout(() => {
+                            this.classList.remove('copied');
+                            this.innerHTML = '<i class="fas fa-copy"></i> Copier';
+                        }, 2000);
+                    }).catch(() => {
+                        const input = document.createElement('input');
+                        input.value = link;
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(input);
+                        this.classList.add('copied');
+                        this.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                        setTimeout(() => {
+                            this.classList.remove('copied');
+                            this.innerHTML = '<i class="fas fa-copy"></i> Copier';
+                        }, 2000);
+                    });
+                }
             });
         });
     }
@@ -502,18 +362,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (res.ok) {
                 notifications = notifications.filter(n => n.id != id);
-
-                const el = notifList.querySelector(`.notif-card[data-id="${id}"]`);
-                if (el) {
-                    fadeOutAndRemove(el);
-                } 
-
                 if (notifications.length === 0) {
-                    setTimeout(renderEmpty, 320);
+                    renderEmpty();
+                    notifBadge.textContent = '0';
+                    notifBadge.className = 'badge-count zero';
+                } else {
+                    renderNotifications();
                 }
-
                 const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
-                updateBadge(count);
+                notifBadge.textContent = count;
+                notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
             } else {
                 console.error('Erreur:', data);
             }
@@ -523,8 +381,178 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
+    // AJOUTER UNE NOTIFICATION EN TEMPS RÉEL (UNIQUEMENT LA NOUVELLE)
+    // ==========================================
+
+    function addNotification(notification) {
+        // Vérifier si la notification existe déjà
+        const exists = notifications.some(n => n.id === notification.id);
+        if (exists) return;
+
+        console.log('🔔 Nouvelle notification ajoutée:', notification);
+
+        // Ajouter en tête de liste
+        notifications.unshift({
+            id: notification.id,
+            type: notification.type || 'systeme',
+            title: notification.title || 'Notification',
+            content: notification.content || '',
+            is_read: 0,
+            created_at: notification.created_at || new Date().toISOString()
+        });
+
+        // Mettre à jour le badge
+        const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+        notifBadge.textContent = count;
+        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
+
+        // ✅ Rendre UNIQUEMENT la nouvelle notification (pas tout recharger)
+        renderNewNotification(notification);
+    }
+
+    // =============================================================
+    // RENDRE UNIQUEMENT LA NOUVELLE NOTIFICATION (SUBTTILE)
+    // =============================================================
+
+    function renderNewNotification(notification) {
+        // Si la liste est vide, on recharge tout (cas du premier chargement)
+        if (notifications.length <= 1) {
+            renderNotifications();
+            return;
+        }
+
+        const type = notification.type || 'systeme';
+        const typeLabel = getTypeLabel(type);
+        const dateStr = timeAgo(notification.created_at);
+        const avatarIcon = getAvatarIcon(type);
+        const displayTitle = notification.title || 'Notification';
+        const cleanMsg = notification.content || 'Aucun contenu';
+
+        let typeClass = 'systeme';
+        if (type === 'commande') typeClass = 'commande';
+        else if (type === 'paiement') typeClass = 'paiement';
+        else if (type === 'admin') typeClass = 'admin';
+        else if (type === 'systeme') typeClass = 'systeme';
+
+        // Vérifier si c'est un lien de paiement
+        const isPaymentLink = hasPaymentLink(notification.content);
+        const linkUrl = isPaymentLink ? extractLink(notification.content) : null;
+        const urgentBadge = isPaymentLink ? `<span class="badge-urgent">🔥 URGENT</span>` : '';
+
+        let linkHtml = '';
+        if (isPaymentLink && linkUrl) {
+            linkHtml = `
+                <div class="link-wrapper">
+                    <span class="link-url">
+                        <a href="${linkUrl}" target="_blank">${linkUrl}</a>
+                    </span>
+                    <div class="link-actions">
+                        <button class="btn-link open" onclick="window.open('${linkUrl}', '_blank')">
+                            <i class="fas fa-external-link-alt"></i> Ouvrir
+                        </button>
+                        <button class="btn-link copy" data-link="${linkUrl}">
+                            <i class="fas fa-copy"></i> Copier
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Créer la carte HTML
+        const cardHtml = `
+            <div class="notif-card appearing" data-id="${notification.id}">
+                <div class="card-header">
+                    <div class="avatar">${avatarIcon}</div>
+                    <div class="card-title">${displayTitle}</div>
+                    <div class="card-top-right">
+                        ${urgentBadge}
+                        <button class="btn-delete" data-id="${notification.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    ${cleanMsg}
+                    ${linkHtml}
+                </div>
+                <div class="card-footer">
+                    <span class="date">${dateStr}</span>
+                    <span class="badge-type ${typeClass}">${typeLabel}</span>
+                </div>
+            </div>
+        `;
+
+        // Insérer en haut de la liste (après le premier élément)
+        const firstCard = notifList.querySelector('.notif-card');
+        if (firstCard) {
+            // Insérer avant la première carte
+            const divider = document.createElement('div');
+            divider.className = 'notif-divider';
+            notifList.insertAdjacentHTML('beforebegin', cardHtml);
+            // Insérer le séparateur après la nouvelle carte
+            const newCard = notifList.querySelector('.notif-card:first-child');
+            if (newCard) {
+                const dividerEl = document.createElement('div');
+                dividerEl.className = 'notif-divider';
+                newCard.after(dividerEl);
+            }
+        } else {
+            // Si la liste est vide, on rend tout
+            renderNotifications();
+            return;
+        }
+
+        // Attacher les événements sur la nouvelle carte
+        const newCardElement = notifList.querySelector('.notif-card:first-child');
+        if (newCardElement) {
+            const deleteBtn = newCardElement.querySelector('.btn-delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteTargetId = this.dataset.id;
+                    confirmOverlay.classList.add('active');
+                });
+            }
+
+            const copyBtns = newCardElement.querySelectorAll('.btn-link.copy');
+            copyBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const link = this.dataset.link;
+                    if (link) {
+                        navigator.clipboard.writeText(link).then(() => {
+                            this.classList.add('copied');
+                            this.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                            setTimeout(() => {
+                                this.classList.remove('copied');
+                                this.innerHTML = '<i class="fas fa-copy"></i> Copier';
+                            }, 2000);
+                        }).catch(() => {
+                            const input = document.createElement('input');
+                            input.value = link;
+                            document.body.appendChild(input);
+                            input.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(input);
+                            this.classList.add('copied');
+                            this.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                            setTimeout(() => {
+                                this.classList.remove('copied');
+                                this.innerHTML = '<i class="fas fa-copy"></i> Copier';
+                            }, 2000);
+                        });
+                    }
+                });
+            });
+        }
+    }
+
+    // ==========================================
     // SOCKET.IO
     // ==========================================
+
+    let socket = null;
+    let isSocketConnected = false;
 
     function connectSocketIO() {
         if (socket) {
@@ -544,13 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             socket.on('connect', function() {
                 console.log('✅ Socket.IO client notification connecté');
-                const wasDisconnected = !isSocketConnected;
                 isSocketConnected = true;
-                // Si on vient de se reconnecter (pas la toute première connexion),
-                // on rattrape en douceur ce qui a pu arriver pendant la coupure.
-                if (wasDisconnected && !isFirstLoad) {
-                    loadNotifications(false, true);
-                }
             });
 
             socket.on('disconnect', function() {
@@ -563,10 +585,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
-            // 🔔 Nouvelle notification : rechargement SUBTIL (pas de flash, pas de skeleton)
+            // ✅ UNIQUEMENT AJOUTER LA NOUVELLE NOTIFICATION (pas recharger tout)
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
-                loadNotifications(false, true);
+                if (data && data.id) {
+                    addNotification(data);
+                } else {
+                    // Fallback : recharger toutes les notifications
+                    loadNotifications();
+                }
             });
 
         } catch (error) {
@@ -621,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             connectSocketIO();
 
-            await loadNotifications(true, false);
+            await loadNotifications();
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
