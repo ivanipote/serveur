@@ -116,15 +116,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return match ? match[1] : null;
     }
 
-    function extractExpiresAt(content) {
-        const match = content.match(/expires_at[:\\s]+([\\d\\-T:.Z]+)/);
-        if (match) {
-            return match[1];
-        }
-        // Fallback: chercher un timestamp dans la notification
-        const timestampMatch = content.match(/(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/);
-        return timestampMatch ? timestampMatch[0] : null;
+    ffunction extractExpiresAt(content) {
+    // Recherche d'une date ISO complète après "expires_at"
+    const match = content.match(/expires_at[:\\s]+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+    if (match) {
+        return match[1];
     }
+    // Fallback : chercher n'importe quelle date ISO
+    const fallbackMatch = content.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+    return fallbackMatch ? fallbackMatch[1] : null;
+}
 
     function cleanContent(content) {
         return content.replace(/\[Cliquez ici pour payer\]\([^)]+\)/, '').trim();
