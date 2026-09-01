@@ -732,6 +732,10 @@ app.delete('/api/admin/livraison/:id', async (req, res) => {
     }
 });
 
+// ========================================================
+// ROUTE : ADMIN ENVOIE UN MESSAGE À UN UTILISATEUR
+// ========================================================
+
 app.post('/api/admin/notification/send', async (req, res) => {
     const { userId, title, content } = req.body;
 
@@ -740,13 +744,36 @@ app.post('/api/admin/notification/send', async (req, res) => {
     }
 
     try {
-        await db.query(
+        // ✅ Insérer la notification en base
+        const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
             [userId, null, 'admin', title, content, false]
         );
+
+        const notificationId = result.rows[0].id;
         console.log(`✅ Notification admin envoyée à l'utilisateur ${userId}: ${title}`);
-        res.json({ success: true, message: 'Notification envoyée avec succès' });
+
+        // ✅ Émettre en temps réel vers l'utilisateur via Socket.IO
+        if (global.io) {
+            global.io.to(`user_${userId}`).emit('notification', {
+                id: notificationId,
+                user_id: userId,
+                type: 'admin',
+                title: title,
+                content: content,
+                is_read: false,
+                created_at: new Date().toISOString()
+            });
+            console.log(`📨 Notification admin envoyée en temps réel à l'utilisateur ${userId}`);
+        }
+
+        res.json({
+            success: true,
+            message: 'Notification envoyée avec succès',
+            notification_id: notificationId
+        });
+
     } catch (err) {
         console.error('❌ Erreur envoi notification:', err);
         res.status(500).json({ error: err.message });
