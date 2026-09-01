@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let userId = null;
     let notifications = [];
     let deleteTargetId = null;
+    let syncInterval = null;
     let isSyncing = false;
+    let isSyncActive = true;
     let isFirstLoad = true;
 
     // ==========================================
@@ -139,14 +141,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // CHARGER LES NOTIFICATIONS (UNIQUEMENT INITIAL)
+    // CHARGER LES NOTIFICATIONS
     // ==========================================
 
-    async function loadNotifications() {
+    async function loadNotifications(showSkeletonLoader = true) {
         if (isSyncing) return;
         isSyncing = true;
 
-        if (isFirstLoad) {
+        if (showSkeletonLoader && isFirstLoad) {
             showSkeleton();
         }
 
@@ -381,36 +383,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AJOUTER UNE NOTIFICATION EN TEMPS RÉEL
-    // ==========================================
-
-    function addNotification(notification) {
-        // Vérifier si la notification existe déjà
-        const exists = notifications.some(n => n.id === notification.id);
-        if (exists) return;
-
-        console.log('🔔 Nouvelle notification ajoutée:', notification);
-
-        // Ajouter en tête de liste
-        notifications.unshift({
-            id: notification.id,
-            type: notification.type || 'systeme',
-            title: notification.title || 'Notification',
-            content: notification.content || '',
-            is_read: 0,
-            created_at: notification.created_at || new Date().toISOString()
-        });
-
-        // Mettre à jour le badge
-        const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
-        notifBadge.textContent = count;
-        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
-
-        // Re-rendre immédiatement
-        renderNotifications();
-    }
-
-    // ==========================================
     // SOCKET.IO
     // ==========================================
 
@@ -448,14 +420,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
+            // ✅ ANCIENNE MÉTHODE : recharger toutes les notifications
             socket.on('notification', function(data) {
-                console.log('🔔 Notification reçue du serveur:', data);
-                if (data && data.id) {
-                    addNotification(data);
-                } else {
-                    // Fallback : recharger toutes les notifications
-                    loadNotifications();
-                }
+                console.log('🔔 Notification reçue (client):', data);
+                loadNotifications(true);
             });
 
         } catch (error) {
@@ -510,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             connectSocketIO();
 
-            await loadNotifications();
+            await loadNotifications(true);
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
