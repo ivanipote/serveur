@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let deleteTargetId = null;
     let isSyncing = false;
     let isFirstLoad = true;
+    let timerIntervals = {};
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -115,6 +116,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return match ? match[1] : null;
     }
 
+    function extractExpiresAt(content) {
+        const match = content.match(/expires_at[:\\s]+([\\d\\-T:.Z]+)/);
+        if (match) {
+            return match[1];
+        }
+        // Fallback: chercher un timestamp dans la notification
+        const timestampMatch = content.match(/(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/);
+        return timestampMatch ? timestampMatch[0] : null;
+    }
+
     function cleanContent(content) {
         return content.replace(/\[Cliquez ici pour payer\]\([^)]+\)/, '').trim();
     }
@@ -161,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 isFirstLoad = false;
                 hideSkeleton();
                 renderNotifications();
+                startAllTimers();
             } else {
                 notifications = [];
                 notifBadge.textContent = '0';
@@ -198,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBadge.textContent = data.count || 0;
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
                 renderNotifications();
+                startAllTimers();
             }
         } catch (error) {
             console.error('❌ Erreur refresh:', error);
@@ -219,7 +232,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const sorted = [...notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        // Trier par date (plus récent en premier)
+        const sorted = [...notifications].sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            if (dateA === dateB) {
+                return b.id - a.id;
+            }
+            return dateB - dateA;
+        });
 
         let html = '';
 
@@ -232,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const isPaymentLink = hasPaymentLink(n.content);
             const linkUrl = isPaymentLink ? extractLink(n.content) : null;
+            const expiresAt = isPaymentLink ? extractExpiresAt(n.content) : null;
             const cleanMsg = isPaymentLink ? cleanContent(n.content) : (n.content || 'Aucun contenu');
 
             let typeClass = 'systeme';
@@ -243,20 +265,35 @@ document.addEventListener('DOMContentLoaded', function() {
             const urgentBadge = isPaymentLink ? `<span class="badge-urgent">🔥 URGENT</span>` : '';
 
             let linkHtml = '';
+            let timerHtml = '';
+
             if (isPaymentLink && linkUrl) {
+                // Timer avec expires_at
+                const timerId = `timer-${n.id}`;
+                timerHtml = `
+                    <div class="timer-row" id="${timerId}">
+                        <span class="timer-icon">⏳</span>
+                        <span class="timer-label">Temps restant :</span>
+                        <span class="timer-value" data-expires="${expiresAt || ''}" data-notif-id="${n.id}">--:--</span>
+                    </div>
+                `;
+
                 linkHtml = `
-                    <div class="link-wrapper">
-                        <span class="link-url">
-                            <a href="${linkUrl}" target="_blank">${linkUrl}</a>
-                        </span>
-                        <div class="link-actions">
-                            <button class="btn-link open" onclick="window.open('${linkUrl}', '_blank')">
-                                <i class="fas fa-external-link-alt"></i> Ouvrir
-                            </button>
-                            <button class="btn-link copy" data-link="${linkUrl}">
-                                <i class="fas fa-copy"></i> Copier
-                            </button>
+                    <div class="link-wrapper" id="link-wrapper-${n.id}">
+                        <div class="link-row">
+                            <span class="link-url">
+                                <a href="${linkUrl}" target="_blank" class="payment-link" data-notif-id="${n.id}">${linkUrl}</a>
+                            </span>
+                            <div class="link-actions">
+                                <button class="btn-link open" data-notif-id="${n.id}" onclick="window.open('${linkUrl}', '_blank')">
+                                    <i class="fas fa-external-link-alt"></i> Ouvrir
+                                </button>
+                                <button class="btn-link copy" data-link="${linkUrl}" data-notif-id="${n.id}">
+                                    <i class="fas fa-copy"></i> Copier
+                                </button>
+                            </div>
                         </div>
+                        ${timerHtml}
                     </div>
                 `;
             }
@@ -280,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card-footer">
                         <span class="date">${dateStr}</span>
                         <span class="badge-type ${typeClass}">${typeLabel}</span>
+                        <span class="expired-badge" id="expired-badge-${n.id}">⏳ Expiré</span>
                     </div>
                 </div>
             `;
@@ -291,6 +329,95 @@ document.addEventListener('DOMContentLoaded', function() {
 
         notifList.innerHTML = html;
         attachEvents();
+        startAllTimers();
+    }
+
+    // ==========================================
+    // TIMER POUR LES LIENS DE PAIEMENT
+    // ==========================================
+
+    function startAllTimers() {
+        const timerElements = document.querySelectorAll('.timer-value[data-expires]');
+        timerElements.forEach(el => {
+            const notifId = el.dataset.notifId;
+            const expiresAt = el.dataset.expires;
+
+            if (expiresAt) {
+                // Arrêter l'ancien timer
+                if (timerIntervals[notifId]) {
+                    clearInterval(timerIntervals[notifId]);
+                }
+
+                // Démarrer le nouveau timer
+                timerIntervals[notifId] = startTimer(notifId, expiresAt);
+            } else {
+                // Pas d'expiration, le timer n'est pas affiché
+                el.textContent = '--:--';
+                el.className = 'timer-value';
+            }
+        });
+    }
+
+    function startTimer(notifId, expiresAt) {
+        const timerEl = document.querySelector(`.timer-value[data-notif-id="${notifId}"]`);
+        const linkWrapper = document.getElementById(`link-wrapper-${notifId}`);
+        const expiredBadge = document.getElementById(`expired-badge-${notifId}`);
+        const link = document.querySelector(`.payment-link[data-notif-id="${notifId}"]`);
+        const openBtn = document.querySelector(`.btn-link.open[data-notif-id="${notifId}"]`);
+        const copyBtn = document.querySelector(`.btn-link.copy[data-notif-id="${notifId}"]`);
+
+        if (!timerEl) return;
+
+        const expiryDate = new Date(expiresAt);
+        if (isNaN(expiryDate.getTime())) {
+            timerEl.textContent = '--:--';
+            timerEl.className = 'timer-value';
+            return;
+        }
+
+        function updateTimer() {
+            const now = new Date();
+            const diff = expiryDate - now;
+
+            if (diff <= 0) {
+                // EXPIRÉ
+                timerEl.textContent = '⏳ Expiré';
+                timerEl.className = 'timer-value expired-text';
+                if (linkWrapper) linkWrapper.classList.add('expired');
+                if (expiredBadge) expiredBadge.classList.add('show');
+
+                // Désactiver le lien et les boutons
+                if (link) {
+                    link.classList.add('expired-link');
+                    link.removeAttribute('href');
+                    link.textContent = '🔒 Lien expiré';
+                }
+                if (openBtn) openBtn.disabled = true;
+                if (copyBtn) copyBtn.disabled = true;
+
+                // Arrêter le timer
+                clearInterval(timerIntervals[notifId]);
+                delete timerIntervals[notifId];
+                return;
+            }
+
+            const minutes = Math.floor(diff / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            // Changer la couleur selon le temps restant
+            if (diff <= 60000) {
+                timerEl.className = 'timer-value danger'; // < 1 min
+            } else if (diff <= 300000) {
+                timerEl.className = 'timer-value warning'; // < 5 min
+            } else {
+                timerEl.className = 'timer-value';
+            }
+        }
+
+        updateTimer();
+        return setInterval(updateTimer, 1000);
     }
 
     // ==========================================
@@ -323,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const link = this.dataset.link;
-                if (link) {
+                if (link && !this.disabled) {
                     navigator.clipboard.writeText(link).then(() => {
                         this.classList.add('copied');
                         this.innerHTML = '<i class="fas fa-check"></i> Copié !';
@@ -354,181 +481,76 @@ document.addEventListener('DOMContentLoaded', function() {
     // SUPPRIMER UNE NOTIFICATION
     // ==========================================
 
-// ==========================================
-// AJOUTER UNE NOTIFICATION EN TEMPS RÉEL
-// ==========================================
-
-function addNotification(notification) {
-    // Vérifier si la notification existe déjà
-    const exists = notifications.some(n => n.id === notification.id);
-    if (exists) return;
-
-    console.log('🔔 Nouvelle notification ajoutée:', notification);
-
-    // Ajouter en tête de liste
-    notifications.unshift({
-        id: notification.id,
-        type: notification.type || 'systeme',
-        title: notification.title || 'Notification',
-        content: notification.content || '',
-        is_read: 0,
-        created_at: notification.created_at || new Date().toISOString()
-    });
-
-    // ✅ FORCER LE RE-TRI PAR DATE + ID
-    notifications.sort((a, b) => {
-        const dateA = new Date(a.created_at).getTime();
-        const dateB = new Date(b.created_at).getTime();
-        if (dateA === dateB) {
-            return b.id - a.id; // Si même date, ID le plus grand en premier
-        }
-        return dateB - dateA;
-    });
-
-    // Mettre à jour le badge
-    const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
-    notifBadge.textContent = count;
-    notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
-
-    // ✅ RE-RENDRE COMPLÈTEMENT (garantit l'ordre)
-    renderNotifications();
-}
-
-    // =============================================================
-    // RENDRE UNIQUEMENT LA NOUVELLE NOTIFICATION (SUBTTILE)
-    // =============================================================
-
-    function renderNewNotification(notification) {
-        // Si la liste est vide, on recharge tout (cas du premier chargement)
-        if (notifications.length <= 1) {
-            renderNotifications();
-            return;
-        }
-
-        const type = notification.type || 'systeme';
-        const typeLabel = getTypeLabel(type);
-        const dateStr = timeAgo(notification.created_at);
-        const avatarIcon = getAvatarIcon(type);
-        const displayTitle = notification.title || 'Notification';
-        const cleanMsg = notification.content || 'Aucun contenu';
-
-        let typeClass = 'systeme';
-        if (type === 'commande') typeClass = 'commande';
-        else if (type === 'paiement') typeClass = 'paiement';
-        else if (type === 'admin') typeClass = 'admin';
-        else if (type === 'systeme') typeClass = 'systeme';
-
-        // Vérifier si c'est un lien de paiement
-        const isPaymentLink = hasPaymentLink(notification.content);
-        const linkUrl = isPaymentLink ? extractLink(notification.content) : null;
-        const urgentBadge = isPaymentLink ? `<span class="badge-urgent">🔥 URGENT</span>` : '';
-
-        let linkHtml = '';
-        if (isPaymentLink && linkUrl) {
-            linkHtml = `
-                <div class="link-wrapper">
-                    <span class="link-url">
-                        <a href="${linkUrl}" target="_blank">${linkUrl}</a>
-                    </span>
-                    <div class="link-actions">
-                        <button class="btn-link open" onclick="window.open('${linkUrl}', '_blank')">
-                            <i class="fas fa-external-link-alt"></i> Ouvrir
-                        </button>
-                        <button class="btn-link copy" data-link="${linkUrl}">
-                            <i class="fas fa-copy"></i> Copier
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Créer la carte HTML
-        const cardHtml = `
-            <div class="notif-card appearing" data-id="${notification.id}">
-                <div class="card-header">
-                    <div class="avatar">${avatarIcon}</div>
-                    <div class="card-title">${displayTitle}</div>
-                    <div class="card-top-right">
-                        ${urgentBadge}
-                        <button class="btn-delete" data-id="${notification.id}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="card-content">
-                    ${cleanMsg}
-                    ${linkHtml}
-                </div>
-                <div class="card-footer">
-                    <span class="date">${dateStr}</span>
-                    <span class="badge-type ${typeClass}">${typeLabel}</span>
-                </div>
-            </div>
-        `;
-
-        // Insérer en haut de la liste (après le premier élément)
-        const firstCard = notifList.querySelector('.notif-card');
-        if (firstCard) {
-            // Insérer avant la première carte
-            const divider = document.createElement('div');
-            divider.className = 'notif-divider';
-            notifList.insertAdjacentHTML('beforebegin', cardHtml);
-            // Insérer le séparateur après la nouvelle carte
-            const newCard = notifList.querySelector('.notif-card:first-child');
-            if (newCard) {
-                const dividerEl = document.createElement('div');
-                dividerEl.className = 'notif-divider';
-                newCard.after(dividerEl);
-            }
-        } else {
-            // Si la liste est vide, on rend tout
-            renderNotifications();
-            return;
-        }
-
-        // Attacher les événements sur la nouvelle carte
-        const newCardElement = notifList.querySelector('.notif-card:first-child');
-        if (newCardElement) {
-            const deleteBtn = newCardElement.querySelector('.btn-delete');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    deleteTargetId = this.dataset.id;
-                    confirmOverlay.classList.add('active');
-                });
-            }
-
-            const copyBtns = newCardElement.querySelectorAll('.btn-link.copy');
-            copyBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const link = this.dataset.link;
-                    if (link) {
-                        navigator.clipboard.writeText(link).then(() => {
-                            this.classList.add('copied');
-                            this.innerHTML = '<i class="fas fa-check"></i> Copié !';
-                            setTimeout(() => {
-                                this.classList.remove('copied');
-                                this.innerHTML = '<i class="fas fa-copy"></i> Copier';
-                            }, 2000);
-                        }).catch(() => {
-                            const input = document.createElement('input');
-                            input.value = link;
-                            document.body.appendChild(input);
-                            input.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(input);
-                            this.classList.add('copied');
-                            this.innerHTML = '<i class="fas fa-check"></i> Copié !';
-                            setTimeout(() => {
-                                this.classList.remove('copied');
-                                this.innerHTML = '<i class="fas fa-copy"></i> Copier';
-                            }, 2000);
-                        });
-                    }
-                });
+    async function deleteNotification(id) {
+        try {
+            const res = await fetch(`/api/notifications/delete/${id}`, {
+                method: 'DELETE'
             });
+            const data = await res.json();
+            if (res.ok) {
+                // Arrêter le timer
+                if (timerIntervals[id]) {
+                    clearInterval(timerIntervals[id]);
+                    delete timerIntervals[id];
+                }
+                notifications = notifications.filter(n => n.id != id);
+                if (notifications.length === 0) {
+                    renderEmpty();
+                    notifBadge.textContent = '0';
+                    notifBadge.className = 'badge-count zero';
+                } else {
+                    renderNotifications();
+                    startAllTimers();
+                }
+                const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+                notifBadge.textContent = count;
+                notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
+            } else {
+                console.error('Erreur:', data);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
         }
+    }
+
+    // ==========================================
+    // AJOUTER UNE NOTIFICATION EN TEMPS RÉEL
+    // ==========================================
+
+    function addNotification(notification) {
+        // Vérifier si la notification existe déjà
+        const exists = notifications.some(n => n.id === notification.id);
+        if (exists) return;
+
+        console.log('🔔 Nouvelle notification ajoutée:', notification);
+
+        // Ajouter en tête de liste
+        notifications.unshift({
+            id: notification.id,
+            type: notification.type || 'systeme',
+            title: notification.title || 'Notification',
+            content: notification.content || '',
+            is_read: 0,
+            created_at: notification.created_at || new Date().toISOString()
+        });
+
+        // Re-trier par date + ID
+        notifications.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            if (dateA === dateB) {
+                return b.id - a.id;
+            }
+            return dateB - dateA;
+        });
+
+        // Mettre à jour le badge
+        const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
+        notifBadge.textContent = count;
+        notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
+
+        // Re-rendre complètement (garantit l'ordre et les timers)
+        renderNotifications();
     }
 
     // ==========================================
@@ -569,13 +591,11 @@ function addNotification(notification) {
                 }, 3000);
             });
 
-            // ✅ UNIQUEMENT AJOUTER LA NOUVELLE NOTIFICATION (pas recharger tout)
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
                 if (data && data.id) {
                     addNotification(data);
                 } else {
-                    // Fallback : recharger toutes les notifications
                     loadNotifications();
                 }
             });

@@ -1,5 +1,5 @@
 /* =============================================================
-   NOTIFICATION.CSS - STYLES COMPLETS AVEC ANIMATION SUBTILE
+   NOTIFICATION.CSS - STYLES COMPLETS AVEC TIMER
    ============================================================= */
 
 * {
@@ -120,6 +120,14 @@ body {
     transition: transform 0.3s;
 }
 
+.btn-sync.active .fa-sync-alt {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 /* =============================================================
    CONTENU
    ============================================================= */
@@ -204,7 +212,7 @@ body {
 }
 
 /* =============================================================
-   NOTIFICATION CARD - ANIMATION D'APPARITION SUBTILE
+   NOTIFICATION CARD
    ============================================================= */
 
 .notif-card {
@@ -221,7 +229,6 @@ body {
     margin-bottom: 2px;
 }
 
-/* ✅ Animation d'apparition subtile : fondue + translation douce */
 .notif-card.appearing {
     animation: subtleAppear 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
@@ -344,17 +351,32 @@ body {
     overflow-wrap: break-word;
 }
 
-/* ===== LIEN AVEC DEUX BOUTONS ===== */
+/* =============================================================
+   LINK WRAPPER AVEC TIMER (CARTE VIVANTE)
+   ============================================================= */
+
 .link-wrapper {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
     margin-top: 6px;
     padding: 10px 14px;
     background: #f8f9fc;
     border-radius: 10px;
     border: 1px solid #e8ecf4;
+    transition: all 0.3s ease;
+}
+
+.link-wrapper.expired {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
+.link-wrapper .link-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .link-wrapper .link-url {
@@ -373,6 +395,13 @@ body {
 
 .link-wrapper .link-url a:hover {
     text-decoration: underline;
+}
+
+.link-wrapper .link-url a.expired-link {
+    color: #999;
+    cursor: not-allowed;
+    text-decoration: none;
+    pointer-events: none;
 }
 
 .link-wrapper .link-actions {
@@ -401,9 +430,16 @@ body {
     color: white;
 }
 
-.btn-link.open:hover {
+.btn-link.open:hover:not(:disabled) {
     background: #0d1a4a;
     transform: scale(1.02);
+}
+
+.btn-link.open:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    background: #9ca3af;
 }
 
 .btn-link.copy {
@@ -411,9 +447,16 @@ body {
     color: #1a1a2e;
 }
 
-.btn-link.copy:hover {
+.btn-link.copy:hover:not(:disabled) {
     background: #d5d5e0;
     transform: scale(1.02);
+}
+
+.btn-link.copy:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    background: #e8e8f0;
 }
 
 .btn-link.copy.copied {
@@ -421,7 +464,57 @@ body {
     color: white;
 }
 
-/* ===== BADGE DE TYPE ===== */
+/* ===== TIMER ===== */
+.timer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    padding-top: 6px;
+    border-top: 1px solid #e8ecf4;
+}
+
+.timer-row .timer-icon {
+    font-size: 16px;
+}
+
+.timer-row .timer-label {
+    font-size: 12px;
+    color: #888;
+    font-weight: 400;
+}
+
+.timer-row .timer-value {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a2a6c;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+}
+
+.timer-row .timer-value.warning {
+    color: #e67e22;
+}
+
+.timer-row .timer-value.danger {
+    color: #DC2626;
+    animation: pulse-timer 1s ease-in-out infinite;
+}
+
+.timer-row .timer-value.expired-text {
+    color: #DC2626;
+    font-weight: 800;
+    animation: none;
+}
+
+@keyframes pulse-timer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ===== BADGE TYPE ===== */
 .badge-type {
     display: inline-block;
     font-size: 11px;
@@ -464,6 +557,21 @@ body {
 .notif-card .card-footer .date {
     font-size: 12px;
     color: #999;
+}
+
+.expired-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #DC2626;
+    background: #fef2f2;
+    padding: 2px 12px;
+    border-radius: 20px;
+    border: 1px solid #fca5a5;
+    display: none;
+}
+
+.expired-badge.show {
+    display: inline-block;
 }
 
 /* =============================================================
