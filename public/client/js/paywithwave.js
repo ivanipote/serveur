@@ -572,18 +572,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // AFFICHER UNE ERREUR
+    // ✅ AFFICHER UNE ERREUR (avec vérification)
     // ==========================================
 
     function showError(message, target = 'payer') {
         const el = target === 'payer' ? errorMessage : verifyErrorMsg;
-        el.textContent = message;
-        el.className = 'error-message visible';
+        if (el) {
+            el.textContent = message;
+            el.className = 'error-message visible';
+        } else {
+            console.warn('❌ Élément d\'erreur non trouvé:', target);
+        }
     }
+
+    // ==========================================
+    // ✅ CACHER UNE ERREUR (avec vérification)
+    // ==========================================
 
     function hideError(target = 'payer') {
         const el = target === 'payer' ? errorMessage : verifyErrorMsg;
-        el.className = 'error-message';
+        if (el) {
+            el.className = 'error-message';
+        }
     }
 
     // ==========================================
