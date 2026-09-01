@@ -605,27 +605,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ NOUVEAU : OUVRIR L'APP WAVE DIRECTEMENT
+    // ✅ NOUVEAU : OUVRIR L'APP WAVE DIRECTEMENT (UNIVERSAL LINK)
     // ==========================================
 
     function openWaveApp(montant) {
-        // Universal Link fiable (testé sur WhatsApp)
+        // Universal Link fiable – fonctionne sur mobile (app) et Web (fallback)
         const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montant}`;
         
         console.log('🌊 Ouverture de Wave avec le lien :', waveLink);
         
-        // Tentative d'ouverture
+        // Redirection directe
         window.location.href = waveLink;
         
-        // Après un court délai (l'utilisateur est parti dans l'app),
-        // on active un mécanisme de retour silencieux pour basculer
-        // automatiquement vers l'onglet "Vérifier" au retour.
-        // On utilise un flag + intervalle pour détecter le focus.
+        // Bascule automatique vers l'onglet "Vérifier" au retour sur la page
         if (!window._waveReturnListener) {
             window._waveReturnListener = true;
             window.addEventListener('focus', function onReturn() {
                 console.log('🔙 Retour sur la page après Wave');
-                // Bascule automatiquement vers l'onglet "Vérifier"
+                // Bascule vers l'onglet "Vérifier"
                 const verifyTab = document.querySelector('.onglet[data-onglet="verifier"]');
                 if (verifyTab) {
                     verifyTab.click();
