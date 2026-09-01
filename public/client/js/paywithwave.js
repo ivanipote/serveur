@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusSpinner = document.getElementById('statusSpinner');
     const verifyErrorMsg = document.getElementById('verifyErrorMessage');
 
-    // ✅ URL CORRECTE DU SERVEUR WAVE
     const WAVE_API_URL = 'https://server-wave-js.onrender.com';
 
     let commandeId = null;
@@ -500,6 +499,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const fraisLivraison = commande.frais_livraison || 0;
         const prixBrut = totalProduits + fraisLivraison;
+
+        // ⚠️ Calcul des frais (1.5% Wave + 100+1% Genius) – À terme, déplacer côté serveur
         const fraisWave = prixBrut * 0.015;
         const fraisGeniusPay = 100 + (prixBrut * 0.01);
         const totalFrais = fraisWave + fraisGeniusPay;
@@ -571,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ AFFICHER UNE ERREUR (avec vérification)
+    // AFFICHER UNE ERREUR (avec vérification)
     // ==========================================
 
     function showError(message, target = 'payer') {
@@ -583,10 +584,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('❌ Élément d\'erreur non trouvé:', target);
         }
     }
-
-    // ==========================================
-    // ✅ CACHER UNE ERREUR (avec vérification)
-    // ==========================================
 
     function hideError(target = 'payer') {
         const el = target === 'payer' ? errorMessage : verifyErrorMsg;
@@ -608,7 +605,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ PAYER AVEC WAVE - VERSION ANDROID WEBVIEW
+    // ✅ NOUVEAU : OUVRIR L'APP WAVE DIRECTEMENT
+    // ==========================================
+
+    function openWaveApp(montant) {
+        // Universal Link fiable (testé sur WhatsApp)
+        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montant}`;
+        
+        console.log('🌊 Ouverture de Wave avec le lien :', waveLink);
+        
+        // Tentative d'ouverture
+        window.location.href = waveLink;
+        
+        // Après un court délai (l'utilisateur est parti dans l'app),
+        // on active un mécanisme de retour silencieux pour basculer
+        // automatiquement vers l'onglet "Vérifier" au retour.
+        // On utilise un flag + intervalle pour détecter le focus.
+        if (!window._waveReturnListener) {
+            window._waveReturnListener = true;
+            window.addEventListener('focus', function onReturn() {
+                console.log('🔙 Retour sur la page après Wave');
+                // Bascule automatiquement vers l'onglet "Vérifier"
+                const verifyTab = document.querySelector('.onglet[data-onglet="verifier"]');
+                if (verifyTab) {
+                    verifyTab.click();
+                }
+                // Supprimer l'écouteur pour éviter les bascules intempestives
+                window.removeEventListener('focus', onReturn);
+                window._waveReturnListener = false;
+            });
+        }
+    }
+
+    // ==========================================
+    // PAYER AVEC WAVE - VERSION SIMPLIFIÉE
     // ==========================================
 
     payBtn.addEventListener('click', async function() {
@@ -643,41 +673,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ✅ VERSION ANDROID WEBVIEW : intent + fallback
-        const packageName = 'com.wave.android'; // Nom du package Wave
-        const deepLink = `wave://pay?amount=${montantWave}&currency=XOF&reference=${commandeData?.reference || 'NAT-' + commandeId}`;
-        const playStoreLink = `https://play.google.com/store/apps/details?id=${packageName}`;
-        const webLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
-
-        // ✅ Construction de l'intent Android
-        const intentUrl = `intent://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}#Intent;scheme=https;package=${packageName};end`;
-
-        // ✅ Vérifier si l'app Wave est installée via l'intent
-        // Dans une WebView, on peut essayer l'intent d'abord
-
-        showLoading();
-
-        // Tentative d'ouverture via intent (Android)
-        try {
-            // Créer un élément a pour tenter l'ouverture
-            const link = document.createElement('a');
-            link.href = intentUrl;
-            link.target = '_blank';
-            link.click();
-
-            // Fallback : si l'app n'est pas installée, après 2s on redirige vers le web
-            setTimeout(() => {
-                hideLoading();
-                // Si l'utilisateur n'a pas quitté la page, ouvrir la version web
-                window.location.href = webLink;
-            }, 2000);
-
-        } catch (error) {
-            console.error('❌ Erreur ouverture Wave:', error);
-            hideLoading();
-            // Fallback : ouvrir le lien web
-            window.location.href = webLink;
-        }
+        // ✅ Ouvrir l'app Wave directement
+        openWaveApp(montantWave);
     });
 
     // ==========================================
