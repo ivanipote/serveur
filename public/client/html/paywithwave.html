@@ -87,12 +87,17 @@
                 <div class="code-hint">Entrez votre code à 4 chiffres</div>
             </div>
 
-            <!-- ID WAVE -->
+            <!-- ID WAVE AVEC BOUTON COLLER -->
             <div class="login-card">
                 <div class="login-label">
                     <i class="fas fa-receipt"></i> ID Transaction Wave
                 </div>
-                <input type="text" id="waveIdInput" class="wave-id-input" placeholder="Ex: WV-987654321" maxlength="30" />
+                <div class="wave-id-wrapper">
+                    <input type="text" id="waveIdInput" class="wave-id-input" placeholder="Ex: WV-987654321" maxlength="30" />
+                    <button type="button" class="btn-paste" id="pasteWaveIdBtn" title="Coller depuis le presse-papiers">
+                        <i class="fas fa-paste"></i>
+                    </button>
+                </div>
                 <div class="code-hint">Entrez l'ID Wave reçu par SMS</div>
             </div>
 

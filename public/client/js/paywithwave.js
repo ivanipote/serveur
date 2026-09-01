@@ -605,37 +605,61 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // ✅ NOUVEAU : OUVRIR L'APP WAVE DIRECTEMENT (UNIVERSAL LINK)
+    // ✅ NOUVEAU : BOUTON COLLER POUR ID WAVE
     // ==========================================
 
-    function openWaveApp(montant) {
-        // Universal Link fiable – fonctionne sur mobile (app) et Web (fallback)
-        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montant}`;
-        
-        console.log('🌊 Ouverture de Wave avec le lien :', waveLink);
-        
-        // Redirection directe
-        window.location.href = waveLink;
-        
-        // Bascule automatique vers l'onglet "Vérifier" au retour sur la page
-        if (!window._waveReturnListener) {
-            window._waveReturnListener = true;
-            window.addEventListener('focus', function onReturn() {
-                console.log('🔙 Retour sur la page après Wave');
-                // Bascule vers l'onglet "Vérifier"
-                const verifyTab = document.querySelector('.onglet[data-onglet="verifier"]');
-                if (verifyTab) {
-                    verifyTab.click();
+    const pasteBtn = document.getElementById('pasteWaveIdBtn');
+    if (pasteBtn) {
+        pasteBtn.addEventListener('click', async function() {
+            try {
+                // Vérifier si l'API clipboard est disponible
+                if (!navigator.clipboard) {
+                    // Fallback : utiliser l'ancienne méthode
+                    const text = await getClipboardTextFallback();
+                    if (text) {
+                        waveIdInput.value = text.trim();
+                        waveIdInput.dispatchEvent(new Event('input'));
+                        this.classList.add('pasted');
+                        setTimeout(() => this.classList.remove('pasted'), 2000);
+                    }
+                    return;
                 }
-                // Supprimer l'écouteur pour éviter les bascules intempestives
-                window.removeEventListener('focus', onReturn);
-                window._waveReturnListener = false;
-            });
-        }
+
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim()) {
+                    waveIdInput.value = text.trim();
+                    waveIdInput.dispatchEvent(new Event('input'));
+                    this.classList.add('pasted');
+                    setTimeout(() => this.classList.remove('pasted'), 2000);
+                } else {
+                    showError('📋 Aucun texte à coller.', 'verifier');
+                }
+            } catch (error) {
+                console.warn('Erreur collage:', error);
+                // Fallback : proposer une alternative
+                showError('📋 Impossible de lire le presse-papiers. Collez manuellement.', 'verifier');
+            }
+        });
+    }
+
+    // Fallback pour les navigateurs ne supportant pas Clipboard API
+    function getClipboardTextFallback() {
+        return new Promise((resolve) => {
+            const textarea = document.createElement('textarea');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.pointerEvents = 'none';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            document.execCommand('paste');
+            const text = textarea.value;
+            document.body.removeChild(textarea);
+            resolve(text);
+        });
     }
 
     // ==========================================
-    // PAYER AVEC WAVE - VERSION SIMPLIFIÉE
+    // PAYER AVEC WAVE
     // ==========================================
 
     payBtn.addEventListener('click', async function() {
@@ -671,11 +695,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // ✅ Ouvrir l'app Wave directement
-        openWaveApp(montantWave);
+        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
+        window.location.href = waveLink;
+
+        // Bascule automatique vers l'onglet "Vérifier" au retour
+        if (!window._waveReturnListener) {
+            window._waveReturnListener = true;
+            window.addEventListener('focus', function onReturn() {
+                const verifyTab = document.querySelector('.onglet[data-onglet="verifier"]');
+                if (verifyTab) verifyTab.click();
+                window.removeEventListener('focus', onReturn);
+                window._waveReturnListener = false;
+            });
+        }
     });
 
     // ==========================================
-    // VÉRIFIER LE PAIEMENT (AVEC MONTANT WAVE)
+    // VÉRIFIER LE PAIEMENT
     // ==========================================
 
     verifyBtn.addEventListener('click', async function() {
