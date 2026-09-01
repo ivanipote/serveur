@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // PAYER AVEC WAVE
+    // PAYER AVEC WAVE - OUVERTURE DIRECTE
     // ==========================================
 
     payBtn.addEventListener('click', async function() {
@@ -644,14 +644,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const waveLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
+        // ✅ ESSAYER D'OUVRIR L'APPLICATION WAVE DIRECTEMENT
+        // Deep link pour ouvrir l'app Wave (si installée)
+        const deepLink = `wave://pay?amount=${montantWave}&currency=XOF&reference=${commandeData?.reference || 'NAT-' + commandeId}`;
+        
+        // Lien web de secours
+        const webLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
 
-        showLoading();
+        // ✅ Tentative d'ouverture de l'app via deep link
+        // Si l'app n'est pas installée, cela ne fera rien (ou ouvrira le web)
+        const start = Date.now();
 
+        // Créer un iframe invisible pour tenter d'ouvrir le deep link
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = deepLink;
+        document.body.appendChild(iframe);
+
+        // Rediriger vers le lien web si l'app n'est pas ouverte
         setTimeout(() => {
-            hideLoading();
-            window.open(waveLink, '_blank');
-        }, 1500);
+            // Nettoyer l'iframe
+            if (iframe.parentNode) {
+                iframe.parentNode.removeChild(iframe);
+            }
+
+            // Si l'app a été ouverte, on ne fait rien (l'utilisateur est dans l'app)
+            // Sinon, on ouvre le lien web
+            if (Date.now() - start < 1000) {
+                // Fallback vers le lien web
+                window.open(webLink, '_blank');
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+                }, 1500);
+            }
+        }, 800);
     });
 
     // ==========================================
@@ -702,7 +729,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoader();
 
         try {
-            // ✅ ENVOYER LE MONTANT WAVE CORRECT DANS LA REQUÊTE
             const montantWave = commandeData?.montantWave || 0;
 
             const res = await fetch(`${WAVE_API_URL}/api/wave/verify`, {
@@ -712,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     commande_id: parseInt(commandeId),
                     code_login: code,
                     wave_id: waveId,
-                    montant_wave: montantWave  // ✅ AJOUT DU MONTANT WAVE
+                    montant_wave: montantWave
                 })
             });
 
