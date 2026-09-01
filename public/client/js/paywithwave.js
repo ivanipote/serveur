@@ -607,40 +607,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // ✅ NOUVEAU : BOUTON COLLER POUR ID WAVE
     // ==========================================
+// ==========================================
+// COLLER L'ID DEPUIS LE PRESSE-PAPIERS
+// ==========================================
 
-    const pasteBtn = document.getElementById('pasteWaveIdBtn');
-    if (pasteBtn) {
-        pasteBtn.addEventListener('click', async function() {
-            try {
-                // Vérifier si l'API clipboard est disponible
-                if (!navigator.clipboard) {
-                    // Fallback : utiliser l'ancienne méthode
-                    const text = await getClipboardTextFallback();
-                    if (text) {
-                        waveIdInput.value = text.trim();
+const pasteBtn = document.getElementById('pasteWaveIdBtn');
+if (pasteBtn) {
+    pasteBtn.addEventListener('click', function() {
+        try {
+            let text = '';
+
+            // ✅ Priorité : pont Android (pour l'APK)
+            if (window.Android && window.Android.getClipboardText) {
+                text = window.Android.getClipboardText();
+            } 
+            // Fallback : API web
+            else if (navigator.clipboard) {
+                navigator.clipboard.readText().then(t => {
+                    if (t && t.trim()) {
+                        waveIdInput.value = t.trim();
                         waveIdInput.dispatchEvent(new Event('input'));
-                        this.classList.add('pasted');
-                        setTimeout(() => this.classList.remove('pasted'), 2000);
+                        pasteBtn.classList.add('pasted');
+                        setTimeout(() => pasteBtn.classList.remove('pasted'), 2000);
+                    } else {
+                        showError('📋 Aucun texte à coller.', 'verifier');
                     }
-                    return;
-                }
-
-                const text = await navigator.clipboard.readText();
-                if (text && text.trim()) {
-                    waveIdInput.value = text.trim();
-                    waveIdInput.dispatchEvent(new Event('input'));
-                    this.classList.add('pasted');
-                    setTimeout(() => this.classList.remove('pasted'), 2000);
-                } else {
-                    showError('📋 Aucun texte à coller.', 'verifier');
-                }
-            } catch (error) {
-                console.warn('Erreur collage:', error);
-                // Fallback : proposer une alternative
-                showError('📋 Impossible de lire le presse-papiers. Collez manuellement.', 'verifier');
+                }).catch(() => {
+                    showError('📋 Collez manuellement (long press).', 'verifier');
+                });
+                return;
             }
-        });
-    }
+
+            // Traitement du texte (cas Android ou fallback)
+            if (text && text.trim()) {
+                waveIdInput.value = text.trim();
+                waveIdInput.dispatchEvent(new Event('input'));
+                pasteBtn.classList.add('pasted');
+                setTimeout(() => pasteBtn.classList.remove('pasted'), 2000);
+            } else {
+                showError('📋 Aucun texte à coller.', 'verifier');
+            }
+        } catch (error) {
+            console.warn('Erreur collage:', error);
+            showError('📋 Collez manuellement.', 'verifier');
+        }
+    });
+}
 
     // Fallback pour les navigateurs ne supportant pas Clipboard API
     function getClipboardTextFallback() {
