@@ -116,12 +116,28 @@ app.get('/health', (req, res) => {
 
 async function createNotification(userId, commandeId, type, title, content) {
     try {
-        await db.query(
+        const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
             [userId, commandeId, type, title, content, false]
         );
+
+        const notificationId = result.rows[0].id;
         console.log(`✅ Notification créée pour user ${userId}: ${title}`);
+
+        // ✅ AJOUT : pousser en temps réel au client
+        io.to(`user_${userId}`).emit('notification', {
+            id: notificationId,
+            user_id: userId,
+            commande_id: commandeId,
+            type: type,
+            title: title,
+            content: content,
+            is_read: false,
+            created_at: new Date().toISOString()
+        });
+        console.log(`📨 Notification (wave) envoyée en temps réel à l'utilisateur ${userId}`);
+
         return true;
     } catch (err) {
         console.error('❌ Erreur création notification:', err);

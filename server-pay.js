@@ -120,12 +120,28 @@ async function createNotification(userId, commandeId, type, title, content) {
     }
 
     try {
-        await db.query(
+        const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
             [finalUserId, commandeId, type, title, content, false]
         );
+
+        const notificationId = result.rows[0].id;
         console.log(`✅ Notification créée pour user ${finalUserId}: ${title}`);
+
+        // ✅ AJOUT : pousser en temps réel au client
+        socket.to(`user_${finalUserId}`).emit('notification', {
+            id: notificationId,
+            user_id: finalUserId,
+            commande_id: commandeId,
+            type: type,
+            title: title,
+            content: content,
+            is_read: false,
+            created_at: new Date().toISOString()
+        });
+        console.log(`📨 Notification (pay) envoyée en temps réel à l'utilisateur ${finalUserId}`);
+
         return true;
     } catch (err) {
         console.error('❌ Erreur création notification:', err);
