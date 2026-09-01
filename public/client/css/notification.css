@@ -668,3 +668,39 @@ body {
     .skeleton-avatar { width: 30px; height: 30px; }
     .skeleton-line { height: 12px; }
 }
+/* =============================================================
+   AJOUTS — à coller à la fin de notification.css
+   Animations pour le rechargement subtil (Socket.IO)
+   ============================================================= */
+
+/* Nouvelle carte qui arrive : léger fondu + surlignage discret */
+.notif-card-incoming {
+    background: #eef4ff;
+    box-shadow: 0 0 0 2px rgba(26, 42, 108, 0.15);
+    transition: background 1.8s ease, box-shadow 1.8s ease;
+}
+
+.notif-card-incoming-active {
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+/* Carte qui disparaît (suppression) */
+.notif-card-leaving {
+    opacity: 0;
+    transform: translateX(20px) scale(0.98);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+/* Petit pulse discret sur le badge quand une notif arrive */
+.badge-count.badge-pulse {
+    animation: badgePulse 0.9s ease;
+}
+
+@keyframes badgePulse {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.25); }
+    60%  { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
