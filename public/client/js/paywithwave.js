@@ -466,7 +466,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (panier.length > 0) {
             panier.forEach(p => {
-                // ✅ CORRECTION : Utiliser effective_price
                 const effectivePrice = p.effective_price || p.price || 0;
                 const qte = p.quantity || 1;
                 const totalLigne = effectivePrice * qte;
@@ -609,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // PAYER AVEC WAVE - OUVERTURE DIRECTE
+    // ✅ PAYER AVEC WAVE - VERSION ANDROID WEBVIEW
     // ==========================================
 
     payBtn.addEventListener('click', async function() {
@@ -644,41 +643,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ✅ ESSAYER D'OUVRIR L'APPLICATION WAVE DIRECTEMENT
-        // Deep link pour ouvrir l'app Wave (si installée)
+        // ✅ VERSION ANDROID WEBVIEW : intent + fallback
+        const packageName = 'com.wave.android'; // Nom du package Wave
         const deepLink = `wave://pay?amount=${montantWave}&currency=XOF&reference=${commandeData?.reference || 'NAT-' + commandeId}`;
-        
-        // Lien web de secours
+        const playStoreLink = `https://play.google.com/store/apps/details?id=${packageName}`;
         const webLink = `https://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}`;
 
-        // ✅ Tentative d'ouverture de l'app via deep link
-        // Si l'app n'est pas installée, cela ne fera rien (ou ouvrira le web)
-        const start = Date.now();
+        // ✅ Construction de l'intent Android
+        const intentUrl = `intent://pay.wave.com/m/M_ci_NaB9_UibLaUt/c/ci/?amount=${montantWave}#Intent;scheme=https;package=${packageName};end`;
 
-        // Créer un iframe invisible pour tenter d'ouvrir le deep link
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = deepLink;
-        document.body.appendChild(iframe);
+        // ✅ Vérifier si l'app Wave est installée via l'intent
+        // Dans une WebView, on peut essayer l'intent d'abord
 
-        // Rediriger vers le lien web si l'app n'est pas ouverte
-        setTimeout(() => {
-            // Nettoyer l'iframe
-            if (iframe.parentNode) {
-                iframe.parentNode.removeChild(iframe);
-            }
+        showLoading();
 
-            // Si l'app a été ouverte, on ne fait rien (l'utilisateur est dans l'app)
-            // Sinon, on ouvre le lien web
-            if (Date.now() - start < 1000) {
-                // Fallback vers le lien web
-                window.open(webLink, '_blank');
-                showLoading();
-                setTimeout(() => {
-                    hideLoading();
-                }, 1500);
-            }
-        }, 800);
+        // Tentative d'ouverture via intent (Android)
+        try {
+            // Créer un élément a pour tenter l'ouverture
+            const link = document.createElement('a');
+            link.href = intentUrl;
+            link.target = '_blank';
+            link.click();
+
+            // Fallback : si l'app n'est pas installée, après 2s on redirige vers le web
+            setTimeout(() => {
+                hideLoading();
+                // Si l'utilisateur n'a pas quitté la page, ouvrir la version web
+                window.location.href = webLink;
+            }, 2000);
+
+        } catch (error) {
+            console.error('❌ Erreur ouverture Wave:', error);
+            hideLoading();
+            // Fallback : ouvrir le lien web
+            window.location.href = webLink;
+        }
     });
 
     // ==========================================
