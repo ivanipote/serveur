@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isSyncing = false;
     let isFirstLoad = true;
     let timerIntervals = {};
+    let timestampInterval = null;
 
     // ==========================================
     // VÉRIFICATION CONNEXION
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // DATE RELATIVE
+    // DATE RELATIVE (avec mise à jour en temps réel)
     // ==========================================
 
     function timeAgo(dateString) {
@@ -75,6 +76,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return `${jours[date.getDay()]} ${heures}:${minutes}`;
         }
         return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ✅ METTRE À JOUR TOUS LES HORODATAGES
+    function updateAllTimestamps() {
+        const dateElements = document.querySelectorAll('.notif-card .date');
+        dateElements.forEach(el => {
+            const notifId = el.closest('.notif-card')?.dataset.id;
+            if (notifId) {
+                const notif = notifications.find(n => n.id == notifId);
+                if (notif) {
+                    el.textContent = timeAgo(notif.created_at);
+                }
+            }
+        });
     }
 
     // ==========================================
@@ -163,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideSkeleton();
                 renderNotifications();
                 startAllTimers();
+                startTimestampUpdater();
             } else {
                 notifications = [];
                 notifBadge.textContent = '0';
@@ -201,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifBadge.className = 'badge-count' + (data.count === 0 ? ' zero' : '');
                 renderNotifications();
                 startAllTimers();
+                startTimestampUpdater();
             }
         } catch (error) {
             console.error('❌ Erreur refresh:', error);
@@ -257,8 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let timerHtml = '';
 
             if (isPaymentLink && linkUrl) {
-                // ✅ TIMER PUREMENT FRONT-END
-                // On utilise la date de création de la notification + 20 minutes
                 const createdAt = n.created_at;
                 const timerId = `timer-${n.id}`;
 
@@ -322,6 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notifList.innerHTML = html;
         attachEvents();
         startAllTimers();
+        startTimestampUpdater();
     }
 
     // ==========================================
@@ -363,7 +379,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ✅ 20 minutes à partir de la création
         const expiryTime = createdDate.getTime() + (20 * 60 * 1000);
 
         function updateTimer() {
@@ -371,7 +386,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const diff = expiryTime - now;
 
             if (diff <= 0) {
-                // ⏳ EXPIRÉ
                 timerEl.textContent = '⏳ Expiré';
                 timerEl.className = 'timer-value expired-text';
                 if (linkWrapper) linkWrapper.classList.add('expired');
@@ -396,9 +410,9 @@ document.addEventListener('DOMContentLoaded', function() {
             timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
             if (diff <= 60000) {
-                timerEl.className = 'timer-value danger'; // < 1 min
+                timerEl.className = 'timer-value danger';
             } else if (diff <= 300000) {
-                timerEl.className = 'timer-value warning'; // < 5 min
+                timerEl.className = 'timer-value warning';
             } else {
                 timerEl.className = 'timer-value';
             }
@@ -406,6 +420,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateTimer();
         return setInterval(updateTimer, 1000);
+    }
+
+    // ==========================================
+    // ✅ METTRE À JOUR LES TIMESTAMPS EN TEMPS RÉEL (toutes les 30s)
+    // ==========================================
+
+    function startTimestampUpdater() {
+        if (timestampInterval) {
+            clearInterval(timestampInterval);
+        }
+        timestampInterval = setInterval(() => {
+            updateAllTimestamps();
+        }, 30000);
     }
 
     // ==========================================
@@ -488,6 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     renderNotifications();
                     startAllTimers();
+                    startTimestampUpdater();
                 }
                 const count = notifications.filter(n => n.is_read === 0 || n.is_read === false).length;
                 notifBadge.textContent = count;
@@ -533,6 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notifBadge.className = 'badge-count' + (count === 0 ? ' zero' : '');
 
         renderNotifications();
+        startTimestampUpdater();
     }
 
     // ==========================================
