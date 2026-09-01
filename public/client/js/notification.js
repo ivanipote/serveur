@@ -420,15 +420,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 3000);
             });
 
-            // ✅ ANCIENNE MÉTHODE : recharger toutes les notifications
             socket.on('notification', function(data) {
                 console.log('🔔 Notification reçue (client):', data);
-                loadNotifications(true);
+                // Recharger sans skeleton pour une mise à jour fluide
+                loadNotifications(false);
             });
 
         } catch (error) {
             console.error('❌ Erreur Socket.IO:', error);
             setTimeout(() => connectSocketIO(), 5000);
+        }
+    }
+
+    // ==========================================
+    // BOUTON SYNC : RAFRAÎCHISSEMENT MANUEL
+    // ==========================================
+
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function() {
+            refreshNotifications();
+        });
+    }
+
+    // ==========================================
+    // SYNC AUTOMATIQUE EN ARRIÈRE-PLAN (toutes les 5s)
+    // ==========================================
+
+    function startAutoSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+        }
+        console.log('🔄 Auto-sync notifications démarré (toutes les 5s)');
+        syncInterval = setInterval(() => {
+            if (!isSyncing) {
+                loadNotifications(false); // ← false = pas de skeleton, mise à jour silencieuse
+            }
+        }, 5000);
+    }
+
+    function stopAutoSync() {
+        if (syncInterval) {
+            clearInterval(syncInterval);
+            syncInterval = null;
+            console.log('⏹️ Auto-sync notifications arrêté');
         }
     }
 
@@ -457,16 +491,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==========================================
-    // BOUTON SYNC (rafraîchissement manuel)
-    // ==========================================
-
-    if (syncBtn) {
-        syncBtn.addEventListener('click', function() {
-            refreshNotifications();
-        });
-    }
-
-    // ==========================================
     // INITIALISATION
     // ==========================================
 
@@ -479,6 +503,9 @@ document.addEventListener('DOMContentLoaded', function() {
             connectSocketIO();
 
             await loadNotifications(true);
+
+            // Démarrer la synchro automatique en arrière-plan
+            startAutoSync();
 
             console.log('✅ Initialisation terminée');
         } catch (error) {
