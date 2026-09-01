@@ -153,6 +153,10 @@ async function createNotification(userId, commandeId, type, title, content) {
 // ROUTE : CRÉER UN PAIEMENT
 // ========================================================
 
+// ========================================================
+// ROUTE : CRÉER UN PAIEMENT
+// ========================================================
+
 app.post('/api/payment/create', async (req, res) => {
     console.log('📥 Requête paiement reçue');
     console.log('📦 Body:', req.body);
@@ -278,13 +282,13 @@ app.post('/api/payment/create', async (req, res) => {
             ['paiement_en_cours', commandeId]
         );
 
-        // ✅ Envoyer la notification au client avec le lien
+        // ✅ Envoyer la notification au client avec le lien ET expires_at
         await createNotification(
             userId,
             commandeId,
             'paiement',
             '🔗 Lien de paiement généré',
-            `Voici votre lien de paiement pour la commande #${commandeId}. Montant : ${amount} FCFA. Vous disposez de 20 minutes. [Cliquez ici pour payer](${checkoutUrl})`
+            `Voici votre lien de paiement pour la commande #${commandeId}. Montant : ${amount} FCFA. Vous disposez de 20 minutes. [Cliquez ici pour payer](${checkoutUrl}) expires_at: ${expiresAt}`
         );
 
         res.json({
@@ -305,7 +309,6 @@ app.post('/api/payment/create', async (req, res) => {
         });
     }
 });
-
 // ========================================================
 // ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
 // ========================================================

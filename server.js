@@ -869,6 +869,58 @@ app.get('/api/admin/updates', async (req, res) => {
 });
 
 // ========================================================
+// ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
+// ========================================================
+
+app.get('/api/payment/link/:commande_id', async (req, res) => {
+    const { commande_id } = req.params;
+
+    console.log(`🔍 Récupération du lien de paiement pour la commande #${commande_id}`);
+
+    try {
+        const payment = await db.get(
+            `SELECT checkout_url, reference, genius_reference, status, genius_status, expires_at
+             FROM payments 
+             WHERE commande_id = $1 
+             ORDER BY created_at DESC 
+             LIMIT 1`,
+            [commande_id]
+        );
+
+        if (!payment) {
+            return res.json({
+                success: true,
+                has_link: false,
+                message: 'Aucun lien de paiement trouvé pour cette commande.'
+            });
+        }
+
+        const finalStatuses = ['success', 'failed', 'cancelled', 'expired', 'refunded'];
+        const isFinal = finalStatuses.includes(payment.genius_status || payment.status);
+
+        res.json({
+            success: true,
+            has_link: true,
+            checkout_url: payment.checkout_url,
+            reference: payment.reference,
+            genius_reference: payment.genius_reference,
+            status: payment.status,
+            genius_status: payment.genius_status,
+            expires_at: payment.expires_at,
+            is_final: isFinal
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération lien:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+// ========================================================
 // ROUTE : RÉCUPÉRER L'HISTORIQUE DES DÉPLOIEMENTS (RENDER)
 // ========================================================
 
