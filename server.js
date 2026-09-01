@@ -1486,25 +1486,33 @@ app.get('/api/commandes', isAuthenticated, async (req, res) => {
 // ========================================================
 // ROUTES NOTIFICATIONS (avec Socket.IO)
 // ========================================================
+// ========================================================
+// ROUTE : RÉCUPÉRER LES NOTIFICATIONS D'UN UTILISATEUR
+// ========================================================
 
 app.get('/api/notifications', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
     try {
+        // ✅ Tri UNIQUEMENT par date (plus récent en premier)
+        // On ne trie plus par is_read pour éviter le désordre
         const rows = await db.all(
             `SELECT * FROM messages 
              WHERE user_id = $1 
              ORDER BY created_at DESC`,
             [userId]
         );
+        
+        // Compter les notifications non lues (pour le badge)
         const unreadCount = rows.filter(r => !r.is_read).length;
+
         res.json({
             success: true,
             count: unreadCount,
             notifications: rows
         });
     } catch (err) {
-        console.error('❌ Erreur notifications:', err);
+        console.error('❌ Erreur récupération notifications:', err);
         res.status(500).json({ error: err.message });
     }
 });
