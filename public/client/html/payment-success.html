@@ -173,7 +173,6 @@
         #loadingSpinner {
             display: none;
         }
-
         #loadingSpinner.show {
             display: block;
         }
@@ -181,7 +180,6 @@
         #successActions {
             display: none;
         }
-
         #successActions.show {
             display: block;
         }
@@ -223,9 +221,8 @@
         </div>
 
         <div id="errorContainer" class="error-box">
-            <strong>⚠️ Problème de session</strong>
-            <p style="margin-top:8px;font-size:14px;">Nous n'avons pas pu mettre à jour votre commande automatiquement.</p>
-            <p style="font-size:13px;color:#888;margin-top:4px;">Vérifiez vos commandes dans votre espace client.</p>
+            <strong>⚠️ Problème</strong>
+            <p style="margin-top:8px;font-size:14px;" id="errorText">Impossible de mettre à jour le statut.</p>
         </div>
 
         <div id="loadingSpinner" class="spinner show"></div>
@@ -247,84 +244,40 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ payment-success.html chargé');
+            console.log('✅ payment-success.html (version sans session)');
 
             const urlParams = new URLSearchParams(window.location.search);
             const reference = urlParams.get('reference');
-            const status = urlParams.get('status');
 
             const commandeIdEl = document.getElementById('commandeId');
             const loadingSpinner = document.getElementById('loadingSpinner');
             const errorContainer = document.getElementById('errorContainer');
+            const errorText = document.getElementById('errorText');
             const successActions = document.getElementById('successActions');
 
-            // ✅ URL de notre API de paiement
             const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
 
             async function handlePaymentSuccess() {
                 try {
-                    // 1. Vérifier l'authentification
-                    const authRes = await fetch('/api/client/me');
-                    const authData = await authRes.json();
-
-                    if (!authData.success) {
-                        console.warn('⚠️ Non authentifié');
-                        loadingSpinner.classList.remove('show');
-                        errorContainer.classList.add('show');
-                        return;
-                    }
-
-                    console.log('👤 Utilisateur authentifié:', authData.user);
-
-                    // 2. Récupérer le commande_id via NOTRE API
                     let commandeId = null;
 
+                    // 1️⃣ Récupérer le commande_id via la référence
                     if (reference) {
-                        try {
-                            // ✅ Appel à notre serveur (pas directement à Genius Pay)
-                            const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${reference}`);
-
-                            if (checkRes.ok) {
-                                const checkData = await checkRes.json();
-                                console.log('📊 Réponse check:', checkData);
-
-                                if (checkData.success && checkData.data) {
-                                    // Récupérer commande_id depuis notre base ou metadata
-                                    commandeId = checkData.data.commande_id ||
-                                                 checkData.data.metadata?.order_id ||
-                                                 null;
-                                    console.log('✅ Commande ID récupéré:', commandeId);
-                                }
-                            } else {
-                                console.warn('⚠️ Erreur /api/payment/check:', checkRes.status);
+                        const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${reference}`);
+                        if (checkRes.ok) {
+                            const checkData = await checkRes.json();
+                            if (checkData.success && checkData.data) {
+                                commandeId = checkData.data.commande_id ||
+                                             checkData.data.metadata?.order_id ||
+                                             null;
                             }
-                        } catch (checkError) {
-                            console.error('❌ Erreur récupération:', checkError);
                         }
                     }
 
-                    // 3. Si pas de commande_id, essayer de récupérer depuis la base
-                    if (!commandeId) {
-                        try {
-                            // Chercher le dernier paiement en attente pour cet utilisateur
-                            const payRes = await fetch('/api/payments/last-pending');
-                            if (payRes.ok) {
-                                const payData = await payRes.json();
-                                if (payData.success && payData.commande_id) {
-                                    commandeId = payData.commande_id;
-                                    console.log('✅ Commande ID récupéré depuis la base:', commandeId);
-                                }
-                            }
-                        } catch (dbError) {
-                            console.error('❌ Erreur récupération base:', dbError);
-                        }
-                    }
-
-                    // 4. Si on a un commande_id, mettre à jour le statut
+                    // 2️⃣ Si commande trouvée → mettre à jour le statut
                     if (commandeId) {
                         commandeIdEl.textContent = '#' + commandeId;
 
-                        // ✅ Utiliser PAYMENT_API_URL pour update-status
                         const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -337,44 +290,27 @@
                         const updateData = await updateRes.json();
 
                         if (updateRes.ok) {
-                            console.log('✅ Statut mis à jour:', updateData);
                             loadingSpinner.classList.remove('show');
                             successActions.classList.add('show');
-
-                            // Envoyer une notification au client
-                            try {
-                                await fetch('/api/notifications/create', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        userId: authData.user.id,
-                                        commandeId: commandeId,
-                                        type: 'paiement',
-                                        title: '💳 Paiement réussi',
-                                        content: `Votre paiement pour la commande #${commandeId} a été confirmé avec succès.`
-                                    })
-                                });
-                            } catch (notifError) {
-                                console.warn('⚠️ Erreur notification:', notifError);
-                            }
-
                         } else {
                             throw new Error(updateData.error || 'Erreur mise à jour');
                         }
                     } else {
+                        // Pas de commande trouvée
                         loadingSpinner.classList.remove('show');
                         errorContainer.classList.add('show');
-                        errorContainer.querySelector('p').textContent = 'Impossible de retrouver votre commande. Contactez le support.';
+                        errorText.textContent = 'Commande introuvable. Contactez le support.';
                     }
 
                 } catch (error) {
                     console.error('❌ Erreur:', error);
                     loadingSpinner.classList.remove('show');
                     errorContainer.classList.add('show');
+                    errorText.textContent = error.message || 'Une erreur est survenue.';
                 }
             }
 
-            // Lancer le traitement après 1s
+            // Démarrer après 1s
             setTimeout(() => {
                 handlePaymentSuccess();
             }, 1000);
