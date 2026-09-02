@@ -920,6 +920,71 @@ app.get('/api/payment/link/:commande_id', async (req, res) => {
 });
 
 
+// ============================================================
+// ROUTE : CLIENT ENVOIE UN MESSAGE À L'ADMIN
+// ============================================================
+
+app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
+    const userId = req.session.userId;
+    const { content } = req.body;
+
+    if (!content || content.trim() === '') {
+        return res.status(400).json({ error: 'Message vide.' });
+    }
+
+    try {
+        // Récupérer l'admin (par défaut id=1)
+        const admin = await db.get('SELECT id FROM admins LIMIT 1');
+        if (!admin) {
+            return res.status(500).json({ error: 'Admin non trouvé.' });
+        }
+
+        // 1. Créer la notification pour l'admin (type 'client_message')
+        const result = await db.query(
+            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+            [admin.id, null, 'client_message', '📩 Nouveau message client', content, false]
+        );
+
+        const notificationId = result.rows[0].id;
+
+        // 2. Émettre en temps réel vers l'admin (via Socket.IO)
+        if (global.io) {
+            global.io.to('admin').emit('notification', {
+                id: notificationId,
+                user_id: admin.id,
+                type: 'client_message',
+                title: '📩 Nouveau message client',
+                content: content,
+                is_read: false,
+                created_at: new Date().toISOString()
+            });
+        }
+
+        // 3. Émettre en temps réel vers l'utilisateur (confirmation)
+        if (global.io) {
+            global.io.to(`user_${userId}`).emit('notification', {
+                id: notificationId,
+                user_id: userId,
+                type: 'client_message',
+                title: '📩 Votre message',
+                content: content,
+                is_read: false,
+                created_at: new Date().toISOString()
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Message envoyé.',
+            notification_id: notificationId
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur envoi message client:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 // ========================================================
 // ROUTE : RÉCUPÉRER L'HISTORIQUE DES DÉPLOIEMENTS (RENDER)
 // ========================================================
@@ -1826,6 +1891,14 @@ app.get('/paywithwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
 
+
+// ============================================================
+// ROUTE : PAGE DISCUSSION (CLIENT)
+// ============================================================
+
+app.get('/discussion', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'discussion.html'));
+});
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
