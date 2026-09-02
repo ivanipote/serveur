@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>❌ Paiement annulé | Nature+</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⏳ Paiement non finalisé | Nature+</title>
     <style>
         * {
             margin: 0;
@@ -17,66 +17,75 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
             padding: 20px;
         }
 
         .container {
-            text-align: center;
             background: white;
-            padding: 50px 40px;
+            padding: 40px 32px 32px;
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.10);
             max-width: 480px;
             width: 100%;
-            animation: fadeUp 0.6s ease-out;
+            animation: fadeUp 0.5s ease-out;
+            border: 1px solid rgba(230, 126, 34, 0.12);
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .icon-error {
-            width: 80px;
-            height: 80px;
-            background: #dc3545;
-            border-radius: 50%;
+        /* HEADER */
+        .header-warning {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px auto;
-            font-size: 40px;
-            color: white;
-            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+            gap: 10px;
+            background: #fff3e0;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border-left: 5px solid #e67e22;
+            margin-bottom: 20px;
         }
 
-        h1 {
-            font-size: 28px;
+        .header-warning .icon {
+            font-size: 26px;
+        }
+
+        .header-warning .title {
+            font-size: 20px;
             font-weight: 700;
-            color: #721c24;
-            margin-bottom: 8px;
+            color: #e67e22;
         }
 
-        p {
+        /* MESSAGE */
+        .message {
             font-size: 16px;
-            color: #666;
-            margin-bottom: 6px;
             line-height: 1.6;
+            color: #3d3d3d;
+            margin-bottom: 18px;
+            padding: 0 4px;
         }
 
-        .sub {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 4px;
+        .message strong {
+            color: #e67e22;
         }
 
+        /* COMMANDE ID */
         .commande-info {
             background: #f8f9fc;
             border-radius: 12px;
             padding: 12px 16px;
-            margin: 16px 0;
+            margin-bottom: 18px;
             border: 1px solid #e8ecf4;
+            text-align: center;
         }
 
         .commande-info .label {
@@ -92,272 +101,143 @@
             color: #1a1a2e;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e8e8f0;
-            border-top-color: #dc3545;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 12px auto;
+        /* TIMER */
+        .timer-box {
+            background: #fef9f0;
+            border: 1px dashed #e67e22;
+            border-radius: 12px;
+            padding: 14px 16px;
+            text-align: center;
+            margin-bottom: 24px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .timer-box .label {
+            font-size: 13px;
+            color: #888;
+            display: block;
+            margin-bottom: 2px;
         }
 
-        .btn-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
+        .timer-box .time {
+            font-size: 28px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #e67e22;
+            letter-spacing: 2px;
         }
 
-        .btn-retry {
+        .timer-box .time.expired {
+            color: #dc3545;
+        }
+
+        /* BOUTON */
+        .btn-dashboard {
+            display: block;
+            width: 100%;
+            padding: 16px;
             background: #e67e22;
             color: white;
             border: none;
-            padding: 14px 32px;
             border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
             text-decoration: none;
             transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            cursor: pointer;
         }
 
-        .btn-retry:hover {
+        .btn-dashboard:hover {
             background: #d35400;
-            transform: scale(1.02);
+            transform: scale(1.01);
         }
 
-        .btn-secondary {
-            background: #e8e8f0;
-            color: #1a1a2e;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-secondary:hover {
-            background: #d5d5e0;
-            transform: scale(1.02);
-        }
-
-        .error-box {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 16px;
-            border-radius: 12px;
-            margin: 12px 0;
-            border: 1px solid #f5c6cb;
-            display: none;
-        }
-
-        .error-box.show {
-            display: block;
-        }
-
-        #loadingSpinner {
-            display: none;
-        }
-
-        #loadingSpinner.show {
-            display: block;
-        }
-
-        #successActions {
-            display: none;
-        }
-
-        #successActions.show {
-            display: block;
+        .btn-dashboard i {
+            margin-right: 8px;
         }
 
         @media (max-width: 480px) {
             .container {
-                padding: 30px 20px;
+                padding: 28px 18px 24px;
             }
-            h1 {
+            .header-warning .title {
+                font-size: 17px;
+            }
+            .message {
+                font-size: 15px;
+            }
+            .timer-box .time {
                 font-size: 24px;
             }
-            .icon-error {
-                width: 60px;
-                height: 60px;
-                font-size: 30px;
-            }
-            .btn-actions {
-                flex-direction: column;
-            }
-            .btn-retry,
-            .btn-secondary {
-                width: 100%;
-                justify-content: center;
+            .btn-dashboard {
+                font-size: 16px;
+                padding: 14px;
             }
         }
-        * {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    outline: none !important;
-}
-
-button, a, .btn, .clickable {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-}
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="icon-error">✕</div>
-        <h1>❌ Paiement annulé</h1>
-        <p>Vous n'avez pas finalisé le paiement.</p>
-        <p class="sub">Vous pouvez réessayer ou contacter notre service client.</p>
 
+        <!-- HEADER AVERTISSEMENT -->
+        <div class="header-warning">
+            <span class="icon">⚠️</span>
+            <span class="title">Avertissement !</span>
+        </div>
+
+        <!-- MESSAGE -->
+        <div class="message">
+            Le paiement n’a pas été effectué.<br /><br />
+            Veuillez <strong>retourner dans l’application</strong> pour reprendre le processus.<br /><br />
+            <strong>🔒 Le lien expire automatiquement après 20 minutes.</strong>
+        </div>
+
+        <!-- COMMANDE ID (si dispo) -->
         <div class="commande-info">
             <div class="label">📋 Commande</div>
             <div class="value" id="commandeId">#---</div>
         </div>
 
-        <div id="errorContainer" class="error-box">
-            <strong>⚠️ Problème de session</strong>
-            <p style="margin-top:8px;font-size:14px;">Nous n'avons pas pu mettre à jour votre commande automatiquement.</p>
-            <p style="font-size:13px;color:#888;margin-top:4px;">Vérifiez vos commandes dans votre espace client.</p>
+        <!-- TIMER -->
+        <div class="timer-box">
+            <span class="label">⏳ Temps restant</span>
+            <span class="time" id="timerDisplay">20:00</span>
         </div>
 
-        <div id="loadingSpinner" class="spinner show"></div>
+        <!-- BOUTON RETOUR DASHBOARD -->
+        <a href="/dashboard" class="btn-dashboard">
+            <i class="fas fa-home"></i> Retour à l’accueil
+        </a>
 
-        <div id="successActions">
-            <p style="color:#155724;font-weight:600;margin-top:4px;">✅ Mise à jour effectuée !</p>
-        </div>
-
-        <div class="btn-actions">
-            <a href="/mescommandes" class="btn-retry">
-                🔄 Réessayer le paiement
-            </a>
-            <a href="/dashboard" class="btn-secondary">
-                🏠 Retour à l'accueil
-            </a>
-        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ payment-failed.html chargé');
-
+            // Récupérer l'ID commande depuis l'URL
             const urlParams = new URLSearchParams(window.location.search);
-            const reference = urlParams.get('reference');
-            const status = urlParams.get('status');
+            const commandeId = urlParams.get('commande_id') || urlParams.get('id') || '---';
+            document.getElementById('commandeId').textContent = '#' + commandeId;
 
-            const commandeIdEl = document.getElementById('commandeId');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const errorContainer = document.getElementById('errorContainer');
-            const successActions = document.getElementById('successActions');
+            // Timer 20 minutes
+            const timerEl = document.getElementById('timerDisplay');
+            const expiryTime = Date.now() + 20 * 60 * 1000;
 
-            // ✅ URL de notre API de paiement
-            const PAYMENT_API_URL = 'https://nature-plus-pay.onrender.com';
-
-            async function handlePaymentFailed() {
-                try {
-                    // 1. Vérifier l'authentification
-                    const authRes = await fetch('/api/client/me');
-                    const authData = await authRes.json();
-
-                    if (!authData.success) {
-                        console.warn('⚠️ Non authentifié');
-                        loadingSpinner.classList.remove('show');
-                        errorContainer.classList.add('show');
-                        return;
-                    }
-
-                    console.log('👤 Utilisateur authentifié:', authData.user);
-
-                    // 2. Récupérer le commande_id via NOTRE API
-                    let commandeId = null;
-
-                    if (reference) {
-                        try {
-                            const checkRes = await fetch(`${PAYMENT_API_URL}/api/payment/check/${reference}`);
-
-                            if (checkRes.ok) {
-                                const checkData = await checkRes.json();
-                                console.log('📊 Réponse check:', checkData);
-
-                                if (checkData.success && checkData.data) {
-                                    commandeId = checkData.data.commande_id ||
-                                                 checkData.data.metadata?.order_id ||
-                                                 null;
-                                    console.log('✅ Commande ID récupéré:', commandeId);
-                                }
-                            } else {
-                                console.warn('⚠️ Erreur /api/payment/check:', checkRes.status);
-                            }
-                        } catch (checkError) {
-                            console.error('❌ Erreur récupération:', checkError);
-                        }
-                    }
-
-                    // 3. Si on a un commande_id, mettre à jour le statut en "annulee"
-                    if (commandeId) {
-                        commandeIdEl.textContent = '#' + commandeId;
-
-                        const updateRes = await fetch(`${PAYMENT_API_URL}/api/payment/update-status`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                commandeId: commandeId,
-                                status: 'annulee',
-                                cause: 'Paiement annulé par le client'
-                            })
-                        });
-
-                        const updateData = await updateRes.json();
-
-                        if (updateRes.ok) {
-                            console.log('✅ Statut mis à jour:', updateData);
-                            loadingSpinner.classList.remove('show');
-                            successActions.classList.add('show');
-                        } else {
-                            throw new Error(updateData.error || 'Erreur mise à jour');
-                        }
-                    } else {
-                        loadingSpinner.classList.remove('show');
-                        errorContainer.classList.add('show');
-                        errorContainer.querySelector('p').textContent = 'Impossible de retrouver votre commande. Contactez le support.';
-                    }
-
-                } catch (error) {
-                    console.error('❌ Erreur:', error);
-                    loadingSpinner.classList.remove('show');
-                    errorContainer.classList.add('show');
+            function updateTimer() {
+                const diff = expiryTime - Date.now();
+                if (diff <= 0) {
+                    timerEl.textContent = '⏳ Expiré';
+                    timerEl.classList.add('expired');
+                    return;
                 }
+                const m = String(Math.floor(diff / 60000)).padStart(2, '0');
+                const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                timerEl.textContent = m + ':' + s;
             }
 
-            // Lancer le traitement après 1s
-            setTimeout(() => {
-                handlePaymentFailed();
-            }, 1000);
+            updateTimer();
+            setInterval(updateTimer, 1000);
 
         });
     </script>
