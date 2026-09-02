@@ -408,7 +408,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            console.log('✅ Discussion (réelle) chargée');
+            console.log('✅ Discussion (optimisée) chargée');
 
             // ==========================================
             // RÉFÉRENCES
@@ -423,6 +423,7 @@
             let isSyncing = false;
             let socket = null;
             let isSocketConnected = false;
+            let lastLoadedDate = ''; // pour éviter les duplicatas
 
             // ==========================================
             // VÉRIFICATION CONNEXION
@@ -449,10 +450,10 @@
             }
 
             // ==========================================
-            // CHARGER LES MESSAGES
+            // CHARGER LES MESSAGES (initial)
             // ==========================================
 
-            async function loadMessages() {
+            async function loadMessages(initial = true) {
                 if (isSyncing) return;
                 isSyncing = true;
 
@@ -461,29 +462,55 @@
                     const data = await res.json();
 
                     if (res.ok && data.notifications) {
-                        // ✅ Filtrer : on garde les messages de type 'admin' et 'client_message'
-                        messages = data.notifications.filter(n =>
+                        // Filtrer : on garde admin et client_message
+                        const filtered = data.notifications.filter(n =>
                             n.type === 'admin' || n.type === 'client_message'
                         );
 
-                        // Trier par date (plus ancien en premier)
-                        messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                        if (initial) {
+                            // Premier chargement : on remplace tout
+                            messages = filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                            renderMessages();
+                        } else {
+                            // Mise à jour : on ajoute les nouveaux messages
+                            const existingIds = new Set(messages.map(m => m.id));
+                            const newMessages = filtered.filter(m => !existingIds.has(m.id));
 
-                        renderMessages();
+                            if (newMessages.length > 0) {
+                                // Ajouter les nouveaux messages dans l'ordre
+                                newMessages.forEach(msg => {
+                                    messages.push(msg);
+                                });
+                                // Re-trier
+                                messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                                // Ajouter uniquement les nouveaux messages à l'affichage
+                                newMessages.forEach(msg => {
+                                    addMessageToView(msg);
+                                });
+                                // Mettre à jour le séparateur de date si nécessaire
+                                updateDateSeparators();
+                                // Scroller en bas
+                                main.scrollTop = main.scrollHeight;
+                            }
+                        }
                     } else {
-                        messages = [];
-                        renderEmpty('Aucun message');
+                        if (initial) {
+                            messages = [];
+                            renderEmpty('Aucun message');
+                        }
                     }
                 } catch (error) {
                     console.error('❌ Erreur chargement:', error);
-                    renderEmpty('Erreur de chargement');
+                    if (initial) {
+                        renderEmpty('Erreur de chargement');
+                    }
                 } finally {
                     isSyncing = false;
                 }
             }
 
             // ==========================================
-            // AFFICHER LES MESSAGES
+            // AFFICHER LES MESSAGES (initial)
             // ==========================================
 
             function renderMessages() {
@@ -492,11 +519,10 @@
                     return;
                 }
 
-                // Grouper par date (pour afficher un séparateur)
                 let html = '';
                 let currentDate = '';
 
-                messages.forEach((msg, index) => {
+                messages.forEach((msg) => {
                     const date = new Date(msg.created_at);
                     const dateStr = date.toLocaleDateString('fr-FR');
 
@@ -505,23 +531,116 @@
                         html += `<div class="date-separator"><span>${currentDate}</span></div>`;
                     }
 
-                    const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    const isSentByUser = msg.type === 'client_message';
-                    const sender = isSentByUser ? '👤 Vous' : '🛒 Support';
-
-                    html += `
-                        <div class="message ${isSentByUser ? 'sent' : 'received'}">
-                            <span class="msg-sender">${sender}</span>
-                            ${msg.content || msg.title || ''}
-                            <span class="msg-time">${time}</span>
-                        </div>
-                    `;
+                    html += buildMessageHtml(msg);
                 });
 
                 main.innerHTML = html;
-                // Scroller en bas
                 main.scrollTop = main.scrollHeight;
             }
+
+            // ==========================================
+            // CONSTRUIRE UN MESSAGE HTML
+            // ==========================================
+
+            function buildMessageHtml(msg) {
+                const date = new Date(msg.created_at);
+                const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const isSentByUser = msg.type === 'client_message';
+                const sender = isSentByUser ? '👤 Vous' : '🛒 Support';
+
+                return `
+                    <div class="message ${isSentByUser ? 'sent' : 'received'}">
+                        <span class="msg-sender">${sender}</span>
+                        ${msg.content || msg.title || ''}
+                        <span class="msg-time">${time}</span>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // AJOUTER UN SEUL MESSAGE À LA VUE
+            // ==========================================
+
+            function addMessageToView(msg) {
+                // Vérifier si le message existe déjà dans le DOM
+                const existing = main.querySelector(`[data-msg-id="${msg.id}"]`);
+                if (existing) return;
+
+                // Créer un conteneur pour le message
+                const div = document.createElement('div');
+                div.setAttribute('data-msg-id', msg.id);
+                div.innerHTML = buildMessageHtml(msg);
+
+                // Trouver où insérer (en gardant l'ordre chronologique)
+                // On cherche le dernier message avec une date inférieure ou égale
+                const msgDate = new Date(msg.created_at);
+                let inserted = false;
+
+                const children = main.children;
+                for (let i = children.length - 1; i >= 0; i--) {
+                    const child = children[i];
+                    if (child.classList.contains('message')) {
+                        const childId = child.dataset.msgId;
+                        if (childId) {
+                            const childMsg = messages.find(m => m.id == childId);
+                            if (childMsg && new Date(childMsg.created_at) <= msgDate) {
+                                // Insérer après ce message
+                                child.after(div);
+                                inserted = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!inserted) {
+                    // Si aucun message trouvé, insérer en bas (juste avant le dernier séparateur ou en fin)
+                    const lastChild = children[children.length - 1];
+                    if (lastChild) {
+                        lastChild.before(div);
+                    } else {
+                        main.appendChild(div);
+                    }
+                }
+
+                // Mettre à jour les séparateurs de date
+                updateDateSeparators();
+            }
+
+            // ==========================================
+            // METTRE À JOUR LES SÉPARATEURS DE DATE
+            // ==========================================
+
+            function updateDateSeparators() {
+                // Supprimer tous les séparateurs existants
+                const separators = main.querySelectorAll('.date-separator');
+                separators.forEach(el => el.remove());
+
+                // Reconstruire les séparateurs en fonction des messages
+                let currentDate = '';
+                const messageElements = main.querySelectorAll('.message');
+                messageElements.forEach(el => {
+                    const id = el.dataset.msgId;
+                    if (id) {
+                        const msg = messages.find(m => m.id == id);
+                        if (msg) {
+                            const date = new Date(msg.created_at);
+                            const dateStr = date.toLocaleDateString('fr-FR');
+                            if (dateStr !== currentDate) {
+                                currentDate = dateStr;
+                                const sep = document.createElement('div');
+                                sep.className = 'date-separator';
+                                sep.innerHTML = `<span>${currentDate}</span>`;
+                                el.before(sep);
+                            }
+                        }
+                    }
+                });
+            }
+
+            // ==========================================
+            // AFFICHER VIDE
+            // ==========================================
 
             function renderEmpty(message) {
                 main.innerHTML = `
@@ -562,16 +681,16 @@
                             created_at: now.toISOString(),
                             is_read: true
                         };
-                        messages.push(msgObj);
-                        renderMessages();
+                        // Vérifier si le message n'existe pas déjà
+                        const exists = messages.some(m => m.id === msgObj.id);
+                        if (!exists) {
+                            messages.push(msgObj);
+                            addMessageToView(msgObj);
+                            main.scrollTop = main.scrollHeight;
+                        }
 
                         messageInput.value = '';
                         messageInput.focus();
-
-                        // Recharger pour être sûr (sync)
-                        setTimeout(() => {
-                            loadMessages();
-                        }, 1000);
                     } else {
                         alert('❌ ' + (data.error || 'Erreur d\'envoi'));
                     }
@@ -621,8 +740,31 @@
 
                     socket.on('notification', function(data) {
                         console.log('🔔 Nouvelle notification (discussion):', data);
-                        // Recharger les messages pour afficher le nouveau
-                        loadMessages();
+                        // Vérifier si c'est un message (admin ou client_message)
+                        if (data.type === 'admin' || data.type === 'client_message') {
+                            // Ajouter uniquement le nouveau message sans recharger tout
+                            const exists = messages.some(m => m.id === data.id);
+                            if (!exists) {
+                                // Ajouter l'objet au tableau
+                                const msgObj = {
+                                    id: data.id,
+                                    type: data.type,
+                                    content: data.content || data.title || '',
+                                    created_at: data.created_at || new Date().toISOString(),
+                                    is_read: data.is_read || false
+                                };
+                                messages.push(msgObj);
+                                // Trier par date
+                                messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                                // Ajouter à la vue
+                                addMessageToView(msgObj);
+                                // Scroller en bas
+                                main.scrollTop = main.scrollHeight;
+                            }
+                        } else {
+                            // Autre type de notification : on recharge silencieusement
+                            loadMessages(false);
+                        }
                     });
 
                 } catch (error) {
@@ -653,17 +795,17 @@
                     const isAuth = await checkAuth();
                     if (!isAuth) return;
 
-                    await loadMessages();
+                    await loadMessages(true);
                     connectSocketIO();
 
-                    // Sync toutes les 10s
+                    // Sync en arrière-plan toutes les 15s (pour récupérer les messages manquants)
                     setInterval(() => {
                         if (!isSyncing) {
-                            loadMessages();
+                            loadMessages(false);
                         }
-                    }, 10000);
+                    }, 15000);
 
-                    console.log('✅ Discussion réelle initialisée');
+                    console.log('✅ Discussion réelle optimisée initialisée');
                 } catch (error) {
                     console.error('❌ Erreur initialisation:', error);
                 }
