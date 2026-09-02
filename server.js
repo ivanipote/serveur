@@ -924,6 +924,10 @@ app.get('/api/payment/link/:commande_id', async (req, res) => {
 // ROUTE : CLIENT ENVOIE UN MESSAGE À L'ADMIN
 // ============================================================
 
+// ============================================================
+// ROUTE : CLIENT ENVOIE UN MESSAGE À L'ADMIN
+// ============================================================
+
 app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { content } = req.body;
@@ -933,42 +937,46 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
     }
 
     try {
+        // Récupérer l'admin (par défaut id=1)
         const admin = await db.get('SELECT id FROM admins LIMIT 1');
         if (!admin) {
             return res.status(500).json({ error: 'Admin non trouvé.' });
         }
 
-        // 1. Notification pour l'admin (destinataire)
-        const adminNotif = await db.query(
+        // Récupérer les infos de l'utilisateur
+        const user = await db.get('SELECT name, email FROM users WHERE id = $1', [userId]);
+        const userName = user ? user.name : 'Client';
+        const userEmail = user ? user.email : '';
+
+        // Créer le titre avec le nom et l'email
+        const title = `📩 Message de ${userName} (${userEmail})`;
+
+        // Créer la notification pour l'admin
+        const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [admin.id, null, 'client_message', '📩 Nouveau message client', content, false]
+            [admin.id, null, 'client_message', title, content, false]
         );
 
-        // 2. Notification pour le client (destinataire)
-        const clientNotif = await db.query(
-            `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [userId, null, 'client_message', '📩 Votre message', content, false]
-        );
+        const notificationId = result.rows[0].id;
 
-        // Émettre en temps réel vers l'admin
+        // Émettre vers l'admin
         if (global.io) {
             global.io.to('admin').emit('notification', {
-                id: adminNotif.rows[0].id,
+                id: notificationId,
                 user_id: admin.id,
                 type: 'client_message',
-                title: '📩 Nouveau message client',
+                title: title,
                 content: content,
                 is_read: false,
                 created_at: new Date().toISOString()
             });
         }
 
-        // Émettre en temps réel vers le client
+        // Émettre vers l'utilisateur (confirmation)
         if (global.io) {
             global.io.to(`user_${userId}`).emit('notification', {
-                id: clientNotif.rows[0].id,
+                id: notificationId,
                 user_id: userId,
                 type: 'client_message',
                 title: '📩 Votre message',
@@ -981,7 +989,7 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
         res.json({
             success: true,
             message: 'Message envoyé.',
-            notification_id: adminNotif.rows[0].id
+            notification_id: notificationId
         });
 
     } catch (error) {
