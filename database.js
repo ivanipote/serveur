@@ -104,6 +104,33 @@ async function ensureExtraColumns() {
 }
 
 // ========================================================
+// FONCTION : AJOUTER LA COLONNE FCM_TOKEN À ADMINS
+// ========================================================
+
+async function ensureFcmTokenColumn() {
+    const client = await pool.connect();
+    try {
+        const colCheck = await client.query(`
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name = 'admins' AND column_name = 'fcm_token'
+            )
+        `);
+
+        if (!colCheck.rows[0].exists) {
+            await client.query(`ALTER TABLE admins ADD COLUMN fcm_token TEXT`);
+            console.log('   ✅ Colonne fcm_token ajoutée à admins');
+        } else {
+            console.log('   ✅ Colonne fcm_token existe déjà');
+        }
+    } catch (error) {
+        console.log(`   ⚠️ Erreur vérification fcm_token:`, error.message);
+    } finally {
+        client.release();
+    }
+}
+
+// ========================================================
 // CRÉATION DES TABLES
 // ========================================================
 
@@ -451,6 +478,13 @@ async function initializeDatabase() {
 
         console.log('   - Index créés');
 
+        // ========================================================
+        // AJOUTER LA COLONNE FCM_TOKEN À ADMINS
+        // ========================================================
+        console.log('🔄 Vérification de la colonne fcm_token...');
+        await ensureFcmTokenColumn();
+        console.log('✅ Colonne fcm_token vérifiée');
+
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('❌ Erreur création tables:', error);
@@ -470,5 +504,6 @@ module.exports = {
     get: (text, params) => pool.query(text, params).then(res => res.rows[0]),
     all: (text, params) => pool.query(text, params).then(res => res.rows),
     run: (text, params) => pool.query(text, params),
-    initialize: initializeDatabase
+    initialize: initializeDatabase,
+    ensureFcmTokenColumn,
 };
