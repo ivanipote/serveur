@@ -197,7 +197,6 @@ async function createNotification(userId, commandeId, type, title, content) {
                 created_at: new Date().toISOString()
             };
 
-            // Envoyer au client spécifique
             global.io.to(`user_${userId}`).emit('notification', notificationData);
             console.log(`📨 Notification envoyée en temps réel à l'utilisateur ${userId}`);
         }
@@ -210,11 +209,116 @@ async function createNotification(userId, commandeId, type, title, content) {
 }
 
 // ========================================================
+// ✅ FONCTION : ENVOYER UNE NOTIFICATION PUSH FCM
+// ========================================================
+
+async function sendPushNotification(adminEmail, title, body, data = {}) {
+    try {
+        // Récupérer le token FCM de l'admin
+        const admin = await db.get(
+            'SELECT fcm_token FROM admins WHERE email = $1 AND fcm_token IS NOT NULL',
+            [adminEmail]
+        );
+
+        if (!admin || !admin.fcm_token) {
+            console.log(`⚠️ Aucun token FCM pour admin ${adminEmail}`);
+            return false;
+        }
+
+        // Envoyer via Firebase Cloud Messaging API
+        const response = await fetch('https://fcm.googleapis.com/v1/projects/mon-app-flutter-c2b1a/messages:send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.FCM_ACCESS_TOKEN}`,
+            },
+            body: JSON.stringify({
+                message: {
+                    token: admin.fcm_token,
+                    notification: {
+                        title: title,
+                        body: body,
+                    },
+                    data: data,
+                    android: {
+                        priority: 'high',
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                sound: 'default',
+                            },
+                        },
+                    },
+                },
+            }),
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            console.error(`❌ Erreur FCM: ${error}`);
+            return false;
+        }
+
+        console.log(`✅ Notification FCM envoyée à ${adminEmail}: ${title}`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Erreur envoi notification FCM:', error);
+        return false;
+    }
+}
+
+// ========================================================
 // ROUTE HEALTH
 // ========================================================
 
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'client' });
+});
+
+// ========================================================
+// ROUTE : ENREGISTRER LE TOKEN FCM DE L'ADMIN
+// ========================================================
+
+app.post('/api/admin/register-token', async (req, res) => {
+    const { email, fcmToken } = req.body;
+
+    if (!email || !fcmToken) {
+        return res.status(400).json({
+            success: false,
+            error: 'Email et token FCM requis.'
+        });
+    }
+
+    try {
+        const admin = await db.get('SELECT id FROM admins WHERE email = $1', [email]);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                error: 'Admin non trouvé.'
+            });
+        }
+
+        await db.query(
+            'UPDATE admins SET fcm_token = $1 WHERE email = $2',
+            [fcmToken, email]
+        );
+
+        console.log(`✅ Token FCM enregistré pour admin ${email}`);
+
+        res.json({
+            success: true,
+            message: 'Token FCM enregistré avec succès'
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur enregistrement token FCM:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // ========================================================
@@ -485,10 +589,6 @@ app.get('/api/admin/stats', async (req, res) => {
     }
 });
 
-// ========================================================
-// ROUTE : RÉCUPÉRER UNE NOTIFICATION PAR ID
-// ========================================================
-
 app.get('/api/notification/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -732,10 +832,6 @@ app.delete('/api/admin/livraison/:id', async (req, res) => {
     }
 });
 
-// ========================================================
-// ROUTE : ADMIN ENVOIE UN MESSAGE À UN UTILISATEUR
-// ========================================================
-
 app.post('/api/admin/notification/send', async (req, res) => {
     const { userId, title, content } = req.body;
 
@@ -744,7 +840,6 @@ app.post('/api/admin/notification/send', async (req, res) => {
     }
 
     try {
-        // ✅ Insérer la notification en base
         const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
@@ -754,7 +849,6 @@ app.post('/api/admin/notification/send', async (req, res) => {
         const notificationId = result.rows[0].id;
         console.log(`✅ Notification admin envoyée à l'utilisateur ${userId}: ${title}`);
 
-        // ✅ Émettre en temps réel vers l'utilisateur via Socket.IO
         if (global.io) {
             global.io.to(`user_${userId}`).emit('notification', {
                 id: notificationId,
@@ -846,10 +940,6 @@ app.get('/api/admin/check-updates', async (req, res) => {
     }
 });
 
-// ========================================================
-// ROUTE : RÉCUPÉRER L'HISTORIQUE DES MISES À JOUR
-// ========================================================
-
 app.get('/api/admin/updates', async (req, res) => {
     try {
         const rows = await db.all(
@@ -867,10 +957,6 @@ app.get('/api/admin/updates', async (req, res) => {
         });
     }
 });
-
-// ========================================================
-// ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
-// ========================================================
 
 app.get('/api/payment/link/:commande_id', async (req, res) => {
     const { commande_id } = req.params;
@@ -919,15 +1005,6 @@ app.get('/api/payment/link/:commande_id', async (req, res) => {
     }
 });
 
-
-// ============================================================
-// ROUTE : CLIENT ENVOIE UN MESSAGE À L'ADMIN
-// ============================================================
-
-// ============================================================
-// ROUTE : CLIENT ENVOIE UN MESSAGE À L'ADMIN
-// ============================================================
-
 app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { content } = req.body;
@@ -937,21 +1014,17 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
     }
 
     try {
-        // Récupérer l'admin (par défaut id=1)
-        const admin = await db.get('SELECT id FROM admins LIMIT 1');
+        const admin = await db.get('SELECT id, email FROM admins LIMIT 1');
         if (!admin) {
             return res.status(500).json({ error: 'Admin non trouvé.' });
         }
 
-        // Récupérer les infos de l'utilisateur
         const user = await db.get('SELECT name, email FROM users WHERE id = $1', [userId]);
         const userName = user ? user.name : 'Client';
         const userEmail = user ? user.email : '';
 
-        // Créer le titre avec le nom et l'email
         const title = `📩 Message de ${userName} (${userEmail})`;
 
-        // Créer la notification pour l'admin
         const result = await db.query(
             `INSERT INTO messages (user_id, commande_id, type, title, content, is_read)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
@@ -960,7 +1033,6 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
 
         const notificationId = result.rows[0].id;
 
-        // Émettre vers l'admin
         if (global.io) {
             global.io.to('admin').emit('notification', {
                 id: notificationId,
@@ -973,7 +1045,6 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
             });
         }
 
-        // Émettre vers l'utilisateur (confirmation)
         if (global.io) {
             global.io.to(`user_${userId}`).emit('notification', {
                 id: notificationId,
@@ -986,6 +1057,14 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
             });
         }
 
+        // ✅ NOTIFICATION PUSH ADMIN
+        await sendPushNotification(
+            admin.email,
+            '📩 Nouveau message client',
+            `${userName} : ${content.substring(0, 80)}${content.length > 80 ? '...' : ''}`,
+            { type: 'client_message', userId: userId.toString() }
+        );
+
         res.json({
             success: true,
             message: 'Message envoyé.',
@@ -997,9 +1076,6 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// ========================================================
-// ROUTE : RÉCUPÉRER L'HISTORIQUE DES DÉPLOIEMENTS (RENDER)
-// ========================================================
 
 app.get('/api/admin/deploys', async (req, res) => {
     try {
@@ -1106,10 +1182,6 @@ app.get('/api/admin/deploys', async (req, res) => {
         });
     }
 });
-
-// ========================================================
-// ROUTE : TEST API RENDER (DEBUG)
-// ========================================================
 
 app.get('/api/admin/test-render', async (req, res) => {
     try {
@@ -1578,6 +1650,17 @@ app.post('/api/commande/create', isAuthenticated, async (req, res) => {
             message: `🆕 Nouvelle commande #${commandeId} de ${nom}`
         });
 
+        // ✅ NOTIFICATION PUSH ADMIN
+        const admin = await db.get('SELECT email FROM admins LIMIT 1');
+        if (admin) {
+            await sendPushNotification(
+                admin.email,
+                `🆕 Nouvelle commande #${commandeId}`,
+                `${nom} - ${total} FCFA`,
+                { commandeId: commandeId.toString(), type: 'nouvelle_commande' }
+            );
+        }
+
         res.json({
             success: true,
             id: commandeId,
@@ -1613,18 +1696,13 @@ app.get('/api/commandes', isAuthenticated, async (req, res) => {
 });
 
 // ========================================================
-// ROUTES NOTIFICATIONS (avec Socket.IO)
-// ========================================================
-// ========================================================
-// ROUTE : RÉCUPÉRER LES NOTIFICATIONS D'UN UTILISATEUR
+// ROUTES NOTIFICATIONS
 // ========================================================
 
 app.get('/api/notifications', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
 
     try {
-        // ✅ Tri UNIQUEMENT par date (plus récent en premier)
-        // On ne trie plus par is_read pour éviter le désordre
         const rows = await db.all(
             `SELECT * FROM messages 
              WHERE user_id = $1 
@@ -1632,7 +1710,6 @@ app.get('/api/notifications', isAuthenticated, async (req, res) => {
             [userId]
         );
         
-        // Compter les notifications non lues (pour le badge)
         const unreadCount = rows.filter(r => !r.is_read).length;
 
         res.json({
@@ -1903,14 +1980,10 @@ app.get('/paywithwave', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'paywithwave.html'));
 });
 
-
-// ============================================================
-// ROUTE : PAGE DISCUSSION (CLIENT)
-// ============================================================
-
 app.get('/discussion', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client', 'html', 'discussion.html'));
 });
+
 // ========================================================
 // ROUTES PAGES (ADMIN)
 // ========================================================
