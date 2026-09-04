@@ -184,7 +184,6 @@ async function createNotification(userId, commandeId, type, title, content) {
         const notificationId = result.rows[0].id;
         console.log(`✅ Notification créée pour user ${userId}: ${title}`);
 
-        // ✅ Émettre en temps réel vers le client via Socket.IO
         if (global.io) {
             const notificationData = {
                 id: notificationId,
@@ -214,7 +213,6 @@ async function createNotification(userId, commandeId, type, title, content) {
 
 async function sendPushNotification(adminEmail, title, body, data = {}) {
     try {
-        // Récupérer le token FCM de l'admin
         const admin = await db.get(
             'SELECT fcm_token FROM admins WHERE email = $1 AND fcm_token IS NOT NULL',
             [adminEmail]
@@ -225,7 +223,6 @@ async function sendPushNotification(adminEmail, title, body, data = {}) {
             return false;
         }
 
-        // Envoyer via Firebase Cloud Messaging API
         const response = await fetch('https://fcm.googleapis.com/v1/projects/mon-app-flutter-c2b1a/messages:send', {
             method: 'POST',
             headers: {
@@ -674,6 +671,10 @@ app.get('/api/admin/commandes', async (req, res) => {
     }
 });
 
+// ========================================================
+// ROUTE : CHANGEMENT DE STATUT (AVEC NOTIFICATIONS PUSH)
+// ========================================================
+
 app.put('/api/admin/commande/status', async (req, res) => {
     const { commandeId, status, causeRefus } = req.body;
 
@@ -692,7 +693,7 @@ app.put('/api/admin/commande/status', async (req, res) => {
 
     try {
         const commande = await db.get(
-            `SELECT c.user_id, c.nom, w.extra4 
+            `SELECT c.user_id, c.nom, c.total, w.extra4 
              FROM commandes c
              LEFT JOIN wave_verifications w ON w.commande_id = c.id AND w.status = 'pending'
              WHERE c.id = $1`,
@@ -761,12 +762,67 @@ app.put('/api/admin/commande/status', async (req, res) => {
             message: `Statut mis à jour : ${status}`
         });
 
+        // ✅ NOTIFICATION PUSH ADMIN POUR CHAQUE STATUT
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
+        if (adminPush) {
+            let pushTitle = '';
+            let pushBody = '';
+            let pushType = '';
+
+            const statusPushMessages = {
+                'accepter': {
+                    title: `💳 Commande acceptée #${commandeId}`,
+                    body: `${commande.nom} - ${commande.total} FCFA`,
+                    type: 'commande_accepter'
+                },
+                'refuse': {
+                    title: `❌ Commande refusée #${commandeId}`,
+                    body: `${commande.nom} - Motif : ${causeRefus || 'Non précisé'}`,
+                    type: 'commande_refuse'
+                },
+                'paiement_effectue': {
+                    title: `✅ Commande payée #${commandeId}`,
+                    body: `${commande.nom} - ${commande.total} FCFA`,
+                    type: 'commande_payee'
+                },
+                'livraison_en_cours': {
+                    title: `🚚 Livraison en cours #${commandeId}`,
+                    body: `${commande.nom} - ${commande.total} FCFA`,
+                    type: 'commande_livraison'
+                },
+                'disponible': {
+                    title: `📍 Commande disponible #${commandeId}`,
+                    body: `${commande.nom} - ${commande.total} FCFA`,
+                    type: 'commande_disponible'
+                },
+                'recuperee': {
+                    title: `✅ Commande récupérée #${commandeId}`,
+                    body: `${commande.nom} - ${commande.total} FCFA`,
+                    type: 'commande_recuperee'
+                }
+            };
+
+            const pushInfo = statusPushMessages[status];
+            if (pushInfo) {
+                await sendPushNotification(
+                    adminPush.email,
+                    pushInfo.title,
+                    pushInfo.body,
+                    { commandeId: commandeId.toString(), type: pushInfo.type }
+                );
+            }
+        }
+
         res.json({ success: true, message: 'Statut mis à jour et notification envoyée' });
     } catch (err) {
         console.error('❌ Erreur:', err);
         res.status(500).json({ error: err.message });
     }
 });
+
+// ========================================================
+// ROUTES ADMIN (suite)
+// ========================================================
 
 app.get('/api/admin/livraison', async (req, res) => {
     try {
@@ -1005,6 +1061,10 @@ app.get('/api/payment/link/:commande_id', async (req, res) => {
     }
 });
 
+// ========================================================
+// ROUTE : CLIENT ENVOIE UN MESSAGE (AVEC NOTIFICATION PUSH)
+// ========================================================
+
 app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { content } = req.body;
@@ -1077,149 +1137,8 @@ app.post('/api/client/message/send', isAuthenticated, async (req, res) => {
     }
 });
 
-app.get('/api/admin/deploys', async (req, res) => {
-    try {
-        const RENDER_API_KEY = process.env.RENDER_API_KEY;
-        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g';
-
-        if (!RENDER_API_KEY) {
-            return res.status(500).json({
-                success: false,
-                error: 'RENDER_API_KEY non configurée'
-            });
-        }
-
-        console.log('🔍 Récupération des déploiements depuis Render...');
-
-        const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
-            headers: {
-                'Authorization': `Bearer ${RENDER_API_KEY}`
-            }
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Erreur API Render:', response.status, errorText);
-            throw new Error(`Erreur API Render: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log(`✅ ${data.length} déploiements récupérés`);
-
-        const formattedDeploys = data.map(item => {
-            const deploy = item.deploy || item;
-
-            let status = deploy.status || 'unknown';
-            if (status === 'live' || status === 'succeeded') status = 'success';
-            if (status === 'failed' || status === 'build_failed') status = 'failed';
-            if (status === 'in_progress' || status === 'building') status = 'in_progress';
-            if (status === 'deactivated' || status === 'canceled') status = 'canceled';
-            if (status === 'pending') status = 'pending';
-
-            let sha = '-';
-            if (deploy.commit && deploy.commit.id) {
-                sha = deploy.commit.id.substring(0, 7);
-            } else if (deploy.id) {
-                sha = deploy.id.substring(0, 7);
-            }
-
-            let message = 'Déploiement';
-            if (deploy.commit && deploy.commit.message) {
-                message = deploy.commit.message.split('\n')[0];
-            }
-
-            let duration = '-';
-            if (deploy.finishedAt && deploy.createdAt) {
-                const start = new Date(deploy.createdAt);
-                const end = new Date(deploy.finishedAt);
-                const diff = Math.round((end - start) / 1000);
-                if (diff > 0) {
-                    duration = diff + 's';
-                }
-            }
-
-            let trigger = 'Manuel';
-            if (deploy.trigger) {
-                if (deploy.trigger === 'new_commit' || deploy.trigger === 'auto') trigger = 'Auto';
-                else if (deploy.trigger === 'deploy_hook') trigger = 'Hook';
-                else if (deploy.trigger === 'api') trigger = 'API';
-                else if (deploy.trigger === 'manual') trigger = 'Manuel';
-                else trigger = deploy.trigger;
-            }
-
-            let dateStr = '-';
-            if (deploy.createdAt) {
-                try {
-                    const date = new Date(deploy.createdAt);
-                    if (!isNaN(date.getTime())) {
-                        dateStr = date.toLocaleDateString('fr-FR') + ' ' + 
-                                  date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    }
-                } catch (e) {}
-            }
-
-            return {
-                sha: sha,
-                message: message,
-                status: status,
-                duration: duration,
-                trigger: trigger,
-                created_at: dateStr,
-                url: `https://dashboard.render.com/web/${SERVICE_ID}/deploys/${deploy.id || ''}`
-            };
-        });
-
-        res.json({
-            success: true,
-            deploys: formattedDeploys
-        });
-
-    } catch (error) {
-        console.error('❌ Erreur récupération déploiements:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-app.get('/api/admin/test-render', async (req, res) => {
-    try {
-        const RENDER_API_KEY = process.env.RENDER_API_KEY;
-        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g';
-
-        if (!RENDER_API_KEY) {
-            return res.status(500).json({
-                success: false,
-                error: 'RENDER_API_KEY non configurée'
-            });
-        }
-
-        const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
-            headers: {
-                'Authorization': `Bearer ${RENDER_API_KEY}`
-            }
-        });
-
-        const data = await response.json();
-
-        res.json({
-            success: true,
-            count: data.length || 0,
-            raw_data: data.slice(0, 3)
-        });
-
-    } catch (error) {
-        console.error('❌ Erreur test:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
 // ========================================================
-// ROUTES CLIENT - AUTH
+// ROUTE : CLIENT S'INSCRIT (AVEC NOTIFICATION PUSH)
 // ========================================================
 
 app.post('/api/client/register', async (req, res) => {
@@ -1248,16 +1167,33 @@ app.post('/api/client/register', async (req, res) => {
             [name, email, phone, hashedPassword]
         );
 
+        const userId = result.rows[0].id;
+
+        // ✅ NOTIFICATION PUSH ADMIN
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
+        if (adminPush) {
+            await sendPushNotification(
+                adminPush.email,
+                '👤 Nouveau client inscrit',
+                `${name} - ${email}`,
+                { type: 'nouveau_client', userId: userId.toString() }
+            );
+        }
+
         res.json({
             success: true,
             message: 'Compte créé avec succès',
-            userId: result.rows[0].id
+            userId: userId
         });
     } catch (error) {
         console.error('❌ Erreur inscription client:', error);
         res.status(500).json({ error: 'Erreur lors de l\'inscription.' });
     }
 });
+
+// ========================================================
+// ROUTES CLIENT - AUTH (suite)
+// ========================================================
 
 app.post('/api/client/login', async (req, res) => {
     const { email, password } = req.body;
@@ -2050,6 +1986,151 @@ app.get('/admin/updates.html', (req, res) => {
 
 app.get('/admin/profil.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin', 'html', 'profil.html'));
+});
+
+// ========================================================
+// ROUTES ADMIN DEPLOYS
+// ========================================================
+
+app.get('/api/admin/deploys', async (req, res) => {
+    try {
+        const RENDER_API_KEY = process.env.RENDER_API_KEY;
+        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g';
+
+        if (!RENDER_API_KEY) {
+            return res.status(500).json({
+                success: false,
+                error: 'RENDER_API_KEY non configurée'
+            });
+        }
+
+        console.log('🔍 Récupération des déploiements depuis Render...');
+
+        const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
+            headers: {
+                'Authorization': `Bearer ${RENDER_API_KEY}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erreur API Render:', response.status, errorText);
+            throw new Error(`Erreur API Render: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log(`✅ ${data.length} déploiements récupérés`);
+
+        const formattedDeploys = data.map(item => {
+            const deploy = item.deploy || item;
+
+            let status = deploy.status || 'unknown';
+            if (status === 'live' || status === 'succeeded') status = 'success';
+            if (status === 'failed' || status === 'build_failed') status = 'failed';
+            if (status === 'in_progress' || status === 'building') status = 'in_progress';
+            if (status === 'deactivated' || status === 'canceled') status = 'canceled';
+            if (status === 'pending') status = 'pending';
+
+            let sha = '-';
+            if (deploy.commit && deploy.commit.id) {
+                sha = deploy.commit.id.substring(0, 7);
+            } else if (deploy.id) {
+                sha = deploy.id.substring(0, 7);
+            }
+
+            let message = 'Déploiement';
+            if (deploy.commit && deploy.commit.message) {
+                message = deploy.commit.message.split('\n')[0];
+            }
+
+            let duration = '-';
+            if (deploy.finishedAt && deploy.createdAt) {
+                const start = new Date(deploy.createdAt);
+                const end = new Date(deploy.finishedAt);
+                const diff = Math.round((end - start) / 1000);
+                if (diff > 0) {
+                    duration = diff + 's';
+                }
+            }
+
+            let trigger = 'Manuel';
+            if (deploy.trigger) {
+                if (deploy.trigger === 'new_commit' || deploy.trigger === 'auto') trigger = 'Auto';
+                else if (deploy.trigger === 'deploy_hook') trigger = 'Hook';
+                else if (deploy.trigger === 'api') trigger = 'API';
+                else if (deploy.trigger === 'manual') trigger = 'Manuel';
+                else trigger = deploy.trigger;
+            }
+
+            let dateStr = '-';
+            if (deploy.createdAt) {
+                try {
+                    const date = new Date(deploy.createdAt);
+                    if (!isNaN(date.getTime())) {
+                        dateStr = date.toLocaleDateString('fr-FR') + ' ' + 
+                                  date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch (e) {}
+            }
+
+            return {
+                sha: sha,
+                message: message,
+                status: status,
+                duration: duration,
+                trigger: trigger,
+                created_at: dateStr,
+                url: `https://dashboard.render.com/web/${SERVICE_ID}/deploys/${deploy.id || ''}`
+            };
+        });
+
+        res.json({
+            success: true,
+            deploys: formattedDeploys
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération déploiements:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get('/api/admin/test-render', async (req, res) => {
+    try {
+        const RENDER_API_KEY = process.env.RENDER_API_KEY;
+        const SERVICE_ID = 'srv-da2ck33ncjis739hfe1g';
+
+        if (!RENDER_API_KEY) {
+            return res.status(500).json({
+                success: false,
+                error: 'RENDER_API_KEY non configurée'
+            });
+        }
+
+        const response = await fetch(`https://api.render.com/v1/services/${SERVICE_ID}/deploys`, {
+            headers: {
+                'Authorization': `Bearer ${RENDER_API_KEY}`
+            }
+        });
+
+        const data = await response.json();
+
+        res.json({
+            success: true,
+            count: data.length || 0,
+            raw_data: data.slice(0, 3)
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur test:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // ========================================================
