@@ -102,7 +102,66 @@ app.get('/health', (req, res) => {
 });
 
 // ========================================================
-// FONCTION : CRÉER UNE NOTIFICATION
+// ✅ FONCTION : ENVOYER UNE NOTIFICATION PUSH FCM
+// ========================================================
+
+async function sendPushNotification(adminEmail, title, body, data = {}) {
+    try {
+        const admin = await db.get(
+            'SELECT fcm_token FROM admins WHERE email = $1 AND fcm_token IS NOT NULL',
+            [adminEmail]
+        );
+
+        if (!admin || !admin.fcm_token) {
+            console.log(`⚠️ Aucun token FCM pour admin ${adminEmail}`);
+            return false;
+        }
+
+        const response = await fetch('https://fcm.googleapis.com/v1/projects/mon-app-flutter-c2b1a/messages:send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.FCM_ACCESS_TOKEN}`,
+            },
+            body: JSON.stringify({
+                message: {
+                    token: admin.fcm_token,
+                    notification: {
+                        title: title,
+                        body: body,
+                    },
+                    data: data,
+                    android: {
+                        priority: 'high',
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                sound: 'default',
+                            },
+                        },
+                    },
+                },
+            }),
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            console.error(`❌ Erreur FCM: ${error}`);
+            return false;
+        }
+
+        console.log(`✅ Notification FCM envoyée à ${adminEmail}: ${title}`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Erreur envoi notification FCM:', error);
+        return false;
+    }
+}
+
+// ========================================================
+// FONCTION : CRÉER UNE NOTIFICATION (CLIENT)
 // ========================================================
 
 async function createNotification(userId, commandeId, type, title, content) {
@@ -129,7 +188,6 @@ async function createNotification(userId, commandeId, type, title, content) {
         const notificationId = result.rows[0].id;
         console.log(`✅ Notification créée pour user ${finalUserId}: ${title}`);
 
-        // ✅ AJOUT : pousser en temps réel au client
         socket.to(`user_${finalUserId}`).emit('notification', {
             id: notificationId,
             user_id: finalUserId,
@@ -148,10 +206,6 @@ async function createNotification(userId, commandeId, type, title, content) {
         return false;
     }
 }
-
-// ========================================================
-// ROUTE : CRÉER UN PAIEMENT
-// ========================================================
 
 // ========================================================
 // ROUTE : CRÉER UN PAIEMENT
@@ -214,7 +268,6 @@ app.post('/api/payment/create', async (req, res) => {
 
         const paymentRef = reference || `NAT-${commandeId}-${Date.now()}`;
 
-        // ✅ Mettre à jour la méthode de paiement
         await db.query(
             `UPDATE commandes SET methode_paiement = $1 WHERE id = $2`,
             ['genius_pay', commandeId]
@@ -276,13 +329,11 @@ app.post('/api/payment/create', async (req, res) => {
         );
         console.log('✅ Payment enregistré');
 
-        // ✅ Mettre à jour le statut de la commande
         await db.query(
             `UPDATE commandes SET status = $1 WHERE id = $2`,
             ['paiement_en_cours', commandeId]
         );
 
-        // ✅ Envoyer la notification au client avec le lien ET expires_at
         await createNotification(
             userId,
             commandeId,
@@ -309,6 +360,7 @@ app.post('/api/payment/create', async (req, res) => {
         });
     }
 });
+
 // ========================================================
 // ROUTE : RÉCUPÉRER LE LIEN DE PAIEMENT D'UNE COMMANDE
 // ========================================================
@@ -790,7 +842,7 @@ app.post('/api/payment/webhook', (req, res) => {
 });
 
 // ========================================================
-// FONCTION : METTRE À JOUR LE STATUT GENIUS PAY
+// FONCTION : METTRE À JOUR LE STATUT GENIUS PAY (AVEC NOTIF PUSH ADMIN)
 // ========================================================
 
 async function updateGeniusStatus(geniusRef, status, paymentData) {
@@ -815,7 +867,10 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
 
         if (!payment) return null;
 
-        const commande = await db.get('SELECT user_id FROM commandes WHERE id = $1', [payment.commande_id]);
+        const commande = await db.get(
+            `SELECT user_id, nom, total FROM commandes WHERE id = $1`,
+            [payment.commande_id]
+        );
         if (!commande) return null;
 
         if (status === 'processing') {
@@ -839,27 +894,88 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
         let notificationTitle = '';
         let notificationContent = '';
         let notificationType = 'paiement';
+        let pushTitle = '';
+        let pushBody = '';
+
+        // ✅ Récupérer l'email de l'admin pour les notifications push
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
 
         if (status === 'success') {
             commandeStatus = 'paiement_effectue';
             notificationTitle = '💳 Paiement réussi';
             notificationContent = `Votre commande #${payment.commande_id} a été soldée avec succès. Montant: ${paymentData?.amount || ''} FCFA. Réf. Genius Pay: ${geniusRef || '-'}`;
+            pushTitle = `💳 Paiement réussi #${payment.commande_id}`;
+            pushBody = `${commande.nom} - ${paymentData?.amount || commande.total || 0} FCFA`;
+            
+            // ✅ NOTIFICATION PUSH ADMIN
+            if (adminPush) {
+                await sendPushNotification(
+                    adminPush.email,
+                    pushTitle,
+                    pushBody,
+                    { commandeId: payment.commande_id.toString(), type: 'paiement_genius_success' }
+                );
+            }
         } else if (status === 'failed') {
             commandeStatus = 'annulee';
             notificationTitle = '❌ Paiement échoué';
             notificationContent = `Le paiement de votre commande #${payment.commande_id} a échoué. Montant: ${paymentData?.amount || ''} FCFA. Réf. Genius Pay: ${geniusRef || '-'}`;
+            pushTitle = `❌ Paiement échoué #${payment.commande_id}`;
+            pushBody = `${commande.nom} - ${paymentData?.amount || commande.total || 0} FCFA`;
+            
+            if (adminPush) {
+                await sendPushNotification(
+                    adminPush.email,
+                    pushTitle,
+                    pushBody,
+                    { commandeId: payment.commande_id.toString(), type: 'paiement_genius_failed' }
+                );
+            }
         } else if (status === 'cancelled') {
             commandeStatus = 'annulee';
             notificationTitle = '⏰ Paiement annulé';
             notificationContent = `Le paiement de votre commande #${payment.commande_id} a été annulé. Montant: ${paymentData?.amount || ''} FCFA.`;
+            pushTitle = `⏰ Paiement annulé #${payment.commande_id}`;
+            pushBody = `${commande.nom} - ${paymentData?.amount || commande.total || 0} FCFA`;
+            
+            if (adminPush) {
+                await sendPushNotification(
+                    adminPush.email,
+                    pushTitle,
+                    pushBody,
+                    { commandeId: payment.commande_id.toString(), type: 'paiement_genius_cancelled' }
+                );
+            }
         } else if (status === 'expired') {
             commandeStatus = 'annulee';
             notificationTitle = '⏳ Paiement expiré';
             notificationContent = `Le paiement de votre commande #${payment.commande_id} a expiré. Vous pouvez réessayer.`;
+            pushTitle = `⏳ Paiement expiré #${payment.commande_id}`;
+            pushBody = `${commande.nom} - ${paymentData?.amount || commande.total || 0} FCFA`;
+            
+            if (adminPush) {
+                await sendPushNotification(
+                    adminPush.email,
+                    pushTitle,
+                    pushBody,
+                    { commandeId: payment.commande_id.toString(), type: 'paiement_genius_expired' }
+                );
+            }
         } else if (status === 'refunded') {
             commandeStatus = 'annulee';
             notificationTitle = '🔄 Remboursement effectué';
             notificationContent = `Le remboursement de votre commande #${payment.commande_id} a été effectué. Montant: ${paymentData?.amount || ''} FCFA.`;
+            pushTitle = `🔄 Remboursement effectué #${payment.commande_id}`;
+            pushBody = `${commande.nom} - ${paymentData?.amount || commande.total || 0} FCFA`;
+            
+            if (adminPush) {
+                await sendPushNotification(
+                    adminPush.email,
+                    pushTitle,
+                    pushBody,
+                    { commandeId: payment.commande_id.toString(), type: 'paiement_genius_refunded' }
+                );
+            }
         }
 
         if (commandeStatus) {
@@ -900,7 +1016,7 @@ async function updateGeniusStatus(geniusRef, status, paymentData) {
 async function checkExpiredPayments() {
     try {
         const expiredPayments = await db.query(
-            `SELECT p.id, p.commande_id, p.genius_reference, c.user_id
+            `SELECT p.id, p.commande_id, p.genius_reference, c.user_id, c.nom, c.total
              FROM payments p
              JOIN commandes c ON c.id = p.commande_id
              WHERE p.genius_status IN ('pending', 'processing')
@@ -912,6 +1028,8 @@ async function checkExpiredPayments() {
         if (expiredPayments.rows.length === 0) return;
 
         console.log(`⏳ ${expiredPayments.rows.length} paiement(s) expiré(s) détecté(s)`);
+
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
 
         for (const payment of expiredPayments.rows) {
             await db.query(
@@ -931,6 +1049,16 @@ async function checkExpiredPayments() {
                 '⏳ Paiement expiré',
                 `Votre paiement pour la commande #${payment.commande_id} a expiré. Vous pouvez passer une nouvelle commande.`
             );
+
+            // ✅ NOTIFICATION PUSH ADMIN
+            if (adminPush) {
+                await sendPushNotification(
+                    adminPush.email,
+                    `⏳ Paiement expiré #${payment.commande_id}`,
+                    `${payment.nom} - ${payment.total || 0} FCFA`,
+                    { commandeId: payment.commande_id.toString(), type: 'paiement_genius_expired' }
+                );
+            }
 
             socket.emit('commande-update', {
                 commandeId: parseInt(payment.commande_id),
@@ -979,7 +1107,7 @@ async function processWebhookEvent(event, payload) {
 }
 
 // ========================================================
-// HANDLERS
+// HANDLERS (avec notifications push admin)
 // ========================================================
 
 async function handlePaymentSuccess(data) {
@@ -1021,6 +1149,17 @@ async function handlePaymentSuccess(data) {
             `Votre commande #${orderId} (${commande.reference}) a été soldée avec succès. Montant: ${amount} FCFA. Réf. Genius Pay: ${reference}`
         );
 
+        // ✅ NOTIFICATION PUSH ADMIN
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
+        if (adminPush) {
+            await sendPushNotification(
+                adminPush.email,
+                `💳 Paiement réussi #${orderId}`,
+                `${commande.nom} - ${amount} FCFA`,
+                { commandeId: orderId.toString(), type: 'paiement_genius_success' }
+            );
+        }
+
         socket.emit('commande-update', {
             commandeId: parseInt(orderId),
             status: 'paiement_effectue',
@@ -1044,7 +1183,7 @@ async function handlePaymentFailed(data) {
     if (!orderId) return;
 
     try {
-        const commande = await db.get('SELECT user_id, reference FROM commandes WHERE id = $1', [orderId]);
+        const commande = await db.get('SELECT user_id, reference, nom FROM commandes WHERE id = $1', [orderId]);
         if (!commande) {
             console.error(`❌ Commande #${orderId} non trouvée`);
             return;
@@ -1073,6 +1212,17 @@ async function handlePaymentFailed(data) {
             `Le paiement de votre commande #${orderId} (${commande.reference}) a échoué. Montant: ${paymentData?.amount || ''} FCFA. Réf. Genius Pay: ${reference}`
         );
 
+        // ✅ NOTIFICATION PUSH ADMIN
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
+        if (adminPush) {
+            await sendPushNotification(
+                adminPush.email,
+                `❌ Paiement échoué #${orderId}`,
+                `${commande.nom} - ${paymentData?.amount || 0} FCFA`,
+                { commandeId: orderId.toString(), type: 'paiement_genius_failed' }
+            );
+        }
+
         socket.emit('commande-update', {
             commandeId: parseInt(orderId),
             status: 'annulee',
@@ -1096,7 +1246,7 @@ async function handlePaymentCancelled(data) {
     if (!orderId) return;
 
     try {
-        const commande = await db.get('SELECT user_id, reference FROM commandes WHERE id = $1', [orderId]);
+        const commande = await db.get('SELECT user_id, reference, nom FROM commandes WHERE id = $1', [orderId]);
         if (!commande) return;
 
         await db.query(
@@ -1122,6 +1272,17 @@ async function handlePaymentCancelled(data) {
             `Le paiement de votre commande #${orderId} (${commande.reference}) a été annulé. Montant: ${paymentData?.amount || ''} FCFA.`
         );
 
+        // ✅ NOTIFICATION PUSH ADMIN
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
+        if (adminPush) {
+            await sendPushNotification(
+                adminPush.email,
+                `⏰ Paiement annulé #${orderId}`,
+                `${commande.nom} - ${paymentData?.amount || 0} FCFA`,
+                { commandeId: orderId.toString(), type: 'paiement_genius_cancelled' }
+            );
+        }
+
         socket.emit('commande-update', {
             commandeId: parseInt(orderId),
             status: 'annulee',
@@ -1146,7 +1307,7 @@ async function handlePaymentRefunded(data) {
     if (!orderId) return;
 
     try {
-        const commande = await db.get('SELECT user_id, reference FROM commandes WHERE id = $1', [orderId]);
+        const commande = await db.get('SELECT user_id, reference, nom FROM commandes WHERE id = $1', [orderId]);
         if (!commande) return;
 
         await db.query(
@@ -1167,6 +1328,17 @@ async function handlePaymentRefunded(data) {
             `Le remboursement de votre commande #${orderId} (${commande.reference}) a été effectué. Montant: ${amount || ''} FCFA.`
         );
 
+        // ✅ NOTIFICATION PUSH ADMIN
+        const adminPush = await db.get('SELECT email FROM admins LIMIT 1');
+        if (adminPush) {
+            await sendPushNotification(
+                adminPush.email,
+                `🔄 Remboursement effectué #${orderId}`,
+                `${commande.nom} - ${amount || 0} FCFA`,
+                { commandeId: orderId.toString(), type: 'paiement_genius_refunded' }
+            );
+        }
+
         socket.emit('commande-update', {
             commandeId: parseInt(orderId),
             status: 'annulee',
@@ -1180,6 +1352,7 @@ async function handlePaymentRefunded(data) {
         console.error('❌ Erreur traitement payment.refunded:', err);
     }
 }
+
 // ========================================================
 // INITIALISATION DE LA BASE DE DONNÉES (AUTOMATIQUE)
 // ========================================================
