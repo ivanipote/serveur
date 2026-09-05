@@ -131,7 +131,7 @@ async function ensureFcmTokenColumn() {
 }
 
 // ========================================================
-// CRÉATION DES TABLES
+// CRÉATION DES TABLES (avec la nouvelle table payments_jeko)
 // ========================================================
 
 async function initializeDatabase() {
@@ -156,56 +156,41 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE PRODUCTS (avec tous les nouveaux champs)
+        // TABLE PRODUCTS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS products (
                 id SERIAL PRIMARY KEY,
                 admin_id INTEGER NOT NULL,
-                
-                -- Informations générales
                 name TEXT NOT NULL,
                 description TEXT,
                 categorie TEXT DEFAULT NULL,
                 tags TEXT[] DEFAULT NULL,
-                
-                -- Prix et stock
                 price INTEGER NOT NULL,
                 quantity INTEGER DEFAULT 0,
                 stock_min INTEGER DEFAULT NULL,
-                
-                -- Images
                 image1 TEXT NOT NULL,
                 image2 TEXT,
-                
-                -- Poids et unité
                 poids DECIMAL DEFAULT NULL,
                 unite TEXT DEFAULT NULL,
-                
-                -- 🔥 NOUVEAUX CHAMPS (Promotion + Nouveau)
                 is_new BOOLEAN DEFAULT FALSE,
                 promo_price INTEGER DEFAULT NULL,
                 promo_end_date DATE DEFAULT NULL,
-                
-                -- 📦 COLONNES FLEX (Informations client)
-                flex1 TEXT DEFAULT NULL,  -- Taille (ex: 500ml, 1kg)
-                flex2 TEXT DEFAULT NULL,  -- Date d'arrivage
-                flex3 TEXT DEFAULT NULL,  -- Origine
-                flex4 TEXT DEFAULT NULL,  -- Composition / Ingrédients
-                flex5 TEXT DEFAULT NULL,  -- Conseils d'utilisation
-                flex6 TEXT DEFAULT NULL,  -- Conservation
-                flex7 TEXT DEFAULT NULL,  -- Notes supplémentaires
-                flex8 TEXT DEFAULT NULL,  -- Réservé
-                
-                -- Fournisseur et péremption
+                flex1 TEXT DEFAULT NULL,
+                flex2 TEXT DEFAULT NULL,
+                flex3 TEXT DEFAULT NULL,
+                flex4 TEXT DEFAULT NULL,
+                flex5 TEXT DEFAULT NULL,
+                flex6 TEXT DEFAULT NULL,
+                flex7 TEXT DEFAULT NULL,
+                flex8 TEXT DEFAULT NULL,
                 fournisseur TEXT DEFAULT NULL,
                 date_peremption DATE DEFAULT NULL,
-                
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (admin_id) REFERENCES admins(id)
             )
         `);
-        console.log('   ✅ Table products créée avec tous les champs (nouveau, promo, flex1-8)');
+        console.log('   ✅ Table products créée');
 
         // ========================================================
         // TABLE USERS
@@ -247,7 +232,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE PAYMENTS
+        // TABLE PAYMENTS (Genius Pay)
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS payments (
@@ -385,7 +370,7 @@ async function initializeDatabase() {
         `);
 
         // ========================================================
-        // TABLE WAVE_VERIFICATIONS (avec extra1-4)
+        // TABLE WAVE_VERIFICATIONS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS wave_verifications (
@@ -410,10 +395,10 @@ async function initializeDatabase() {
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         `);
-        console.log('   ✅ Table wave_verifications créée avec extra1-4');
+        console.log('   ✅ Table wave_verifications créée');
 
         // ========================================================
-        // TABLE COMMITS (historique des commits GitHub)
+        // TABLE COMMITS
         // ========================================================
         await client.query(`
             CREATE TABLE IF NOT EXISTS commits (
@@ -428,21 +413,42 @@ async function initializeDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        console.log('   ✅ Table commits créée pour l\'historique des commits');
+        console.log('   ✅ Table commits créée');
+
+        // ========================================================
+        // ✅ NOUVELLE TABLE : payments_jeko (pour Jèko)
+        // ========================================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS payments_jeko (
+                id SERIAL PRIMARY KEY,
+                transaction_id TEXT UNIQUE NOT NULL,
+                amount INTEGER NOT NULL,
+                currency TEXT DEFAULT 'XOF',
+                status TEXT DEFAULT 'pending',
+                counterpart_phone TEXT,
+                payment_method TEXT,
+                store_id TEXT,
+                store_name TEXT,
+                payment_link_id TEXT,
+                executed_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('   ✅ Table payments_jeko créée pour les paiements Jèko');
 
         await client.query('COMMIT');
 
         console.log('✅ Toutes les tables PostgreSQL créées avec succès');
 
         // ========================================================
-        // AJOUTER LES COLONNES FLEX1-8 À TOUTES LES TABLES
+        // AJOUTER LES COLONNES FLEX
         // ========================================================
         console.log('🔄 Vérification des colonnes flex...');
 
         const tables = [
             'admins', 'products', 'users', 'panier', 'payments',
             'frais_livraison', 'commandes', 'messages', 'updates',
-            'session', 'wave_verifications'
+            'session', 'wave_verifications', 'payments_jeko'
         ];
 
         for (const table of tables) {
@@ -452,7 +458,7 @@ async function initializeDatabase() {
         console.log('✅ Toutes les colonnes flex vérifiées');
 
         // ========================================================
-        // AJOUTER LES COLONNES EXTRA1-4 À WAVE_VERIFICATIONS
+        // AJOUTER LES COLONNES EXTRA
         // ========================================================
         console.log('🔄 Vérification des colonnes extra...');
         await ensureExtraColumns();
@@ -475,6 +481,9 @@ async function initializeDatabase() {
         await client.query(`CREATE INDEX IF NOT EXISTS idx_wave_verifications_created_at ON wave_verifications(created_at)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commits_sha ON commits(sha)`);
         await client.query(`CREATE INDEX IF NOT EXISTS idx_commits_date ON commits(date)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_jeko_transaction_id ON payments_jeko(transaction_id)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_jeko_status ON payments_jeko(status)`);
+        await client.query(`CREATE INDEX IF NOT EXISTS idx_payments_jeko_created_at ON payments_jeko(created_at)`);
 
         console.log('   - Index créés');
 
@@ -495,6 +504,63 @@ async function initializeDatabase() {
 }
 
 // ========================================================
+// ✅ NOUVELLES FONCTIONS POUR PAYMENTS_JEKO
+// ========================================================
+
+// Sauvegarder un paiement Jèko
+async function saveJekoPayment(data) {
+    const query = `
+        INSERT INTO payments_jeko (
+            transaction_id, amount, currency, status,
+            counterpart_phone, payment_method, store_id,
+            store_name, payment_link_id, executed_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (transaction_id) DO NOTHING
+        RETURNING id
+    `;
+
+    const values = [
+        data.id,
+        data.amount?.amount || 0,
+        data.amount?.currency || 'XOF',
+        data.status || 'pending',
+        data.counterpartIdentifier || null,
+        data.paymentMethod || null,
+        data.storeId || null,
+        data.storeName || null,
+        data.transactionDetails?.paymentLinkId || null,
+        data.executedAt ? new Date(data.executedAt) : null
+    ];
+
+    try {
+        const result = await pool.query(query, values);
+        if (result.rowCount > 0) {
+            console.log(`✅ Paiement Jèko ${data.id} enregistré (ID: ${result.rows[0].id})`);
+        } else {
+            console.log(`ℹ️ Paiement Jèko ${data.id} déjà existant`);
+        }
+        return result.rows[0]?.id || null;
+    } catch (error) {
+        console.error('❌ Erreur sauvegarde paiement Jèko:', error);
+        return null;
+    }
+}
+
+// Récupérer tous les paiements Jèko
+async function getJekoPayments() {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM payments_jeko ORDER BY created_at DESC'
+        );
+        return result.rows;
+    } catch (error) {
+        console.error('❌ Erreur récupération paiements Jèko:', error);
+        return [];
+    }
+}
+
+// ========================================================
 // EXPORT
 // ========================================================
 
@@ -506,4 +572,7 @@ module.exports = {
     run: (text, params) => pool.query(text, params),
     initialize: initializeDatabase,
     ensureFcmTokenColumn,
+    // ✅ NOUVELLES FONCTIONS
+    saveJekoPayment,
+    getJekoPayments
 };
